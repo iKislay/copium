@@ -73,6 +73,10 @@ if TYPE_CHECKING:
     from copium.transforms.chain_of_draft import (  # noqa: F401
         ChainOfDraftOutput,
     )
+    from copium.transforms.provider_cache import (  # noqa: F401
+        ProviderCacheComposition,
+        ProviderCacheConfig,
+    )
     from copium.transforms.pipeline import TransformPipeline  # noqa: F401
     from copium.transforms.schema_compressor import (  # noqa: F401
         SchemaCompressionConfig,
@@ -157,6 +161,9 @@ __all__ = [
     "AutoBatchConfig",
     # Chain-of-draft output control
     "ChainOfDraftOutput",
+    # Provider-cache composition
+    "ProviderCacheComposition",
+    "ProviderCacheConfig",
     # HTML extraction (optional)
     "_HTML_EXTRACTOR_AVAILABLE",
 ]
@@ -264,6 +271,9 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
     "AutoBatchConfig": ("copium.transforms.auto_batch", "AutoBatchConfig"),
     # Chain-of-draft output control
     "ChainOfDraftOutput": ("copium.transforms.chain_of_draft", "ChainOfDraftOutput"),
+    # Provider-cache composition
+    "ProviderCacheComposition": ("copium.transforms.provider_cache", "ProviderCacheComposition"),
+    "ProviderCacheConfig": ("copium.transforms.provider_cache", "ProviderCacheConfig"),
     # HTML extraction (optional dependency - requires trafilatura)
     "HTMLExtractor": ("copium.transforms.html_extractor", "HTMLExtractor"),
     "HTMLExtractorConfig": ("copium.transforms.html_extractor", "HTMLExtractorConfig"),
