@@ -8,6 +8,7 @@ pub mod relevance;
 pub mod signals;
 pub mod tokenizer;
 pub mod transforms;
+pub mod uniffi;
 
 // Re-exports for the live-zone dispatcher (Phase B PR-B2 consumes this).
 // Hoisted to the crate root so the proxy crate gets one stable import

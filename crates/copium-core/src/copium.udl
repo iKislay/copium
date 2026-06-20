@@ -1,0 +1,50 @@
+/* UniFFI interface definition for Copium core library.
+
+This defines the FFI boundary for multi-language bindings:
+- Python (via uniffi-bindgen)
+- Kotlin (via uniffi-bindgen)
+- Swift (via uniffi-bindgen)
+- Ruby (via uniffi-bindgen)
+
+Usage:
+  uniffi-bindgen generate src/copium.udl --language python
+  uniffi-bindgen generate src/copium.udl --language kotlin
+  uniffi-bindgen generate src/copium.udl --language swift
+*/
+
+namespace copium {
+    /// Compress a JSON string using Copium's SmartCrusher algorithm.
+    string compress_json(
+        string input,
+        string? query_context,
+        unsigned long max_items
+    );
+
+    /// Count tokens in a text string using tiktoken-compatible counting.
+    unsigned long count_tokens(string text);
+
+    /// Compress a tool output with relevance scoring.
+    string compress_tool_output(
+        string content,
+        string tool_name,
+        string? user_query,
+        unsigned long max_tokens
+    );
+
+    /// Get compression statistics.
+    dictionary CompressionStats {
+        unsigned long original_tokens;
+        unsigned long compressed_tokens;
+        float savings_ratio;
+        unsigned long items_before;
+        unsigned long items_after;
+    };
+
+    /// Create a compression statistics object.
+    CompressionStats create_stats(
+        unsigned long original_tokens,
+        unsigned long compressed_tokens,
+        unsigned long items_before,
+        unsigned long items_after
+    );
+};
