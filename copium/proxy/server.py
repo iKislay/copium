@@ -2456,6 +2456,43 @@ def create_app(config: ProxyConfig | None = None) -> FastAPI:
         """
         m = proxy.metrics
 
+    def _build_memory_decay_stats() -> dict[str, Any]:
+        """Build memory decay statistics for /stats response."""
+        if not proxy.memory_handler or not proxy.memory_handler.backend:
+            return {"enabled": proxy.config.memory_decay_enabled, "available": False}
+        store = getattr(proxy.memory_handler.backend, "_store", None)
+        if not store or not hasattr(store, "db_path"):
+            return {"enabled": proxy.config.memory_decay_enabled, "available": False}
+        try:
+            import sqlite3 as _sql
+            conn = _sql.connect(str(store.db_path))
+            active = conn.execute(
+                "SELECT COUNT(*) FROM memories WHERE expires_at IS NULL OR expires_at > unixepoch()"
+            ).fetchone()[0]
+            expired = conn.execute(
+                "SELECT COUNT(*) FROM memories WHERE expires_at IS NOT NULL AND expires_at <= unixepoch()"
+            ).fetchone()[0]
+            avg_lifespan = conn.execute(
+                "SELECT AVG(CAST(expires_at AS REAL) - unixepoch()) FROM memories "
+                "WHERE expires_at IS NOT NULL AND expires_at > unixepoch()"
+            ).fetchone()[0]
+            conn.close()
+            return {
+                "enabled": proxy.config.memory_decay_enabled,
+                "available": True,
+                "active_memories": active,
+                "expired_pending_gc": expired,
+                "avg_remaining_lifespan_days": round((avg_lifespan or 0) / 86400, 2),
+                "config": {
+                    "decay_lambda": proxy.config.memory_decay_lambda,
+                    "threshold": proxy.config.memory_decay_threshold,
+                    "reinforcement_multiplier": proxy.config.memory_decay_reinforcement_multiplier,
+                    "gc_interval": proxy.config.memory_decay_gc_interval,
+                },
+            }
+        except Exception:
+            return {"enabled": proxy.config.memory_decay_enabled, "available": False}
+
         import time
 
         async with _throughput_cache_lock:
@@ -2930,6 +2967,7 @@ def create_app(config: ProxyConfig | None = None) -> FastAPI:
             "log_full_messages": proxy.config.log_full_messages if proxy else False,
             **get_quota_registry().get_all_stats(),
             "throughput": throughput,
+            "memory_decay": _build_memory_decay_stats(),
         }
 
     def _dashboard_config_payload() -> dict[str, Any]:
