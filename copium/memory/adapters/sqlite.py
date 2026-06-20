@@ -442,6 +442,9 @@ class SQLiteMemoryStore:
         conditions: list[str] = []
         params: list[Any] = []
 
+        # Decay: exclude expired memories by default (O(1) index scan)
+        conditions.append("(expires_at IS NULL OR expires_at > unixepoch())")
+
         # Hierarchical scope filtering
         if filter.user_id is not None:
             conditions.append("user_id = ?")
