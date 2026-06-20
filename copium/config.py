@@ -597,6 +597,86 @@ class AutoBatchConfig:
 
 
 @dataclass
+class SessionDedupConfig:
+    """Configuration for session-level deduplication across turns.
+
+    Tracks content hashes across the full conversation. When the same
+    file or tool output appears again, sends a reference marker instead
+    of the full content. Eliminates the re-sent tool output problem.
+
+    Two-tier detection:
+      - Exact SHA-256 catches byte-identical duplicates
+      - MinHash LSH catches near-duplicates (same command, slightly
+        different output)
+
+    Retrieval markers use the Pichay-proven bracketed format that
+    models recognize and act on without instruction.
+    """
+
+    enabled: bool = True
+
+    # Exact hash matching (SHA-256)
+    exact_hash: bool = True
+
+    # Near-duplicate detection via MinHash
+    minhash_enabled: bool = True
+    minhash_threshold: float = 0.85  # Jaccard similarity threshold
+    minhash_num_perm: int = 128  # Number of permutation functions
+
+    # Session limits
+    max_session_hashes: int = 10_000  # Evict oldest if exceeded
+
+    # Minimum content length to bother deduplicating (chars)
+    min_content_length: int = 200
+
+    # Content types eligible for dedup
+    # "all" = any tool output, "file" = file reads only, "deterministic" = predictable output
+    eligible_content: str = "all"
+
+
+@dataclass
+class ContextBudgetConfig:
+    """Configuration for context window budget management.
+
+    Given a model and context window, automatically budgets what goes in.
+    Reserves space for the model's output, compresses input to fit, and
+    warns when approaching the degradation zone.
+
+    Works with KV cache-aware limits to prevent quality cliff issues on
+    quantized KV caches (Q4_0 degrades severely above 32K tokens).
+    """
+
+    enabled: bool = True
+
+    # Output reservation
+    reserve_output_pct: float = 0.15  # Reserve 15% of context for output
+    max_output_tokens: int = 4096  # Absolute max output reservation
+
+    # Degradation zone thresholds (fraction of reliable context)
+    warning_threshold: float = 0.80  # Warn at 80% of reliable context
+    danger_threshold: float = 0.90  # Block/warn hard at 90%
+
+    # Auto-compress when budget exceeded
+    auto_compress: bool = True
+
+    # KV cache precision awareness
+    # Maps KV cache type to reliable context fraction
+    kv_reliable_fractions: dict[str, float] = field(
+        default_factory=lambda: {
+            "f16": 0.95,   # FP16: reliable up to 95% of max context
+            "fp16": 0.95,
+            "q8_0": 0.50,  # Q8_0: reliable up to 50% of max context
+            "q4_0": 0.25,  # Q4_0: reliable up to 25% of max context
+            "q4": 0.25,
+            "unknown": 0.50,  # Conservative default
+        }
+    )
+
+    # Model-specific overrides: model_name -> max_reliable_tokens
+    model_overrides: dict[str, int] = field(default_factory=dict)
+
+
+@dataclass
 class CopiumConfig:
     """Main configuration for CopiumClient."""
 
@@ -614,6 +694,8 @@ class CopiumConfig:
     quality_gate: QualityGateConfig = field(default_factory=QualityGateConfig)
     differential_response: DifferentialResponseConfig = field(default_factory=DifferentialResponseConfig)
     model_router: ModelRouterConfig = field(default_factory=ModelRouterConfig)
+    session_dedup: SessionDedupConfig = field(default_factory=SessionDedupConfig)
+    context_budget: ContextBudgetConfig = field(default_factory=ContextBudgetConfig)
 
     # Output buffer reserved for the model's response when sizing the
     # incoming context. Previously lived on RollingWindowConfig; hoisted

@@ -26,6 +26,7 @@ from .cache_aligner import CacheAligner
 from .content_router import ContentRouter
 from .differential_response import DifferentialResponse
 from .output_compressor import OutputCompressor
+from .session_dedup import SessionDedup
 from .toon_encoder import TOONEncoder
 
 if TYPE_CHECKING:
@@ -129,6 +130,13 @@ class TransformPipeline:
         # should not be further compressed. Saves up to 95% on polling patterns.
         if self.config.differential_response.enabled:
             transforms.append(DifferentialResponse(self.config.differential_response))
+
+        # 1c. Session Deduplication (cross-turn content dedup)
+        # Runs BEFORE ContentRouter to deduplicate repeated tool outputs
+        # across turns. Eliminates the "re-sent file" problem where identical
+        # content rides along in context every turn.
+        if self.config.session_dedup.enabled:
+            transforms.append(SessionDedup(self.config.session_dedup))
 
         # 2. Content-aware Compression
         # ContentRouter handles ALL content types intelligently:

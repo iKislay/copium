@@ -98,6 +98,10 @@ if TYPE_CHECKING:
         TOONEncoder,
         TOONConfig,
     )
+    from copium.transforms.session_dedup import (  # noqa: F401
+        SessionDedup,
+        SessionDedupConfig,
+    )
 
 _HTML_EXTRACTOR_AVAILABLE = importlib.util.find_spec("trafilatura") is not None
 
@@ -153,6 +157,9 @@ __all__ = [
     "CacheAligner",
     "OutputCompressor",
     "OutputCompressorConfig",
+    # Session deduplication
+    "SessionDedup",
+    "SessionDedupConfig",
     # Model routing
     "ModelRouter",
     "ModelRouterConfig",
@@ -263,6 +270,9 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
     "CacheAligner": ("copium.transforms.cache_aligner", "CacheAligner"),
     "OutputCompressor": ("copium.transforms.output_compressor", "OutputCompressor"),
     "OutputCompressorConfig": ("copium.transforms.output_compressor", "OutputCompressorConfig"),
+    # Session deduplication
+    "SessionDedup": ("copium.transforms.session_dedup", "SessionDedup"),
+    "SessionDedupConfig": ("copium.transforms.session_dedup", "SessionDedupConfig"),
     # Model routing
     "ModelRouter": ("copium.transforms.model_router", "ModelRouter"),
     "ModelRouterConfig": ("copium.transforms.model_router", "ModelRouterConfig"),
