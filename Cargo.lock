@@ -1079,6 +1079,106 @@ dependencies = [
 ]
 
 [[package]]
+name = "copium-core"
+version = "0.1.0"
+dependencies = [
+ "aho-corasick",
+ "blake3",
+ "bytes",
+ "criterion",
+ "dashmap",
+ "fastembed",
+ "flate2",
+ "hf-hub 0.4.3",
+ "http 1.4.0",
+ "magika",
+ "md-5",
+ "proptest",
+ "rayon",
+ "redis",
+ "regex",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "tempfile",
+ "thiserror 1.0.69",
+ "tiktoken-rs",
+ "tokenizers",
+ "toml",
+ "tracing",
+ "unidiff",
+]
+
+[[package]]
+name = "copium-parity"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "copium-core",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "copium-proxy"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "aws-config",
+ "aws-credential-types",
+ "aws-sigv4",
+ "aws-smithy-runtime-api",
+ "axum",
+ "bytes",
+ "bytesize",
+ "clap",
+ "copium-core",
+ "crc32fast",
+ "futures",
+ "futures-util",
+ "gcp_auth",
+ "http 1.4.0",
+ "http-body-util",
+ "humantime",
+ "hyper",
+ "hyper-util",
+ "lru",
+ "md-5",
+ "pin-project-lite",
+ "prometheus",
+ "proptest",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 1.0.69",
+ "tokio",
+ "tokio-stream",
+ "tokio-tungstenite",
+ "tokio-util",
+ "tower",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+ "uuid",
+ "wiremock",
+]
+
+[[package]]
+name = "copium-py"
+version = "0.1.0"
+dependencies = [
+ "cc",
+ "copium-core",
+ "pyo3",
+ "serde_json",
+]
+
+[[package]]
 name = "core-foundation"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1862,106 +1962,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ba4ff7128dee98c7dc9794b6a411377e1404dba1c97deb8d1a55297bd25d8af"
 dependencies = [
  "hashbrown 0.14.5",
-]
-
-[[package]]
-name = "copium-core"
-version = "0.1.0"
-dependencies = [
- "aho-corasick",
- "blake3",
- "bytes",
- "criterion",
- "dashmap",
- "fastembed",
- "flate2",
- "hf-hub 0.4.3",
- "http 1.4.0",
- "magika",
- "md-5",
- "proptest",
- "rayon",
- "redis",
- "regex",
- "rusqlite",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "tempfile",
- "thiserror 1.0.69",
- "tiktoken-rs",
- "tokenizers",
- "toml",
- "tracing",
- "unidiff",
-]
-
-[[package]]
-name = "copium-parity"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "copium-core",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "copium-proxy"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "aws-config",
- "aws-credential-types",
- "aws-sigv4",
- "aws-smithy-runtime-api",
- "axum",
- "bytes",
- "bytesize",
- "clap",
- "crc32fast",
- "futures",
- "futures-util",
- "gcp_auth",
- "copium-core",
- "http 1.4.0",
- "http-body-util",
- "humantime",
- "hyper",
- "hyper-util",
- "lru",
- "md-5",
- "pin-project-lite",
- "prometheus",
- "proptest",
- "reqwest",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "thiserror 1.0.69",
- "tokio",
- "tokio-stream",
- "tokio-tungstenite",
- "tokio-util",
- "tower",
- "tower-http",
- "tracing",
- "tracing-subscriber",
- "url",
- "uuid",
- "wiremock",
-]
-
-[[package]]
-name = "copium-py"
-version = "0.1.0"
-dependencies = [
- "cc",
- "copium-core",
- "pyo3",
- "serde_json",
 ]
 
 [[package]]
