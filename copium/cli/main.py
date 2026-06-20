@@ -62,6 +62,7 @@ def _register_commands() -> None:
         mcp,  # noqa: F401
         output_savings,  # noqa: F401
         perf,  # noqa: F401
+        preset_cmd,  # noqa: F401
         prioritize,  # noqa: F401
         proxy,  # noqa: F401
         recipe,  # noqa: F401
