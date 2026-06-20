@@ -24,6 +24,7 @@ from ..utils import deep_copy_messages
 from .base import Transform
 from .cache_aligner import CacheAligner
 from .content_router import ContentRouter
+from .differential_response import DifferentialResponse
 from .output_compressor import OutputCompressor
 
 if TYPE_CHECKING:
@@ -121,6 +122,12 @@ class TransformPipeline:
         # 1. Cache Aligner (prefix stabilization)
         if self.config.cache_aligner.enabled:
             transforms.append(CacheAligner(self.config.cache_aligner))
+
+        # 1b. Differential Response (diffs for repeated tool calls)
+        # Runs BEFORE ContentRouter because diffs are already compact and
+        # should not be further compressed. Saves up to 95% on polling patterns.
+        if self.config.differential_response.enabled:
+            transforms.append(DifferentialResponse(self.config.differential_response))
 
         # 2. Content-aware Compression
         # ContentRouter handles ALL content types intelligently:

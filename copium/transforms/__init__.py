@@ -43,6 +43,10 @@ if TYPE_CHECKING:
         DiffCompressor,
         DiffCompressorConfig,
     )
+    from copium.transforms.differential_response import (  # noqa: F401
+        DifferentialResponse,
+        DifferentialResponseConfig,
+    )
     from copium.transforms.html_extractor import (  # noqa: F401
         HTMLExtractionResult,
         HTMLExtractor,
@@ -103,6 +107,8 @@ __all__ = [
     "DiffCompressor",
     "DiffCompressorConfig",
     "DiffCompressionResult",
+    "DifferentialResponse",
+    "DifferentialResponseConfig",
     # Code-aware compression (AST-based)
     "CodeAwareCompressor",
     "CodeCompressorConfig",
@@ -182,6 +188,11 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
     "DiffCompressionResult": (
         "copium.transforms.diff_compressor",
         "DiffCompressionResult",
+    ),
+    "DifferentialResponse": ("copium.transforms.differential_response", "DifferentialResponse"),
+    "DifferentialResponseConfig": (
+        "copium.transforms.differential_response",
+        "DifferentialResponseConfig",
     ),
     # Code-aware compression (AST-based)
     "CodeAwareCompressor": ("copium.transforms.code_compressor", "CodeAwareCompressor"),
