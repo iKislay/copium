@@ -63,6 +63,11 @@ if TYPE_CHECKING:
         OutputCompressorConfig,
     )
     from copium.transforms.pipeline import TransformPipeline  # noqa: F401
+    from copium.transforms.schema_compressor import (  # noqa: F401
+        SchemaCompressionConfig,
+        compress_tool_schemas,
+        compress_tools_in_body,
+    )
     from copium.transforms.search_compressor import (  # noqa: F401
         SearchCompressionResult,
         SearchCompressor,
@@ -126,6 +131,9 @@ __all__ = [
     "ContentRouterConfig",
     "RouterCompressionResult",
     "CompressionStrategy",
+    "SchemaCompressionConfig",
+    "compress_tool_schemas",
+    "compress_tools_in_body",
     # Other transforms
     "CacheAligner",
     "OutputCompressor",
@@ -222,6 +230,9 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
         "RouterCompressionResult",
     ),
     "CompressionStrategy": ("copium.transforms.content_router", "CompressionStrategy"),
+    "SchemaCompressionConfig": ("copium.transforms.schema_compressor", "SchemaCompressionConfig"),
+    "compress_tool_schemas": ("copium.transforms.schema_compressor", "compress_tool_schemas"),
+    "compress_tools_in_body": ("copium.transforms.schema_compressor", "compress_tools_in_body"),
     # Other transforms
     "CacheAligner": ("copium.transforms.cache_aligner", "CacheAligner"),
     "OutputCompressor": ("copium.transforms.output_compressor", "OutputCompressor"),

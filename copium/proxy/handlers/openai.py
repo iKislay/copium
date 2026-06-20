@@ -1264,8 +1264,21 @@ class OpenAIHandlerMixin:
         reason: str | None = None
 
         tool_compaction_started = time.perf_counter()
+        # Use the new aggressive schema compressor (Feature 7: Schema Compression)
+        from copium.transforms.schema_compressor import (
+            SchemaCompressionConfig,
+            compress_tools_in_body,
+        )
+
         compacted_payload, tools_modified, tools_before_bytes, tools_after_bytes = (
-            _compact_openai_responses_tools(working)
+            compress_tools_in_body(
+                working,
+                SchemaCompressionConfig(
+                    max_description_length=120,
+                    strip_markdown=True,
+                    collapse_enums=True,
+                ),
+            )
         )
         _add_timing("compression_tool_schema_compaction", tool_compaction_started)
         if tools_modified:
