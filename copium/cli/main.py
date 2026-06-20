@@ -50,6 +50,7 @@ def _register_commands() -> None:
     from . import (
         agent_savings,  # noqa: F401
         audit,  # noqa: F401
+        benchmark_cmd,  # noqa: F401
         capture,  # noqa: F401
         copilot_auth,  # noqa: F401
         dashboard_tui,  # noqa: F401
