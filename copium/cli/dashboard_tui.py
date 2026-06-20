@@ -2,9 +2,10 @@
 
 Uses rich to display a live-updating terminal dashboard with:
 - Tokens saved / dollars saved
-- Per-transform breakdown
+- Per-transform breakdown with bar chart
 - Cache hit rate
-- Live request stream
+- Session dedup stats
+- Budget zone indicator
 - Pipeline timing
 """
 
@@ -51,14 +52,15 @@ def _load_stats(db_path: Path | None = None) -> dict:
             """
         ).fetchone()
 
-        # Get per-transform stats
+        # Get per-transform stats with token savings
         transforms = conn.execute(
             """
-            SELECT transform, COUNT(*) as count
+            SELECT transform, COUNT(*) as count,
+                   SUM(COALESCE(tokens_before - tokens_after, 0)) as total_saved
             FROM transform_applied
             WHERE timestamp > datetime('now', '-1 hour')
             GROUP BY transform
-            ORDER BY count DESC
+            ORDER BY total_saved DESC
             LIMIT 10
             """
         ).fetchall()
@@ -74,6 +76,32 @@ def _load_stats(db_path: Path | None = None) -> dict:
             """
         ).fetchone()
 
+        # Get session dedup stats
+        dedup_row = conn.execute(
+            """
+            SELECT
+                SUM(CASE WHEN transform LIKE '%session_dedup%' THEN 1 ELSE 0 END) as dedup_count
+            FROM transform_applied
+            WHERE timestamp > datetime('now', '-1 hour')
+            """
+        ).fetchone()
+
+        # Get recent requests for the stream
+        recent = conn.execute(
+            """
+            SELECT
+                model,
+                tokens_before,
+                tokens_after,
+                duration_ms,
+                timestamp
+            FROM request_metrics
+            WHERE timestamp > datetime('now', '-1 hour')
+            ORDER BY timestamp DESC
+            LIMIT 5
+            """
+        ).fetchall()
+
         conn.close()
 
         return {
@@ -83,12 +111,26 @@ def _load_stats(db_path: Path | None = None) -> dict:
             "tokens_saved": (row["total_tokens_before"] or 0) - (row["total_tokens_after"] or 0),
             "avg_savings_pct": row["avg_savings_pct"] or 0,
             "avg_latency_ms": row["avg_latency_ms"] or 0,
-            "transforms": [{"name": t["transform"], "count": t["count"]} for t in transforms],
+            "transforms": [
+                {"name": t["transform"], "count": t["count"], "saved": t["total_saved"] or 0}
+                for t in transforms
+            ],
             "cache_hits": cache_row["hits"] or 0,
             "cache_total": cache_row["total"] or 0,
             "cache_hit_rate": (
                 (cache_row["hits"] / cache_row["total"] * 100) if cache_row["total"] else 0
             ),
+            "dedup_count": dedup_row["dedup_count"] or 0,
+            "recent": [
+                {
+                    "model": r["model"],
+                    "before": r["tokens_before"],
+                    "after": r["tokens_after"],
+                    "latency": r["duration_ms"],
+                    "time": r["timestamp"],
+                }
+                for r in recent
+            ],
         }
     except Exception:
         return {}
@@ -103,10 +145,17 @@ def _format_tokens(n: int) -> str:
     return str(n)
 
 
-def _format_cost(tokens: int, model: str = "gpt-4o") -> str:
-    """Estimate cost in dollars."""
-    # Rough average: $3/M input tokens
+def _format_cost(tokens: int) -> str:
+    """Estimate cost in dollars (rough average: $3/M input tokens)."""
     return f"${tokens * 3 / 1_000_000:.4f}"
+
+
+def _bar_chart(value: int, max_value: int, width: int = 20) -> str:
+    """Create a simple bar chart string."""
+    if max_value == 0:
+        return "░" * width
+    filled = int((value / max_value) * width)
+    return "█" * filled + "░" * (width - filled)
 
 
 def _render_dashboard(stats: dict) -> str:
@@ -114,8 +163,8 @@ def _render_dashboard(stats: dict) -> str:
     from rich.console import Console
     from rich.table import Table
     from rich.panel import Panel
-    from rich.columns import Columns
     from rich.text import Text
+    from rich.columns import Columns
     from io import StringIO
 
     output = StringIO()
@@ -135,12 +184,13 @@ def _render_dashboard(stats: dict) -> str:
         console.print("[yellow]No data yet. Waiting for requests...[/yellow]")
         return output.getvalue()
 
-    # Stats cards
+    # Stats cards row
     tokens_saved = stats.get("tokens_saved", 0)
     total_requests = stats.get("total_requests", 0)
     avg_savings = stats.get("avg_savings_pct", 0)
     cache_rate = stats.get("cache_hit_rate", 0)
     avg_latency = stats.get("avg_latency_ms", 0)
+    dedup_count = stats.get("dedup_count", 0)
 
     stats_table = Table(show_header=False, box=None, padding=(0, 2))
     stats_table.add_column(style="bold")
@@ -152,20 +202,56 @@ def _render_dashboard(stats: dict) -> str:
     stats_table.add_row("Avg Savings", f"[cyan]{avg_savings:.1f}%[/cyan]")
     stats_table.add_row("Cache Hit Rate", f"[magenta]{cache_rate:.1f}%[/magenta]")
     stats_table.add_row("Avg Latency", f"[blue]{avg_latency:.0f}ms[/blue]")
+    stats_table.add_row("Dedup Replacements", f"[dim]{dedup_count}[/dim]")
 
     console.print(Panel(stats_table, title="[bold]Summary (last hour)[/bold]", border_style="green"))
 
-    # Transform breakdown
+    # Transform breakdown with bar chart
     transforms = stats.get("transforms", [])
     if transforms:
         t_table = Table(title="Transform Breakdown", border_style="blue")
-        t_table.add_column("Transform", style="cyan")
+        t_table.add_column("Transform", style="cyan", min_width=20)
         t_table.add_column("Count", justify="right", style="green")
+        t_table.add_column("Tokens Saved", justify="right", style="yellow")
+        t_table.add_column("Activity", min_width=22)
 
+        max_saved = max((t.get("saved", 0) for t in transforms), default=1) or 1
         for t in transforms[:8]:
-            t_table.add_row(t["name"], str(t["count"]))
+            saved = t.get("saved", 0)
+            bar = _bar_chart(saved, max_saved, width=18)
+            t_table.add_row(
+                t["name"],
+                str(t["count"]),
+                _format_tokens(saved),
+                f"[green]{bar}[/green]",
+            )
 
         console.print(t_table)
+
+    # Recent requests stream
+    recent = stats.get("recent", [])
+    if recent:
+        r_table = Table(title="Recent Requests", border_style="dim")
+        r_table.add_column("Model", style="cyan", max_width=20)
+        r_table.add_column("Before", justify="right")
+        r_table.add_column("After", justify="right")
+        r_table.add_column("Saved", justify="right", style="green")
+        r_table.add_column("Latency", justify="right", style="blue")
+
+        for r in recent:
+            before = r.get("before", 0)
+            after = r.get("after", 0)
+            saved = before - after
+            model = (r.get("model") or "unknown")[:20]
+            r_table.add_row(
+                model,
+                _format_tokens(before),
+                _format_tokens(after),
+                f"+{_format_tokens(saved)}",
+                f"{r.get('latency', 0):.0f}ms",
+            )
+
+        console.print(r_table)
 
     return output.getvalue()
 
