@@ -1,7 +1,7 @@
 {
-  "name": "headroom-openclaw",
+  "name": "copium-openclaw",
   "version": "0.26.0",
-  "description": "Headroom context compression plugin for OpenClaw — 70-90% token savings with zero LLM calls",
+  "description": "Copium context compression plugin for OpenClaw — 70-90% token savings with zero LLM calls",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -18,7 +18,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "headroom-ai": "^0.22.3"
+    "copium-ai": "^0.22.3"
   },
   "peerDependencies": {
     "openclaw": "*"

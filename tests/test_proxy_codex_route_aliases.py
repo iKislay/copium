@@ -7,7 +7,7 @@ from fastapi import WebSocket
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
-from headroom.proxy.server import HeadroomProxy, ProxyConfig, create_app
+from copium.proxy.server import CopiumProxy, ProxyConfig, create_app
 
 
 def _jwt(payload: dict) -> str:
@@ -24,7 +24,7 @@ def test_codex_responses_aliases_delegate_to_openai_handler(monkeypatch):
     async def fake_handle(self, request):  # type: ignore[no-untyped-def]
         return JSONResponse({"ok": True, "path": request.url.path})
 
-    monkeypatch.setattr(HeadroomProxy, "handle_openai_responses", fake_handle)
+    monkeypatch.setattr(CopiumProxy, "handle_openai_responses", fake_handle)
 
     with TestClient(create_app(ProxyConfig())) as client:
         for path in (
@@ -46,7 +46,7 @@ def test_codex_responses_websocket_aliases_delegate_to_openai_handler(monkeypatc
         await websocket.send_json({"ok": True, "path": websocket.url.path})
         await websocket.close()
 
-    monkeypatch.setattr(HeadroomProxy, "handle_openai_responses_ws", fake_handle_ws)
+    monkeypatch.setattr(CopiumProxy, "handle_openai_responses_ws", fake_handle_ws)
 
     with TestClient(create_app(ProxyConfig())) as client:
         for path in (
@@ -162,7 +162,7 @@ def test_codex_responses_subpath_passthrough_derives_chatgpt_routing_from_jwt(pa
 def test_codex_model_metadata_fetches_codex_registry_for_chatgpt_auth(monkeypatch):
     """Issue #478: under Codex ChatGPT-subscription OAuth, the proxy
     must NOT forward `/v1/models[/{id}]` to chatgpt.com/backend-api —
-    that endpoint returns 403 to OAuth tokens. Instead, Headroom should
+    that endpoint returns 403 to OAuth tokens. Instead, Copium should
     fetch the Codex-specific model registry and synthesize an
     OpenAI-compatible payload from its slugs.
     """
@@ -266,7 +266,7 @@ def test_responses_middleware_stamps_x_client_codex_for_unidentified_caller(monk
         seen["x-client"] = request.headers.get("x-client")
         return JSONResponse({"ok": True})
 
-    monkeypatch.setattr(HeadroomProxy, "handle_openai_responses", fake_handle)
+    monkeypatch.setattr(CopiumProxy, "handle_openai_responses", fake_handle)
 
     with TestClient(create_app(ProxyConfig())) as client:
         response = client.post(
@@ -287,7 +287,7 @@ def test_responses_middleware_preserves_explicit_x_client(monkeypatch):
         seen["x-client"] = request.headers.get("x-client")
         return JSONResponse({"ok": True})
 
-    monkeypatch.setattr(HeadroomProxy, "handle_openai_responses", fake_handle)
+    monkeypatch.setattr(CopiumProxy, "handle_openai_responses", fake_handle)
 
     with TestClient(create_app(ProxyConfig())) as client:
         response = client.post(

@@ -2,7 +2,7 @@
 
 import pytest
 
-from headroom.cache.dynamic_detector import (
+from copium.cache.dynamic_detector import (
     DetectionResult,
     DetectorConfig,
     DynamicCategory,
@@ -254,7 +254,7 @@ class TestEntropyDetection:
 
     def test_high_entropy_string(self):
         """Test that high-entropy strings are detected."""
-        from headroom.cache.dynamic_detector import calculate_entropy
+        from copium.cache.dynamic_detector import calculate_entropy
 
         # High entropy strings (random-looking)
         assert calculate_entropy("abc123xyz789def") > 0.7
@@ -414,7 +414,7 @@ class TestNERDetector:
     @pytest.fixture
     def ner_detector(self):
         """Create detector with NER enabled."""
-        from headroom.cache.dynamic_detector import _SPACY_AVAILABLE, NERDetector
+        from copium.cache.dynamic_detector import _SPACY_AVAILABLE, NERDetector
 
         if not _SPACY_AVAILABLE:
             pytest.skip("spaCy not installed")
@@ -449,7 +449,7 @@ class TestSemanticDetector:
     @pytest.fixture
     def semantic_detector(self):
         """Create detector with semantic enabled."""
-        from headroom.cache.dynamic_detector import (
+        from copium.cache.dynamic_detector import (
             _SENTENCE_TRANSFORMERS_AVAILABLE,
             SemanticDetector,
         )
@@ -475,7 +475,7 @@ class TestSemanticDetector:
 
     def test_missing_exemplar_embeddings_returns_warning(self):
         """Semantic detector reports unavailable state when embeddings are missing."""
-        from headroom.cache.dynamic_detector import SemanticDetector
+        from copium.cache.dynamic_detector import SemanticDetector
 
         detector = object.__new__(SemanticDetector)
         detector.config = DetectorConfig(tiers=["semantic"])
@@ -543,7 +543,7 @@ class TestSemanticDetectorGuards:
         np = pytest.importorskip("numpy")
         from unittest.mock import MagicMock
 
-        from headroom.cache.dynamic_detector import SemanticDetector
+        from copium.cache.dynamic_detector import SemanticDetector
 
         det = object.__new__(SemanticDetector)
         det._model = MagicMock()

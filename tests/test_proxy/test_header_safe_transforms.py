@@ -1,6 +1,6 @@
 """`header_safe_transforms` keeps the comma-joined transforms header splittable.
 
-`x-headroom-transforms` is built as ``",".join(transforms_applied)``. The
+`x-copium-transforms` is built as ``",".join(transforms_applied)``. The
 enriched ``read_lifecycle:<state>:<path>`` and ``smart_crush:<n>:<names>`` tags
 can contain commas, which would make that header ambiguous; the helper collapses
 them back to their legacy counter shape so each header token stays comma-free.
@@ -8,7 +8,7 @@ them back to their legacy counter shape so each header token stays comma-free.
 
 from __future__ import annotations
 
-from headroom.proxy.cost import header_safe_transforms
+from copium.proxy.cost import header_safe_transforms
 
 
 def test_strips_smart_crush_tool_names():

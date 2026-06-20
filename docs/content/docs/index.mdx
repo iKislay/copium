@@ -1,18 +1,18 @@
 ---
 title: Introduction
-description: Headroom is the context optimization layer for LLM applications. Compress tool outputs, DB results, file reads, and RAG results before they reach the model. Same answers, fraction of the tokens.
+description: Copium is the context optimization layer for LLM applications. Compress tool outputs, DB results, file reads, and RAG results before they reach the model. Same answers, fraction of the tokens.
 ---
 
 <StatsSection />
 
-Headroom compresses everything your AI agent reads -- tool outputs, database results, file reads, RAG retrievals, API responses -- before it reaches the LLM. The model sees less noise, responds faster, and costs less.
+Copium compresses everything your AI agent reads -- tool outputs, database results, file reads, RAG retrievals, API responses -- before it reaches the LLM. The model sees less noise, responds faster, and costs less.
 
 ## Quick preview
 
 <Tabs groupId="lang" items={['TypeScript', 'Python']}>
 <Tab value="TypeScript">
 ```ts twoslash
-import { compress } from 'headroom-ai';
+import { compress } from 'copium-ai';
 
 const messages = [
   { role: 'user' as const, content: 'Analyze these results' },
@@ -24,7 +24,7 @@ console.log(`Saved ${result.tokensSaved} tokens (${(result.compressionRatio * 10
 </Tab>
 <Tab value="Python">
 ```python
-from headroom import compress
+from copium import compress
 
 result = compress(messages, model="gpt-4o")
 response = client.messages.create(
@@ -52,26 +52,26 @@ print(f"Saved {result.tokens_saved} tokens ({result.compression_ratio:.0%})")
 | Git diffs | Preserves change hunks, drops unchanged context | 40--60% |
 | Images | ML router selects optimal resize/quality tradeoff | 40--90% |
 
-## Where Headroom fits
+## Where Copium fits
 
 ```
 Your Agent / App
     |
     |  tool outputs, logs, DB reads, RAG results, file reads, API responses
     v
- Headroom  <-- proxy, Python library, TS SDK, or framework integration
+ Copium  <-- proxy, Python library, TS SDK, or framework integration
     |
     v
  LLM Provider  (OpenAI, Anthropic, Google, Bedrock, 100+ via LiteLLM)
 ```
 
-Headroom works as a **transparent proxy** (zero code changes), a **Python function** (`compress()`), a **TypeScript function** (`compress()`), or a **framework integration** (LangChain, Agno, Strands, LiteLLM, Vercel AI SDK, MCP).
+Copium works as a **transparent proxy** (zero code changes), a **Python function** (`compress()`), a **TypeScript function** (`compress()`), or a **framework integration** (LangChain, Agno, Strands, LiteLLM, Vercel AI SDK, MCP).
 
 ## Real-world results
 
 **100 production log entries. One critical error buried at position 67.**
 
-| Metric | Baseline | Headroom |
+| Metric | Baseline | Copium |
 |---|---|---|
 | Input tokens | 10,144 | 1,260 |
 | Correct answers | **4/4** | **4/4** |
@@ -95,7 +95,7 @@ Headroom works as a **transparent proxy** (zero code changes), a **Python functi
 
 ## Nothing is lost
 
-Compressed content goes into the CCR store (Compress-Cache-Retrieve). The LLM gets a `headroom_retrieve` tool and can fetch full originals when it needs more detail. Compression is aggressive but reversible.
+Compressed content goes into the CCR store (Compress-Cache-Retrieve). The LLM gets a `copium_retrieve` tool and can fetch full originals when it needs more detail. Compression is aggressive but reversible.
 
 ## Next steps
 

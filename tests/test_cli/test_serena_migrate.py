@@ -1,11 +1,11 @@
-"""Re-wrap must migrate a stale Headroom-installed Serena entry.
+"""Re-wrap must migrate a stale Copium-installed Serena entry.
 
 The dashboard-popup fix (#1003) added ``--open-web-dashboard False`` to the
 Serena spec, but ``register_server`` refuses to overwrite a differing entry
 without ``force``. So an already-wrapped user whose ``serena`` entry predates
 the flag would keep the old spec — and the popup — on every re-wrap.
 
-``_setup_serena_mcp`` closes that gap: when the ledger proves Headroom
+``_setup_serena_mcp`` closes that gap: when the ledger proves Copium
 installed the entry currently on disk, it force-updates to the current spec.
 A user-managed Serena (absent from the ledger) is left untouched and the
 mismatch is reported exactly as before.
@@ -18,12 +18,12 @@ from pathlib import Path
 
 import pytest
 
-from headroom.cli import wrap as wrap_cli
-from headroom.mcp_registry import build_serena_spec
-from headroom.mcp_registry.base import RegisterResult, RegisterStatus, ServerSpec
-from headroom.mcp_registry.ledger import headroom_installed_matching, record_install
+from copium.cli import wrap as wrap_cli
+from copium.mcp_registry import build_serena_spec
+from copium.mcp_registry.base import RegisterResult, RegisterStatus, ServerSpec
+from copium.mcp_registry.ledger import copium_installed_matching, record_install
 
-# The Serena spec Headroom wrote before the dashboard flag existed.
+# The Serena spec Copium wrote before the dashboard flag existed.
 _STALE_SERENA_SPEC = ServerSpec(
     name="serena",
     command="uvx",
@@ -71,7 +71,7 @@ class _FakeRegistrar:
 
 @pytest.fixture(autouse=True)
 def _isolate_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    monkeypatch.setenv("HEADROOM_WORKSPACE_DIR", str(tmp_path / ".headroom"))
+    monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path / ".copium"))
     # These tests drive ``_setup_serena_mcp`` with a fake registrar, so the real
     # PATH is irrelevant — but the function bails early when ``uvx`` is absent.
     # CI test shards run on runners without uvx, which would skip every code
@@ -84,10 +84,10 @@ def _isolate_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     )
 
 
-def test_rewrap_migrates_stale_headroom_serena(
+def test_rewrap_migrates_stale_copium_serena(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    # Ledger proves Headroom installed the stale entry that's on disk.
+    # Ledger proves Copium installed the stale entry that's on disk.
     record_install("claude", _STALE_SERENA_SPEC)
     registrar = _FakeRegistrar("claude", server=_STALE_SERENA_SPEC)
 
@@ -100,13 +100,13 @@ def test_rewrap_migrates_stale_headroom_serena(
     out = capsys.readouterr().out
     assert "migrated previously-installed entry" in out
     # Ledger now tracks the new spec, so a subsequent re-wrap is a no-op match.
-    assert headroom_installed_matching("claude", fresh)
+    assert copium_installed_matching("claude", fresh)
 
 
 def test_rewrap_leaves_user_managed_serena(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    # Differs from the current spec but is NOT in Headroom's ledger.
+    # Differs from the current spec but is NOT in Copium's ledger.
     user_spec = ServerSpec(name="serena", command="/usr/local/bin/custom-serena")
     registrar = _FakeRegistrar("claude", server=user_spec)
 
@@ -130,7 +130,7 @@ def test_rewrap_fresh_install_records_dashboard_off_spec(
     assert entry is not None
     assert ("--open-web-dashboard", "False") == tuple(entry.args[-2:])
     assert registrar.force_calls == [False]  # no entry → no forced retry needed
-    assert headroom_installed_matching("claude", entry)
+    assert copium_installed_matching("claude", entry)
 
 
 def test_rewrap_already_current_is_noop(

@@ -46,7 +46,7 @@ pytest.importorskip("httpx")
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from headroom.proxy.server import ProxyConfig, create_app  # noqa: E402
+from copium.proxy.server import ProxyConfig, create_app  # noqa: E402
 from tests._dotenv import autouse_apply_env, load_env_overrides  # noqa: E402
 
 # ---------------------------------------------------------------------------
@@ -60,13 +60,13 @@ from tests._dotenv import autouse_apply_env, load_env_overrides  # noqa: E402
 LIVE_CONFIG: dict[str, Any] = {
     # Anthropic — primary model with explicit fallback. The fallback path
     # only triggers if the primary returns 4xx for "model not found".
-    "anthropic_model_primary": os.environ.get("HEADROOM_LIVE_ANTHROPIC_MODEL", "claude-sonnet-4-5"),
+    "anthropic_model_primary": os.environ.get("COPIUM_LIVE_ANTHROPIC_MODEL", "claude-sonnet-4-5"),
     "anthropic_model_fallback": "claude-3-5-sonnet-20241022",
     "anthropic_version": "2023-06-01",
     # OpenAI — small + cheap.
-    "openai_model": os.environ.get("HEADROOM_LIVE_OPENAI_MODEL", "gpt-4o-mini"),
+    "openai_model": os.environ.get("COPIUM_LIVE_OPENAI_MODEL", "gpt-4o-mini"),
     # Gemini — flash variants.
-    "gemini_model": os.environ.get("HEADROOM_LIVE_GEMINI_MODEL", "gemini-2.0-flash"),
+    "gemini_model": os.environ.get("COPIUM_LIVE_GEMINI_MODEL", "gemini-2.0-flash"),
     # Token budgets — keep small so each test stays under 30s.
     "max_tokens_short": 32,
     "max_tokens_med": 128,
@@ -128,7 +128,7 @@ def _build_cache_prefix() -> str:
     so the prefix hashes identically across turns.
     """
     seed = (
-        "Headroom is a context-engineering layer for LLM applications. "
+        "Copium is a context-engineering layer for LLM applications. "
         "It compresses tool outputs, aligns prefix caches, and routes content "
         "to specialized compressors. The realignment branch (Phase A+B) hardens "
         "cache stability and constrains compression to the live zone — the "
@@ -357,12 +357,12 @@ def test_anthropic_cache_stable_when_live_zone_compresses(
     )
 
     # Compression header presence proves the live-zone block dispatcher ran.
-    # (Proxy emits x-headroom-tokens-{before,after,saved} on every optimized
+    # (Proxy emits x-copium-tokens-{before,after,saved} on every optimized
     # /v1/messages response; we assert direction, not magnitude.)
-    tokens_before = resp2.headers.get("x-headroom-tokens-before")
-    tokens_after = resp2.headers.get("x-headroom-tokens-after")
-    assert tokens_before is not None, "proxy did not emit x-headroom-tokens-before"
-    assert tokens_after is not None, "proxy did not emit x-headroom-tokens-after"
+    tokens_before = resp2.headers.get("x-copium-tokens-before")
+    tokens_after = resp2.headers.get("x-copium-tokens-after")
+    assert tokens_before is not None, "proxy did not emit x-copium-tokens-before"
+    assert tokens_after is not None, "proxy did not emit x-copium-tokens-after"
     assert int(tokens_before) >= int(tokens_after), (
         f"tokens_after ({tokens_after}) > tokens_before ({tokens_before}) — "
         "live-zone compression should never inflate"
@@ -380,7 +380,7 @@ def test_anthropic_cache_control_passthrough_byte_faithful(
 ) -> None:
     """A3/A4 — when no compression is needed, the bytes the proxy forwards
     upstream must be byte-identical to what the client sent (modulo the
-    proxy's own internal x-headroom-* header strip and the Authorization
+    proxy's own internal x-copium-* header strip and the Authorization
     rewrite).
 
     We exercise this by intercepting the proxy's ``_retry_request`` (the
@@ -666,7 +666,7 @@ def test_ccr_marker_round_trip_live() -> None:
     Verifies two halves of the B7 contract:
 
       (a) **Tool injection** — when ``ccr_inject_tool=True``, the proxy
-          injects the ``headroom_retrieve`` tool into the upstream-bound
+          injects the ``copium_retrieve`` tool into the upstream-bound
           ``tools`` array on every request. This is the load-bearing claim
           of PR-B7's "always-on tool" hardening: the model can always call
           retrieve, even before any compression has happened.
@@ -679,10 +679,10 @@ def test_ccr_marker_round_trip_live() -> None:
           internal Rust store, which is not exposed through the Python
           ``CompressionStore`` surface served by ``/v1/retrieve``.
 
-    The combination is the "model calls headroom_retrieve and gets original
+    The combination is the "model calls copium_retrieve and gets original
     bytes back" story end-to-end.
     """
-    from headroom.cache.compression_store import (
+    from copium.cache.compression_store import (
         get_compression_store,
         reset_compression_store,
     )
@@ -716,7 +716,7 @@ def test_ccr_marker_round_trip_live() -> None:
     assert fixture_hash, "fixture hash not produced"
 
     # Build a CCR-enabled proxy and capture upstream-bound body to check
-    # that headroom_retrieve was injected.
+    # that copium_retrieve was injected.
     ccr_config = ProxyConfig(
         optimize=True,
         ccr_inject_tool=True,
@@ -757,12 +757,12 @@ def test_ccr_marker_round_trip_live() -> None:
         try:
             # Body carries:
             #   * a user-defined tool — ensures the proxy MERGES
-            #     headroom_retrieve with existing tools rather than only
+            #     copium_retrieve with existing tools rather than only
             #     injecting on empty-tools requests.
             #   * a CCR compression marker on the prior tool_result —
             #     this triggers ``has_compressed_content_this_turn=True``
             #     in the session-sticky tool injector (PR-B7), which
-            #     forces ``headroom_retrieve`` into the tools array on
+            #     forces ``copium_retrieve`` into the tools array on
             #     this very turn (no need for a sticky-on second turn).
             tool_use_id = "toolu_ccr_fixture_001"
             ccr_marker = (
@@ -822,12 +822,12 @@ def test_ccr_marker_round_trip_live() -> None:
 
         assert resp.status_code == 200, resp.text
 
-        # (a) headroom_retrieve injected.
+        # (a) copium_retrieve injected.
         forwarded = captured.get("body") or {}
         forwarded_tools = forwarded.get("tools") or []
         tool_names = {t.get("name") for t in forwarded_tools if isinstance(t, dict)}
-        assert "headroom_retrieve" in tool_names, (
-            f"headroom_retrieve tool not injected; forwarded tools={tool_names}"
+        assert "copium_retrieve" in tool_names, (
+            f"copium_retrieve tool not injected; forwarded tools={tool_names}"
         )
         # User's own tool must survive (additive injection, not replacement).
         assert "fetch_rows" in tool_names, (
@@ -870,7 +870,7 @@ def test_memory_tail_injection_does_not_modify_system_prompt_live(
     has something to retrieve. Capture the upstream-bound body via a
     ``_retry_request`` wrapper and assert positioning.
     """
-    from headroom.memory.backends.local import LocalBackend, LocalBackendConfig
+    from copium.memory.backends.local import LocalBackend, LocalBackendConfig
 
     with tempfile.TemporaryDirectory() as tmp:
         db_path = str(Path(tmp) / "memory.db")
@@ -978,7 +978,7 @@ def test_memory_tail_injection_does_not_modify_system_prompt_live(
                         ],
                     },
                     extra_headers={
-                        "x-headroom-user-id": LIVE_CONFIG["memory_user_id"],
+                        "x-copium-user-id": LIVE_CONFIG["memory_user_id"],
                     },
                 )
             finally:
@@ -1017,14 +1017,14 @@ def test_memory_tail_injection_does_not_modify_system_prompt_live(
 
 
 def _classify_auth_mode_from_headers(headers: dict[str, str]) -> str:
-    """Headroom's load-bearing auth-mode classifier (Phase F-prep).
+    """Copium's load-bearing auth-mode classifier (Phase F-prep).
 
     Mirrors the classifications spec'd in
     ``project_auth_mode_compression_nuances.md`` and the TOIN aggregation
     key (`auth_mode ∈ {"unknown","payg","oauth","subscription"}`).
 
     Until Phase F lands a formal classifier in
-    ``headroom/proxy/auth_mode.py``, this is the canonical ruleset:
+    ``copium/proxy/auth_mode.py``, this is the canonical ruleset:
       * ``x-api-key`` header set      -> "payg"
       * ``Bearer sk-ant-api...``      -> "payg"
       * ``Bearer sk-ant-oat...``      -> "oauth"

@@ -6,7 +6,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from headroom.subscription.client import (
+from copium.subscription.client import (
     _BETA_HEADER,
     _USAGE_URL,
     SubscriptionClient,
@@ -79,18 +79,18 @@ def test_read_cached_oauth_token_prefers_env_and_checks_expiry(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", " env-token ")
-    monkeypatch.setattr("headroom.subscription.client._load_credentials_file", lambda: None)
+    monkeypatch.setattr("copium.subscription.client._load_credentials_file", lambda: None)
     assert read_cached_oauth_token() == "env-token"
 
     monkeypatch.delenv("CLAUDE_CODE_OAUTH_TOKEN", raising=False)
     monkeypatch.setattr(
-        "headroom.subscription.client._load_credentials_file",
+        "copium.subscription.client._load_credentials_file",
         lambda: {"claudeAiOauth": {"accessToken": "cached-token"}},
     )
     assert read_cached_oauth_token() == "cached-token"
 
     monkeypatch.setattr(
-        "headroom.subscription.client._load_credentials_file",
+        "copium.subscription.client._load_credentials_file",
         lambda: {
             "claudeAiOauth": {
                 "accessToken": "expired-token",
@@ -102,13 +102,13 @@ def test_read_cached_oauth_token_prefers_env_and_checks_expiry(
     assert read_cached_oauth_token() is None
 
     monkeypatch.setattr(
-        "headroom.subscription.client._load_credentials_file",
+        "copium.subscription.client._load_credentials_file",
         lambda: {"claudeAiOauth": {"accessToken": ""}},
     )
     assert read_cached_oauth_token() is None
 
     monkeypatch.setattr(
-        "headroom.subscription.client._load_credentials_file",
+        "copium.subscription.client._load_credentials_file",
         lambda: None,
     )
     assert read_cached_oauth_token() is None
@@ -120,7 +120,7 @@ async def test_subscription_client_fetch_handles_success_and_status_codes(
 ) -> None:
     record: dict = {}
     monkeypatch.setattr(
-        "headroom.subscription.client.httpx.AsyncClient",
+        "copium.subscription.client.httpx.AsyncClient",
         lambda timeout: AsyncClientStub(
             response=DummyResponse(200, {"five_hour": {"total": 1}}),
             record=record,
@@ -128,7 +128,7 @@ async def test_subscription_client_fetch_handles_success_and_status_codes(
         ),
     )
     monkeypatch.setattr(
-        "headroom.subscription.client.SubscriptionSnapshot.from_api_response",
+        "copium.subscription.client.SubscriptionSnapshot.from_api_response",
         lambda data, token="": {"data": data, "token": token},
     )
 
@@ -145,7 +145,7 @@ async def test_subscription_client_fetch_handles_success_and_status_codes(
 
     for status_code in (401, 404, 500):
         monkeypatch.setattr(
-            "headroom.subscription.client.httpx.AsyncClient",
+            "copium.subscription.client.httpx.AsyncClient",
             lambda timeout, status_code=status_code: AsyncClientStub(
                 response=DummyResponse(status_code), timeout=timeout
             ),
@@ -159,21 +159,21 @@ async def test_subscription_client_fetch_uses_cached_token_and_handles_exception
 ) -> None:
     client = SubscriptionClient()
 
-    monkeypatch.setattr("headroom.subscription.client.read_cached_oauth_token", lambda: None)
+    monkeypatch.setattr("copium.subscription.client.read_cached_oauth_token", lambda: None)
     assert await client.fetch() is None
 
     monkeypatch.setattr(
-        "headroom.subscription.client.read_cached_oauth_token",
+        "copium.subscription.client.read_cached_oauth_token",
         lambda: "cached-token",
     )
     monkeypatch.setattr(
-        "headroom.subscription.client.httpx.AsyncClient",
+        "copium.subscription.client.httpx.AsyncClient",
         lambda timeout: AsyncClientStub(error=httpx.TimeoutException("slow"), timeout=timeout),
     )
     assert await client.fetch() is None
 
     monkeypatch.setattr(
-        "headroom.subscription.client.httpx.AsyncClient",
+        "copium.subscription.client.httpx.AsyncClient",
         lambda timeout: AsyncClientStub(error=RuntimeError("boom"), timeout=timeout),
     )
     assert await client.fetch() is None

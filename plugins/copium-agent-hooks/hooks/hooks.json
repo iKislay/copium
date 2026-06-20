@@ -1,0 +1,29 @@
+{
+  "description": "Copium plugin hooks — ensure the local Copium runtime is available for initialized agents.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "copium init hook ensure",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "copium init hook ensure",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

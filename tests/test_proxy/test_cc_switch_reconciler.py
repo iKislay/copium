@@ -1,8 +1,8 @@
 """Tests for the cc-switch reconciler.
 
-The reconciler keeps Headroom in the request path while cc-switch overwrites
+The reconciler keeps Copium in the request path while cc-switch overwrites
 ``~/.claude/settings.json`` on every provider switch. See
-``headroom/proxy/cc_switch_reconciler.py``.
+``copium/proxy/cc_switch_reconciler.py``.
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ import os
 
 import pytest
 
-from headroom.proxy.cc_switch_reconciler import CCSwitchReconciler
+from copium.proxy.cc_switch_reconciler import CCSwitchReconciler
 
 PROXY = "http://127.0.0.1:8787"
 DEFAULT = "https://api.anthropic.com"
@@ -49,7 +49,7 @@ def test_third_party_captured_and_base_url_rewritten(tmp_path):
     )
     assert r.tick() is True
     env = json.loads(sf.read_text())["env"]
-    # base_url repointed to Headroom; token + model preserved verbatim.
+    # base_url repointed to Copium; token + model preserved verbatim.
     assert env["ANTHROPIC_BASE_URL"] == PROXY
     assert env["ANTHROPIC_AUTH_TOKEN"] == "sk-x"
     assert env["ANTHROPIC_MODEL"] == "deepseek"
@@ -62,7 +62,7 @@ def test_no_rewrite_loop(tmp_path):
     r, sf, _ = _make(tmp_path)
     _write(sf, {"env": {"ANTHROPIC_BASE_URL": "https://api.deepseek.com/anthropic"}})
     assert r.tick() is True
-    # Already pointing at Headroom now -> must be a no-op (no infinite loop).
+    # Already pointing at Copium now -> must be a no-op (no infinite loop).
     assert r.tick() is False
 
 
@@ -107,7 +107,7 @@ def test_same_float_mtime_provider_switch_recaptures(tmp_path):
 
 
 def test_official_left_direct_by_default(tmp_path, monkeypatch):
-    monkeypatch.delenv("HEADROOM_CC_SWITCH_ROUTE_OFFICIAL", raising=False)
+    monkeypatch.delenv("COPIUM_CC_SWITCH_ROUTE_OFFICIAL", raising=False)
     r, sf, _ = _make(tmp_path)
     _write(sf, {"env": {}})
     # Empty env = "Claude Official" (OAuth). Default: leave it direct.
@@ -116,7 +116,7 @@ def test_official_left_direct_by_default(tmp_path, monkeypatch):
 
 
 def test_official_routed_when_opted_in(tmp_path, monkeypatch):
-    monkeypatch.setenv("HEADROOM_CC_SWITCH_ROUTE_OFFICIAL", "1")
+    monkeypatch.setenv("COPIUM_CC_SWITCH_ROUTE_OFFICIAL", "1")
     r, sf, captured = _make(tmp_path)
     _write(sf, {"env": {}})
     assert r.tick() is True
@@ -158,7 +158,7 @@ def test_transient_invalid_json_retries_next_tick(tmp_path):
     [("1", True), ("true", True), ("on", True), ("0", False), ("", False)],
 )
 def test_enabled_flag(monkeypatch, val, expected):
-    from headroom.proxy.cc_switch_reconciler import reconciler_enabled
+    from copium.proxy.cc_switch_reconciler import reconciler_enabled
 
-    monkeypatch.setenv("HEADROOM_CC_SWITCH_RECONCILE", val)
+    monkeypatch.setenv("COPIUM_CC_SWITCH_RECONCILE", val)
     assert reconciler_enabled() is expected

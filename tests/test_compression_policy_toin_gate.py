@@ -35,17 +35,17 @@ from pathlib import Path
 
 import pytest
 
-from headroom.proxy.auth_mode import AuthMode
-from headroom.telemetry.toin import TOINConfig, get_toin, reset_toin
-from headroom.tokenizer import Tokenizer
-from headroom.tokenizers import EstimatingTokenCounter
-from headroom.transforms.compression_policy import policy_for_mode
+from copium.proxy.auth_mode import AuthMode
+from copium.telemetry.toin import TOINConfig, get_toin, reset_toin
+from copium.tokenizer import Tokenizer
+from copium.tokenizers import EstimatingTokenCounter
+from copium.transforms.compression_policy import policy_for_mode
 
 
 def _has_core() -> bool:
     """Match the pattern in ``test_smart_crusher_rust_parity.py``.
 
-    SmartCrusher's __init__ hard-imports ``headroom._core`` (the Rust
+    SmartCrusher's __init__ hard-imports ``copium._core`` (the Rust
     PyO3 wheel). On dev machines or CI lanes that haven't run
     ``scripts/build_rust_extension.sh``, the wheel is absent. Skip the
     SmartCrusher-touching tests rather than fail loudly — the
@@ -53,7 +53,7 @@ def _has_core() -> bool:
     F2.2 gate code path.
     """
     try:
-        from headroom._core import SmartCrusher  # noqa: F401
+        from copium._core import SmartCrusher  # noqa: F401
 
         return True
     except ImportError:
@@ -62,7 +62,7 @@ def _has_core() -> bool:
 
 _skip_no_core = pytest.mark.skipif(
     not _has_core(),
-    reason="headroom._core wheel not installed (run `scripts/build_rust_extension.sh`)",
+    reason="copium._core wheel not installed (run `scripts/build_rust_extension.sh`)",
 )
 
 
@@ -108,7 +108,7 @@ def _tokenizer() -> Tokenizer:
 @_skip_no_core
 def test_smart_crusher_payg_policy_writes_to_toin(fresh_toin):
     """PAYG: ``toin_read_only=False`` → record_compression IS called."""
-    from headroom.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
+    from copium.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
 
     crusher = SmartCrusher(SmartCrusherConfig())
     messages = _wrap_in_tool_message(_bigger_array(60))
@@ -127,7 +127,7 @@ def test_smart_crusher_payg_policy_writes_to_toin(fresh_toin):
 @_skip_no_core
 def test_smart_crusher_oauth_policy_writes_to_toin(fresh_toin):
     """OAuth: identical to PAYG in F2.2 — writes enabled."""
-    from headroom.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
+    from copium.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
 
     crusher = SmartCrusher(SmartCrusherConfig())
     messages = _wrap_in_tool_message(_bigger_array(60))
@@ -150,7 +150,7 @@ def test_smart_crusher_subscription_policy_skips_toin_write(fresh_toin):
     This is THE behaviour change of F2.2 — keep the learning pool
     consistent for cache-stability-sensitive traffic.
     """
-    from headroom.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
+    from copium.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
 
     crusher = SmartCrusher(SmartCrusherConfig())
     messages = _wrap_in_tool_message(_bigger_array(60))
@@ -180,7 +180,7 @@ def test_smart_crusher_no_policy_keeps_legacy_write_behaviour(fresh_toin):
     must continue to feed the learning pool exactly as they did
     before F2.2.
     """
-    from headroom.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
+    from copium.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
 
     crusher = SmartCrusher(SmartCrusherConfig())
     messages = _wrap_in_tool_message(_bigger_array(60))
@@ -208,7 +208,7 @@ def test_content_router_apply_stores_runtime_policy():
     above); the load-bearing thing for the parity guard is that the
     field is wired through.
     """
-    from headroom.transforms.content_router import ContentRouter
+    from copium.transforms.content_router import ContentRouter
 
     router = ContentRouter()
     # Sanity: the field exists on a fresh instance and starts None.
@@ -233,7 +233,7 @@ def test_content_router_subscription_skips_toin_record(fresh_toin):
     coverage for the gate, and the direct call avoids the routing
     flake from ``test_smart_crusher_toin_attachment.py``'s comments.
     """
-    from headroom.transforms.content_router import (
+    from copium.transforms.content_router import (
         CompressionStrategy,
         ContentRouter,
     )
@@ -261,7 +261,7 @@ def test_content_router_payg_records_to_toin(fresh_toin):
     real TOIN call. Asserts the gate doesn't accidentally fire when
     ``toin_read_only=False``.
     """
-    from headroom.transforms.content_router import (
+    from copium.transforms.content_router import (
         CompressionStrategy,
         ContentRouter,
     )

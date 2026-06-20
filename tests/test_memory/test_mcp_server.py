@@ -6,8 +6,8 @@ import pytest
 
 pytest.importorskip("mcp")
 
-from headroom.memory.mcp_server import _warm_up_backend
-from headroom.memory.models import Memory
+from copium.memory.mcp_server import _warm_up_backend
+from copium.memory.models import Memory
 
 
 @pytest.mark.asyncio

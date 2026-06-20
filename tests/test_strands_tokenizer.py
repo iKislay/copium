@@ -8,7 +8,7 @@ Strands SDK sends content blocks without a "type" field:
 The tokenizer must count these correctly.
 """
 
-from headroom.tokenizers import get_tokenizer
+from copium.tokenizers import get_tokenizer
 
 
 def _get_counter():

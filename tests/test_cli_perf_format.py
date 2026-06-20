@@ -1,4 +1,4 @@
-"""Tests for `headroom perf --format {text,json,csv}` (issue #595)."""
+"""Tests for `copium perf --format {text,json,csv}` (issue #595)."""
 
 from __future__ import annotations
 
@@ -9,9 +9,9 @@ import json
 import pytest
 from click.testing import CliRunner
 
-from headroom.cli.main import main
-from headroom.perf import analyzer
-from headroom.perf.analyzer import (
+from copium.cli.main import main
+from copium.perf import analyzer
+from copium.perf.analyzer import (
     PerfRecord,
     PerfReport,
     TransformRecord,
@@ -172,7 +172,7 @@ def test_parse_perf_line_preserves_client_field(monkeypatch, tmp_path):
     log_dir = tmp_path / "logs"
     log_dir.mkdir()
     (log_dir / "proxy.log").write_text(
-        "2026-06-10 10:00:00,000 - headroom.proxy - INFO - "
+        "2026-06-10 10:00:00,000 - copium.proxy - INFO - "
         "[hr_codex] PERF model=gpt-5 msgs=3 tok_before=1000 "
         "tok_after=90 tok_saved=910 cache_read=0 cache_write=0 "
         "cache_hit_pct=0 opt_ms=12 transforms=content_router client=codex\n"
@@ -213,7 +213,7 @@ def test_perf_text_default_unchanged(runner, monkeypatch):
     _patch_report(monkeypatch, _sample_report())
     result = runner.invoke(main, ["perf"])
     assert result.exit_code == 0, result.output
-    assert "Headroom Performance Report" in result.output
+    assert "Copium Performance Report" in result.output
 
 
 def test_perf_rejects_unknown_format(runner, monkeypatch):
@@ -229,7 +229,7 @@ def test_parse_perf_line_preserves_blank_client_field(
     logs_dir.mkdir()
     monkeypatch.setattr(analyzer, "LOG_DIR", logs_dir)
     (logs_dir / "proxy.log").write_text(
-        "2026-06-10 10:00:00,000 - headroom.proxy - INFO - [req-blank] PERF "
+        "2026-06-10 10:00:00,000 - copium.proxy - INFO - [req-blank] PERF "
         "model=gpt-5 msgs=1 tok_before=100 tok_after=50 tok_saved=50 "
         "cache_read=0 cache_write=0 cache_hit_pct=0 opt_ms=1 transforms=test client=\n",
         encoding="utf-8",
@@ -247,15 +247,15 @@ def test_throughput_parsing_and_calculations(monkeypatch, tmp_path):
     monkeypatch.setattr(analyzer, "LOG_DIR", logs_dir)
 
     log_content = (
-        '2026-06-10 10:00:00,000 - headroom.proxy - INFO - [req1] STAGE_TIMINGS {"event": "stage_timings", "stages": {"compression_first_stage": 100.0, "upstream_connect": 50.0}}\n'
-        "2026-06-10 10:00:01,000 - headroom.proxy - INFO - [req1] PERF model=gpt-5 msgs=1 tok_before=1000 tok_after=400 tok_saved=600 opt_ms=10 total_ms=500 tok_out=500 ttfb_ms=100 transforms=test client=codex\n"
-        '2026-06-10 10:00:02,000 - headroom.proxy - INFO - [req2] STAGE_TIMINGS {"event": "stage_timings", "stages": {"compression": 200.0, "upstream_connect": 50.0}}\n'
-        "2026-06-10 10:00:03,000 - headroom.proxy - INFO - [req2] PERF model=gpt-5 msgs=1 tok_before=2000 tok_after=1000 tok_saved=1000 opt_ms=20 total_ms=1000 tok_out=1000 ttfb_ms=200 transforms=test client=codex\n"
-        "2026-06-10 10:00:05,000 - headroom.proxy - INFO - [req3] PERF model=gpt-5 msgs=1 tok_before=1500 tok_after=500 tok_saved=1000 opt_ms=15 total_ms=600 tok_out=600 ttfb_ms=150 transforms=test client=codex\n"
-        '2026-06-10 10:00:06,000 - headroom.proxy - INFO - [req4] STAGE_TIMINGS {"event": "stage_timings", "stages": {"compression_first_stage": 150.0, "upstream_connect": 50.0}}\n'
-        "2026-06-10 10:00:07,000 - headroom.proxy - INFO - [req4] PERF model=gpt-5 msgs=1 tok_before=1200 tok_after=300 tok_saved=900 opt_ms=12 total_ms=400 tok_out=400 ttfb_ms=80 transforms=test client=codex\n"
-        '2026-06-10 10:00:08,000 - headroom.proxy - INFO - [req5] STAGE_TIMINGS {"event": "stage_timings", "stages": {"compression_first_stage": 50.0, "upstream_connect": 50.0}}\n'
-        "2026-06-10 10:00:09,000 - headroom.proxy - INFO - [req5] PERF model=gpt-5 msgs=1 tok_before=800 tok_after=200 tok_saved=600 opt_ms=5 total_ms=300 tok_out=300 ttfb_ms=50 transforms=test client=codex\n"
+        '2026-06-10 10:00:00,000 - copium.proxy - INFO - [req1] STAGE_TIMINGS {"event": "stage_timings", "stages": {"compression_first_stage": 100.0, "upstream_connect": 50.0}}\n'
+        "2026-06-10 10:00:01,000 - copium.proxy - INFO - [req1] PERF model=gpt-5 msgs=1 tok_before=1000 tok_after=400 tok_saved=600 opt_ms=10 total_ms=500 tok_out=500 ttfb_ms=100 transforms=test client=codex\n"
+        '2026-06-10 10:00:02,000 - copium.proxy - INFO - [req2] STAGE_TIMINGS {"event": "stage_timings", "stages": {"compression": 200.0, "upstream_connect": 50.0}}\n'
+        "2026-06-10 10:00:03,000 - copium.proxy - INFO - [req2] PERF model=gpt-5 msgs=1 tok_before=2000 tok_after=1000 tok_saved=1000 opt_ms=20 total_ms=1000 tok_out=1000 ttfb_ms=200 transforms=test client=codex\n"
+        "2026-06-10 10:00:05,000 - copium.proxy - INFO - [req3] PERF model=gpt-5 msgs=1 tok_before=1500 tok_after=500 tok_saved=1000 opt_ms=15 total_ms=600 tok_out=600 ttfb_ms=150 transforms=test client=codex\n"
+        '2026-06-10 10:00:06,000 - copium.proxy - INFO - [req4] STAGE_TIMINGS {"event": "stage_timings", "stages": {"compression_first_stage": 150.0, "upstream_connect": 50.0}}\n'
+        "2026-06-10 10:00:07,000 - copium.proxy - INFO - [req4] PERF model=gpt-5 msgs=1 tok_before=1200 tok_after=300 tok_saved=900 opt_ms=12 total_ms=400 tok_out=400 ttfb_ms=80 transforms=test client=codex\n"
+        '2026-06-10 10:00:08,000 - copium.proxy - INFO - [req5] STAGE_TIMINGS {"event": "stage_timings", "stages": {"compression_first_stage": 50.0, "upstream_connect": 50.0}}\n'
+        "2026-06-10 10:00:09,000 - copium.proxy - INFO - [req5] PERF model=gpt-5 msgs=1 tok_before=800 tok_after=200 tok_saved=600 opt_ms=5 total_ms=300 tok_out=300 ttfb_ms=50 transforms=test client=codex\n"
     )
     (logs_dir / "proxy.log").write_text(log_content, encoding="utf-8")
 
@@ -286,7 +286,7 @@ def test_throughput_parsing_and_calculations(monkeypatch, tmp_path):
 
 
 def test_throughput_empty_and_percentiles():
-    from headroom.perf.analyzer import (
+    from copium.perf.analyzer import (
         PerfReport,
         _calculate_throughput_stats,
         _percentile,

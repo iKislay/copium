@@ -6,13 +6,13 @@
 
 | Store | Location | Type | Purpose |
 |-------|----------|------|---------|
-| SQLite | `headroom.db` (cwd or `~/.headroom/`) | Local file | Metrics, sessions, compression store |
-| Memory DB | `~/.headroom/headroom_memory.db` | Local file | Memory system (optional) |
-| Vector Index | `~/.headroom/headroom_memory_vectors.db` | Local file | Semantic search (optional, requires sqlite-vec) |
-| Graph Store | `~/.headroom/headroom_memory_graph.db` | Local file | Memory relationships |
-| Compression cache | `~/.headroom/cache/` | Directory | Semantic + summary cache |
+| SQLite | `copium.db` (cwd or `~/.copium/`) | Local file | Metrics, sessions, compression store |
+| Memory DB | `~/.copium/copium_memory.db` | Local file | Memory system (optional) |
+| Vector Index | `~/.copium/copium_memory_vectors.db` | Local file | Semantic search (optional, requires sqlite-vec) |
+| Graph Store | `~/.copium/copium_memory_graph.db` | Local file | Memory relationships |
+| Compression cache | `~/.copium/cache/` | Directory | Semantic + summary cache |
 
-**Note:** Default store URL is `sqlite:///headroom.db` (relative to working directory).
+**Note:** Default store URL is `sqlite:///copium.db` (relative to working directory).
 
 ---
 
@@ -93,16 +93,16 @@ CREATE TABLE compression_store (
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `HEADROOM_WORKSPACE_DIR` | `~/.headroom` | Workspace root; all DBs live under this directory |
-| `HEADROOM_CONFIG_DIR` | `~/.headroom/config` | Config root (read-mostly: models.json, per-plugin config) |
+| `COPIUM_WORKSPACE_DIR` | `~/.copium` | Workspace root; all DBs live under this directory |
+| `COPIUM_CONFIG_DIR` | `~/.copium/config` | Config root (read-mostly: models.json, per-plugin config) |
 
 ### Cache
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | CLI `--no-cache` | unset | Disable semantic cache for the proxy process |
-| `HEADROOM_WORKSPACE_DIR` | `~/.headroom` | Workspace root for proxy state, logs, memory, and savings |
-| `HEADROOM_STATELESS` | `false` | Disable filesystem writes and keep runtime state in memory |
+| `COPIUM_WORKSPACE_DIR` | `~/.copium` | Workspace root for proxy state, logs, memory, and savings |
+| `COPIUM_STATELESS` | `false` | Disable filesystem writes and keep runtime state in memory |
 
 ---
 
@@ -154,7 +154,7 @@ curl http://localhost:8787/stats
 ### Manual Backup
 
 ```bash
-tar -czf headroom-backup.tar.gz ~/.headroom/
+tar -czf copium-backup.tar.gz ~/.copium/
 ```
 
 ### Storage Location
@@ -162,7 +162,7 @@ tar -czf headroom-backup.tar.gz ~/.headroom/
 Relocate all storage by setting the workspace root:
 
 ```bash
-export HEADROOM_WORKSPACE_DIR=/mnt/state
+export COPIUM_WORKSPACE_DIR=/mnt/state
 ```
 
 ---

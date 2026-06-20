@@ -3,7 +3,7 @@
 Tests content detection, search compressor, and log compressor.
 """
 
-from headroom.transforms import (
+from copium.transforms import (
     ContentType,
     LogCompressor,
     LogCompressorConfig,
@@ -254,8 +254,8 @@ class TestSmartCrusherTextIntegration:
     @staticmethod
     def _get_tokenizer():
         """Get a tokenizer for tests using OpenAI provider."""
-        from headroom.providers import OpenAIProvider
-        from headroom.tokenizer import Tokenizer
+        from copium.providers import OpenAIProvider
+        from copium.tokenizer import Tokenizer
 
         provider = OpenAIProvider()
         token_counter = provider.get_token_counter("gpt-4o")
@@ -266,7 +266,7 @@ class TestSmartCrusherTextIntegration:
 
         Applications should use SearchCompressor directly if compression is needed.
         """
-        from headroom.transforms import SmartCrusher, SmartCrusherConfig
+        from copium.transforms import SmartCrusher, SmartCrusherConfig
 
         # Create search results content
         search_results = "\n".join([f"src/file{i}.py:{i}:def function_{i}():" for i in range(100)])
@@ -290,7 +290,7 @@ class TestSmartCrusherTextIntegration:
 
         Applications should use LogCompressor directly if compression is needed.
         """
-        from headroom.transforms import SmartCrusher, SmartCrusherConfig
+        from copium.transforms import SmartCrusher, SmartCrusherConfig
 
         # Create log content
         lines = ["INFO: Processing item " + str(i) for i in range(100)]
@@ -359,7 +359,7 @@ class TestSmartCrusherTextIntegration:
         import json
         import re
 
-        from headroom.transforms import SmartCrusher, SmartCrusherConfig
+        from copium.transforms import SmartCrusher, SmartCrusherConfig
 
         # Create JSON array content with larger items to trigger compression
         items = [
@@ -394,8 +394,8 @@ class TestSmartCrusherTextIntegration:
         # or adds a digest marker - either way it processes the JSON
         assert len(tool_content) <= len(json_content) + 100  # Allow for digest marker
 
-        # Extract JSON part (may have headroom digest marker appended)
-        base_content = re.split(r"\n<headroom:", tool_content)[0]
+        # Extract JSON part (may have copium digest marker appended)
+        base_content = re.split(r"\n<copium:", tool_content)[0]
         parsed = json.loads(base_content)
         assert isinstance(parsed, list)
         assert len(parsed) > 0  # JSON is still valid and contains items

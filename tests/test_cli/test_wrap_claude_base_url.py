@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from headroom.cli import wrap as wrap_cli
+from copium.cli import wrap as wrap_cli
 
 
 def _settings(tmp_path: Path) -> Path:

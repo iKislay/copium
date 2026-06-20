@@ -1,4 +1,4 @@
-"""Tests for ``headroom.proxy.stage_timer.StageTimer``."""
+"""Tests for ``copium.proxy.stage_timer.StageTimer``."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import time
 
 import pytest
 
-from headroom.proxy.stage_timer import StageTimer
+from copium.proxy.stage_timer import StageTimer
 
 
 def test_sync_measure_records_duration():

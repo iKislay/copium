@@ -1,4 +1,4 @@
-"""Tests for :class:`headroom.proxy.image_compression_decision.ImageCompressionDecision`.
+"""Tests for :class:`copium.proxy.image_compression_decision.ImageCompressionDecision`.
 
 Image compression today is gated at two sites (``openai.py:1203`` +
 ``anthropic.py:868``) by inline conjunctions. Both already check
@@ -24,13 +24,13 @@ from dataclasses import FrozenInstanceError
 from types import SimpleNamespace
 from typing import Any
 
-from headroom.proxy.image_compression_decision import ImageCompressionDecision
+from copium.proxy.image_compression_decision import ImageCompressionDecision
 
 # ── Helpers ───────────────────────────────────────────────────────────
 
 
 def _config(*, image_optimize: bool = True) -> Any:
-    """Minimal stand-in for ``HeadroomConfig`` — only the field the
+    """Minimal stand-in for ``CopiumConfig`` — only the field the
     decision reads."""
     return SimpleNamespace(image_optimize=image_optimize)
 
@@ -74,7 +74,7 @@ def test_bypass_header_wins() -> None:
     image compression mutates bytes (tile-aligns / re-encodes), so
     bypass must skip it. Mirror of CompressionDecision."""
     d = ImageCompressionDecision.decide(
-        headers={"x-headroom-bypass": "true"},
+        headers={"x-copium-bypass": "true"},
         config=_config(image_optimize=True),
         messages=_msgs(),
     )
@@ -83,10 +83,10 @@ def test_bypass_header_wins() -> None:
 
 
 def test_passthrough_mode_header_also_triggers_bypass_skip() -> None:
-    """``x-headroom-mode: passthrough`` alt spelling — mirrors
-    ``_headroom_bypass_enabled`` semantics across all proxy gates."""
+    """``x-copium-mode: passthrough`` alt spelling — mirrors
+    ``_copium_bypass_enabled`` semantics across all proxy gates."""
     d = ImageCompressionDecision.decide(
-        headers={"x-headroom-mode": "passthrough"},
+        headers={"x-copium-mode": "passthrough"},
         config=_config(image_optimize=True),
         messages=_msgs(),
     )
@@ -127,7 +127,7 @@ def test_bypass_beats_image_optimize_disabled() -> None:
     """User signal beats operator signal — bypass is the more
     informative dashboard slice."""
     d = ImageCompressionDecision.decide(
-        headers={"x-headroom-bypass": "true"},
+        headers={"x-copium-bypass": "true"},
         config=_config(image_optimize=False),
         messages=_msgs(),
     )
@@ -138,7 +138,7 @@ def test_bypass_beats_no_messages() -> None:
     """Bypass+no-messages surfaces bypass — user opted out, the
     empty body is incidental."""
     d = ImageCompressionDecision.decide(
-        headers={"x-headroom-bypass": "true"},
+        headers={"x-copium-bypass": "true"},
         config=_config(),
         messages=[],
     )
@@ -168,7 +168,7 @@ def test_observability_booleans_populated_when_compressing() -> None:
 
 def test_observability_booleans_populated_when_passthrough() -> None:
     d = ImageCompressionDecision.decide(
-        headers={"x-headroom-bypass": "true"},
+        headers={"x-copium-bypass": "true"},
         config=_config(image_optimize=True),
         messages=_msgs(),
     )
@@ -182,7 +182,7 @@ def test_observability_booleans_populated_when_passthrough() -> None:
 
 def test_apply_to_tags_stamps_reason_when_passthrough() -> None:
     d = ImageCompressionDecision.decide(
-        headers={"x-headroom-bypass": "true"}, config=_config(), messages=_msgs()
+        headers={"x-copium-bypass": "true"}, config=_config(), messages=_msgs()
     )
     tags: dict[str, str] = {}
     d.apply_to_tags(tags)
@@ -219,7 +219,7 @@ def test_apply_to_tags_for_every_skip_reason() -> None:
     """Every reason name round-trips cleanly into the tag dict."""
     cases: dict[str, dict[str, Any]] = {
         "bypass_header": {
-            "headers": {"x-headroom-bypass": "true"},
+            "headers": {"x-copium-bypass": "true"},
             "config": _config(),
             "messages": _msgs(),
         },

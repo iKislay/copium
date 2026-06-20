@@ -41,8 +41,8 @@ plugins/
 !plugins/
 !plugins/openclaw/
 !plugins/openclaw/**
-!plugins/headroom-agent-hooks/
-!plugins/headroom-agent-hooks/**
+!plugins/copium-agent-hooks/
+!plugins/copium-agent-hooks/**
 node_modules/
 *.tgz
 

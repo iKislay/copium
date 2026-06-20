@@ -2,7 +2,7 @@
 
 import pytest
 
-from headroom.compression.handlers.code_handler import (
+from copium.compression.handlers.code_handler import (
     CodeStructureHandler,
     is_tree_sitter_available,
 )

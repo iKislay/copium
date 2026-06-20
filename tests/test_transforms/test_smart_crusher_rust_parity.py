@@ -2,16 +2,16 @@
 
 Stage 3c.1b verification — guards the PyO3 bridge against regressions
 by replaying every recorded fixture in
-`tests/parity/fixtures/smart_crusher/` through `headroom._core.SmartCrusher`
+`tests/parity/fixtures/smart_crusher/` through `copium._core.SmartCrusher`
 and asserting the output matches the recording byte-for-byte.
 
 Twin of `test_diff_compressor_rust_parity.py`. The Rust side runs the
-same fixtures via `cargo run -p headroom-parity --bin parity-run --
+same fixtures via `cargo run -p copium-parity --bin parity-run --
 run --only smart_crusher`; this Python test specifically catches PyO3
 bridge regressions (input/output mistranslation) that the Rust-only
 binary cannot.
 
-Skipped automatically when the `headroom._core` wheel isn't installed
+Skipped automatically when the `copium._core` wheel isn't installed
 (e.g. CI lane without the maturin step).
 """
 
@@ -25,7 +25,7 @@ import pytest
 
 def _has_core() -> bool:
     try:
-        from headroom._core import SmartCrusher  # noqa: F401
+        from copium._core import SmartCrusher  # noqa: F401
 
         return True
     except ImportError:
@@ -34,7 +34,7 @@ def _has_core() -> bool:
 
 pytestmark = pytest.mark.skipif(
     not _has_core(),
-    reason="headroom._core wheel not installed (run `scripts/build_rust_extension.sh`)",
+    reason="copium._core wheel not installed (run `scripts/build_rust_extension.sh`)",
 )
 
 
@@ -58,9 +58,9 @@ def test_at_least_17_fixtures_present():
 def test_rust_backend_matches_recorded_output(fixture_path: Path):
     """Replay each recorded input through the PyO3 bridge; every output
     field must match the recording. Any mismatch is a bridge bug or a
-    Rust regression — cross-check with `cargo run -p headroom-parity`.
+    Rust regression — cross-check with `cargo run -p copium-parity`.
     """
-    from headroom._core import SmartCrusher, SmartCrusherConfig
+    from copium._core import SmartCrusher, SmartCrusherConfig
 
     fixture = json.loads(fixture_path.read_text())
     inp = fixture["input"]

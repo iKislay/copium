@@ -19,15 +19,15 @@ import hashlib
 
 import pytest
 
-from headroom.cache.compression_store import (
+from copium.cache.compression_store import (
     get_compression_store,
     reset_compression_store,
 )
-from headroom.transforms.diff_compressor import DiffCompressor
-from headroom.transforms.log_compressor import LogCompressor
-from headroom.transforms.search_compressor import SearchCompressor
+from copium.transforms.diff_compressor import DiffCompressor
+from copium.transforms.log_compressor import LogCompressor
+from copium.transforms.search_compressor import SearchCompressor
 
-pytest.importorskip("headroom._core", reason="Rust extension required")
+pytest.importorskip("copium._core", reason="Rust extension required")
 
 
 @pytest.fixture(autouse=True)

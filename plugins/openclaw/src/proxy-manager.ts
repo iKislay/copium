@@ -1,5 +1,5 @@
 /**
- * Manages connectivity to a Headroom proxy (local or remote).
+ * Manages connectivity to a Copium proxy (local or remote).
  *
  * Security model:
  * - Local proxies (127.0.0.1 / localhost) can be auto-started via subprocess
@@ -29,17 +29,17 @@ export interface ProxyManagerLogger {
   debug(message: string): void;
 }
 
-/** Default logger that prefixes all messages with `[headroom]`. */
+/** Default logger that prefixes all messages with `[copium]`. */
 export const defaultLogger: ProxyManagerLogger = {
-  info: (m) => console.log(`[headroom] ${m}`),
-  warn: (m) => console.warn(`[headroom] ${m}`),
-  error: (m) => console.error(`[headroom] ${m}`),
+  info: (m) => console.log(`[copium] ${m}`),
+  warn: (m) => console.warn(`[copium] ${m}`),
+  error: (m) => console.error(`[copium] ${m}`),
   debug: () => {},
 };
 
 export interface ProxyProbeResult {
   reachable: boolean;
-  isHeadroom: boolean;
+  isCopium: boolean;
   reason?: string;
 }
 
@@ -53,8 +53,8 @@ interface LaunchSpec {
   checkUseShell?: boolean;
 }
 
-const HEADROOM_MODULE_DISCOVERY_SNIPPET =
-  "import importlib.util, sys; sys.exit(0 if importlib.util.find_spec('headroom') else 1)";
+const COPIUM_MODULE_DISCOVERY_SNIPPET =
+  "import importlib.util, sys; sys.exit(0 if importlib.util.find_spec('copium') else 1)";
 
 export class ProxyManager {
   private config: ProxyManagerConfig;
@@ -84,20 +84,20 @@ export class ProxyManager {
     const probeByUrl = new Map<string, ProxyProbeResult>();
 
     for (const url of candidateUrls) {
-      const probe = await probeHeadroomProxy(url);
+      const probe = await probeCopiumProxy(url);
       probeByUrl.set(url, probe);
-      if (probe.reachable && probe.isHeadroom) {
+      if (probe.reachable && probe.isCopium) {
         this.proxyUrl = url;
-        this.logger.info(`Headroom proxy already running at ${url}`);
+        this.logger.info(`Copium proxy already running at ${url}`);
         return url;
       }
     }
 
     if (explicitUrl) {
       const explicitProbe = probeByUrl.get(explicitUrl);
-      if (explicitProbe?.reachable && !explicitProbe.isHeadroom) {
+      if (explicitProbe?.reachable && !explicitProbe.isCopium) {
         throw new Error(
-          `Service reachable at ${explicitUrl}, but it does not appear to be a Headroom proxy (${explicitProbe.reason ?? "unknown service"}).`,
+          `Service reachable at ${explicitUrl}, but it does not appear to be a Copium proxy (${explicitProbe.reason ?? "unknown service"}).`,
         );
       }
     }
@@ -105,7 +105,7 @@ export class ProxyManager {
     // Remote URLs are connect-only — never auto-start a subprocess for them
     if (explicitUrl && !isLocalProxyUrl(explicitUrl)) {
       throw new Error(
-        `Remote Headroom proxy not reachable at ${explicitUrl}. Ensure the proxy is running at that address.`,
+        `Remote Copium proxy not reachable at ${explicitUrl}. Ensure the proxy is running at that address.`,
       );
     }
 
@@ -113,39 +113,39 @@ export class ProxyManager {
     if (this.config.autoStart !== false) {
       const startupUrl = explicitUrl ?? defaultCandidates[0];
       const startupProbe = probeByUrl.get(startupUrl);
-      if (startupProbe?.reachable && !startupProbe.isHeadroom) {
+      if (startupProbe?.reachable && !startupProbe.isCopium) {
         throw new Error(
-          `Cannot auto-start Headroom at ${startupUrl}: port is in use by a non-Headroom service (${startupProbe.reason ?? "unknown service"}).`,
+          `Cannot auto-start Copium at ${startupUrl}: port is in use by a non-Copium service (${startupProbe.reason ?? "unknown service"}).`,
         );
       }
 
       this.logger.info(
-        `No Headroom proxy detected${explicitUrl ? ` at ${startupUrl}` : " on default local endpoints"}; attempting to auto-start...`,
+        `No Copium proxy detected${explicitUrl ? ` at ${startupUrl}` : " on default local endpoints"}; attempting to auto-start...`,
       );
-      await this.startHeadroomProxy(startupUrl, port);
+      await this.startCopiumProxy(startupUrl, port);
 
-      const startedProbe = await waitForHeadroomProxy(
+      const startedProbe = await waitForCopiumProxy(
         startupUrl,
         this.config.startupTimeoutMs ?? 20_000,
       );
-      if (startedProbe.reachable && startedProbe.isHeadroom) {
+      if (startedProbe.reachable && startedProbe.isCopium) {
         this.proxyUrl = startupUrl;
-        this.logger.info(`Headroom proxy started and reachable at ${startupUrl}`);
+        this.logger.info(`Copium proxy started and reachable at ${startupUrl}`);
         return startupUrl;
       }
       throw new Error(
-        `Attempted to start Headroom proxy, but it was not reachable at ${startupUrl} (${startedProbe.reason ?? "unknown"}).`,
+        `Attempted to start Copium proxy, but it was not reachable at ${startupUrl} (${startedProbe.reason ?? "unknown"}).`,
       );
     }
 
     if (explicitUrl) {
       throw new Error(
-        `Headroom proxy not reachable at ${explicitUrl}. Ensure the proxy is running first.`,
+        `Copium proxy not reachable at ${explicitUrl}. Ensure the proxy is running first.`,
       );
     }
 
     throw new Error(
-      `Headroom proxy not detected on default endpoints (${defaultCandidates.join(", ")}). ` +
+      `Copium proxy not detected on default endpoints (${defaultCandidates.join(", ")}). ` +
         "Set proxyUrl explicitly or enable autoStart.",
     );
   }
@@ -176,7 +176,7 @@ export class ProxyManager {
 
   // --- Internal ---
 
-  private async startHeadroomProxy(proxyUrl: string, defaultPort: number): Promise<void> {
+  private async startCopiumProxy(proxyUrl: string, defaultPort: number): Promise<void> {
     const parsed = new URL(proxyUrl);
     const host = parsed.hostname;
     const port = parsed.port || String(defaultPort);
@@ -204,8 +204,8 @@ export class ProxyManager {
     }
 
     throw new Error(
-      "No usable Headroom launcher found. Tried PATH, local npm, global npm, and Python. " +
-        "Install headroom-ai (npm or pip) and ensure one launcher is available.\n" +
+      "No usable Copium launcher found. Tried PATH, local npm, global npm, and Python. " +
+        "Install copium-ai (npm or pip) and ensure one launcher is available.\n" +
         (errors.length > 0 ? `Launch errors: ${errors.join("; ")}` : ""),
     );
   }
@@ -227,23 +227,23 @@ export class ProxyManager {
     const configuredPython = this.getConfiguredPythonCommand();
     if (configuredPython) {
       specs.push({
-        label: `Configured Python: ${configuredPython} -m headroom.cli`,
+        label: `Configured Python: ${configuredPython} -m copium.cli`,
         command: configuredPython,
-        args: ["-m", "headroom.cli", ...commonArgs],
+        args: ["-m", "copium.cli", ...commonArgs],
         checkCommand: configuredPython,
-        checkArgs: ["-c", HEADROOM_MODULE_DISCOVERY_SNIPPET],
+        checkArgs: ["-c", COPIUM_MODULE_DISCOVERY_SNIPPET],
       });
     }
 
     // 2) Windows pyenv: resolve the real executable so we avoid shim .bat wrappers.
     if (process.platform === "win32") {
-      const pyenvHeadroom = this.getPyenvResolvedHeadroom();
-      if (pyenvHeadroom) {
+      const pyenvCopium = this.getPyenvResolvedCopium();
+      if (pyenvCopium) {
         specs.push({
-          label: `pyenv: ${pyenvHeadroom}`,
-          command: pyenvHeadroom,
+          label: `pyenv: ${pyenvCopium}`,
+          command: pyenvCopium,
           args: commonArgs,
-          checkCommand: pyenvHeadroom,
+          checkCommand: pyenvCopium,
           checkArgs: ["--version"],
           useShell: false,
         });
@@ -252,13 +252,13 @@ export class ProxyManager {
 
     // 3) PATH
     specs.push({
-      label: "PATH: headroom",
-      command: "headroom",
+      label: "PATH: copium",
+      command: "copium",
       args: commonArgs,
       checkCommand: process.platform === "win32" ? "where.exe" : "sh",
       checkArgs: process.platform === "win32"
-        ? ["headroom"]
-        : ["-lc", "command -v headroom >/dev/null 2>&1"],
+        ? ["copium"]
+        : ["-lc", "command -v copium >/dev/null 2>&1"],
       useShell: process.platform === "win32",
       checkUseShell: false,
     });
@@ -268,8 +268,8 @@ export class ProxyManager {
     const packageRoot = dirname(moduleDir);
     const localBinDir = join(packageRoot, "node_modules", ".bin");
     const localBins = process.platform === "win32"
-      ? [join(localBinDir, "headroom.cmd"), join(localBinDir, "headroom")]
-      : [join(localBinDir, "headroom")];
+      ? [join(localBinDir, "copium.cmd"), join(localBinDir, "copium")]
+      : [join(localBinDir, "copium")];
     for (const localBin of localBins) {
       if (!existsSync(localBin)) continue;
         specs.push({
@@ -286,8 +286,8 @@ export class ProxyManager {
     const npmPrefix = this.getNpmGlobalPrefix();
     if (npmPrefix) {
       const globalBins = process.platform === "win32"
-        ? [join(npmPrefix, "headroom.cmd"), join(npmPrefix, "headroom")]
-        : [join(npmPrefix, "bin", "headroom"), join(npmPrefix, "headroom")];
+        ? [join(npmPrefix, "copium.cmd"), join(npmPrefix, "copium")]
+        : [join(npmPrefix, "bin", "copium"), join(npmPrefix, "copium")];
 
       for (const globalBin of globalBins) {
         if (!existsSync(globalBin)) continue;
@@ -307,11 +307,11 @@ export class ProxyManager {
     for (const pyCmd of pythonCommands) {
       if (configuredPython && pyCmd === configuredPython) continue;
       specs.push({
-        label: `Python: ${pyCmd} -m headroom.cli`,
+        label: `Python: ${pyCmd} -m copium.cli`,
         command: pyCmd,
-        args: ["-m", "headroom.cli", ...commonArgs],
+        args: ["-m", "copium.cli", ...commonArgs],
         checkCommand: pyCmd,
-        checkArgs: ["-c", HEADROOM_MODULE_DISCOVERY_SNIPPET],
+        checkArgs: ["-c", COPIUM_MODULE_DISCOVERY_SNIPPET],
       });
     }
 
@@ -325,11 +325,11 @@ export class ProxyManager {
     return configured.length > 0 ? configured : null;
   }
 
-  private getPyenvResolvedHeadroom(): string | null {
+  private getPyenvResolvedCopium(): string | null {
     if (process.platform !== "win32") return null;
 
     try {
-      const result = spawnSync("pyenv", ["which", "headroom"], {
+      const result = spawnSync("pyenv", ["which", "copium"], {
         encoding: "utf8",
         stdio: ["ignore", "pipe", "ignore"],
         timeout: 5000,
@@ -427,9 +427,9 @@ function withDefaultPort(proxyUrl: string, defaultPort: number): string {
 }
 
 /**
- * Probe a configured URL and verify whether it is a running Headroom proxy.
+ * Probe a configured URL and verify whether it is a running Copium proxy.
  */
-export async function probeHeadroomProxy(proxyUrl: string): Promise<ProxyProbeResult> {
+export async function probeCopiumProxy(proxyUrl: string): Promise<ProxyProbeResult> {
   const origin = normalizeAndValidateProxyUrl(proxyUrl);
 
   try {
@@ -437,10 +437,10 @@ export async function probeHeadroomProxy(proxyUrl: string): Promise<ProxyProbeRe
       signal: AbortSignal.timeout(3_000),
     });
     if (!health.ok) {
-      return { reachable: false, isHeadroom: false, reason: `health HTTP ${health.status}` };
+      return { reachable: false, isCopium: false, reason: `health HTTP ${health.status}` };
     }
   } catch {
-    return { reachable: false, isHeadroom: false, reason: "health check failed" };
+    return { reachable: false, isCopium: false, reason: "health check failed" };
   }
 
   try {
@@ -448,30 +448,30 @@ export async function probeHeadroomProxy(proxyUrl: string): Promise<ProxyProbeRe
       signal: AbortSignal.timeout(3_000),
     });
     if (retrieveStats.ok) {
-      return { reachable: true, isHeadroom: true };
+      return { reachable: true, isCopium: true };
     }
     return {
       reachable: true,
-      isHeadroom: false,
+      isCopium: false,
       reason: `retrieve stats HTTP ${retrieveStats.status}`,
     };
   } catch {
     return {
       reachable: true,
-      isHeadroom: false,
+      isCopium: false,
       reason: "retrieve stats endpoint unavailable",
     };
   }
 }
 
-async function waitForHeadroomProxy(proxyUrl: string, timeoutMs: number): Promise<ProxyProbeResult> {
+async function waitForCopiumProxy(proxyUrl: string, timeoutMs: number): Promise<ProxyProbeResult> {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
-    const result = await probeHeadroomProxy(proxyUrl);
-    if (result.reachable && result.isHeadroom) {
+    const result = await probeCopiumProxy(proxyUrl);
+    if (result.reachable && result.isCopium) {
       return result;
     }
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
-  return probeHeadroomProxy(proxyUrl);
+  return probeCopiumProxy(proxyUrl);
 }

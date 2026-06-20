@@ -1,4 +1,4 @@
-"""Tests for headroom.proxy.output_shaper.
+"""Tests for copium.proxy.output_shaper.
 
 Covers turn classification (structural only), cache-safe verbosity steering,
 effort routing on mechanical continuations, and the env-driven gate.
@@ -9,7 +9,7 @@ from __future__ import annotations
 import copy
 from typing import Any
 
-from headroom.proxy.output_shaper import (
+from copium.proxy.output_shaper import (
     LEGACY_THINKING_FLOOR,
     OutputShaperSettings,
     TurnKind,
@@ -141,7 +141,7 @@ class TestVerbositySteering:
         apply_verbosity_steering(body, 2)
         assert apply_verbosity_steering(body, 4) is True
         steering_blocks = [
-            b for b in body["system"] if b["text"].startswith("<headroom_output_shaping>")
+            b for b in body["system"] if b["text"].startswith("<copium_output_shaping>")
         ]
         assert len(steering_blocks) == 1
         assert steering_blocks[0]["text"] == steering_text(4)
@@ -263,22 +263,22 @@ class TestShapeRequest:
         assert body == snapshot
 
     def test_from_env_defaults_off(self, monkeypatch):
-        monkeypatch.delenv("HEADROOM_OUTPUT_SHAPER", raising=False)
+        monkeypatch.delenv("COPIUM_OUTPUT_SHAPER", raising=False)
         assert OutputShaperSettings.from_env().enabled is False
 
     def test_from_env_enabled_with_overrides(self, monkeypatch):
-        monkeypatch.setenv("HEADROOM_OUTPUT_SHAPER", "1")
-        monkeypatch.setenv("HEADROOM_VERBOSITY_LEVEL", "3")
-        monkeypatch.setenv("HEADROOM_MECHANICAL_EFFORT", "medium")
+        monkeypatch.setenv("COPIUM_OUTPUT_SHAPER", "1")
+        monkeypatch.setenv("COPIUM_VERBOSITY_LEVEL", "3")
+        monkeypatch.setenv("COPIUM_MECHANICAL_EFFORT", "medium")
         settings = OutputShaperSettings.from_env()
         assert settings.enabled is True
         assert settings.verbosity_level == 3
         assert settings.mechanical_effort == "medium"
 
     def test_from_env_clamps_bad_values(self, monkeypatch):
-        monkeypatch.setenv("HEADROOM_OUTPUT_SHAPER", "true")
-        monkeypatch.setenv("HEADROOM_VERBOSITY_LEVEL", "99")
-        monkeypatch.setenv("HEADROOM_MECHANICAL_EFFORT", "bogus")
+        monkeypatch.setenv("COPIUM_OUTPUT_SHAPER", "true")
+        monkeypatch.setenv("COPIUM_VERBOSITY_LEVEL", "99")
+        monkeypatch.setenv("COPIUM_MECHANICAL_EFFORT", "bogus")
         settings = OutputShaperSettings.from_env()
         assert settings.verbosity_level == 4
         assert settings.mechanical_effort == "low"

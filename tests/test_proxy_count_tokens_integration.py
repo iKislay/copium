@@ -26,7 +26,7 @@ pytest.importorskip("httpx")
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from headroom.proxy.server import ProxyConfig, create_app  # noqa: E402
+from copium.proxy.server import ProxyConfig, create_app  # noqa: E402
 
 # =============================================================================
 # Fixtures

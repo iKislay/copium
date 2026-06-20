@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from headroom.providers.openclaw.wrap import (
+from copium.providers.openclaw.wrap import (
     DEFAULT_GATEWAY_PROVIDER_IDS,
     build_plugin_entry,
     build_unwrap_entry,
@@ -30,7 +30,7 @@ def test_build_plugin_entry_preserves_unmanaged_values_and_removes_empty_python_
     # Arrange
     existing_entry = {
         "enabled": False,
-        "name": "headroom",
+        "name": "copium",
         "config": {
             "keep": "value",
             "proxyUrl": "https://user.example",
@@ -51,7 +51,7 @@ def test_build_plugin_entry_preserves_unmanaged_values_and_removes_empty_python_
 
     # Assert
     assert entry["enabled"] is True
-    assert entry["name"] == "headroom"
+    assert entry["name"] == "copium"
     assert entry["config"] == {
         "keep": "value",
         "proxyUrl": "https://user.example",
@@ -91,7 +91,7 @@ def test_build_unwrap_entry_disables_plugin_and_removes_managed_keys_only() -> N
     # Arrange
     existing_entry = {
         "enabled": True,
-        "name": "headroom",
+        "name": "copium",
         "config": {
             "keep": "value",
             "gatewayProviderIds": ["openai-codex"],
@@ -109,7 +109,7 @@ def test_build_unwrap_entry_disables_plugin_and_removes_managed_keys_only() -> N
     # Assert
     assert entry == {
         "enabled": False,
-        "name": "headroom",
+        "name": "copium",
         "config": {"keep": "value"},
     }
 
@@ -122,14 +122,14 @@ def test_build_unwrap_entry_handles_non_mapping_input() -> None:
 def test_build_plugin_entry_strips_mcpServers_from_existing_entry() -> None:
     """Newer OpenClaw schemas reject `mcpServers` at the plugin-entry root.
 
-    `headroom init -g` was failing with `Config invalid: Unrecognized
+    `copium init -g` was failing with `Config invalid: Unrecognized
     key: "mcpServers"` because the prior plugin entry in the user's
     config still had that legacy field, and we were spreading it back in
     via `**existing_entry`. Pin the strip so we don't regress.
     """
     existing_entry = {
         "enabled": True,
-        "name": "headroom",
+        "name": "copium",
         "mcpServers": {"some": "stale-block"},  # legacy, must be removed
         "config": {"keep": "value"},
     }
@@ -146,5 +146,5 @@ def test_build_plugin_entry_strips_mcpServers_from_existing_entry() -> None:
 
     assert "mcpServers" not in entry
     assert entry["enabled"] is True
-    assert entry["name"] == "headroom"
+    assert entry["name"] == "copium"
     assert entry["config"]["keep"] == "value"

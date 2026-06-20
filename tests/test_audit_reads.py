@@ -1,4 +1,4 @@
-"""Tests for the audit-reads traffic audit (headroom.audit.reads)."""
+"""Tests for the audit-reads traffic audit (copium.audit.reads)."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from headroom.audit.reads import audit_reads, render_text
+from copium.audit.reads import audit_reads, render_text
 
 CONTENT = "     1\tdef foo():\n     2\t    return 42\n" * 30  # >512B
 
@@ -109,7 +109,7 @@ class TestAuditReads:
 
 class TestMaturationSim:
     def test_metrics(self, transcript_dir):
-        from headroom.audit.maturation import simulate_maturation
+        from copium.audit.maturation import simulate_maturation
 
         r = simulate_maturation(transcript_dir)
         assert r.read_calls == 3
@@ -124,7 +124,7 @@ class TestMaturationSim:
         assert r.at_risk_edits[1] == 0
 
     def test_big_read_metrics(self, tmp_path):
-        from headroom.audit.maturation import MATURE_FLOOR, simulate_maturation
+        from copium.audit.maturation import MATURE_FLOOR, simulate_maturation
 
         big = "x" * (MATURE_FLOOR + 100)
         lines = [
@@ -139,7 +139,7 @@ class TestMaturationSim:
         assert r.never_touched_again == 1
 
     def test_render_runs(self, transcript_dir):
-        from headroom.audit.maturation import render_sim_text, simulate_maturation
+        from copium.audit.maturation import render_sim_text, simulate_maturation
 
         out = render_sim_text(simulate_maturation(transcript_dir))
         assert "maturation simulation" in out
@@ -150,7 +150,7 @@ class TestCli:
     def test_cli_text_and_json(self, transcript_dir):
         from click.testing import CliRunner
 
-        from headroom.cli.main import main
+        from copium.cli.main import main
 
         runner = CliRunner()
         res = runner.invoke(main, ["audit-reads", "--path", str(transcript_dir)])
@@ -166,7 +166,7 @@ class TestCli:
     def test_cli_simulate_maturation(self, transcript_dir):
         from click.testing import CliRunner
 
-        from headroom.cli.main import main
+        from copium.cli.main import main
 
         runner = CliRunner()
         res = runner.invoke(

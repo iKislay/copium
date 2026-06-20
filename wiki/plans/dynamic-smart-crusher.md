@@ -15,7 +15,7 @@ This is too simplistic for a production-grade compression system.
 
 ## Current Implementation Analysis
 
-**Location:** `headroom/transforms/smart_crusher.py`
+**Location:** `copium/transforms/smart_crusher.py`
 
 **Current Logic (lines 2273-2279, 2353-2359, 2561-2567):**
 ```python

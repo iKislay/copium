@@ -2,7 +2,7 @@
 
 The Rust proxy previously held a dead `wrap_rtk_invocations_total`
 counter. C4 remediation moved it Python-side because the wrap CLI
-(headroom.cli.wrap) is where RTK invocations are actually counted.
+(copium.cli.wrap) is where RTK invocations are actually counted.
 These tests cover the counter primitives in isolation.
 """
 
@@ -12,7 +12,7 @@ import threading
 
 import pytest
 
-from headroom.cli.wrap_rtk_metrics import (
+from copium.cli.wrap_rtk_metrics import (
     record_rtk_invocation,
     reset_rtk_invocations,
     rtk_invocation_counts,

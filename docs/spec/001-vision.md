@@ -2,9 +2,9 @@
 
 **Status:** done
 
-## What Headroom Is
+## What Copium Is
 
-Headroom is a **context compression proxy** for AI provider APIs. It sits between AI coding tools (Claude Code, Copilot, Codex, etc.) and provider APIs (OpenAI, Anthropic, Google, Cohere), compressing context before it reaches the provider to reduce token usage and costs.
+Copium is a **context compression proxy** for AI provider APIs. It sits between AI coding tools (Claude Code, Copilot, Codex, etc.) and provider APIs (OpenAI, Anthropic, Google, Cohere), compressing context before it reaches the provider to reduce token usage and costs.
 
 ### Core Value Proposition
 
@@ -14,9 +14,9 @@ Headroom is a **context compression proxy** for AI provider APIs. It sits betwee
 4. **Privacy** — Prompts never logged by default; all processing stays local
 5. **Compatibility** — Works with existing AI coding tools via proxy or SDK
 
-### What Headroom Is Not
+### What Copium Is Not
 
-- A model provider — Headroom does not host or run AI models
+- A model provider — Copium does not host or run AI models
 - A data store — No prompt storage by default (local SQLite is optional)
 - A logging service — No prompt logging by default
 - A billing service — Usage tracking is internal only
@@ -47,10 +47,10 @@ Headroom is a **context compression proxy** for AI provider APIs. It sits betwee
 
 ### 3. Composable Integration
 
-**Principle:** Headroom works alongside existing tools without requiring workflow changes.
+**Principle:** Copium works alongside existing tools without requiring workflow changes.
 
 **Implications:**
-- Proxy mode: route traffic through Headroom
+- Proxy mode: route traffic through Copium
 - SDK mode: integrate into custom applications
 - CLI mode: wrap existing AI commands
 - Agent mode: MCP/LiteLLM/ASGI integrations
@@ -87,7 +87,7 @@ Headroom is a **context compression proxy** for AI provider APIs. It sits betwee
 | **Individual Developers** | Reduce API costs for personal AI coding |
 | **Development Teams** | Shared compression with learn plugins |
 | **Enterprises** | Self-hosted deployment with security guarantees |
-| **Plugin Authors** | Extend Headroom via plugin ABI |
+| **Plugin Authors** | Extend Copium via plugin ABI |
 
 ---
 

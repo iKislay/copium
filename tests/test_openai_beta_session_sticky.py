@@ -18,7 +18,7 @@ import threading
 
 import pytest
 
-from headroom.proxy.helpers import (
+from copium.proxy.helpers import (
     SessionBetaTracker,
     _reset_session_beta_tracker_for_test,
     merge_openai_beta,
@@ -45,13 +45,13 @@ def test_merge_helper_only_client() -> None:
     assert merge_openai_beta("alpha=1,beta=2", []) == "alpha=1,beta=2"
 
 
-def test_merge_helper_only_headroom() -> None:
+def test_merge_helper_only_copium() -> None:
     assert merge_openai_beta(None, ["responses_websockets=2026-02-06"]) == (
         "responses_websockets=2026-02-06"
     )
 
 
-def test_merge_helper_preserves_client_order_appends_headroom() -> None:
+def test_merge_helper_preserves_client_order_appends_copium() -> None:
     out = merge_openai_beta(
         "alpha=1,beta=2",
         ["responses_websockets=2026-02-06"],
@@ -94,8 +94,8 @@ def test_test_memory_injection_appends_deterministic_order() -> None:
 
 @pytest.fixture(autouse=True)
 def _isolate_tracker(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("HEADROOM_BETA_HEADER_STICKY", raising=False)
-    monkeypatch.delenv("HEADROOM_BETA_TRACKER_MAX_SESSIONS", raising=False)
+    monkeypatch.delenv("COPIUM_BETA_HEADER_STICKY", raising=False)
+    monkeypatch.delenv("COPIUM_BETA_TRACKER_MAX_SESSIONS", raising=False)
     _reset_session_beta_tracker_for_test()
     yield
     _reset_session_beta_tracker_for_test()
@@ -141,7 +141,7 @@ def test_lru_eviction_at_max_sessions() -> None:
 
 
 def test_disabled_mode_passes_through(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("HEADROOM_BETA_HEADER_STICKY", "disabled")
+    monkeypatch.setenv("COPIUM_BETA_HEADER_STICKY", "disabled")
     tracker = SessionBetaTracker(max_sessions=10)
 
     out1 = tracker.record_and_get_sticky_betas(

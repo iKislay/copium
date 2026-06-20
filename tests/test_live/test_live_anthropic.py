@@ -14,7 +14,7 @@ import os
 import httpx
 import pytest
 
-from headroom.transforms.search_compressor import SearchCompressor, SearchCompressorConfig
+from copium.transforms.search_compressor import SearchCompressor, SearchCompressorConfig
 
 pytestmark = pytest.mark.skipif(
     not os.environ.get("ANTHROPIC_API_KEY"),

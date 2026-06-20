@@ -30,7 +30,7 @@ httpx = pytest.importorskip("httpx")
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from headroom.proxy.server import ProxyConfig, create_app  # noqa: E402
+from copium.proxy.server import ProxyConfig, create_app  # noqa: E402
 
 UPSTREAM = "http://127.0.0.1:4000"
 SONNET_BEDROCK = "anthropic.claude-3-5-sonnet-20241022-v2:0"
@@ -296,14 +296,14 @@ def test_compression_failure_forwards_verbatim():
 
 
 def test_bypass_header_skips_compression():
-    """`x-headroom-bypass: true` forwards verbatim — the pipeline never runs."""
+    """`x-copium-bypass: true` forwards verbatim — the pipeline never runs."""
     app = create_app(_make_config())
     with TestClient(app) as client:
         proxy = client.app.state.proxy
         http = _install_fake_client(proxy, _FakeUpstream())
         proxy.anthropic_pipeline.apply = MagicMock(side_effect=AssertionError("should not run"))
         body = {"messages": [{"role": "user", "content": "x" * 5000}], "max_tokens": 8}
-        resp = client.post(INVOKE, json=body, headers={"x-headroom-bypass": "true"})
+        resp = client.post(INVOKE, json=body, headers={"x-copium-bypass": "true"})
 
     assert resp.status_code == 200
     _, forwarded = _forwarded(http)
@@ -355,9 +355,9 @@ def test_outcome_recorded_with_bedrock_provider():
 
 
 def test_env_var_feeds_config(monkeypatch):
-    from headroom.proxy.server import _proxy_config_from_env
+    from copium.proxy.server import _proxy_config_from_env
 
-    monkeypatch.delenv("HEADROOM_PROXY_CONFIG_JSON", raising=False)
+    monkeypatch.delenv("COPIUM_PROXY_CONFIG_JSON", raising=False)
     monkeypatch.setenv("BEDROCK_TARGET_API_URL", UPSTREAM)
     cfg = _proxy_config_from_env()
     assert cfg.bedrock_api_url == UPSTREAM

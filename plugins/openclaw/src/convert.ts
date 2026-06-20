@@ -20,7 +20,7 @@ export interface OpenAIMessage {
   tool_calls?: any[];
   tool_call_id?: string;
   name?: string;
-  _headroomMeta?: Record<string, unknown>;
+  _copiumMeta?: Record<string, unknown>;
 }
 
 /**
@@ -47,7 +47,7 @@ export function agentToOpenAI(messages: any[]): OpenAIMessage[] {
           typeof normalized.content === "string"
             ? normalized.content
             : extractText(normalized.content),
-        _headroomMeta: buildMeta(),
+        _copiumMeta: buildMeta(),
       });
       continue;
     }
@@ -59,7 +59,7 @@ export function agentToOpenAI(messages: any[]): OpenAIMessage[] {
           typeof normalized.content === "string"
             ? normalized.content
             : extractText(normalized.content),
-        _headroomMeta: buildMeta(),
+        _copiumMeta: buildMeta(),
       });
       continue;
     }
@@ -67,7 +67,7 @@ export function agentToOpenAI(messages: any[]): OpenAIMessage[] {
     if (role === "assistant") {
       const content = normalized.content;
       if (typeof content === "string") {
-        result.push({ role: "assistant", content, _headroomMeta: buildMeta() });
+        result.push({ role: "assistant", content, _copiumMeta: buildMeta() });
         continue;
       }
 
@@ -104,7 +104,7 @@ export function agentToOpenAI(messages: any[]): OpenAIMessage[] {
         const openaiMsg: OpenAIMessage = {
           role: "assistant",
           content: textParts.length > 0 ? textParts.join("") : null,
-          _headroomMeta: buildMeta(),
+          _copiumMeta: buildMeta(),
         };
         if (toolCalls.length > 0) {
           openaiMsg.tool_calls = toolCalls;
@@ -130,7 +130,7 @@ export function agentToOpenAI(messages: any[]): OpenAIMessage[] {
           normalized.tool_use_id ??
           normalized.id ??
           "unknown",
-        _headroomMeta: buildMeta(),
+        _copiumMeta: buildMeta(),
       });
       continue;
     }
@@ -142,7 +142,7 @@ export function agentToOpenAI(messages: any[]): OpenAIMessage[] {
         typeof normalized.content === "string"
           ? normalized.content
           : JSON.stringify(normalized.content),
-      _headroomMeta: buildMeta(),
+      _copiumMeta: buildMeta(),
     });
   }
 
@@ -156,7 +156,7 @@ export function openAIToAgent(messages: OpenAIMessage[]): any[] {
   const result: any[] = [];
 
   for (const msg of messages) {
-    const meta = (msg._headroomMeta ?? {}) as Record<string, unknown>;
+    const meta = (msg._copiumMeta ?? {}) as Record<string, unknown>;
     const timestamp =
       typeof meta.timestamp === "number" ? meta.timestamp : Date.now();
 
@@ -206,9 +206,9 @@ export function openAIToAgent(messages: OpenAIMessage[]): any[] {
         ...(meta as object),
         role: "assistant",
         content: blocks,
-        api: typeof meta.api === "string" ? meta.api : "headroom",
-        provider: typeof meta.provider === "string" ? meta.provider : "headroom",
-        model: typeof meta.model === "string" ? meta.model : "headroom",
+        api: typeof meta.api === "string" ? meta.api : "copium",
+        provider: typeof meta.provider === "string" ? meta.provider : "copium",
+        model: typeof meta.model === "string" ? meta.model : "copium",
         usage:
           isRecord(meta.usage)
             ? meta.usage
@@ -245,7 +245,7 @@ export function openAIToAgent(messages: OpenAIMessage[]): any[] {
         tool_use_id:
           typeof meta.tool_use_id === "string" ? meta.tool_use_id : toolCallId,
         toolName:
-          typeof meta.toolName === "string" ? meta.toolName : "headroom",
+          typeof meta.toolName === "string" ? meta.toolName : "copium",
         isError: typeof meta.isError === "boolean" ? meta.isError : false,
         timestamp,
       });
@@ -300,9 +300,9 @@ function normalizeAssistantMessage(message: Record<string, any>): Record<string,
   return {
     ...message,
     content: normalizedContent,
-    api: typeof message.api === "string" ? message.api : "headroom",
-    provider: typeof message.provider === "string" ? message.provider : "headroom",
-    model: typeof message.model === "string" ? message.model : "headroom",
+    api: typeof message.api === "string" ? message.api : "copium",
+    provider: typeof message.provider === "string" ? message.provider : "copium",
+    model: typeof message.model === "string" ? message.model : "copium",
     usage: isRecord(message.usage)
       ? message.usage
       : {
@@ -336,7 +336,7 @@ function normalizeToolResultMessage(message: Record<string, any>): Record<string
     toolCallId,
     tool_use_id:
       typeof message.tool_use_id === "string" ? message.tool_use_id : toolCallId,
-    toolName: typeof message.toolName === "string" ? message.toolName : "headroom",
+    toolName: typeof message.toolName === "string" ? message.toolName : "copium",
     isError: typeof message.isError === "boolean" ? message.isError : false,
     timestamp: typeof message.timestamp === "number" ? message.timestamp : Date.now(),
   };

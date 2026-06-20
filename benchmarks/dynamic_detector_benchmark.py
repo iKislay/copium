@@ -11,7 +11,7 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-from headroom.cache.dynamic_detector import (
+from copium.cache.dynamic_detector import (
     DetectorConfig,
     DynamicContentDetector,
 )
@@ -47,7 +47,7 @@ You are operating in a software development environment with access to:
 Session ID: sess_abc123def456ghi789jkl012
 Request ID: req_xyz789abc123def456ghi789
 User: tchopra
-Workspace: /Users/tchopra/claude-projects/headroom
+Workspace: /Users/tchopra/claude-projects/copium
 
 Be concise, accurate, and helpful. Follow the user's instructions carefully.""",
     "enterprise_assistant": """You are an enterprise AI assistant for Acme Corporation.

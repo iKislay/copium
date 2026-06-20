@@ -27,7 +27,7 @@ from tests._dotenv import importorskip_no_env_leak
 
 importorskip_no_env_leak("litellm")
 
-from headroom.backends.litellm import LiteLLMBackend  # noqa: E402  (must follow importorskip)
+from copium.backends.litellm import LiteLLMBackend  # noqa: E402  (must follow importorskip)
 
 
 class _FakeUsage:
@@ -93,7 +93,7 @@ def _make_response(usage: _FakeUsage) -> MagicMock:
 
 def _make_backend() -> LiteLLMBackend:
     # Patch the inference-profile fetch so `__init__` doesn't try to talk to AWS.
-    with patch("headroom.backends.litellm._fetch_bedrock_inference_profiles", return_value={}):
+    with patch("copium.backends.litellm._fetch_bedrock_inference_profiles", return_value={}):
         return LiteLLMBackend(provider="openrouter")
 
 
@@ -132,7 +132,7 @@ async def test_anthropic_style_cache_fields_surface_in_usage_block() -> None:
     response = _make_response(usage)
 
     backend = _make_backend()
-    with patch("headroom.backends.litellm.acompletion", new_callable=AsyncMock) as mock_acomp:
+    with patch("copium.backends.litellm.acompletion", new_callable=AsyncMock) as mock_acomp:
         mock_acomp.return_value = response
         result = await backend.send_openai_message(_request_body(), {})
 
@@ -167,7 +167,7 @@ async def test_openai_nested_cache_fields_surface_when_top_level_absent() -> Non
     response = _make_response(usage)
 
     backend = _make_backend()
-    with patch("headroom.backends.litellm.acompletion", new_callable=AsyncMock) as mock_acomp:
+    with patch("copium.backends.litellm.acompletion", new_callable=AsyncMock) as mock_acomp:
         mock_acomp.return_value = response
         result = await backend.send_openai_message(_request_body(), {})
 
@@ -202,7 +202,7 @@ async def test_no_cache_fields_means_no_cache_keys_in_usage_block() -> None:
     response = _make_response(usage)
 
     backend = _make_backend()
-    with patch("headroom.backends.litellm.acompletion", new_callable=AsyncMock) as mock_acomp:
+    with patch("copium.backends.litellm.acompletion", new_callable=AsyncMock) as mock_acomp:
         mock_acomp.return_value = response
         result = await backend.send_openai_message(_request_body(), {})
 

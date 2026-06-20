@@ -2,7 +2,7 @@
 
 Covers:
 - jitter_delay_ms helper function (exponential backoff with jitter)
-- _headroom_log_dir lazy resolution via paths module
+- _copium_log_dir lazy resolution via paths module
 - asyncio.timeout compatibility shim in scripts/repro_codex_replay.py
 - --allow-same-version flag presence in release workflow
 - SIGKILL fallback in cli/wrap.py for Windows compatibility
@@ -25,10 +25,10 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 class TestJitterDelayMs:
-    """Tests for headroom.proxy.helpers.jitter_delay_ms."""
+    """Tests for copium.proxy.helpers.jitter_delay_ms."""
 
     def test_attempt_zero_returns_within_base_range(self) -> None:
-        from headroom.proxy.helpers import jitter_delay_ms
+        from copium.proxy.helpers import jitter_delay_ms
 
         # At attempt=0: capped = min(250 * 2^0, 5000) = 250
         # Result = 250 * (0.5 + random()) where random in [0, 1)
@@ -38,7 +38,7 @@ class TestJitterDelayMs:
             assert 125.0 <= val < 375.0, f"attempt=0 yielded {val}, expected [125, 375)"
 
     def test_exponential_growth_with_attempt(self) -> None:
-        from headroom.proxy.helpers import jitter_delay_ms
+        from copium.proxy.helpers import jitter_delay_ms
 
         # Collect median-ish values across many samples to verify growth
         samples_a1 = [jitter_delay_ms(250, 5000, 1) for _ in range(200)]
@@ -56,7 +56,7 @@ class TestJitterDelayMs:
         )
 
     def test_caps_at_max_ms(self) -> None:
-        from headroom.proxy.helpers import jitter_delay_ms
+        from copium.proxy.helpers import jitter_delay_ms
 
         # At attempt=20: capped = min(250 * 2^20, 5000) = 5000
         # Result = 5000 * (0.5 + random()) => [2500, 7500)
@@ -65,7 +65,7 @@ class TestJitterDelayMs:
             assert 2500.0 <= val < 7500.0, f"attempt=20 yielded {val}, expected [2500, 7500)"
 
     def test_never_negative(self) -> None:
-        from headroom.proxy.helpers import jitter_delay_ms
+        from copium.proxy.helpers import jitter_delay_ms
 
         for attempt in range(10):
             val = jitter_delay_ms(base_ms=100, max_ms=1000, attempt=attempt)
@@ -73,7 +73,7 @@ class TestJitterDelayMs:
 
     def test_jitter_produces_variance(self) -> None:
         """Multiple calls with the same parameters should produce different results."""
-        from headroom.proxy.helpers import jitter_delay_ms
+        from copium.proxy.helpers import jitter_delay_ms
 
         values = {jitter_delay_ms(250, 5000, 2) for _ in range(20)}
         # With randomness, we should get many distinct values
@@ -81,27 +81,27 @@ class TestJitterDelayMs:
 
 
 # ---------------------------------------------------------------------------
-# _headroom_log_dir lazy resolution tests
+# _copium_log_dir lazy resolution tests
 # ---------------------------------------------------------------------------
 
 
-class TestHeadroomLogDir:
-    """Tests for _headroom_log_dir using headroom.paths.log_dir."""
+class TestCopiumLogDir:
+    """Tests for _copium_log_dir using copium.paths.log_dir."""
 
     def test_log_dir_respects_workspace_env_var(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
-        from headroom.proxy.helpers import _headroom_log_dir
+        from copium.proxy.helpers import _copium_log_dir
 
-        monkeypatch.setenv("HEADROOM_WORKSPACE_DIR", str(tmp_path))
-        result = _headroom_log_dir()
+        monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path))
+        result = _copium_log_dir()
         # log_dir should be under the workspace dir
         assert str(tmp_path) in str(result)
 
     def test_log_dir_returns_path_object(self) -> None:
-        from headroom.proxy.helpers import _headroom_log_dir
+        from copium.proxy.helpers import _copium_log_dir
 
-        result = _headroom_log_dir()
+        result = _copium_log_dir()
         assert isinstance(result, Path)
 
 
@@ -295,35 +295,35 @@ class TestLatencyHistogram:
 
 
 class TestIsAnthropicAuth:
-    """Tests for headroom.proxy.helpers.is_anthropic_auth."""
+    """Tests for copium.proxy.helpers.is_anthropic_auth."""
 
     def test_detects_x_api_key(self) -> None:
-        from headroom.proxy.helpers import is_anthropic_auth
+        from copium.proxy.helpers import is_anthropic_auth
 
         assert is_anthropic_auth({"x-api-key": "sk-ant-abc123"}) is True
 
     def test_detects_anthropic_version_header(self) -> None:
-        from headroom.proxy.helpers import is_anthropic_auth
+        from copium.proxy.helpers import is_anthropic_auth
 
         assert is_anthropic_auth({"anthropic-version": "2023-06-01"}) is True
 
     def test_detects_bearer_sk_ant_prefix(self) -> None:
-        from headroom.proxy.helpers import is_anthropic_auth
+        from copium.proxy.helpers import is_anthropic_auth
 
         assert is_anthropic_auth({"authorization": "Bearer sk-ant-abc123"}) is True
 
     def test_rejects_openai_bearer_token(self) -> None:
-        from headroom.proxy.helpers import is_anthropic_auth
+        from copium.proxy.helpers import is_anthropic_auth
 
         assert is_anthropic_auth({"authorization": "Bearer sk-openai-xyz"}) is False
 
     def test_rejects_empty_headers(self) -> None:
-        from headroom.proxy.helpers import is_anthropic_auth
+        from copium.proxy.helpers import is_anthropic_auth
 
         assert is_anthropic_auth({}) is False
 
     def test_rejects_non_anthropic_auth(self) -> None:
-        from headroom.proxy.helpers import is_anthropic_auth
+        from copium.proxy.helpers import is_anthropic_auth
 
         assert is_anthropic_auth({"authorization": "Bearer some-token"}) is False
 
@@ -334,45 +334,45 @@ class TestIsAnthropicAuth:
 
 
 class TestSetupFileLogging:
-    """Tests for _setup_file_logging using the new _headroom_log_dir path."""
+    """Tests for _setup_file_logging using the new _copium_log_dir path."""
 
     def test_setup_file_logging_creates_log_dir(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
-        from headroom.proxy.helpers import _setup_file_logging
+        from copium.proxy.helpers import _setup_file_logging
 
-        monkeypatch.setenv("HEADROOM_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path))
         # Clear any cached handlers to allow fresh registration
         import logging
         from logging.handlers import RotatingFileHandler
 
-        headroom_logger = logging.getLogger("headroom")
-        headroom_logger.handlers = [
-            h for h in headroom_logger.handlers if not isinstance(h, RotatingFileHandler)
+        copium_logger = logging.getLogger("copium")
+        copium_logger.handlers = [
+            h for h in copium_logger.handlers if not isinstance(h, RotatingFileHandler)
         ]
 
         _setup_file_logging()
 
         # Verify a RotatingFileHandler was added
-        has_rotating = any(isinstance(h, RotatingFileHandler) for h in headroom_logger.handlers)
+        has_rotating = any(isinstance(h, RotatingFileHandler) for h in copium_logger.handlers)
         assert has_rotating, "Expected a RotatingFileHandler to be registered"
 
     def test_setup_file_logging_handles_oserror(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """_setup_file_logging should not raise on OSError."""
-        from headroom.proxy.helpers import _setup_file_logging
+        from copium.proxy.helpers import _setup_file_logging
 
-        # Monkey-patch _headroom_log_dir to return a path that will cause OSError
+        # Monkey-patch _copium_log_dir to return a path that will cause OSError
         def _bad_log_dir():
             return Path("/nonexistent/deeply/nested/path/that/cannot/exist/___test___")
 
-        import headroom.proxy.helpers as helpers_mod
+        import copium.proxy.helpers as helpers_mod
 
-        monkeypatch.setattr(helpers_mod, "_headroom_log_dir", _bad_log_dir)
+        monkeypatch.setattr(helpers_mod, "_copium_log_dir", _bad_log_dir)
         # Should not raise
         _setup_file_logging()
 
     def test_importing_server_does_not_install_file_handler(self, tmp_path: Path) -> None:
-        """Importing headroom.proxy.server must NOT attach a RotatingFileHandler
+        """Importing copium.proxy.server must NOT attach a RotatingFileHandler
         to the user's live proxy.log. The handler is installed by create_app()
         instead, so test runs and library imports do not pollute logs.
         """
@@ -385,13 +385,13 @@ class TestSetupFileLogging:
             """
             import logging
             from logging.handlers import RotatingFileHandler
-            import headroom.proxy.server  # noqa: F401
-            hr = logging.getLogger("headroom")
+            import copium.proxy.server  # noqa: F401
+            hr = logging.getLogger("copium")
             installed = any(isinstance(h, RotatingFileHandler) for h in hr.handlers)
             print("INSTALLED" if installed else "CLEAN")
             """
         ).strip()
-        env = {**os.environ, "HEADROOM_WORKSPACE_DIR": str(tmp_path)}
+        env = {**os.environ, "COPIUM_WORKSPACE_DIR": str(tmp_path)}
         result = subprocess.run(
             [sys.executable, "-c", script],
             capture_output=True,
@@ -401,7 +401,7 @@ class TestSetupFileLogging:
             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
         assert result.stdout.strip() == "CLEAN", (
-            f"Importing headroom.proxy.server attached a file handler: {result.stdout!r}"
+            f"Importing copium.proxy.server attached a file handler: {result.stdout!r}"
         )
 
 
@@ -640,14 +640,14 @@ class TestReproScriptStats:
 
 
 class TestWrapGetLogPath:
-    """Tests for _get_log_path in wrap.py using headroom.paths."""
+    """Tests for _get_log_path in wrap.py using copium.paths."""
 
     def test_get_log_path_returns_proxy_log(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
-        from headroom.cli.wrap import _get_log_path
+        from copium.cli.wrap import _get_log_path
 
-        monkeypatch.setenv("HEADROOM_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path))
         result = _get_log_path()
         assert result.name == "proxy.log"
         assert str(tmp_path) in str(result)
@@ -655,9 +655,9 @@ class TestWrapGetLogPath:
     def test_get_log_path_creates_directory(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
-        from headroom.cli.wrap import _get_log_path
+        from copium.cli.wrap import _get_log_path
 
         log_subdir = tmp_path / "custom_logs"
-        monkeypatch.setenv("HEADROOM_WORKSPACE_DIR", str(log_subdir))
+        monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(log_subdir))
         result = _get_log_path()
         assert result.parent.exists()

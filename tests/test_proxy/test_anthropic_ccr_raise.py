@@ -5,7 +5,7 @@ caught CCR ``handle_response`` exceptions with ``logger.warning + continue``
 instead of ``logger.error + raise`` (matching the OpenAI backend path).
 
 When the CCR handler fails, the proxy must return a 500 rather than forwarding
-the raw ``headroom_retrieve`` tool-call body to the client.
+the raw ``copium_retrieve`` tool-call body to the client.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ httpx = pytest.importorskip("httpx")
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from headroom.proxy.server import ProxyConfig, create_app  # noqa: E402
+from copium.proxy.server import ProxyConfig, create_app  # noqa: E402
 
 
 def _make_config() -> ProxyConfig:
@@ -37,7 +37,7 @@ def _make_config() -> ProxyConfig:
 
 
 def _tool_call_response() -> dict:
-    """Anthropic-shaped response containing a headroom_retrieve tool use block."""
+    """Anthropic-shaped response containing a copium_retrieve tool use block."""
     return {
         "id": "msg_ccr_test",
         "type": "message",
@@ -46,7 +46,7 @@ def _tool_call_response() -> dict:
             {
                 "type": "tool_use",
                 "id": "toolu_bad",
-                "name": "headroom_retrieve",
+                "name": "copium_retrieve",
                 "input": {"hash": "badhash"},
             }
         ],
@@ -62,11 +62,11 @@ def _tool_call_response() -> dict:
 
 def test_anthropic_ccr_exception_reraises_not_swallowed():
     """When CCR handle_response raises, the proxy must 500 — not silently return
-    the raw headroom_retrieve tool-call body to the client."""
+    the raw copium_retrieve tool-call body to the client."""
     config = _make_config()
     tool_resp = _tool_call_response()
 
-    with patch("headroom.proxy.server.AnyLLMBackend"):
+    with patch("copium.proxy.server.AnyLLMBackend"):
         app = create_app(config)
         with TestClient(app) as client:
             proxy = client.app.state.proxy
@@ -94,7 +94,7 @@ def test_anthropic_ccr_exception_reraises_not_swallowed():
             )
 
     # CCR error must propagate as an error response (502), NOT silently forward
-    # the raw headroom_retrieve tool-call body to the client as a 200.
+    # the raw copium_retrieve tool-call body to the client as a 200.
     failing_handler.handle_response.assert_awaited_once()
     assert resp.status_code != 200, (
         f"expected non-200 (CCR error re-raised), got 200: {resp.text[:200]}"
@@ -104,9 +104,9 @@ def test_anthropic_ccr_exception_reraises_not_swallowed():
     assert resp.status_code == 502, (
         f"expected 502 (CCR re-raise caught by outer handler), got {resp.status_code}: {resp.text[:200]}"
     )
-    # Confirm the raw headroom_retrieve tool_use block was NOT returned.
+    # Confirm the raw copium_retrieve tool_use block was NOT returned.
     for block in body.get("content", []):
-        assert block.get("name") != "headroom_retrieve", (
+        assert block.get("name") != "copium_retrieve", (
             "proxy silently forwarded the raw CCR tool call — silent fallback not fixed"
         )
     assert "error" in body

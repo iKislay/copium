@@ -1,5 +1,5 @@
 {
-  "name": "Headroom",
+  "name": "Copium",
   "build": {
     "dockerfile": "Dockerfile",
     "context": ".."
@@ -23,12 +23,12 @@
     "PIP_DISABLE_PIP_VERSION_CHECK": "1",
     "PYTHONUNBUFFERED": "1",
     "UV_LINK_MODE": "copy",
-    "UV_PROJECT_ENVIRONMENT": "/home/vscode/.venvs/headroom"
+    "UV_PROJECT_ENVIRONMENT": "/home/vscode/.venvs/copium"
   },
   "mounts": [
-    "source=headroom-venv-${localWorkspaceFolderBasename},target=/home/vscode/.venvs,type=volume",
-    "source=headroom-uv-cache,target=/home/vscode/.cache/uv,type=volume",
-    "source=headroom-pip-cache,target=/home/vscode/.cache/pip,type=volume",
+    "source=copium-venv-${localWorkspaceFolderBasename},target=/home/vscode/.venvs,type=volume",
+    "source=copium-uv-cache,target=/home/vscode/.cache/uv,type=volume",
+    "source=copium-pip-cache,target=/home/vscode/.cache/pip,type=volume",
     "source=${localWorkspaceFolder}/../../../../../../../../,target=/workspaces-host,type=bind,consistency=cached"
   ],
   "postCreateCommand": "bash .devcontainer/post-create.sh",
@@ -38,7 +38,7 @@
   ],
   "portsAttributes": {
     "8787": {
-      "label": "Headroom proxy",
+      "label": "Copium proxy",
       "onAutoForward": "notify"
     }
   },
@@ -55,7 +55,7 @@
         "editor.formatOnSave": true,
         "files.eol": "\n",
         "python.analysis.typeCheckingMode": "basic",
-        "python.defaultInterpreterPath": "/home/vscode/.venvs/headroom/bin/python",
+        "python.defaultInterpreterPath": "/home/vscode/.venvs/copium/bin/python",
         "python.terminal.activateEnvironment": false,
         "python.testing.pytestArgs": [
           "tests"

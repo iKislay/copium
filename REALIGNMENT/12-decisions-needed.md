@@ -19,7 +19,7 @@ PR-A2 through PR-A8 land over the rest of the week.
 **Recommendation: Tier 1 + Tier 2 in Phase B PR-B1** (~10K LOC).
 
 - **Tier 1** (ICM proper): `intelligent_context.py`, `manager.rs`, `icm.rs`, the proxy call site.
-- **Tier 2** (subsystems whose only consumer is ICM): `RollingWindow`, `ProgressiveSummarizer`, `scoring.py`, `tool_crusher.py`, `MessageScorer`, all of `crates/headroom-core/src/scoring/` and `relevance/`, most of `context/` (keep `safety.rs`).
+- **Tier 2** (subsystems whose only consumer is ICM): `RollingWindow`, `ProgressiveSummarizer`, `scoring.py`, `tool_crusher.py`, `MessageScorer`, all of `crates/copium-core/src/scoring/` and `relevance/`, most of `context/` (keep `safety.rs`).
 - **Tier 3** (separable cleanup): `CacheAligner` rewrite path is in Phase A PR-A2 (already scheduled). Memory `_inject_system_context` paths in Phase A PR-A2 + Phase B PR-B6 (already scheduled).
 
 So "Tier 1 + Tier 2" is the right scope for the Phase B big-delete PR; Tier 3 is already covered by Phase A and Phase B's other PRs.
@@ -42,7 +42,7 @@ Folded into Phase B PR-B1.
 
 ## Q4. Stage 3g (lossless-first compression pipeline, issue #315) — re-scope or close?
 
-**Context:** Per project memory `~/.claude/projects/-Users-tchopra-claude-projects-headroom/memory/project_lossless_first_pipeline.md`, Stage 3g was queued to formalize "lossless-then-lossy-then-CCR ordering as a `CompressionPipeline` orchestrator + `LosslessTransform`/`LossyTransform` traits." The plan assumed an ICM-style orchestrator over the messages array.
+**Context:** Per project memory `~/.claude/projects/-Users-tchopra-claude-projects-copium/memory/project_lossless_first_pipeline.md`, Stage 3g was queued to formalize "lossless-then-lossy-then-CCR ordering as a `CompressionPipeline` orchestrator + `LosslessTransform`/`LossyTransform` traits." The plan assumed an ICM-style orchestrator over the messages array.
 
 **Recommendation:** **Re-scope** issue #315 to "live-zone-only pipeline orchestrator." The traits stay (`LosslessTransform`/`LossyTransform`); the scope changes from "history compactor" to "live-zone block dispatcher." This is what Phase B PR-B2 builds. Update issue #315's body to reflect the realignment.
 
@@ -50,17 +50,17 @@ Folded into Phase B PR-B1.
 
 ---
 
-## Q5. Headroom Loop / AWS Marketplace BYOC — affected scope?
+## Q5. Copium Loop / AWS Marketplace BYOC — affected scope?
 
-**Context:** Per project memory `project_headroom_loop.md` (enterprise paid product) and `project_headroom_aws_marketplace.md` (BYOC CFN stack in customer VPC). Both depend on the OSS proxy.
+**Context:** Per project memory `project_copium_loop.md` (enterprise paid product) and `project_copium_aws_marketplace.md` (BYOC CFN stack in customer VPC). Both depend on the OSS proxy.
 
 **Recommendation:** The realignment **strengthens** both:
-- Headroom Loop's value proposition is "trace stream + enterprise compression policy"; Phase F's auth-mode policy is exactly the surface Loop wants to gate on.
+- Copium Loop's value proposition is "trace stream + enterprise compression policy"; Phase F's auth-mode policy is exactly the surface Loop wants to gate on.
 - AWS Marketplace BYOC's pitch is "context compression in front of Bedrock"; Phase D's native Bedrock support makes that pitch real (today's LiteLLM-converted Bedrock path was fake; Phase D fixes it).
 
 No re-scoping needed; revisit after Phase D lands.
 
-**Alternative:** Pause Headroom Loop / Marketplace work until Phase D completes. Recommended if their roadmap conflicts with Phase D timing.
+**Alternative:** Pause Copium Loop / Marketplace work until Phase D completes. Recommended if their roadmap conflicts with Phase D timing.
 
 ---
 
@@ -72,19 +72,19 @@ No re-scoping needed; revisit after Phase D lands.
 
 ---
 
-## Q7. Operator config switch — explicit `HEADROOM_PROXY_BACKEND` env var, or implicit?
+## Q7. Operator config switch — explicit `COPIUM_PROXY_BACKEND` env var, or implicit?
 
 **Context:** During Phase H rollout, operators need a way to choose Python vs Rust proxy.
 
-**Recommendation:** Add `HEADROOM_PROXY_BACKEND={python|rust}` env var in Phase H PR-H1; default to `rust` once the canary in Phase I PR-I4 confirms ≥99.9% byte-equality. Keep the Python proxy alive in the codebase for 30 days post-Phase-H as an explicit rollback target. After 30 days of stable Rust operation, run Phase H PR-H2/H3 to delete Python.
+**Recommendation:** Add `COPIUM_PROXY_BACKEND={python|rust}` env var in Phase H PR-H1; default to `rust` once the canary in Phase I PR-I4 confirms ≥99.9% byte-equality. Keep the Python proxy alive in the codebase for 30 days post-Phase-H as an explicit rollback target. After 30 days of stable Rust operation, run Phase H PR-H2/H3 to delete Python.
 
-**Alternative:** Cut over implicitly (`headroom proxy start` always uses Rust after Phase H). Riskier; no clean rollback path.
+**Alternative:** Cut over implicitly (`copium proxy start` always uses Rust after Phase H). Riskier; no clean rollback path.
 
 ---
 
 ## Q8. Container image strategy — single binary or multi-stage?
 
-**Recommendation:** Single binary (`headroom-proxy` Rust). Container is `FROM scratch` or `FROM gcr.io/distroless/static`. Image size drops from ~500 MB (with Python + LiteLLM + ONNX models) to ~50 MB.
+**Recommendation:** Single binary (`copium-proxy` Rust). Container is `FROM scratch` or `FROM gcr.io/distroless/static`. Image size drops from ~500 MB (with Python + LiteLLM + ONNX models) to ~50 MB.
 
 **Alternative:** Multi-stage Docker with Rust binary + Python sidecar (for evals/learn/memory writers). Recommended only if those subsystems become production-relevant; today they're CLI tools.
 
@@ -94,10 +94,10 @@ No re-scoping needed; revisit after Phase D lands.
 
 **Recommendation:** **No, document the decision in `docs/rtk-architecture.md`** (Phase G PR-G3). The argument:
 1. Cache hot zone risk: shell-out + buffer per tool result is correctness-fragile.
-2. Parallel implementation: `crates/headroom-core/src/transforms/log_compressor.rs` covers post-hoc log/output compression; RTK rewrites *commands* (different value).
+2. Parallel implementation: `crates/copium-core/src/transforms/log_compressor.rs` covers post-hoc log/output compression; RTK rewrites *commands* (different value).
 3. RTK itself is a third-party binary the team doesn't control; an upstream version change silently busts cache.
 
-If a future requirement emerges (e.g., "Headroom must compress shell output for users who don't run wrap"), reconsider with explicit cache-safety design.
+If a future requirement emerges (e.g., "Copium must compress shell output for users who don't run wrap"), reconsider with explicit cache-safety design.
 
 **Alternative:** Build proxy-side RTK as a feature-flagged opt-in. Recommended only if the wrap-CLI breadth (PR-G1) doesn't cover enough surface.
 
@@ -121,9 +121,9 @@ If a future requirement emerges (e.g., "Headroom must compress shell output for 
 
 ## Q12. Parity harness post-Phase-H — keep or delete?
 
-**Context:** After Phase H deletes Python, `crates/headroom-parity/` no longer has a Python side to compare against. Per Phase H PR-H3, this is a decision point.
+**Context:** After Phase H deletes Python, `crates/copium-parity/` no longer has a Python side to compare against. Per Phase H PR-H3, this is a decision point.
 
-**Recommendation:** **Repurpose**, don't delete. Rename to `crates/headroom-version-parity/` and use it to compare current-Rust-version vs previous-Rust-version on the recorded fixtures. Catches Rust-vs-Rust regressions during future ML compressor variants (e.g., when Kompress is ported to Rust via `ort`).
+**Recommendation:** **Repurpose**, don't delete. Rename to `crates/copium-version-parity/` and use it to compare current-Rust-version vs previous-Rust-version on the recorded fixtures. Catches Rust-vs-Rust regressions during future ML compressor variants (e.g., when Kompress is ported to Rust via `ort`).
 
 **Alternative:** Delete entirely. Save ~2K LOC. Risk: no automated regression test for compressor changes.
 

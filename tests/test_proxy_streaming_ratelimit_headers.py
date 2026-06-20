@@ -14,8 +14,8 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 
-import headroom.proxy.handlers.streaming as streaming_module
-from headroom.proxy.server import HeadroomProxy
+import copium.proxy.handlers.streaming as streaming_module
+from copium.proxy.server import CopiumProxy
 
 
 @pytest.fixture(autouse=True)
@@ -25,7 +25,7 @@ def _reset_codex_rate_limit_singleton():
     The tracker is a module singleton; save/restore ``_latest`` around every
     test so a captured snapshot never leaks into (or depends on) another test.
     """
-    from headroom.subscription.codex_rate_limits import get_codex_rate_limit_state
+    from copium.subscription.codex_rate_limits import get_codex_rate_limit_state
 
     state = get_codex_rate_limit_state()
     saved = state._latest
@@ -40,8 +40,8 @@ class TestStreamingRatelimitHeaderForwarding:
     """Test that upstream ratelimit headers are forwarded in streaming responses."""
 
     def _create_mock_proxy(self):
-        """Create a HeadroomProxy with mocked internals for unit testing."""
-        proxy = object.__new__(HeadroomProxy)
+        """Create a CopiumProxy with mocked internals for unit testing."""
+        proxy = object.__new__(CopiumProxy)
         proxy.http_client = MagicMock(spec=httpx.AsyncClient)
         proxy.metrics = MagicMock()
         proxy.metrics.record_request = AsyncMock(return_value=None)
@@ -426,7 +426,7 @@ class TestStreamingRatelimitHeaderForwarding:
         the client (the old ``"ratelimit" in k`` filter dropped them, so the
         Codex CLI's own usage display also went stale).
         """
-        from headroom.subscription.codex_rate_limits import get_codex_rate_limit_state
+        from copium.subscription.codex_rate_limits import get_codex_rate_limit_state
 
         state = get_codex_rate_limit_state()
 
@@ -488,7 +488,7 @@ class TestStreamingRatelimitHeaderForwarding:
         exactly when the session/weekly windows are most worth surfacing, so the
         previous success-only placement left the most important update missing.
         """
-        from headroom.subscription.codex_rate_limits import get_codex_rate_limit_state
+        from copium.subscription.codex_rate_limits import get_codex_rate_limit_state
 
         state = get_codex_rate_limit_state()
 
@@ -533,7 +533,7 @@ class TestStreamingRatelimitHeaderForwarding:
     @pytest.mark.asyncio
     async def test_anthropic_stream_leaves_codex_state_untouched(self):
         """The now-unconditional capture must be a no-op for non-Codex streams."""
-        from headroom.subscription.codex_rate_limits import get_codex_rate_limit_state
+        from copium.subscription.codex_rate_limits import get_codex_rate_limit_state
 
         state = get_codex_rate_limit_state()
 

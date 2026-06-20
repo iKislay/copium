@@ -1,4 +1,4 @@
-"""Tests for per-project savings attribution (X-Headroom-Project)."""
+"""Tests for per-project savings attribution (X-Copium-Project)."""
 
 import asyncio
 import json
@@ -8,20 +8,20 @@ import pytest
 pytest.importorskip("fastapi")
 from fastapi.testclient import TestClient  # noqa: E402
 
-from headroom.proxy.outcome import RequestOutcome, emit_request_outcome  # noqa: E402
-from headroom.proxy.project_context import (  # noqa: E402
+from copium.proxy.outcome import RequestOutcome, emit_request_outcome  # noqa: E402
+from copium.proxy.project_context import (  # noqa: E402
     classify_project,
     get_current_project,
     set_current_project,
     split_project_path,
     with_project_prefix,
 )
-from headroom.proxy.savings_tracker import (  # noqa: E402
+from copium.proxy.savings_tracker import (  # noqa: E402
     DEFAULT_MAX_PROJECTS,
     SavingsTracker,
     sanitize_project_name,
 )
-from headroom.proxy.server import ProxyConfig, create_app  # noqa: E402
+from copium.proxy.server import ProxyConfig, create_app  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # sanitize_project_name / classify_project
@@ -55,8 +55,8 @@ def test_sanitize_project_name_decodes_percent_encoded_non_ascii():
 
 
 def test_classify_project_reads_header_case_insensitively():
-    assert classify_project({"x-headroom-project": "frontend"}) == "frontend"
-    assert classify_project({"X-Headroom-Project": " frontend "}) == "frontend"
+    assert classify_project({"x-copium-project": "frontend"}) == "frontend"
+    assert classify_project({"X-Copium-Project": " frontend "}) == "frontend"
     assert classify_project({"user-agent": "claude-code/1.0"}) is None
     assert classify_project(object()) is None
 
@@ -233,7 +233,7 @@ def _emit_outcome(proxy, *, project_field=None):
 
 
 def test_funnel_attributes_savings_from_context_and_stats_exposes_them(tmp_path, monkeypatch):
-    monkeypatch.setenv("HEADROOM_SAVINGS_PATH", str(tmp_path / "savings.json"))
+    monkeypatch.setenv("COPIUM_SAVINGS_PATH", str(tmp_path / "savings.json"))
     config = ProxyConfig(cache_enabled=False, rate_limit_enabled=False, log_requests=False)
 
     with TestClient(create_app(config)) as client:
@@ -286,7 +286,7 @@ def test_record_request_without_project_matches_legacy_totals(tmp_path):
 
 def test_stats_payload_keeps_legacy_shape(tmp_path, monkeypatch):
     """Dashboard consumers of the old /stats keys must not break."""
-    monkeypatch.setenv("HEADROOM_SAVINGS_PATH", str(tmp_path / "savings.json"))
+    monkeypatch.setenv("COPIUM_SAVINGS_PATH", str(tmp_path / "savings.json"))
     config = ProxyConfig(cache_enabled=False, rate_limit_enabled=False, log_requests=False)
 
     with TestClient(create_app(config)) as client:
@@ -306,7 +306,7 @@ def test_stats_payload_keeps_legacy_shape(tmp_path, monkeypatch):
 
 def test_metrics_record_request_works_without_project_kwarg(tmp_path, monkeypatch):
     """Existing callers that never pass ``project=`` keep working."""
-    monkeypatch.setenv("HEADROOM_SAVINGS_PATH", str(tmp_path / "savings.json"))
+    monkeypatch.setenv("COPIUM_SAVINGS_PATH", str(tmp_path / "savings.json"))
     config = ProxyConfig(cache_enabled=False, rate_limit_enabled=False, log_requests=False)
 
     with TestClient(create_app(config)) as client:
@@ -327,12 +327,12 @@ def test_metrics_record_request_works_without_project_kwarg(tmp_path, monkeypatc
 
 
 def test_middleware_binds_project_header_to_context(tmp_path, monkeypatch):
-    monkeypatch.setenv("HEADROOM_SAVINGS_PATH", str(tmp_path / "savings.json"))
+    monkeypatch.setenv("COPIUM_SAVINGS_PATH", str(tmp_path / "savings.json"))
     config = ProxyConfig(cache_enabled=False, rate_limit_enabled=False, log_requests=False)
 
     captured: list[str | None] = []
 
-    import headroom.proxy.server as server_module
+    import copium.proxy.server as server_module
 
     def _capture(project: str | None) -> None:
         captured.append(project)
@@ -341,7 +341,7 @@ def test_middleware_binds_project_header_to_context(tmp_path, monkeypatch):
     monkeypatch.setattr(server_module, "set_current_project", _capture)
 
     with TestClient(create_app(config)) as client:
-        assert client.get("/health", headers={"X-Headroom-Project": " my repo "}).status_code == 200
+        assert client.get("/health", headers={"X-Copium-Project": " my repo "}).status_code == 200
         assert client.get("/health").status_code == 200
         # /p/<name> base-URL prefix (aider/copilot/cursor wraps): stripped
         # before routing, so the request still reaches /health.
@@ -349,7 +349,7 @@ def test_middleware_binds_project_header_to_context(tmp_path, monkeypatch):
         # An explicit header wins over the path prefix.
         assert (
             client.get(
-                "/p/prefix-project/health", headers={"X-Headroom-Project": "header-project"}
+                "/p/prefix-project/health", headers={"X-Copium-Project": "header-project"}
             ).status_code
             == 200
         )

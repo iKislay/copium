@@ -1,4 +1,4 @@
-"""Hotfix-A9 invariant tests for ``headroom.transforms.tag_protector``.
+"""Hotfix-A9 invariant tests for ``copium.transforms.tag_protector``.
 
 Pins the discard-wrap semantics end-to-end through the public Python
 API. Mirrors the Rust ``proptest`` suite but at the language boundary
@@ -31,7 +31,7 @@ import random
 
 import pytest
 
-from headroom.transforms.tag_protector import protect_tags, restore_tags
+from copium.transforms.tag_protector import protect_tags, restore_tags
 
 # ──────────────────────────────────────────────────────────────────────
 # Helpers — independent open/close counters that don't share code with
@@ -259,7 +259,7 @@ def test_restore_lost_real_world_tag_does_not_inject_orphan() -> None:
     compressed text must NOT end with an orphan opening tag."""
     blocks = [
         (
-            "{{HEADROOM_TAG_0}}",
+            "{{COPIUM_TAG_0}}",
             "<system-reminder>[Showing lines 1-50 of 1000 total lines]</system-reminder>",
         )
     ]

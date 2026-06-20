@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Comprehensive Strands + Bedrock Demo for Headroom SDK.
+"""Comprehensive Strands + Bedrock Demo for Copium SDK.
 
-This demo showcases two Headroom integration patterns for AWS Strands Agents:
+This demo showcases two Copium integration patterns for AWS Strands Agents:
 
-1. **HeadroomHookProvider** - Compresses tool outputs as they happen
+1. **CopiumHookProvider** - Compresses tool outputs as they happen
    - Intercepts tool results via Strands hooks
    - Applies SmartCrusher compression to large JSON outputs
    - Shows per-tool compression metrics
 
-2. **HeadroomStrandsModel** - Optimizes entire conversation context
+2. **CopiumStrandsModel** - Optimizes entire conversation context
    - Wraps BedrockModel for automatic context optimization
    - Applies message-level transforms before API calls
    - Tracks cumulative savings across the session
@@ -20,7 +20,7 @@ Run with:
 
 Requirements:
     - AWS credentials configured (AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY or AWS_PROFILE)
-    - pip install strands-agents headroom-ai[strands]
+    - pip install strands-agents copium-ai[strands]
 """
 
 from __future__ import annotations
@@ -49,14 +49,14 @@ def check_dependencies() -> bool:
     except ImportError:
         missing.append("strands-agents")
 
-    # Check headroom
+    # Check copium
     try:
-        from headroom.integrations.strands import (  # noqa: F401
-            HeadroomHookProvider,
-            HeadroomStrandsModel,
+        from copium.integrations.strands import (  # noqa: F401
+            CopiumHookProvider,
+            CopiumStrandsModel,
         )
     except ImportError:
-        missing.append("headroom-ai[strands]")
+        missing.append("copium-ai[strands]")
 
     if missing:
         print_box(
@@ -507,24 +507,24 @@ def get_system_metrics(timerange: str = "1h", service: str = "all") -> str:
 
 
 # ============================================================================
-# Demo 1: HeadroomHookProvider
+# Demo 1: CopiumHookProvider
 # ============================================================================
 
 
 def run_hook_provider_demo(region: str = "us-west-2") -> dict[str, Any]:
-    """Demonstrate HeadroomHookProvider for tool output compression.
+    """Demonstrate CopiumHookProvider for tool output compression.
 
     Returns metrics from the demo run.
     """
     from strands import Agent, tool
     from strands.models import BedrockModel
 
-    from headroom.integrations.strands import HeadroomHookProvider
+    from copium.integrations.strands import CopiumHookProvider
 
     print_box(
-        "Demo 1: HeadroomHookProvider",
+        "Demo 1: CopiumHookProvider",
         [
-            "The HeadroomHookProvider intercepts tool outputs and compresses",
+            "The CopiumHookProvider intercepts tool outputs and compresses",
             "them BEFORE they're added to the conversation context.",
             "",
             "This reduces token usage for subsequent LLM calls by eliminating",
@@ -591,8 +591,8 @@ def run_hook_provider_demo(region: str = "us-west-2") -> dict[str, Any]:
         temperature=0.1,
     )
 
-    # Create HeadroomHookProvider
-    hook_provider = HeadroomHookProvider(
+    # Create CopiumHookProvider
+    hook_provider = CopiumHookProvider(
         compress_tool_outputs=True,
         min_tokens_to_compress=100,  # Compress outputs with 100+ tokens
         preserve_errors=True,
@@ -645,7 +645,7 @@ def run_hook_provider_demo(region: str = "us-west-2") -> dict[str, Any]:
 
     # Display results
     print_box(
-        "HeadroomHookProvider Results",
+        "CopiumHookProvider Results",
         [
             f"Tool calls processed:    {metrics['total_requests']}",
             f"Compressions applied:    {metrics['compressed_requests']}",
@@ -690,31 +690,31 @@ def run_hook_provider_demo(region: str = "us-west-2") -> dict[str, Any]:
 
 
 # ============================================================================
-# Demo 2: HeadroomStrandsModel
+# Demo 2: CopiumStrandsModel
 # ============================================================================
 
 
 def run_model_wrapper_demo(region: str = "us-west-2") -> dict[str, Any]:
-    """Demonstrate HeadroomStrandsModel for conversation optimization.
+    """Demonstrate CopiumStrandsModel for conversation optimization.
 
     Returns metrics from the demo run.
     """
     from strands import Agent, tool
     from strands.models import BedrockModel
 
-    from headroom import HeadroomConfig
-    from headroom.integrations.strands import HeadroomStrandsModel
+    from copium import CopiumConfig
+    from copium.integrations.strands import CopiumStrandsModel
 
     print_box(
-        "Demo 2: HeadroomStrandsModel",
+        "Demo 2: CopiumStrandsModel",
         [
-            "HeadroomStrandsModel wraps the Bedrock model to optimize the",
+            "CopiumStrandsModel wraps the Bedrock model to optimize the",
             "ENTIRE conversation context before each API call.",
             "",
             "As conversations grow with tool outputs and history, the",
             "model wrapper applies transforms to reduce context size.",
             "",
-            "Using: Claude 3 Haiku wrapped with HeadroomStrandsModel",
+            "Using: Claude 3 Haiku wrapped with CopiumStrandsModel",
         ],
     )
 
@@ -774,14 +774,14 @@ def run_model_wrapper_demo(region: str = "us-west-2") -> dict[str, Any]:
         temperature=0.1,
     )
 
-    # Configure Headroom
-    config = HeadroomConfig()
+    # Configure Copium
+    config = CopiumConfig()
     config.smart_crusher.enabled = True
     config.smart_crusher.min_tokens_to_crush = 100
     config.smart_crusher.max_items_after_crush = 20
 
-    # Wrap with HeadroomStrandsModel
-    optimized_model = HeadroomStrandsModel(
+    # Wrap with CopiumStrandsModel
+    optimized_model = CopiumStrandsModel(
         wrapped_model=base_model,
         config=config,
         auto_detect_provider=True,
@@ -815,7 +815,7 @@ def run_model_wrapper_demo(region: str = "us-west-2") -> dict[str, Any]:
 
     # Display results
     print_box(
-        "HeadroomStrandsModel Results",
+        "CopiumStrandsModel Results",
         [
             f"API calls made:            {metrics['total_requests']}",
             "",
@@ -866,7 +866,7 @@ def run_model_wrapper_demo(region: str = "us-west-2") -> dict[str, Any]:
 def main() -> int:
     """Run the Strands Bedrock demo."""
     parser = argparse.ArgumentParser(
-        description="Headroom + Strands Bedrock Demo",
+        description="Copium + Strands Bedrock Demo",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -884,12 +884,12 @@ Environment Variables:
     parser.add_argument(
         "--hook",
         action="store_true",
-        help="Run only the HeadroomHookProvider demo",
+        help="Run only the CopiumHookProvider demo",
     )
     parser.add_argument(
         "--model",
         action="store_true",
-        help="Run only the HeadroomStrandsModel demo",
+        help="Run only the CopiumStrandsModel demo",
     )
     parser.add_argument(
         "--region",
@@ -905,13 +905,13 @@ Environment Variables:
 
     # Print header
     print_box(
-        "Headroom + Strands Bedrock Demo",
+        "Copium + Strands Bedrock Demo",
         [
-            "This demo showcases Headroom's integration with AWS Strands Agents.",
+            "This demo showcases Copium's integration with AWS Strands Agents.",
             "",
-            "Headroom provides two integration patterns:",
-            "  1. HeadroomHookProvider - Compress tool outputs in real-time",
-            "  2. HeadroomStrandsModel - Optimize entire conversation context",
+            "Copium provides two integration patterns:",
+            "  1. CopiumHookProvider - Compress tool outputs in real-time",
+            "  2. CopiumStrandsModel - Optimize entire conversation context",
             "",
             f"Region: {args.region}",
             "Model:  Claude 3 Haiku (fast and cost-effective for demos)",
@@ -970,8 +970,8 @@ Environment Variables:
                     "(At scale, these savings compound significantly!)",
                     "",
                     "Integration patterns demonstrated:",
-                    "  [x] HeadroomHookProvider - Real-time tool output compression",
-                    "  [x] HeadroomStrandsModel - Full context optimization",
+                    "  [x] CopiumHookProvider - Real-time tool output compression",
+                    "  [x] CopiumStrandsModel - Full context optimization",
                 ],
                 style="success",
             )

@@ -1,6 +1,6 @@
 """Tests for MCP (Model Context Protocol) integration.
 
-These tests verify that Headroom correctly compresses MCP tool outputs
+These tests verify that Copium correctly compresses MCP tool outputs
 while preserving 100% of critical data (errors, anomalies).
 """
 
@@ -10,16 +10,16 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from headroom.integrations.mcp import (
-    HeadroomMCPClientWrapper,
-    HeadroomMCPCompressor,
+from copium.integrations.mcp import (
+    CopiumMCPClientWrapper,
+    CopiumMCPCompressor,
     MCPCompressionResult,
     MCPToolProfile,
     compress_tool_result,
     compress_tool_result_with_metrics,
 )
-from headroom.providers import OpenAIProvider
-from headroom.transforms.smart_crusher import strip_ccr_sentinels
+from copium.providers import OpenAIProvider
+from copium.transforms.smart_crusher import strip_ccr_sentinels
 
 # ============================================================================
 # Test Fixtures
@@ -29,7 +29,7 @@ from headroom.transforms.smart_crusher import strip_ccr_sentinels
 @pytest.fixture
 def mcp_compressor():
     """Create MCP compressor with default settings."""
-    return HeadroomMCPCompressor()
+    return CopiumMCPCompressor()
 
 
 @pytest.fixture
@@ -413,7 +413,7 @@ class TestMCPClientWrapper:
     @pytest.mark.asyncio
     async def test_wrapper_compresses_automatically(self, mock_mcp_client):
         """Wrapper should automatically compress tool results."""
-        wrapper = HeadroomMCPClientWrapper(mock_mcp_client)
+        wrapper = CopiumMCPClientWrapper(mock_mcp_client)
 
         result = await wrapper.call_tool("slack_search", {"query": "test"})
 
@@ -425,7 +425,7 @@ class TestMCPClientWrapper:
     @pytest.mark.asyncio
     async def test_wrapper_tracks_metrics(self, mock_mcp_client):
         """Wrapper should track compression metrics."""
-        wrapper = HeadroomMCPClientWrapper(mock_mcp_client)
+        wrapper = CopiumMCPClientWrapper(mock_mcp_client)
 
         await wrapper.call_tool("slack_search", {"query": "test"})
         await wrapper.call_tool("search_logs", {"service": "api"})
@@ -438,7 +438,7 @@ class TestMCPClientWrapper:
     @pytest.mark.asyncio
     async def test_wrapper_total_tokens_saved(self, mock_mcp_client):
         """Wrapper should track total tokens saved."""
-        wrapper = HeadroomMCPClientWrapper(mock_mcp_client)
+        wrapper = CopiumMCPClientWrapper(mock_mcp_client)
 
         await wrapper.call_tool("slack_search", {"query": "test"})
         await wrapper.call_tool("search_logs", {"service": "api"})
@@ -597,7 +597,7 @@ class TestMCPCustomProfiles:
                 min_tokens_to_compress=100,
             ),
         ]
-        compressor = HeadroomMCPCompressor(profiles=custom_profiles)
+        compressor = CopiumMCPCompressor(profiles=custom_profiles)
 
         profile = compressor.get_profile("custom_tool")
         assert profile.max_items == 10
@@ -610,7 +610,7 @@ class TestMCPCustomProfiles:
                 enabled=False,
             ),
         ]
-        compressor = HeadroomMCPCompressor(profiles=custom_profiles)
+        compressor = CopiumMCPCompressor(profiles=custom_profiles)
 
         content = generate_slack_messages(200)
         result = compressor.compress(content, "any_tool")

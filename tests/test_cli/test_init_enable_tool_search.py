@@ -1,9 +1,9 @@
-"""`headroom init claude` must set ENABLE_TOOL_SEARCH (GH #746).
+"""`copium init claude` must set ENABLE_TOOL_SEARCH (GH #746).
 
 Claude Code disables on-demand tool loading when ANTHROPIC_BASE_URL is a custom
 host and ENABLE_TOOL_SEARCH is unset, materializing all MCP/system tool schemas
 into the context window — which breaks sub-agent spawns and forces compaction.
-`headroom wrap claude` already sets it; `init` (and the persistent install) must
+`copium wrap claude` already sets it; `init` (and the persistent install) must
 too, otherwise init-wired users silently get eager tools.
 """
 
@@ -12,8 +12,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from headroom.cli import init as init_cli
-from headroom.providers.claude import install as claude_install
+from copium.cli import init as init_cli
+from copium.providers.claude import install as claude_install
 
 
 def test_ensure_claude_hooks_sets_enable_tool_search(tmp_path: Path) -> None:

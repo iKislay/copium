@@ -9,7 +9,7 @@ import httpx
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
-from headroom.proxy.server import HeadroomProxy, ProxyConfig, create_app
+from copium.proxy.server import CopiumProxy, ProxyConfig, create_app
 
 
 def _app() -> Any:
@@ -103,10 +103,10 @@ def test_provider_passthrough_routes_forward_expected_targets(monkeypatch) -> No
             }
         )
 
-    monkeypatch.setattr(HeadroomProxy, "handle_passthrough", fake_passthrough)
-    monkeypatch.setattr(HeadroomProxy, "handle_gemini_generate_content", fake_gemini_generate)
-    monkeypatch.setattr(HeadroomProxy, "handle_gemini_count_tokens", fake_gemini_count)
-    monkeypatch.setattr(HeadroomProxy, "handle_anthropic_messages", fake_anthropic_messages)
+    monkeypatch.setattr(CopiumProxy, "handle_passthrough", fake_passthrough)
+    monkeypatch.setattr(CopiumProxy, "handle_gemini_generate_content", fake_gemini_generate)
+    monkeypatch.setattr(CopiumProxy, "handle_gemini_count_tokens", fake_gemini_count)
+    monkeypatch.setattr(CopiumProxy, "handle_anthropic_messages", fake_anthropic_messages)
 
     with TestClient(_app()) as client:
         assert client.post("/v1/messages/count_tokens").json()["base_url"] == (
@@ -121,7 +121,7 @@ def test_provider_passthrough_routes_forward_expected_targets(monkeypatch) -> No
                 "/azure/models",
                 headers={
                     "api-key": "azure-key",
-                    "x-headroom-base-url": "https://azure.example/openai/",
+                    "x-copium-base-url": "https://azure.example/openai/",
                 },
             ).json()["base_url"]
             == "https://azure.example/openai"
@@ -171,7 +171,7 @@ def test_provider_passthrough_routes_forward_expected_targets(monkeypatch) -> No
         assert (
             client.get(
                 "/unhandled/path",
-                headers={"x-headroom-base-url": "https://custom.example/base/"},
+                headers={"x-copium-base-url": "https://custom.example/base/"},
             ).json()["base_url"]
             == "https://custom.example/base"
         )
@@ -204,7 +204,7 @@ def test_provider_passthrough_routes_forward_expected_targets(monkeypatch) -> No
 
 
 def test_proxy_route_helpers_prefer_legacy_targets_and_gemini_passthrough() -> None:
-    proxy_routes = importlib.import_module("headroom.providers.proxy_routes")
+    proxy_routes = importlib.import_module("copium.providers.proxy_routes")
     proxy = type(
         "Proxy",
         (),
@@ -231,7 +231,7 @@ def test_proxy_route_helpers_prefer_legacy_targets_and_gemini_passthrough() -> N
     )
     assert (
         proxy_routes._select_passthrough_base_url(
-            proxy, {"api-key": "azure", "x-headroom-base-url": "https://azure.example/base/"}
+            proxy, {"api-key": "azure", "x-copium-base-url": "https://azure.example/base/"}
         )
         == "https://azure.example/base"
     )
@@ -249,7 +249,7 @@ def test_provider_specific_routes_delegate_to_expected_proxy_handlers(monkeypatc
             delegated.append((name, request.url.path, tuple(str(arg) for arg in args)))
             return JSONResponse({"handler": name, "path": request.url.path, "args": list(args)})
 
-        monkeypatch.setattr(HeadroomProxy, name, fake)
+        monkeypatch.setattr(CopiumProxy, name, fake)
 
     for handler_name in (
         "handle_anthropic_messages",
@@ -367,7 +367,7 @@ def test_openai_response_websocket_aliases_delegate_to_openai_ws_handler(monkeyp
         await websocket.send_json({"path": websocket.url.path})
         await websocket.close()
 
-    monkeypatch.setattr(HeadroomProxy, "handle_openai_responses_ws", fake_ws)
+    monkeypatch.setattr(CopiumProxy, "handle_openai_responses_ws", fake_ws)
 
     with TestClient(_app()) as client:
         for path in (
@@ -397,7 +397,7 @@ def test_openai_response_subpath_passthrough_returns_502_on_http_failure() -> No
 
     with TestClient(_app()) as client:
         client.app.state.proxy.http_client = FailingAsyncClient()
-        with patch("headroom.providers.proxy_routes.logger") as logger:
+        with patch("copium.providers.proxy_routes.logger") as logger:
             response = client.post("/v1/responses/compact?trace=1", json={"model": "gpt-4o"})
 
     assert response.status_code == 502
@@ -435,7 +435,7 @@ def test_openai_response_subpath_passthrough_uses_openai_target() -> None:
 
 def test_openai_response_subpath_aliases_and_chatgpt_auth_use_expected_targets(monkeypatch) -> None:
     monkeypatch.setattr(
-        "headroom.providers.proxy_routes._resolve_codex_routing_headers",
+        "copium.providers.proxy_routes._resolve_codex_routing_headers",
         lambda headers: (headers, True),
     )
 
@@ -471,7 +471,7 @@ def test_gemini_batch_embed_contents_passthrough_uses_gemini_target(monkeypatch)
         calls.append((request.url.path, base_url, sub_path))
         return JSONResponse({"base_url": base_url, "sub_path": sub_path, "provider": provider_name})
 
-    monkeypatch.setattr(HeadroomProxy, "handle_passthrough", fake_passthrough)
+    monkeypatch.setattr(CopiumProxy, "handle_passthrough", fake_passthrough)
 
     with TestClient(_app()) as client:
         response = client.post("/v1beta/models/demo:batchEmbedContents")
@@ -488,7 +488,7 @@ def test_gemini_batch_embed_contents_passthrough_uses_gemini_target(monkeypatch)
 
 
 def test_v1_models_fetches_codex_registry_under_chatgpt_auth(monkeypatch) -> None:
-    proxy_routes = importlib.import_module("headroom.providers.proxy_routes")
+    proxy_routes = importlib.import_module("copium.providers.proxy_routes")
     debug_messages: list[tuple[str, tuple[object, ...]]] = []
     monkeypatch.setattr(
         proxy_routes.logger,
@@ -676,7 +676,7 @@ def test_v1_models_still_forwards_under_non_chatgpt_auth() -> None:
         calls.append((request.url.path, base_url, provider_name))
         return JSONResponse({"base_url": base_url, "provider": provider_name})
 
-    with patch.object(HeadroomProxy, "handle_passthrough", fake_passthrough):
+    with patch.object(CopiumProxy, "handle_passthrough", fake_passthrough):
         with TestClient(_app()) as client:
             response = client.get(
                 "/v1/models",
@@ -698,7 +698,7 @@ def test_v1_models_routes_claude_code_gateway_discovery_to_anthropic() -> None:
         calls.append((request.url.path, base_url, provider_name))
         return JSONResponse({"base_url": base_url, "provider": provider_name})
 
-    with patch.object(HeadroomProxy, "handle_passthrough", fake_passthrough):
+    with patch.object(CopiumProxy, "handle_passthrough", fake_passthrough):
         with TestClient(_app()) as client:
             list_response = client.get(
                 "/v1/models",

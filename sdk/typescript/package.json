@@ -1,5 +1,5 @@
 {
-  "name": "headroom-ai",
+  "name": "copium-ai",
   "version": "0.26.0",
   "description": "Compress LLM context. Save tokens. Fit more into every request.",
   "type": "module",

@@ -1,4 +1,4 @@
-# Headroom Latency Benchmarks
+# Copium Latency Benchmarks
 
 Measured compression overhead across content types and sizes to answer: **does the token savings outweigh the processing time?**
 
@@ -9,7 +9,7 @@ Generated: 2026-02-24 01:11 UTC
 - **Platform**: macOS-26.1-arm64-arm-64bit
 - **Processor**: arm
 - **Python**: 3.11.11
-- **Headroom**: v0.3.7
+- **Copium**: v0.3.7
 
 > **Note:** These benchmarks were captured on v0.3.7. Since then, v0.5.6 added parallel message compression, eliminated redundant token counting, and optimized hot-path hashing. Expect lower latency on current versions. Re-benchmarking is planned.
 

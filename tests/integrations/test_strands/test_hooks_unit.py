@@ -1,7 +1,7 @@
-"""Unit tests for Strands HeadroomHookProvider.
+"""Unit tests for Strands CopiumHookProvider.
 
 These tests use mocks and do NOT require AWS credentials or strands-agents.
-They test the internal logic of HeadroomHookProvider in isolation.
+They test the internal logic of CopiumHookProvider in isolation.
 
 For real integration tests, see test_hooks.py.
 """
@@ -28,14 +28,14 @@ except ImportError:
 pytestmark = pytest.mark.skipif(not STRANDS_AVAILABLE, reason="strands-agents not installed")
 
 
-class TestHeadroomHookProviderInit:
-    """Tests for HeadroomHookProvider initialization."""
+class TestCopiumHookProviderInit:
+    """Tests for CopiumHookProvider initialization."""
 
     def test_init_with_defaults(self):
         """Initialize with default settings."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider()
+        hook = CopiumHookProvider()
 
         assert hook.compress_tool_outputs is True
         assert hook.min_tokens_to_compress == 100
@@ -45,14 +45,14 @@ class TestHeadroomHookProviderInit:
 
     def test_init_with_custom_config(self):
         """Initialize with custom configuration."""
-        from headroom import HeadroomConfig
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium import CopiumConfig
+        from copium.integrations.strands import CopiumHookProvider
 
-        config = HeadroomConfig()
+        config = CopiumConfig()
         config.smart_crusher.min_tokens_to_crush = 200
         config.smart_crusher.max_items_after_crush = 20
 
-        hook = HeadroomHookProvider(
+        hook = CopiumHookProvider(
             compress_tool_outputs=False,
             min_tokens_to_compress=500,
             config=config,
@@ -65,24 +65,24 @@ class TestHeadroomHookProviderInit:
         assert hook.preserve_errors is False
 
     def test_init_creates_default_config_if_none(self):
-        """Initialize creates a default HeadroomConfig if none provided."""
-        from headroom import HeadroomConfig
-        from headroom.integrations.strands import HeadroomHookProvider
+        """Initialize creates a default CopiumConfig if none provided."""
+        from copium import CopiumConfig
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider()
+        hook = CopiumHookProvider()
 
         assert hook.config is not None
-        assert isinstance(hook.config, HeadroomConfig)
+        assert isinstance(hook.config, CopiumConfig)
 
 
 class TestRegisterHooks:
-    """Tests for HeadroomHookProvider.register_hooks method."""
+    """Tests for CopiumHookProvider.register_hooks method."""
 
     def test_register_hooks_adds_callback_to_registry(self):
         """register_hooks adds AfterToolCallEvent callback to registry."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider(compress_tool_outputs=True)
+        hook = CopiumHookProvider(compress_tool_outputs=True)
         mock_registry = MagicMock()
 
         hook.register_hooks(mock_registry)
@@ -92,9 +92,9 @@ class TestRegisterHooks:
 
     def test_register_hooks_skips_when_compression_disabled(self):
         """register_hooks does not register callbacks when compression is disabled."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider(compress_tool_outputs=False)
+        hook = CopiumHookProvider(compress_tool_outputs=False)
         mock_registry = MagicMock()
 
         hook.register_hooks(mock_registry)
@@ -108,9 +108,9 @@ class TestCrusherLazyInit:
 
     def test_crusher_is_lazily_initialized(self):
         """SmartCrusher is not created until first access."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider()
+        hook = CopiumHookProvider()
 
         # Directly check internal state - crusher should be None initially
         assert hook._crusher is None
@@ -124,9 +124,9 @@ class TestCrusherLazyInit:
 
     def test_crusher_uses_configured_min_tokens(self):
         """SmartCrusher uses min_tokens_to_compress from hook config."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider(min_tokens_to_compress=250)
+        hook = CopiumHookProvider(min_tokens_to_compress=250)
 
         crusher = hook.crusher
 
@@ -139,16 +139,16 @@ class TestTokenEstimation:
 
     def test_estimate_tokens_empty_string(self):
         """Estimate returns 0 for empty string."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider()
+        hook = CopiumHookProvider()
         assert hook._estimate_tokens("") == 0
 
     def test_estimate_tokens_short_string(self):
         """Estimate uses ~4 chars per token heuristic."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider()
+        hook = CopiumHookProvider()
 
         # 12 chars = 3 tokens (12 // 4)
         assert hook._estimate_tokens("hello world!") == 3
@@ -162,9 +162,9 @@ class TestExtractTextContent:
 
     def test_extract_from_text_content(self):
         """Extract text from content with text field."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider()
+        hook = CopiumHookProvider()
         result = {"content": [{"text": "Hello world"}]}
 
         extracted = hook._extract_text_content(result)
@@ -172,9 +172,9 @@ class TestExtractTextContent:
 
     def test_extract_from_json_content(self):
         """Extract and serialize JSON content."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider()
+        hook = CopiumHookProvider()
         result = {"content": [{"json": {"key": "value"}}]}
 
         extracted = hook._extract_text_content(result)
@@ -182,9 +182,9 @@ class TestExtractTextContent:
 
     def test_extract_empty_content(self):
         """Return empty string for empty content."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider()
+        hook = CopiumHookProvider()
         result = {"content": []}
 
         extracted = hook._extract_text_content(result)
@@ -192,9 +192,9 @@ class TestExtractTextContent:
 
     def test_extract_missing_content(self):
         """Return empty string for missing content key."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider()
+        hook = CopiumHookProvider()
         result = {}
 
         extracted = hook._extract_text_content(result)
@@ -206,9 +206,9 @@ class TestShouldSkipCompression:
 
     def test_skip_when_compression_disabled(self):
         """Skip compression when compress_tool_outputs is False."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider(compress_tool_outputs=False)
+        hook = CopiumHookProvider(compress_tool_outputs=False)
         result = {"content": [{"text": "data"}]}
 
         skip_reason = hook._should_skip_compression(result)
@@ -216,9 +216,9 @@ class TestShouldSkipCompression:
 
     def test_skip_error_results_when_preserve_errors_true(self):
         """Skip error results when preserve_errors is True."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider(preserve_errors=True)
+        hook = CopiumHookProvider(preserve_errors=True)
         result = {"status": "error", "content": [{"text": "Error message"}]}
 
         skip_reason = hook._should_skip_compression(result)
@@ -226,9 +226,9 @@ class TestShouldSkipCompression:
 
     def test_allow_error_results_when_preserve_errors_false(self):
         """Allow error results when preserve_errors is False."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider(preserve_errors=False)
+        hook = CopiumHookProvider(preserve_errors=False)
         result = {"status": "error", "content": [{"text": "Error message"}]}
 
         skip_reason = hook._should_skip_compression(result)
@@ -236,9 +236,9 @@ class TestShouldSkipCompression:
 
     def test_skip_empty_content(self):
         """Skip results with empty content."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider()
+        hook = CopiumHookProvider()
         result = {"content": []}
 
         skip_reason = hook._should_skip_compression(result)
@@ -246,9 +246,9 @@ class TestShouldSkipCompression:
 
     def test_allow_valid_content(self):
         """Allow results with valid content."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider()
+        hook = CopiumHookProvider()
         result = {"content": [{"text": "some data"}]}
 
         skip_reason = hook._should_skip_compression(result)
@@ -260,9 +260,9 @@ class TestCompressToolResult:
 
     def test_compress_large_tool_output(self):
         """Compresses large tool output and tracks metrics."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider(
+        hook = CopiumHookProvider(
             compress_tool_outputs=True,
             min_tokens_to_compress=10,  # Low threshold for testing
         )
@@ -286,9 +286,9 @@ class TestCompressToolResult:
 
     def test_skip_compression_below_threshold(self):
         """Does not compress output below token threshold."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider(
+        hook = CopiumHookProvider(
             compress_tool_outputs=True,
             min_tokens_to_compress=10000,  # High threshold
         )
@@ -307,9 +307,9 @@ class TestCompressToolResult:
 
     def test_skip_compression_when_disabled(self):
         """Does not compress when compression is disabled."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider(compress_tool_outputs=False)
+        hook = CopiumHookProvider(compress_tool_outputs=False)
 
         mock_event = MagicMock()
         mock_event.tool_use = {"name": "test_tool", "toolUseId": "tool-789"}
@@ -329,9 +329,9 @@ class TestMetricsTracking:
 
     def test_total_tokens_saved_accumulates(self):
         """total_tokens_saved accumulates across compressions."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider(
+        hook = CopiumHookProvider(
             compress_tool_outputs=True,
             min_tokens_to_compress=10,
         )
@@ -352,9 +352,9 @@ class TestMetricsTracking:
 
     def test_metrics_history_bounded_to_100(self):
         """metrics_history keeps only last 100 entries."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider(
+        hook = CopiumHookProvider(
             compress_tool_outputs=True,
             min_tokens_to_compress=10,
         )
@@ -384,9 +384,9 @@ class TestGetSavingsSummary:
 
     def test_empty_summary(self):
         """Returns zero values when no metrics recorded."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider()
+        hook = CopiumHookProvider()
         summary = hook.get_savings_summary()
 
         assert summary["total_requests"] == 0
@@ -396,10 +396,10 @@ class TestGetSavingsSummary:
 
     def test_summary_with_compressions(self):
         """Returns correct summary with recorded compressions."""
-        from headroom.integrations.strands import HeadroomHookProvider
-        from headroom.integrations.strands.hooks import CompressionMetrics
+        from copium.integrations.strands import CopiumHookProvider
+        from copium.integrations.strands.hooks import CompressionMetrics
 
-        hook = HeadroomHookProvider()
+        hook = CopiumHookProvider()
 
         # Add metrics manually
         hook._metrics_history = [
@@ -457,10 +457,10 @@ class TestReset:
 
     def test_reset_clears_all_state(self):
         """reset() clears all tracked state."""
-        from headroom.integrations.strands import HeadroomHookProvider
-        from headroom.integrations.strands.hooks import CompressionMetrics
+        from copium.integrations.strands import CopiumHookProvider
+        from copium.integrations.strands.hooks import CompressionMetrics
 
-        hook = HeadroomHookProvider()
+        hook = CopiumHookProvider()
 
         # Add some state
         hook._metrics_history = [
@@ -493,9 +493,9 @@ class TestThreadSafety:
 
     def test_concurrent_metric_recording(self):
         """Metrics recording is thread-safe."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider()
+        hook = CopiumHookProvider()
 
         def record_metrics(thread_id):
             for i in range(10):
@@ -529,9 +529,9 @@ class TestUpdateResultContent:
 
     def test_update_preserves_json_structure(self):
         """Updates preserve JSON structure when possible."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider()
+        hook = CopiumHookProvider()
         result = {"content": [{"json": {"original": "data"}}]}
 
         compressed = '{"compressed": "data"}'
@@ -542,9 +542,9 @@ class TestUpdateResultContent:
 
     def test_update_uses_text_for_non_json(self):
         """Updates use text format for non-JSON content."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider()
+        hook = CopiumHookProvider()
         result = {"content": [{"text": "original text"}]}
 
         compressed = "compressed text"
@@ -554,9 +554,9 @@ class TestUpdateResultContent:
 
     def test_update_creates_content_if_empty(self):
         """Creates content list if missing."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
-        hook = HeadroomHookProvider()
+        hook = CopiumHookProvider()
         result = {"content": []}
 
         hook._update_result_content(result, "new content")

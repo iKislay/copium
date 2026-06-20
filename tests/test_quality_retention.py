@@ -12,9 +12,9 @@ import json
 
 import pytest
 
-from headroom.providers.anthropic import AnthropicTokenCounter
-from headroom.tokenizer import Tokenizer
-from headroom.transforms.smart_crusher import (
+from copium.providers.anthropic import AnthropicTokenCounter
+from copium.tokenizer import Tokenizer
+from copium.transforms.smart_crusher import (
     SmartCrusher,
     SmartCrusherConfig,
     smart_crush_tool_output,

@@ -1,3 +1,3 @@
-export default async function headroomLinkShim() {
+export default async function copiumLinkShim() {
   return undefined;
 }

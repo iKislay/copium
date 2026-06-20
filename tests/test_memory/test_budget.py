@@ -7,11 +7,11 @@ from pathlib import Path
 
 import pytest
 
-from headroom.memory.budget import (
+from copium.memory.budget import (
     BudgetConfig,
     MemoryBudgetManager,
 )
-from headroom.memory.writers.base import MemoryEntry
+from copium.memory.writers.base import MemoryEntry
 
 
 def _make_entry(

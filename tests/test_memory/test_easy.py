@@ -1,4 +1,4 @@
-"""Tests for the simple Memory API (headroom.memory.easy).
+"""Tests for the simple Memory API (copium.memory.easy).
 
 Tests cover:
 - MemoryResult dataclass
@@ -24,11 +24,11 @@ from pathlib import Path
 import httpx
 import pytest
 
-from headroom.memory.easy import Memory, MemoryResult
+from copium.memory.easy import Memory, MemoryResult
 
 # Check if hnswlib is available (local backend requires it)
 try:
-    from headroom.memory.adapters.hnsw import _check_hnswlib_available
+    from copium.memory.adapters.hnsw import _check_hnswlib_available
 
     HNSW_AVAILABLE = _check_hnswlib_available()
 except ImportError:

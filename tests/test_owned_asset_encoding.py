@@ -1,7 +1,7 @@
-"""Regression tests for UTF-8 decoding/encoding of headroom-owned assets.
+"""Regression tests for UTF-8 decoding/encoding of copium-owned assets.
 
 These guard against ``UnicodeDecodeError`` on systems whose default text
-encoding is not UTF-8 (e.g. Windows ``cp949``/``cp1252`` locales). Headroom
+encoding is not UTF-8 (e.g. Windows ``cp949``/``cp1252`` locales). Copium
 ships and writes its own templates, JSON state and config files as UTF-8, so
 they must be read and written with an explicit ``encoding="utf-8"`` rather than
 relying on the platform default codec. See issue #533.
@@ -11,8 +11,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from headroom.dashboard import TEMPLATES_DIR, get_dashboard_html
-from headroom.memory.sync import _load_sync_state, _save_sync_state
+from copium.dashboard import TEMPLATES_DIR, get_dashboard_html
+from copium.memory.sync import _load_sync_state, _save_sync_state
 
 
 def test_dashboard_template_contains_non_ascii() -> None:

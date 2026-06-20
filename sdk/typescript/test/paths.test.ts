@@ -8,11 +8,11 @@ import * as os from "os";
 import * as path from "path";
 
 import {
-  HEADROOM_CONFIG_DIR_ENV,
-  HEADROOM_SAVINGS_PATH_ENV,
-  HEADROOM_SUBSCRIPTION_STATE_PATH_ENV,
-  HEADROOM_TOIN_PATH_ENV,
-  HEADROOM_WORKSPACE_DIR_ENV,
+  COPIUM_CONFIG_DIR_ENV,
+  COPIUM_SAVINGS_PATH_ENV,
+  COPIUM_SUBSCRIPTION_STATE_PATH_ENV,
+  COPIUM_TOIN_PATH_ENV,
+  COPIUM_WORKSPACE_DIR_ENV,
   beaconLockPath,
   binDir,
   bridgeStatePath,
@@ -41,11 +41,11 @@ import {
 // ---------------------------------------------------------------------------
 
 const ENV_VARS = [
-  HEADROOM_CONFIG_DIR_ENV,
-  HEADROOM_WORKSPACE_DIR_ENV,
-  HEADROOM_SAVINGS_PATH_ENV,
-  HEADROOM_TOIN_PATH_ENV,
-  HEADROOM_SUBSCRIPTION_STATE_PATH_ENV,
+  COPIUM_CONFIG_DIR_ENV,
+  COPIUM_WORKSPACE_DIR_ENV,
+  COPIUM_SAVINGS_PATH_ENV,
+  COPIUM_TOIN_PATH_ENV,
+  COPIUM_SUBSCRIPTION_STATE_PATH_ENV,
 ];
 
 function saveEnv(): Record<string, string | undefined> {
@@ -80,37 +80,37 @@ describe("canonical roots", () => {
   });
   afterEach(() => restoreEnv(snap));
 
-  it("workspaceDir defaults to ~/.headroom", () => {
-    expect(workspaceDir()).toBe(path.join(os.homedir(), ".headroom"));
+  it("workspaceDir defaults to ~/.copium", () => {
+    expect(workspaceDir()).toBe(path.join(os.homedir(), ".copium"));
   });
 
-  it("workspaceDir honors HEADROOM_WORKSPACE_DIR env override", () => {
-    process.env[HEADROOM_WORKSPACE_DIR_ENV] = "/tmp/alt_ws";
+  it("workspaceDir honors COPIUM_WORKSPACE_DIR env override", () => {
+    process.env[COPIUM_WORKSPACE_DIR_ENV] = "/tmp/alt_ws";
     expect(workspaceDir()).toBe("/tmp/alt_ws");
   });
 
   it("workspaceDir ignores blank env value", () => {
-    process.env[HEADROOM_WORKSPACE_DIR_ENV] = "   ";
-    expect(workspaceDir()).toBe(path.join(os.homedir(), ".headroom"));
+    process.env[COPIUM_WORKSPACE_DIR_ENV] = "   ";
+    expect(workspaceDir()).toBe(path.join(os.homedir(), ".copium"));
   });
 
   it("workspaceDir expands tilde", () => {
-    process.env[HEADROOM_WORKSPACE_DIR_ENV] = "~/custom-ws";
+    process.env[COPIUM_WORKSPACE_DIR_ENV] = "~/custom-ws";
     expect(workspaceDir()).toBe(path.join(os.homedir(), "custom-ws"));
   });
 
-  it("configDir defaults to ~/.headroom/config", () => {
-    expect(configDir()).toBe(path.join(os.homedir(), ".headroom", "config"));
+  it("configDir defaults to ~/.copium/config", () => {
+    expect(configDir()).toBe(path.join(os.homedir(), ".copium", "config"));
   });
 
-  it("configDir follows HEADROOM_WORKSPACE_DIR when only workspace set", () => {
-    process.env[HEADROOM_WORKSPACE_DIR_ENV] = "/tmp/alt_ws";
+  it("configDir follows COPIUM_WORKSPACE_DIR when only workspace set", () => {
+    process.env[COPIUM_WORKSPACE_DIR_ENV] = "/tmp/alt_ws";
     expect(configDir()).toBe(path.join("/tmp/alt_ws", "config"));
   });
 
-  it("explicit HEADROOM_CONFIG_DIR env beats workspace env", () => {
-    process.env[HEADROOM_WORKSPACE_DIR_ENV] = "/tmp/alt_ws";
-    process.env[HEADROOM_CONFIG_DIR_ENV] = "/tmp/alt_cfg";
+  it("explicit COPIUM_CONFIG_DIR env beats workspace env", () => {
+    process.env[COPIUM_WORKSPACE_DIR_ENV] = "/tmp/alt_ws";
+    process.env[COPIUM_CONFIG_DIR_ENV] = "/tmp/alt_cfg";
     expect(configDir()).toBe("/tmp/alt_cfg");
   });
 });
@@ -130,19 +130,19 @@ const RESOURCES: ResourceCase[] = [
   {
     name: "savingsPath",
     fn: savingsPath,
-    envVar: HEADROOM_SAVINGS_PATH_ENV,
+    envVar: COPIUM_SAVINGS_PATH_ENV,
     filename: "proxy_savings.json",
   },
   {
     name: "toinPath",
     fn: toinPath,
-    envVar: HEADROOM_TOIN_PATH_ENV,
+    envVar: COPIUM_TOIN_PATH_ENV,
     filename: "toin.json",
   },
   {
     name: "subscriptionStatePath",
     fn: subscriptionStatePath,
-    envVar: HEADROOM_SUBSCRIPTION_STATE_PATH_ENV,
+    envVar: COPIUM_SUBSCRIPTION_STATE_PATH_ENV,
     filename: "subscription_state.json",
   },
 ];
@@ -157,29 +157,29 @@ describe.each(RESOURCES)(
     });
     afterEach(() => restoreEnv(snap));
 
-    it("default under ~/.headroom", () => {
-      expect(fn()).toBe(path.join(os.homedir(), ".headroom", filename));
+    it("default under ~/.copium", () => {
+      expect(fn()).toBe(path.join(os.homedir(), ".copium", filename));
     });
 
-    it("derived from HEADROOM_WORKSPACE_DIR when set", () => {
-      process.env[HEADROOM_WORKSPACE_DIR_ENV] = "/tmp/state";
+    it("derived from COPIUM_WORKSPACE_DIR when set", () => {
+      process.env[COPIUM_WORKSPACE_DIR_ENV] = "/tmp/state";
       expect(fn()).toBe(path.join("/tmp/state", filename));
     });
 
     it("legacy env var wins over workspace-derived", () => {
-      process.env[HEADROOM_WORKSPACE_DIR_ENV] = "/tmp/state";
+      process.env[COPIUM_WORKSPACE_DIR_ENV] = "/tmp/state";
       process.env[envVar] = "/tmp/legacy.json";
       expect(fn()).toBe("/tmp/legacy.json");
     });
 
     it("explicit arg wins over everything", () => {
-      process.env[HEADROOM_WORKSPACE_DIR_ENV] = "/tmp/state";
+      process.env[COPIUM_WORKSPACE_DIR_ENV] = "/tmp/state";
       process.env[envVar] = "/tmp/legacy.json";
       expect(fn("/tmp/explicit.json")).toBe("/tmp/explicit.json");
     });
 
     it("explicit empty string falls through to default", () => {
-      expect(fn("")).toBe(path.join(os.homedir(), ".headroom", filename));
+      expect(fn("")).toBe(path.join(os.homedir(), ".copium", filename));
     });
 
     it("legacy env expands tilde", () => {
@@ -203,58 +203,58 @@ describe("derived-only resources", () => {
 
   it("memoryDbPath", () => {
     expect(memoryDbPath()).toBe(
-      path.join(os.homedir(), ".headroom", "memory.db"),
+      path.join(os.homedir(), ".copium", "memory.db"),
     );
   });
 
   it("nativeMemoryDir", () => {
     expect(nativeMemoryDir()).toBe(
-      path.join(os.homedir(), ".headroom", "memories"),
+      path.join(os.homedir(), ".copium", "memories"),
     );
   });
 
   it("licenseCachePath", () => {
     expect(licenseCachePath()).toBe(
-      path.join(os.homedir(), ".headroom", "license_cache.json"),
+      path.join(os.homedir(), ".copium", "license_cache.json"),
     );
   });
 
   it("sessionStatsPath", () => {
     expect(sessionStatsPath()).toBe(
-      path.join(os.homedir(), ".headroom", "session_stats.jsonl"),
+      path.join(os.homedir(), ".copium", "session_stats.jsonl"),
     );
   });
 
   it("syncStatePath", () => {
     expect(syncStatePath()).toBe(
-      path.join(os.homedir(), ".headroom", "sync_state.json"),
+      path.join(os.homedir(), ".copium", "sync_state.json"),
     );
   });
 
   it("bridgeStatePath", () => {
     expect(bridgeStatePath()).toBe(
-      path.join(os.homedir(), ".headroom", "bridge_state.json"),
+      path.join(os.homedir(), ".copium", "bridge_state.json"),
     );
   });
 
   it("logDir", () => {
-    expect(logDir()).toBe(path.join(os.homedir(), ".headroom", "logs"));
+    expect(logDir()).toBe(path.join(os.homedir(), ".copium", "logs"));
   });
 
   it("proxyLogPath", () => {
     expect(proxyLogPath()).toBe(
-      path.join(os.homedir(), ".headroom", "logs", "proxy.log"),
+      path.join(os.homedir(), ".copium", "logs", "proxy.log"),
     );
   });
 
   it("debug400Dir", () => {
     expect(debug400Dir()).toBe(
-      path.join(os.homedir(), ".headroom", "logs", "debug_400"),
+      path.join(os.homedir(), ".copium", "logs", "debug_400"),
     );
   });
 
   it("binDir", () => {
-    expect(binDir()).toBe(path.join(os.homedir(), ".headroom", "bin"));
+    expect(binDir()).toBe(path.join(os.homedir(), ".copium", "bin"));
   });
 
   it("rtkPath ends with rtk or rtk.exe", () => {
@@ -264,28 +264,28 @@ describe("derived-only resources", () => {
   });
 
   it("deployRoot", () => {
-    expect(deployRoot()).toBe(path.join(os.homedir(), ".headroom", "deploy"));
+    expect(deployRoot()).toBe(path.join(os.homedir(), ".copium", "deploy"));
   });
 
   it("beaconLockPath includes port", () => {
     expect(beaconLockPath(8787)).toBe(
-      path.join(os.homedir(), ".headroom", ".beacon_lock_8787"),
+      path.join(os.homedir(), ".copium", ".beacon_lock_8787"),
     );
   });
 
   it("modelsConfigPath under configDir", () => {
     expect(modelsConfigPath()).toBe(
-      path.join(os.homedir(), ".headroom", "config", "models.json"),
+      path.join(os.homedir(), ".copium", "config", "models.json"),
     );
   });
 
   it("modelsConfigPath follows config env override", () => {
-    process.env[HEADROOM_CONFIG_DIR_ENV] = "/tmp/cfg";
+    process.env[COPIUM_CONFIG_DIR_ENV] = "/tmp/cfg";
     expect(modelsConfigPath()).toBe(path.join("/tmp/cfg", "models.json"));
   });
 
   it("modelsConfigPath follows workspace env", () => {
-    process.env[HEADROOM_WORKSPACE_DIR_ENV] = "/tmp/ws";
+    process.env[COPIUM_WORKSPACE_DIR_ENV] = "/tmp/ws";
     expect(modelsConfigPath()).toBe(
       path.join("/tmp/ws", "config", "models.json"),
     );
@@ -293,7 +293,7 @@ describe("derived-only resources", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Derived-only helpers must follow HEADROOM_WORKSPACE_DIR end-to-end
+// Derived-only helpers must follow COPIUM_WORKSPACE_DIR end-to-end
 // ---------------------------------------------------------------------------
 
 describe("derived-only helpers follow workspace env", () => {
@@ -301,7 +301,7 @@ describe("derived-only helpers follow workspace env", () => {
   beforeEach(() => {
     snap = saveEnv();
     clearEnv();
-    process.env[HEADROOM_WORKSPACE_DIR_ENV] = "/tmp/alt_ws";
+    process.env[COPIUM_WORKSPACE_DIR_ENV] = "/tmp/alt_ws";
   });
   afterEach(() => restoreEnv(snap));
 
@@ -388,7 +388,7 @@ describe("plugin dirs", () => {
     const b = pluginConfigDir("beta");
     expect(a).not.toBe(b);
     expect(a).toBe(
-      path.join(os.homedir(), ".headroom", "config", "plugins", "alpha"),
+      path.join(os.homedir(), ".copium", "config", "plugins", "alpha"),
     );
   });
 
@@ -397,7 +397,7 @@ describe("plugin dirs", () => {
     const b = pluginWorkspaceDir("beta");
     expect(a).not.toBe(b);
     expect(a).toBe(
-      path.join(os.homedir(), ".headroom", "plugins", "alpha"),
+      path.join(os.homedir(), ".copium", "plugins", "alpha"),
     );
   });
 

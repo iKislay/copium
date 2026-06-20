@@ -11,8 +11,8 @@ from __future__ import annotations
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from headroom import SmartCrusherConfig
-from headroom.transforms.smart_crusher import SmartCrusher
+from copium import SmartCrusherConfig
+from copium.transforms.smart_crusher import SmartCrusher
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -32,7 +32,7 @@ def _make_crusher(max_items: int = 10, min_items: int = 3) -> SmartCrusher:
 
 
 # Bug #1 (number array schema preservation) — invariant pinned by the
-# Rust port (`crates/headroom-core/src/transforms/smart_crusher/crushers.rs::
+# Rust port (`crates/copium-core/src/transforms/smart_crusher/crushers.rs::
 # crush_number_array` + its unit tests) and the parity fixtures
 # (`tests/parity/fixtures/smart_crusher/number_array_40_changepoint*`).
 # The Python `_crush_number_array` helper that the previous tests
@@ -129,7 +129,7 @@ class TestRecursionDepthLimit:
 # `_detect_rare_status_values`, `_compute_k_split`) that were removed
 # along with the Python implementation in Stage 3c.1b. The Rust port
 # pins the same invariants — see the `bug1_*` / `bug2_*` / `bug3_*` /
-# `bug4_*` tests in `crates/headroom-core/src/transforms/smart_crusher/`
+# `bug4_*` tests in `crates/copium-core/src/transforms/smart_crusher/`
 # (notably `crushers.rs` and `analyzer.rs`). Parity fixtures
 # (`tests/parity/fixtures/smart_crusher/`) byte-compare the post-fix
 # behavior across the language boundary.

@@ -1,8 +1,8 @@
-# Headroom Limitations & Known Behavior
+# Copium Limitations & Known Behavior
 
-Honest documentation of when Headroom helps, when it doesn't, and what to watch out for.
+Honest documentation of when Copium helps, when it doesn't, and what to watch out for.
 
-## When Headroom Helps (and When It Doesn't)
+## When Copium Helps (and When It Doesn't)
 
 | Content Type | Compression | Latency Impact | Best For |
 |---|---|---|---|
@@ -20,7 +20,7 @@ See [LATENCY_BENCHMARKS.md](LATENCY_BENCHMARKS.md) for full data with per-scenar
 
 ## Code Compression
 
-Headroom includes an AST-aware CodeCompressor (tree-sitter, 8 languages) but it's gated behind safety protections that prevent it from firing in most real-world scenarios. This is intentional.
+Copium includes an AST-aware CodeCompressor (tree-sitter, 8 languages) but it's gated behind safety protections that prevent it from firing in most real-world scenarios. This is intentional.
 
 **Why code mostly passes through:**
 
@@ -32,7 +32,7 @@ Headroom includes an AST-aware CodeCompressor (tree-sitter, 8 languages) but it'
 
 **Where code savings come from**: The IntelligentContextManager drops old code messages that are no longer relevant (scoring-based), which is a better strategy than stripping function bodies from active code.
 
-**Override**: Set `protect_analysis_context=False` in `ContentRouterConfig` for aggressive code compression. Requires `headroom-ai[code]` for tree-sitter.
+**Override**: Set `protect_analysis_context=False` in `ContentRouterConfig` for aggressive code compression. Requires `copium-ai[code]` for tree-sitter.
 
 ## JSON Compression Constraints
 
@@ -75,12 +75,12 @@ These are kept even if they exceed the K budget.
 
 ## ML Text Compression (Kompress, opt-in)
 
-- **Requires**: `headroom-ai[ml]` — downloads model weights and needs GPU/CPU RAM for inference
+- **Requires**: `copium-ai[ml]` — downloads model weights and needs GPU/CPU RAM for inference
 - **First call**: model-load latency (cached globally after)
 - **Latency**: Adds overhead that doesn't break even on fast models. Use for **cost savings**, not speed
 - **Thread safety**: Single global model instance with lock — sequential access under concurrency
 
-> The earlier LLMLingua-2 integration (`headroom-ai[llmlingua]`) was retired and is no longer installable.
+> The earlier LLMLingua-2 integration (`copium-ai[llmlingua]`) was retired and is no longer installable.
 
 ## Error Handling
 

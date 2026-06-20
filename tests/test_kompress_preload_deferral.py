@@ -12,10 +12,10 @@ from __future__ import annotations
 
 import pytest
 
-from headroom import onnx_runtime
-from headroom.transforms import kompress_compressor as kc
-from headroom.transforms.content_router import ContentRouter, ContentRouterConfig
-from headroom.transforms.kompress_compressor import KompressModelNotCached
+from copium import onnx_runtime
+from copium.transforms import kompress_compressor as kc
+from copium.transforms.content_router import ContentRouter, ContentRouterConfig
+from copium.transforms.kompress_compressor import KompressModelNotCached
 
 
 def test_local_first_no_network_when_disallowed(monkeypatch):

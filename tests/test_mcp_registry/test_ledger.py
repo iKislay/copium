@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from headroom.mcp_registry.base import ServerSpec
-from headroom.mcp_registry.ledger import (
+from copium.mcp_registry.base import ServerSpec
+from copium.mcp_registry.ledger import (
     clear_install,
-    headroom_installed_matching,
+    copium_installed_matching,
     record_install,
     spec_fingerprint,
 )
@@ -23,7 +23,7 @@ def test_ledger_records_matching_install(tmp_path):
 
     record_install("claude", spec, path=ledger)
 
-    assert headroom_installed_matching("claude", spec, path=ledger) is True
+    assert copium_installed_matching("claude", spec, path=ledger) is True
 
 
 def test_ledger_rejects_changed_spec(tmp_path):
@@ -32,7 +32,7 @@ def test_ledger_rejects_changed_spec(tmp_path):
     record_install("claude", _spec(), path=ledger)
 
     assert (
-        headroom_installed_matching("claude", _spec(command="/custom/serena"), path=ledger) is False
+        copium_installed_matching("claude", _spec(command="/custom/serena"), path=ledger) is False
     )
 
 
@@ -43,7 +43,7 @@ def test_clear_install_removes_entry(tmp_path):
 
     clear_install("claude", "serena", path=ledger)
 
-    assert headroom_installed_matching("claude", spec, path=ledger) is False
+    assert copium_installed_matching("claude", spec, path=ledger) is False
 
 
 def test_spec_fingerprint_stable_for_env_order():

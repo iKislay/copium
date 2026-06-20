@@ -26,7 +26,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from headroom.cache.compression_store import (
+from copium.cache.compression_store import (
     CCR_TTL_SECONDS_ENV,
     DEFAULT_CCR_TTL_SECONDS,
     CompressionEntry,
@@ -38,9 +38,9 @@ from headroom.cache.compression_store import (
 
 
 @contextmanager
-def _capture_headroom_retrieve_events():
+def _capture_copium_retrieve_events():
     events: list[dict[str, Any]] = []
-    prefix = "event=headroom_retrieve "
+    prefix = "event=copium_retrieve "
 
     class _Handler(logging.Handler):
         def emit(self, record: logging.LogRecord) -> None:
@@ -48,7 +48,7 @@ def _capture_headroom_retrieve_events():
             if prefix in message:
                 events.append(json.loads(message.split(prefix, 1)[1]))
 
-    logger = logging.getLogger("headroom.cache.compression_store")
+    logger = logging.getLogger("copium.cache.compression_store")
     previous_level = logger.level
     handler = _Handler(level=logging.INFO)
     logger.addHandler(handler)
@@ -72,7 +72,7 @@ def test_retrieve_logs_payload_preview():
         tool_name="tool_a",
     )
 
-    with _capture_headroom_retrieve_events() as events:
+    with _capture_copium_retrieve_events() as events:
         entry = store.retrieve(hash_key)
 
     assert entry is not None
@@ -92,7 +92,7 @@ def test_retrieve_log_redacts_secret_payload_values():
         compressed="payload",
     )
 
-    with _capture_headroom_retrieve_events() as events:
+    with _capture_copium_retrieve_events() as events:
         entry = store.retrieve(hash_key)
 
     assert entry is not None
@@ -117,7 +117,7 @@ def test_search_logs_retrieved_payload_preview():
         tool_name="search_tool",
     )
 
-    with _capture_headroom_retrieve_events() as events:
+    with _capture_copium_retrieve_events() as events:
         results = store.search(hash_key, "alpha", score_threshold=0.0)
 
     assert results
@@ -169,10 +169,10 @@ def test_explicit_global_store_ttl_overrides_env(monkeypatch: pytest.MonkeyPatch
 def test_entry_status_reports_expiration_metadata():
     store = CompressionStore(default_ttl=1)
 
-    with patch("headroom.cache.compression_store.time.time", return_value=1000.0):
+    with patch("copium.cache.compression_store.time.time", return_value=1000.0):
         hash_key = store.store(original="payload", compressed="payload")
 
-    with patch("headroom.cache.compression_store.time.time", return_value=1002.0):
+    with patch("copium.cache.compression_store.time.time", return_value=1002.0):
         status = store.get_entry_status(hash_key, clean_expired=True)
 
     assert status["status"] == "expired"
@@ -1304,9 +1304,9 @@ class TestCompressionStoreFeedback:
         events = store.get_retrieval_events()
         assert len(events) >= 1
 
-    @patch("headroom.cache.compression_feedback.get_compression_feedback")
-    @patch("headroom.telemetry.get_telemetry_collector")
-    @patch("headroom.telemetry.toin.get_toin")
+    @patch("copium.cache.compression_feedback.get_compression_feedback")
+    @patch("copium.telemetry.get_telemetry_collector")
+    @patch("copium.telemetry.toin.get_toin")
     def test_process_pending_feedback_forwards_events(
         self, mock_toin, mock_telemetry, mock_feedback
     ):

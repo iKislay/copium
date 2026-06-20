@@ -13,14 +13,14 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 
-from headroom.proxy.request_logger import RequestLogger
-from headroom.proxy.server import HeadroomProxy
+from copium.proxy.request_logger import RequestLogger
+from copium.proxy.server import CopiumProxy
 
 
-def _build_proxy_with_real_logger(*, log_full_messages: bool) -> HeadroomProxy:
-    """Build a HeadroomProxy with mocks for everything except the request logger,
+def _build_proxy_with_real_logger(*, log_full_messages: bool) -> CopiumProxy:
+    """Build a CopiumProxy with mocks for everything except the request logger,
     so we can assert what actually gets recorded."""
-    proxy = object.__new__(HeadroomProxy)
+    proxy = object.__new__(CopiumProxy)
     proxy.http_client = MagicMock(spec=httpx.AsyncClient)
     proxy.metrics = MagicMock()
     proxy.metrics.record_request = AsyncMock(return_value=None)

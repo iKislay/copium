@@ -4,7 +4,7 @@
 
 ## ADR-001: Why a Proxy Instead of SDK Injection
 
-**Context:** Headroom could be implemented as an SDK that users import, or as a network proxy.
+**Context:** Copium could be implemented as an SDK that users import, or as a network proxy.
 
 **Decision:** Network proxy with SDK for complex use cases.
 
@@ -23,7 +23,7 @@
 
 ## ADR-002: Why SQLite for Local Storage
 
-**Context:** Headroom needs to store compression cache, savings history, memory graphs.
+**Context:** Copium needs to store compression cache, savings history, memory graphs.
 
 **Decision:** SQLite with optional external stores (Redis, PostgreSQL, etc.).
 

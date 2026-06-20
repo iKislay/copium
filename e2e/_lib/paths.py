@@ -1,6 +1,6 @@
 """Per-agent settings-file locators for e2e assertions.
 
-These paths mirror the logic in ``headroom.cli.init`` so e2e tests can
+These paths mirror the logic in ``copium.cli.init`` so e2e tests can
 verify that the right file was written without importing private init
 helpers.
 """
@@ -15,10 +15,10 @@ Scope = Literal["user", "local"]
 
 
 def agent_settings_path(agent: Agent, *, scope: Scope, home: Path, project: Path) -> Path:
-    """Return the file that ``headroom init`` should have written for ``agent``.
+    """Return the file that ``copium init`` should have written for ``agent``.
 
     ``home`` is the test's simulated HOME directory and ``project`` is the cwd
-    used when invoking ``headroom init``. For global (``-g``) invocations only
+    used when invoking ``copium init``. For global (``-g``) invocations only
     ``home`` matters; for local invocations only ``project`` matters.
     """
 
@@ -40,7 +40,7 @@ def agent_settings_path(agent: Agent, *, scope: Scope, home: Path, project: Path
         return home / ".copilot" / "config.json"
 
     if agent == "openclaw":
-        # OpenClaw init is delegated to `headroom wrap openclaw`; it writes
+        # OpenClaw init is delegated to `copium wrap openclaw`; it writes
         # the openclaw json under $HOME.
         return home / ".openclaw" / "openclaw.json"
 

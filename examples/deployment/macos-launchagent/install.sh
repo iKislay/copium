@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# Headroom Proxy LaunchAgent Installer for macOS
+# Copium Proxy LaunchAgent Installer for macOS
 #
-# This script installs the headroom proxy as a macOS LaunchAgent for automatic
+# This script installs the copium proxy as a macOS LaunchAgent for automatic
 # startup and management. The service will start on login and restart on crash.
 #
 # Usage: ./install.sh [--port PORT] [--unattended]
@@ -22,10 +22,10 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-PLIST_LABEL="com.headroom.proxy"
+PLIST_LABEL="com.copium.proxy"
 PLIST_FILENAME="${PLIST_LABEL}.plist"
 PLIST_DEST="${HOME}/Library/LaunchAgents/${PLIST_FILENAME}"
-LOG_DIR="${HOME}/Library/Logs/headroom"
+LOG_DIR="${HOME}/Library/Logs/copium"
 DEFAULT_PORT=8787
 USER_UID=$(id -u)
 
@@ -78,18 +78,18 @@ if [[ "${OS_NAME}" != "Darwin" ]]; then
   fatal "This script is only for macOS. Use systemd on Linux."
 fi
 
-# Check if headroom is installed
-info "Checking for headroom installation..."
-HEADROOM_PATH=$(command -v headroom || true)
-if [[ -z "${HEADROOM_PATH}" ]]; then
-  fatal "headroom not found in PATH. Please install it first: pip install headroom-ai[proxy]"
+# Check if copium is installed
+info "Checking for copium installation..."
+COPIUM_PATH=$(command -v copium || true)
+if [[ -z "${COPIUM_PATH}" ]]; then
+  fatal "copium not found in PATH. Please install it first: pip install copium-ai[proxy]"
 fi
-success "Found headroom at: ${HEADROOM_PATH}"
+success "Found copium at: ${COPIUM_PATH}"
 
 # Verify proxy support
 info "Verifying proxy support..."
-if ! "${HEADROOM_PATH}" proxy --help >/dev/null 2>&1; then
-  fatal "headroom proxy command not available. Install with: pip install headroom-ai[proxy]"
+if ! "${COPIUM_PATH}" proxy --help >/dev/null 2>&1; then
+  fatal "copium proxy command not available. Install with: pip install copium-ai[proxy]"
 fi
 success "Proxy support verified"
 
@@ -154,7 +154,7 @@ fi
 
 # Generate plist from template
 info "Generating LaunchAgent plist..."
-sed -e "s|__HEADROOM_PATH__|${HEADROOM_PATH}|g" \
+sed -e "s|__COPIUM_PATH__|${COPIUM_PATH}|g" \
   -e "s|__PORT__|${PORT}|g" \
   -e "s|__HOME__|${HOME}|g" \
   "${TEMPLATE_FILE}" >"${PLIST_DEST}"
@@ -200,7 +200,7 @@ fi
 # Display success message
 echo ""
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}✓ Headroom proxy installed successfully!${NC}"
+echo -e "${GREEN}✓ Copium proxy installed successfully!${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 echo "Service details:"
@@ -211,7 +211,7 @@ echo ""
 echo "Shell integration:"
 echo "  Add to ~/.bashrc or ~/.zshrc:"
 echo ""
-echo "    export HEADROOM_PROXY_PORT=${PORT}"
+echo "    export COPIUM_PROXY_PORT=${PORT}"
 echo "    source <path-to>/shell-integration.sh"
 echo ""
 echo "  Or manually set:"

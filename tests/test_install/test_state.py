@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from headroom.install.models import ArtifactRecord, DeploymentManifest, ManagedMutation
-from headroom.install.state import delete_manifest, list_manifests, load_manifest, save_manifest
+from copium.install.models import ArtifactRecord, DeploymentManifest, ManagedMutation
+from copium.install.state import delete_manifest, list_manifests, load_manifest, save_manifest
 
 
 def _manifest() -> DeploymentManifest:
@@ -19,7 +19,7 @@ def _manifest() -> DeploymentManifest:
         host="127.0.0.1",
         backend="anthropic",
         mutations=[ManagedMutation(target="env", kind="shell-block", path="x")],
-        artifacts=[ArtifactRecord(kind="script", path="run-headroom.sh")],
+        artifacts=[ArtifactRecord(kind="script", path="run-copium.sh")],
     )
 
 
@@ -41,7 +41,7 @@ def test_list_manifests_ignores_invalid_payloads(monkeypatch, tmp_path: Path) ->
     valid = _manifest()
     save_manifest(valid)
 
-    broken_dir = tmp_path / ".headroom" / "deploy" / "broken"
+    broken_dir = tmp_path / ".copium" / "deploy" / "broken"
     broken_dir.mkdir(parents=True)
     (broken_dir / "manifest.json").write_text("{not json", encoding="utf-8")
 
@@ -54,7 +54,7 @@ def test_delete_manifest_removes_profile_root(monkeypatch, tmp_path: Path) -> No
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     manifest = _manifest()
     save_manifest(manifest)
-    extra_file = tmp_path / ".headroom" / "deploy" / "default" / "runner.log"
+    extra_file = tmp_path / ".copium" / "deploy" / "default" / "runner.log"
     extra_file.write_text("log", encoding="utf-8")
 
     delete_manifest("default")

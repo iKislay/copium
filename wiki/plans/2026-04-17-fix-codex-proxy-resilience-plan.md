@@ -10,7 +10,7 @@ origin: wiki/plans/2026-04-17-codex-proxy-runtime-analysis.md
 
 ## Overview
 
-Harden the shared Headroom proxy so it can survive real multi-agent Codex traffic — especially the **large Anthropic `/v1/messages?beta=true` reconnect/retry storm** that hits the proxy immediately after a restart — without appearing dead (`/livez` timing out, new `/v1/responses` websocket handshakes hanging) and without bypassing compression.
+Harden the shared Copium proxy so it can survive real multi-agent Codex traffic — especially the **large Anthropic `/v1/messages?beta=true` reconnect/retry storm** that hits the proxy immediately after a restart — without appearing dead (`/livez` timing out, new `/v1/responses` websocket handshakes hanging) and without bypassing compression.
 
 This is the follow-on work to the runtime analysis captured in the origin document. The previous branch (`fix/responses-retries-keep-compression`) fixed the upstream WS handshake/fallback issues and kept compression enabled. This plan addresses the **remaining long-lived runtime degradation** described in §4 of the origin ("Long-lived service degradation on `8787`").
 
@@ -53,7 +53,7 @@ Without stage timings, active-task introspection, or session bookkeeping, the ne
 - **Not** redesigning the memory stack, embedder choice, or Kompress model. Those are upstream concerns.
 - **Not** building a full distributed tracing system. The instrumentation added here is structured logs + in-process counters; OpenTelemetry hookup is a separate plan.
 - **Not** changing the WS→HTTP fallback semantics beyond what's needed to plumb through the new request-id/session-id logging fields.
-- **Not** modifying `headroom-ai[ml]` dependencies, HuggingFace model IDs, or the embedder's own backend.
+- **Not** modifying `copium-ai[ml]` dependencies, HuggingFace model IDs, or the embedder's own backend.
 
 ### Deferred to Separate Tasks
 
@@ -66,21 +66,21 @@ Without stage timings, active-task introspection, or session bookkeeping, the ne
 
 ### Relevant Code and Patterns
 
-- `headroom/proxy/handlers/openai.py:1206` — `handle_openai_responses_ws` (Codex WS entry point, 600+ lines)
-- `headroom/proxy/handlers/openai.py:1559-1767` — upstream WS connect retry loop, `open_timeout` handling
-- `headroom/proxy/handlers/openai.py:1815` — `_ws_http_fallback` (preserved as-is)
-- `headroom/proxy/handlers/openai.py:1439-1452` — memory context timeout fail-open (preserved as-is)
-- `headroom/proxy/handlers/anthropic.py:293` — `handle_anthropic_messages` (HTTP entry point, also covers the `?beta=true` replay traffic)
-- `headroom/proxy/server.py:586-733` — `HeadroomProxy.startup` (where eager preload runs)
-- `headroom/proxy/server.py:634-637` — current eager preload iterates **only** `anthropic_pipeline.transforms` and breaks on first match
-- `headroom/proxy/server.py:301-308` — both pipelines currently share the same `transforms` list (so the module-level `_kompress_cache` is de facto shared, but this is fragile)
-- `headroom/proxy/server.py:1190-1212` — `/livez`, `/readyz`, `/health` handlers (trivial JSON, no I/O)
-- `headroom/proxy/memory_handler.py:134-207` — `MemoryHandler._ensure_initialized` (lazy, no `asyncio.Lock`)
-- `headroom/transforms/content_router.py:1221-1297` — `eager_load_compressors` (Kompress + Magika + Code-Aware + SmartCrusher)
-- `headroom/transforms/kompress_compressor.py:163-221` — `_load_kompress_onnx` / `_load_kompress` with module-level `_kompress_cache` + `threading.Lock`
-- `headroom/proxy/request_logger.py` — existing structured request log sink (extend, don't replace)
-- `headroom/proxy/prometheus_metrics.py` — existing `PrometheusMetrics` class; add counters/gauges here
-- `headroom/proxy/helpers.py:138-207` — `_read_request_json` (pre-upstream work on Anthropic path)
+- `copium/proxy/handlers/openai.py:1206` — `handle_openai_responses_ws` (Codex WS entry point, 600+ lines)
+- `copium/proxy/handlers/openai.py:1559-1767` — upstream WS connect retry loop, `open_timeout` handling
+- `copium/proxy/handlers/openai.py:1815` — `_ws_http_fallback` (preserved as-is)
+- `copium/proxy/handlers/openai.py:1439-1452` — memory context timeout fail-open (preserved as-is)
+- `copium/proxy/handlers/anthropic.py:293` — `handle_anthropic_messages` (HTTP entry point, also covers the `?beta=true` replay traffic)
+- `copium/proxy/server.py:586-733` — `CopiumProxy.startup` (where eager preload runs)
+- `copium/proxy/server.py:634-637` — current eager preload iterates **only** `anthropic_pipeline.transforms` and breaks on first match
+- `copium/proxy/server.py:301-308` — both pipelines currently share the same `transforms` list (so the module-level `_kompress_cache` is de facto shared, but this is fragile)
+- `copium/proxy/server.py:1190-1212` — `/livez`, `/readyz`, `/health` handlers (trivial JSON, no I/O)
+- `copium/proxy/memory_handler.py:134-207` — `MemoryHandler._ensure_initialized` (lazy, no `asyncio.Lock`)
+- `copium/transforms/content_router.py:1221-1297` — `eager_load_compressors` (Kompress + Magika + Code-Aware + SmartCrusher)
+- `copium/transforms/kompress_compressor.py:163-221` — `_load_kompress_onnx` / `_load_kompress` with module-level `_kompress_cache` + `threading.Lock`
+- `copium/proxy/request_logger.py` — existing structured request log sink (extend, don't replace)
+- `copium/proxy/prometheus_metrics.py` — existing `PrometheusMetrics` class; add counters/gauges here
+- `copium/proxy/helpers.py:138-207` — `_read_request_json` (pre-upstream work on Anthropic path)
 
 ### Institutional Learnings
 
@@ -109,7 +109,7 @@ None used for this plan. Python `asyncio` lock, `asyncio.Semaphore`, `asyncio.Ta
 
 ### Resolved During Planning
 
-- *Q: Target upstream or the fork?* Resolved: target the fork (`fix/responses-retries-keep-compression`), structured so each unit is cherry-pickable into a PR against `chopratejas/headroom#172`.
+- *Q: Target upstream or the fork?* Resolved: target the fork (`fix/responses-retries-keep-compression`), structured so each unit is cherry-pickable into a PR against `iKislay/copium#172`.
 - *Q: Should Unit 5's debug endpoints require an explicit flag to enable?* Resolved: **no** — loopback-only gating is sufficient and the debug data is useless if it isn't always available when the process is struggling.
 - *Q: Does `MemoryHandler._ensure_initialized` already have a concurrency guard?* Resolved: **no**. It relies on `self._initialized = True` flip, which is not atomic across `await` points. Unit 1 adds an `asyncio.Lock`.
 - *Q: Are the WS relay tasks already cancelled on partner exit?* Resolved: **no**. `asyncio.gather(return_exceptions=True)` waits for both; the survivor only exits when its own loop raises. Unit 3 fixes this.
@@ -117,10 +117,10 @@ None used for this plan. Python `asyncio` lock, `asyncio.Semaphore`, `asyncio.Ta
 
 ### Deferred to Implementation
 
-- **Exact default for the Anthropic pre-upstream semaphore.** Start at `max(2, min(8, os.cpu_count()))` and expose via `--anthropic-pre-upstream-concurrency` / `HEADROOM_ANTHROPIC_PRE_UPSTREAM_CONCURRENCY`. Tune after Unit 2's stage timings land.
+- **Exact default for the Anthropic pre-upstream semaphore.** Start at `max(2, min(8, os.cpu_count()))` and expose via `--anthropic-pre-upstream-concurrency` / `COPIUM_ANTHROPIC_PRE_UPSTREAM_CONCURRENCY`. Tune after Unit 2's stage timings land.
 - **Which asyncio task names are "long-lived" thresholds** for Unit 5's dump. Likely `> 2× median lifetime`, but the median is only observable after Unit 2 runs in production.
 - **Whether the repro harness (Unit 6) needs to speak realistic Codex subprotocol framing or can synthesize enough with recorded frames.** Depends on how faithfully `tests/test_openai_codex_routing.py` fixtures already capture the handshake.
-- **Final placement of `WebSocketSessionRegistry`**: `headroom/proxy/ws_session_registry.py` as a new module, or folded into `headroom/proxy/server.py`. Likely new module; confirm during implementation once imports are real.
+- **Final placement of `WebSocketSessionRegistry`**: `copium/proxy/ws_session_registry.py` as a new module, or folded into `copium/proxy/server.py`. Likely new module; confirm during implementation once imports are real.
 
 ## High-Level Technical Design
 
@@ -128,7 +128,7 @@ None used for this plan. Python `asyncio` lock, `asyncio.Semaphore`, `asyncio.Ta
 
 ```
                     ┌───────────────────────────────────────────────────────┐
-                    │                   HeadroomProxy.startup                │
+                    │                   CopiumProxy.startup                │
                     │                                                        │
                     │   Unit 1: shared_warmup()                              │
                     │     • eager-load on both pipelines (not just first)    │
@@ -193,15 +193,15 @@ Decision matrix for "where does this request wait?":
 **Dependencies:** None (pure startup change; no other unit depends on this landing first, but landing it first reduces noise in Unit 2's timings)
 
 **Files:**
-- Modify: `headroom/proxy/server.py` (startup orchestration around lines 627-675)
-- Modify: `headroom/proxy/memory_handler.py` (add `asyncio.Lock` in `_ensure_initialized`)
-- Modify: `headroom/transforms/content_router.py` (no behavior change — ensure `eager_load_compressors` is idempotent when called via both pipelines)
-- Create: `headroom/proxy/warmup.py` (new `WarmupRegistry` holding preloaded handles)
+- Modify: `copium/proxy/server.py` (startup orchestration around lines 627-675)
+- Modify: `copium/proxy/memory_handler.py` (add `asyncio.Lock` in `_ensure_initialized`)
+- Modify: `copium/transforms/content_router.py` (no behavior change — ensure `eager_load_compressors` is idempotent when called via both pipelines)
+- Create: `copium/proxy/warmup.py` (new `WarmupRegistry` holding preloaded handles)
 - Test: `tests/test_proxy_warmup.py` (new)
 - Test: `tests/test_memory_handler_concurrent_init.py` (new)
 
 **Approach:**
-- Introduce `WarmupRegistry` with typed slots for kompress, magika, code-aware, smart-crusher, memory-embedder, memory-backend. Populate during `HeadroomProxy.startup`, expose via `proxy.warmup` for `/debug/warmup` (Unit 5) and `/readyz`.
+- Introduce `WarmupRegistry` with typed slots for kompress, magika, code-aware, smart-crusher, memory-embedder, memory-backend. Populate during `CopiumProxy.startup`, expose via `proxy.warmup` for `/debug/warmup` (Unit 5) and `/readyz`.
 - Iterate **both** `self.anthropic_pipeline.transforms` and `self.openai_pipeline.transforms` when calling `eager_load_compressors`; dedupe by `id(transform)` so shared transforms don't double-load.
 - Preload the memory embedder explicitly — today `ensure_initialized` initializes the backend but the embedder's first-use cost may still be deferred until the first `search_and_format_context`. Force one warm-up encode (a single short string) to pre-compile the ONNX graph.
 - Add `asyncio.Lock` in `MemoryHandler._ensure_initialized` so concurrent first callers await one load, not N.
@@ -237,12 +237,12 @@ Decision matrix for "where does this request wait?":
 **Dependencies:** None (independent), but landing alongside Unit 1 gives early visibility into whether warmup actually helped.
 
 **Files:**
-- Modify: `headroom/proxy/handlers/openai.py` (WS path at lines 1206+; HTTP path at 798+)
-- Modify: `headroom/proxy/handlers/anthropic.py` (`handle_anthropic_messages` around line 293 and downstream)
-- Modify: `headroom/proxy/request_logger.py` (extend schema)
-- Modify: `headroom/proxy/prometheus_metrics.py` (add histograms per stage)
-- Modify: `headroom/proxy/helpers.py` (thread `stage_timer` through `_read_request_json` / compression helpers)
-- Create: `headroom/proxy/stage_timer.py` (small context-manager util)
+- Modify: `copium/proxy/handlers/openai.py` (WS path at lines 1206+; HTTP path at 798+)
+- Modify: `copium/proxy/handlers/anthropic.py` (`handle_anthropic_messages` around line 293 and downstream)
+- Modify: `copium/proxy/request_logger.py` (extend schema)
+- Modify: `copium/proxy/prometheus_metrics.py` (add histograms per stage)
+- Modify: `copium/proxy/helpers.py` (thread `stage_timer` through `_read_request_json` / compression helpers)
+- Create: `copium/proxy/stage_timer.py` (small context-manager util)
 - Test: `tests/test_stage_timer.py` (new)
 - Test: `tests/test_openai_codex_ws_timings.py` (new)
 - Test: `tests/test_anthropic_stage_timings.py` (new)
@@ -257,7 +257,7 @@ Decision matrix for "where does this request wait?":
 **Execution note:** Land the util + test (`StageTimer`) first; only then plumb it through the two handlers. Keeps the diff reviewable.
 
 **Patterns to follow:**
-- `headroom/proxy/request_logger.py` structured-field schema.
+- `copium/proxy/request_logger.py` structured-field schema.
 - `PrometheusMetrics.record_request` histogram pattern.
 - Existing `request_id = await self._next_request_id()` at `openai.py:1232`.
 
@@ -285,9 +285,9 @@ Decision matrix for "where does this request wait?":
 **Dependencies:** Unit 2 (uses the same `session_id`)
 
 **Files:**
-- Create: `headroom/proxy/ws_session_registry.py` (new)
-- Modify: `headroom/proxy/handlers/openai.py` (`handle_openai_responses_ws` at 1206; relay task construction around 1559-1767; `_upstream_to_client` at 1565)
-- Modify: `headroom/proxy/prometheus_metrics.py` (add `active_ws_sessions` gauge, `active_relay_tasks` gauge, `ws_session_duration` histogram)
+- Create: `copium/proxy/ws_session_registry.py` (new)
+- Modify: `copium/proxy/handlers/openai.py` (`handle_openai_responses_ws` at 1206; relay task construction around 1559-1767; `_upstream_to_client` at 1565)
+- Modify: `copium/proxy/prometheus_metrics.py` (add `active_ws_sessions` gauge, `active_relay_tasks` gauge, `ws_session_duration` histogram)
 - Test: `tests/test_ws_session_registry.py` (new)
 - Test: `tests/test_openai_codex_ws_lifecycle.py` (new)
 
@@ -329,22 +329,22 @@ Decision matrix for "where does this request wait?":
 **Dependencies:** Unit 2 (must have stage timings landed so the default semaphore size can be tuned from real numbers; the unit itself can ship with a conservative default and be retuned later)
 
 **Files:**
-- Modify: `headroom/proxy/handlers/anthropic.py` (wrap the pre-upstream phases in `handle_anthropic_messages` at ~293 through first upstream call)
-- Modify: `headroom/proxy/models.py` or config module (add `anthropic_pre_upstream_concurrency: int` config field)
-- Modify: `headroom/proxy/server.py` (construct the `asyncio.Semaphore` on `HeadroomProxy.__init__` so it's per-process, not per-request)
+- Modify: `copium/proxy/handlers/anthropic.py` (wrap the pre-upstream phases in `handle_anthropic_messages` at ~293 through first upstream call)
+- Modify: `copium/proxy/models.py` or config module (add `anthropic_pre_upstream_concurrency: int` config field)
+- Modify: `copium/proxy/server.py` (construct the `asyncio.Semaphore` on `CopiumProxy.__init__` so it's per-process, not per-request)
 - Modify: CLI surface (add `--anthropic-pre-upstream-concurrency` flag + env var)
 - Test: `tests/test_anthropic_pre_upstream_backpressure.py` (new)
 
 **Approach:**
-- Add `self.anthropic_pre_upstream_sem = asyncio.Semaphore(config.anthropic_pre_upstream_concurrency or max(2, min(8, os.cpu_count())))` in `HeadroomProxy.__init__`.
+- Add `self.anthropic_pre_upstream_sem = asyncio.Semaphore(config.anthropic_pre_upstream_concurrency or max(2, min(8, os.cpu_count())))` in `CopiumProxy.__init__`.
 - In `handle_anthropic_messages`, wrap the region from `_read_request_json` through the first `self.http_client.send()` / `stream()` call in `async with self.anthropic_pre_upstream_sem:`.
 - **Critically:** `/livez` and `/readyz` do not go through this semaphore. They remain free even under replay storm.
 - Emit a log (not a warning — expected under load) when a request waits > 100ms for the semaphore, so we can see queueing in the Unit 2 stage timings.
-- Default config: `HEADROOM_ANTHROPIC_PRE_UPSTREAM_CONCURRENCY` env var honored; CLI flag overrides; unset defaults to the computed floor.
+- Default config: `COPIUM_ANTHROPIC_PRE_UPSTREAM_CONCURRENCY` env var honored; CLI flag overrides; unset defaults to the computed floor.
 
 **Patterns to follow:**
-- Existing config field addition pattern in `headroom/proxy/models.py`.
-- Existing CLI flag plumbing in `headroom/cli/`.
+- Existing config field addition pattern in `copium/proxy/models.py`.
+- Existing CLI flag plumbing in `copium/cli/`.
 - `request_logger.info(..., stage="pre_upstream_wait_ms", ...)` field extension from Unit 2.
 
 **Test scenarios:**
@@ -370,9 +370,9 @@ Decision matrix for "where does this request wait?":
 **Dependencies:** Unit 3 (ws session data), Unit 1 (warmup registry data)
 
 **Files:**
-- Modify: `headroom/proxy/server.py` (add `/debug/tasks`, `/debug/ws-sessions`, `/debug/warmup` routes near the existing `/livez` at 1190)
-- Create: `headroom/proxy/debug_introspection.py` (pure functions that serialize state)
-- Create: `headroom/proxy/loopback_guard.py` (middleware / dep that 404s non-loopback requests)
+- Modify: `copium/proxy/server.py` (add `/debug/tasks`, `/debug/ws-sessions`, `/debug/warmup` routes near the existing `/livez` at 1190)
+- Create: `copium/proxy/debug_introspection.py` (pure functions that serialize state)
+- Create: `copium/proxy/loopback_guard.py` (middleware / dep that 404s non-loopback requests)
 - Test: `tests/test_proxy_debug_endpoints.py` (new)
 
 **Approach:**
@@ -435,7 +435,7 @@ Decision matrix for "where does this request wait?":
 - Test expectation: light — the harness is a script, not a library. A smoke test in `tests/test_scripts/test_repro_codex_replay_smoke.py` launches it against a mock server and verifies it exits 0 with the expected summary shape.
 - Happy path: harness runs against a healthy proxy; exit code 0; summary shows livez p99 < 500ms.
 - Error path: harness invoked with `--url` pointing at a closed port; exits with clear "connection refused" message, non-zero code, within 5 seconds.
-- Integration: after Unit 4 lands, harness with default Anthropic concurrency limits shows livez p99 < 100ms; harness with `HEADROOM_ANTHROPIC_PRE_UPSTREAM_CONCURRENCY=10000` (unbounded) reproduces the original starvation (p99 > 5s).
+- Integration: after Unit 4 lands, harness with default Anthropic concurrency limits shows livez p99 < 100ms; harness with `COPIUM_ANTHROPIC_PRE_UPSTREAM_CONCURRENCY=10000` (unbounded) reproduces the original starvation (p99 > 5s).
 
 **Verification:**
 - CI smoke test runs the script against a mock server on every PR.
@@ -443,7 +443,7 @@ Decision matrix for "where does this request wait?":
 
 ## System-Wide Impact
 
-- **Interaction graph:** the new `WarmupRegistry` (Unit 1) and `WebSocketSessionRegistry` (Unit 3) are accessed from `HeadroomProxy` during request handling and by `/debug/*` routes. Both are single-writer-per-event-loop; no locks needed beyond the `asyncio.Lock` in `MemoryHandler._ensure_initialized` (Unit 1).
+- **Interaction graph:** the new `WarmupRegistry` (Unit 1) and `WebSocketSessionRegistry` (Unit 3) are accessed from `CopiumProxy` during request handling and by `/debug/*` routes. Both are single-writer-per-event-loop; no locks needed beyond the `asyncio.Lock` in `MemoryHandler._ensure_initialized` (Unit 1).
 - **Error propagation:** Unit 3 changes `asyncio.gather(..., return_exceptions=True)` to explicit `asyncio.wait(FIRST_COMPLETED)` + cancel. This means partner-side exceptions surface earlier — previously, a client-side error would still let upstream-side drain to completion. Verify in test scenarios that this does not drop in-flight frames that the client had already queued.
 - **State lifecycle risks:** Unit 3's session registry must be deregistered in the outermost `finally` — a leak here re-creates the exact bug this plan fixes. Unit 1's `asyncio.Lock` must be released on exception paths (use `async with`, not manual acquire/release).
 - **API surface parity:** no change to `/v1/responses` or `/v1/messages` request/response contract. The only new routes are `/debug/*`, loopback-gated.
@@ -468,7 +468,7 @@ Decision matrix for "where does this request wait?":
 - Add a "Debug endpoints" subsection to `wiki/proxy.md` covering the three new loopback-only routes, their output shape, and the loopback-only guarantee.
 - Add a "Reproducing the reconnect storm" subsection to `wiki/proxy.md` referencing `scripts/repro_codex_replay.py`.
 - Update `wiki/metrics.md` with the new histogram series names from Unit 2 and the new gauges from Unit 3.
-- Update `CHANGELOG.md` under an "Unreleased" heading with: (a) compression preserved — no behavioral change for existing Codex users; (b) new stage timings visible in logs; (c) new `HEADROOM_ANTHROPIC_PRE_UPSTREAM_CONCURRENCY` env var; (d) new `/debug/*` loopback endpoints.
+- Update `CHANGELOG.md` under an "Unreleased" heading with: (a) compression preserved — no behavioral change for existing Codex users; (b) new stage timings visible in logs; (c) new `COPIUM_ANTHROPIC_PRE_UPSTREAM_CONCURRENCY` env var; (d) new `/debug/*` loopback endpoints.
 - **Rollout note:** deploy behind the existing launchd flow; monitor `/metrics` for the new histograms; monitor logs for `pre_upstream_wait_ms` — sustained non-zero values across many requests mean the Unit 4 default is too tight for this machine's load profile.
 - **Rollback note:** each unit is cherry-pickable. If Unit 4 causes regression, revert only Unit 4 (semaphore removal); Units 1–3 and 5–6 have no user-visible behavior change.
 
@@ -476,13 +476,13 @@ Decision matrix for "where does this request wait?":
 
 - **Origin document:** `wiki/plans/2026-04-17-codex-proxy-runtime-analysis.md`
 - Related code:
-  - `headroom/proxy/handlers/openai.py` — `handle_openai_responses_ws`, `_client_to_upstream`, `_upstream_to_client`, `_ws_http_fallback`
-  - `headroom/proxy/handlers/anthropic.py` — `handle_anthropic_messages`
-  - `headroom/proxy/server.py` — `HeadroomProxy.__init__`, `.startup`, health routes
-  - `headroom/proxy/memory_handler.py` — `MemoryHandler._ensure_initialized`
-  - `headroom/transforms/content_router.py` — `eager_load_compressors`
-  - `headroom/transforms/kompress_compressor.py` — `_load_kompress_onnx`, `_kompress_cache`
+  - `copium/proxy/handlers/openai.py` — `handle_openai_responses_ws`, `_client_to_upstream`, `_upstream_to_client`, `_ws_http_fallback`
+  - `copium/proxy/handlers/anthropic.py` — `handle_anthropic_messages`
+  - `copium/proxy/server.py` — `CopiumProxy.__init__`, `.startup`, health routes
+  - `copium/proxy/memory_handler.py` — `MemoryHandler._ensure_initialized`
+  - `copium/transforms/content_router.py` — `eager_load_compressors`
+  - `copium/transforms/kompress_compressor.py` — `_load_kompress_onnx`, `_kompress_cache`
 - Related PRs/issues:
-  - Upstream: `https://github.com/chopratejas/headroom/issues/172`
+  - Upstream: `https://github.com/iKislay/copium/issues/172`
   - Fork branch: `fix/responses-retries-keep-compression` (commit `0b11637`)
 - External docs: none used for this plan.

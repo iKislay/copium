@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Synchronize version across all headroom packages."""
+"""Synchronize version across all copium packages."""
 
 from __future__ import annotations
 
@@ -79,21 +79,21 @@ def update_plugin_versions(root: Path, version: str) -> None:
     update_marketplace_manifest(root / ".claude-plugin" / "marketplace.json", version)
     update_marketplace_manifest(root / ".github" / "plugin" / "marketplace.json", version)
     update_plugin_manifest(
-        root / "plugins" / "headroom-agent-hooks" / ".claude-plugin" / "plugin.json", version
+        root / "plugins" / "copium-agent-hooks" / ".claude-plugin" / "plugin.json", version
     )
     update_plugin_manifest(
-        root / "plugins" / "headroom-agent-hooks" / ".github" / "plugin" / "plugin.json",
+        root / "plugins" / "copium-agent-hooks" / ".github" / "plugin" / "plugin.json",
         version,
     )
 
 
 def update_openclaw_package_json(file_path: Path, version: str, sdk_version: str) -> None:
-    """Update openclaw package.json version and headroom-ai dependency range."""
+    """Update openclaw package.json version and copium-ai dependency range."""
     with open(file_path, encoding="utf-8") as f:
         data = json.load(f)
     data["version"] = version
-    if "dependencies" in data and "headroom-ai" in data["dependencies"]:
-        data["dependencies"]["headroom-ai"] = f"^{sdk_version}"
+    if "dependencies" in data and "copium-ai" in data["dependencies"]:
+        data["dependencies"]["copium-ai"] = f"^{sdk_version}"
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
         f.write("\n")
@@ -130,7 +130,7 @@ def write_release_metadata(root: Path, version: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Synchronize version across headroom packages")
+    parser = argparse.ArgumentParser(description="Synchronize version across copium packages")
     parser.add_argument(
         "--root",
         type=Path,

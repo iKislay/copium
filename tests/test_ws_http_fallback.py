@@ -67,7 +67,7 @@ class FakeHttpClient:
 
 def _make_handler():
     """Create a minimal OpenAIHandlerMixin-like object."""
-    from headroom.proxy.handlers.openai import OpenAIHandlerMixin
+    from copium.proxy.handlers.openai import OpenAIHandlerMixin
 
     obj = object.__new__(OpenAIHandlerMixin)
     obj.OPENAI_API_URL = "https://api.openai.com"
@@ -301,7 +301,7 @@ class TestWsHttpFallback:
             def update_from_headers(self, hdrs):
                 captured["headers"] = dict(hdrs)
 
-        import headroom.subscription.codex_rate_limits as crl
+        import copium.subscription.codex_rate_limits as crl
 
         monkeypatch.setattr(crl, "get_codex_rate_limit_state", lambda: _FakeState())
 

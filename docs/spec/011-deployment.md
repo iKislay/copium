@@ -6,17 +6,17 @@
 
 ### Docker Profile
 
-**Image:** `headroom-ai/headroom:latest`
+**Image:** `copium-ai/copium:latest`
 
 **Dockerfile:**
 ```dockerfile
 FROM python:3.12-slim
 
-RUN pip install headroom-ai
+RUN pip install copium-ai
 
 EXPOSE 8787
 
-ENTRYPOINT ["headroom", "proxy"]
+ENTRYPOINT ["copium", "proxy"]
 CMD ["--host", "0.0.0.0", "--port", "8787"]
 ```
 
@@ -24,18 +24,18 @@ CMD ["--host", "0.0.0.0", "--port", "8787"]
 ```yaml
 version: '3.8'
 services:
-  headroom:
-    image: headroom-ai/headroom:latest
+  copium:
+    image: copium-ai/copium:latest
     ports:
       - "8787:8787"
     environment:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - HEADROOM_MODE=token
+      - COPIUM_MODE=token
     volumes:
-      - headroom-data:/root/.headroom
+      - copium-data:/root/.copium
 
 volumes:
-  headroom-data:
+  copium-data:
 ```
 
 **Run:**
@@ -49,12 +49,12 @@ docker-compose up -d
 
 **Installation:**
 ```bash
-pip install headroom-ai
+pip install copium-ai
 ```
 
 **Run:**
 ```bash
-headroom proxy --host 0.0.0.0 --port 8787
+copium proxy --host 0.0.0.0 --port 8787
 ```
 
 ---
@@ -63,9 +63,9 @@ headroom proxy --host 0.0.0.0 --port 8787
 
 **Usage:**
 ```python
-from headroom import HeadroomClient
+from copium import CopiumClient
 
-client = HeadroomClient(
+client = CopiumClient(
     api_key="your-api-key",
     base_url="http://localhost:8787"
 )
@@ -80,7 +80,7 @@ result = await client.compress(messages)
 ### AWS (EC2/ECS)
 
 ```yaml
-# ~/.headroom/config.yaml
+# ~/.copium/config.yaml
 deployment:
   profile: aws
   instance_type: t3.medium
@@ -109,7 +109,7 @@ deployment:
 ```yaml
 deployment:
   profile: azure
-  resource_group: headroom-rg
+  resource_group: copium-rg
 ```
 
 ---
@@ -120,17 +120,17 @@ deployment:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `HEADROOM_MODE` | `token` | Proxy mode (`token` or `cache`) |
-| `HEADROOM_PORT` | `8787` | Proxy port |
-| `HEADROOM_HOST` | `127.0.0.1` | Proxy host |
+| `COPIUM_MODE` | `token` | Proxy mode (`token` or `cache`) |
+| `COPIUM_PORT` | `8787` | Proxy port |
+| `COPIUM_HOST` | `127.0.0.1` | Proxy host |
 | `ANTHROPIC_API_KEY` | - | Anthropic API key |
 | `OPENAI_API_KEY` | - | OpenAI API key |
-| `HEADROOM_TELEMETRY` | enabled | Set to `off` to disable telemetry |
+| `COPIUM_TELEMETRY` | enabled | Set to `off` to disable telemetry |
 
 ### Config File
 
 ```yaml
-# ~/.headroom/config.yaml
+# ~/.copium/config.yaml
 proxy:
   host: 0.0.0.0
   port: 8787

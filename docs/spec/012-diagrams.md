@@ -6,7 +6,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        Headroom                                  │
+│                        Copium                                  │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌─────────────┐  │
@@ -44,7 +44,7 @@
 ## Request Flow Sequence Diagram
 
 ```
-Client      Headroom     Compression     CCR         Provider
+Client      Copium     Compression     CCR         Provider
              Proxy         Layer        Cache         API
   │             │             │            │            │
   │──POST /v1/msg──▶│            │            │            │
@@ -69,7 +69,7 @@ Client      Headroom     Compression     CCR         Provider
 ## CCR Cache Flow
 
 ```
-Request     Headroom       CCR         Storage
+Request     Copium       CCR         Storage
   │           Proxy      Cache
   │             │           │
   │──compress──▶│           │
@@ -86,7 +86,7 @@ Request     Headroom       CCR         Storage
 ## Learn System Flow
 
 ```
-Session     Headroom      Learn        Plugin
+Session     Copium      Learn        Plugin
   Data        Proxy       System      Registry
   │             │           │           │
   │──session──▶│           │           │
@@ -110,7 +110,7 @@ Session     Headroom      Learn        Plugin
        │ HTTP
        ▼
 ┌──────────────┐     ┌─────────────────────────────────────┐
-│  Headroom    │────▶│         Compression Layer            │
+│  Copium    │────▶│         Compression Layer            │
 │   Proxy     │     │                                     │
 └──────┬───────┘     │  ┌─────────┐   ┌──────────────┐   │
        │             │  │ Semantic│   │    Summary    │   │

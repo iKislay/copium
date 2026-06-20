@@ -1,4 +1,4 @@
-"""Tests for :class:`headroom.proxy.memory_query.MemoryQuery`.
+"""Tests for :class:`copium.proxy.memory_query.MemoryQuery`.
 
 ``MemoryQuery`` is the multi-source query value type that replaces
 the pre-PR pattern of "use the latest user message, truncated to 500
@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from dataclasses import FrozenInstanceError
 
-from headroom.proxy.memory_query import MemoryQuery
+from copium.proxy.memory_query import MemoryQuery
 
 # ── Value-type contract ───────────────────────────────────────────────
 
@@ -122,12 +122,12 @@ def test_empty_user_text_is_valid_when_only_tool_signal() -> None:
     tool-call follow-up). Query is the tool output."""
     q = MemoryQuery(
         user_text="",
-        recent_tool_outputs=("ls -la /home/user/projects/headroom",),
+        recent_tool_outputs=("ls -la /home/user/projects/copium",),
         recent_assistant_turns=(),
         conversation_id=None,
     )
     txt = q.to_embedding_input()
-    assert "ls -la /home/user/projects/headroom" in txt
+    assert "ls -la /home/user/projects/copium" in txt
 
 
 # ── from_messages constructor ────────────────────────────────────────

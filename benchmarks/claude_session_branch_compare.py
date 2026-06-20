@@ -572,7 +572,7 @@ def main() -> int:
     if not args.root.is_absolute():
         args.root = args.root.resolve()
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    worktree_root = Path(tempfile.mkdtemp(prefix="headroom-branch-compare-"))
+    worktree_root = Path(tempfile.mkdtemp(prefix="copium-branch-compare-"))
     try:
         left = _run_branch_benchmark(repo_root, args.left_ref, args.left_label, args, worktree_root)
         right = _run_branch_benchmark(

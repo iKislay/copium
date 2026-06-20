@@ -1,13 +1,13 @@
 /**
  * Example 12: CCR Retrieve — Lossless Compression
  *
- * Headroom compresses aggressively but stores originals.
- * When the LLM needs full details, it calls headroom_retrieve.
+ * Copium compresses aggressively but stores originals.
+ * When the LLM needs full details, it calls copium_retrieve.
  * Nothing is ever thrown away.
  *
  * Run: npx tsx examples/12-ccr-retrieve.ts
  */
-import { HeadroomClient } from "headroom-ai";
+import { CopiumClient } from "copium-ai";
 
 // Large dataset that will trigger CCR (Compress-Cache-Retrieve)
 const auditLog = Array.from({ length: 200 }, (_, i) => ({
@@ -25,7 +25,7 @@ const auditLog = Array.from({ length: 200 }, (_, i) => ({
 }));
 
 async function main() {
-  const client = new HeadroomClient();
+  const client = new CopiumClient();
 
   // Compress the large audit log
   const result = await client.compress(

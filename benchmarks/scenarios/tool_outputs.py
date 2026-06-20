@@ -169,7 +169,7 @@ def generate_log_entries(
             "level": level,
             "logger": random.choice(["app", "api", "worker", "scheduler"]),
             "message": message,
-            "service": "headroom-benchmark",
+            "service": "copium-benchmark",
             "hostname": f"worker-{random.randint(1, 10):02d}",
             "trace_id": f"trace_{uuid.uuid4().hex[:16]}",
         }

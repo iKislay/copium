@@ -13,8 +13,8 @@ def temp_project(tmp_path: Path) -> dict[str, Path]:
     """Create a temporary project with all versioned files."""
     # Create directory structure
     root = tmp_path / "project"
-    headroom = root / "headroom"
-    headroom.mkdir(parents=True)
+    copium = root / "copium"
+    copium.mkdir(parents=True)
     repo_claude_plugin = root / ".claude-plugin"
     repo_claude_plugin.mkdir(parents=True)
     repo_github_plugin = root / ".github" / "plugin"
@@ -22,9 +22,9 @@ def temp_project(tmp_path: Path) -> dict[str, Path]:
     plugins = root / "plugins"
     openclaw = plugins / "openclaw"
     openclaw.mkdir(parents=True)
-    agent_hooks_claude = plugins / "headroom-agent-hooks" / ".claude-plugin"
+    agent_hooks_claude = plugins / "copium-agent-hooks" / ".claude-plugin"
     agent_hooks_claude.mkdir(parents=True)
-    agent_hooks_github = plugins / "headroom-agent-hooks" / ".github" / "plugin"
+    agent_hooks_github = plugins / "copium-agent-hooks" / ".github" / "plugin"
     agent_hooks_github.mkdir(parents=True)
     sdk = root / "sdk"
     typescript = sdk / "typescript"
@@ -34,8 +34,8 @@ def temp_project(tmp_path: Path) -> dict[str, Path]:
     pyproject = root / "pyproject.toml"
     pyproject.write_text('[project]\nversion = "0.5.25"\n')
 
-    # headroom/_version.py is runtime-derived and must not be rewritten by version-sync.
-    version_py = headroom / "_version.py"
+    # copium/_version.py is runtime-derived and must not be rewritten by version-sync.
+    version_py = copium / "_version.py"
     version_py.write_text('"""Package version metadata."""\n\n__version__ = "0.5.25"\n')
 
     # plugins/openclaw/package.json
@@ -47,7 +47,7 @@ def temp_project(tmp_path: Path) -> dict[str, Path]:
         json.dumps(
             {
                 "metadata": {"name": "claude-marketplace", "version": "0.1.0"},
-                "plugins": [{"name": "headroom-agent-hooks", "version": "0.1.0"}],
+                "plugins": [{"name": "copium-agent-hooks", "version": "0.1.0"}],
             }
         )
     )
@@ -57,16 +57,16 @@ def temp_project(tmp_path: Path) -> dict[str, Path]:
         json.dumps(
             {
                 "metadata": {"name": "copilot-marketplace", "version": "0.1.0"},
-                "plugins": [{"name": "headroom-agent-hooks", "version": "0.1.0"}],
+                "plugins": [{"name": "copium-agent-hooks", "version": "0.1.0"}],
             }
         )
     )
 
     claude_plugin = agent_hooks_claude / "plugin.json"
-    claude_plugin.write_text(json.dumps({"name": "headroom-agent-hooks", "version": "0.1.0"}))
+    claude_plugin.write_text(json.dumps({"name": "copium-agent-hooks", "version": "0.1.0"}))
 
     github_plugin = agent_hooks_github / "plugin.json"
-    github_plugin.write_text(json.dumps({"name": "headroom-agent-hooks", "version": "0.1.0"}))
+    github_plugin.write_text(json.dumps({"name": "copium-agent-hooks", "version": "0.1.0"}))
 
     # sdk/typescript/package.json
     typescript_pkg = typescript / "package.json"
@@ -102,7 +102,7 @@ def test_version_sync_explicit_version(temp_project: dict[str, Path]) -> None:
     pyproject_content = temp_project["pyproject"].read_text()
     assert 'version = "0.7.0"' in pyproject_content
 
-    # Verify headroom/_version.py is not a synced manifest.
+    # Verify copium/_version.py is not a synced manifest.
     version_py_content = temp_project["version_py"].read_text()
     assert '__version__ = "0.5.25"' in version_py_content
 

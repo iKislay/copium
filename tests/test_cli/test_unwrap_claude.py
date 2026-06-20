@@ -7,8 +7,8 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 
-from headroom.cli import wrap as wrap_cli
-from headroom.cli.main import main
+from copium.cli import wrap as wrap_cli
+from copium.cli.main import main
 
 
 @pytest.fixture
@@ -99,18 +99,18 @@ def test_unwrap_claude_removes_mcp_rtk_and_stops_proxy(
             return None
 
     with (
-        patch("headroom.mcp_registry.ClaudeRegistrar", return_value=Registrar()),
+        patch("copium.mcp_registry.ClaudeRegistrar", return_value=Registrar()),
         patch(
-            "headroom.cli.wrap._stop_local_proxy_for_unwrap",
+            "copium.cli.wrap._stop_local_proxy_for_unwrap",
             side_effect=lambda port: stopped.append(port) or "stopped",
         ),
     ):
         result = runner.invoke(main, ["unwrap", "claude", "--port", "9999"])
 
     assert result.exit_code == 0, result.output
-    assert unregistered == ["headroom", "codebase-memory-mcp"]
+    assert unregistered == ["copium", "codebase-memory-mcp"]
     assert stopped == [9999]
-    assert "Stopped local Headroom proxy on port 9999" in result.output
+    assert "Stopped local Copium proxy on port 9999" in result.output
     assert "hooks" not in json.loads(settings.read_text(encoding="utf-8"))
 
 
@@ -119,7 +119,7 @@ def test_unwrap_claude_preserves_user_managed_serena(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    monkeypatch.setenv("HEADROOM_WORKSPACE_DIR", str(tmp_path / ".headroom"))
+    monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path / ".copium"))
     unregistered: list[str] = []
 
     class Registrar:
@@ -134,31 +134,31 @@ def test_unwrap_claude_preserves_user_managed_serena(
 
         def get_server(self, server_name: str):
             if server_name == "serena":
-                from headroom.mcp_registry.base import ServerSpec
+                from copium.mcp_registry.base import ServerSpec
 
                 return ServerSpec(name="serena", command="/usr/local/bin/custom-serena")
             return None
 
     with (
-        patch("headroom.mcp_registry.ClaudeRegistrar", return_value=Registrar()),
-        patch("headroom.cli.wrap._remove_claude_rtk_hooks", return_value=False),
-        patch("headroom.cli.wrap._stop_local_proxy_for_unwrap"),
+        patch("copium.mcp_registry.ClaudeRegistrar", return_value=Registrar()),
+        patch("copium.cli.wrap._remove_claude_rtk_hooks", return_value=False),
+        patch("copium.cli.wrap._stop_local_proxy_for_unwrap"),
     ):
         result = runner.invoke(main, ["unwrap", "claude"])
 
     assert result.exit_code == 0, result.output
-    assert unregistered == ["headroom", "codebase-memory-mcp"]
+    assert unregistered == ["copium", "codebase-memory-mcp"]
 
 
-def test_unwrap_claude_removes_headroom_installed_serena(
+def test_unwrap_claude_removes_copium_installed_serena(
     runner: CliRunner,
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    monkeypatch.setenv("HEADROOM_WORKSPACE_DIR", str(tmp_path / ".headroom"))
+    monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path / ".copium"))
 
-    from headroom.mcp_registry import build_serena_spec
-    from headroom.mcp_registry.ledger import record_install
+    from copium.mcp_registry import build_serena_spec
+    from copium.mcp_registry.ledger import record_install
 
     serena_spec = build_serena_spec("claude-code")
     record_install("claude", serena_spec)
@@ -180,24 +180,24 @@ def test_unwrap_claude_removes_headroom_installed_serena(
             return None
 
     with (
-        patch("headroom.mcp_registry.ClaudeRegistrar", return_value=Registrar()),
-        patch("headroom.cli.wrap._remove_claude_rtk_hooks", return_value=False),
-        patch("headroom.cli.wrap._stop_local_proxy_for_unwrap"),
+        patch("copium.mcp_registry.ClaudeRegistrar", return_value=Registrar()),
+        patch("copium.cli.wrap._remove_claude_rtk_hooks", return_value=False),
+        patch("copium.cli.wrap._stop_local_proxy_for_unwrap"),
     ):
         result = runner.invoke(main, ["unwrap", "claude"])
 
     assert result.exit_code == 0, result.output
-    assert unregistered == ["headroom", "codebase-memory-mcp", "serena"]
-    assert "Removed Headroom-installed Serena MCP server" in result.output
+    assert unregistered == ["copium", "codebase-memory-mcp", "serena"]
+    assert "Removed Copium-installed Serena MCP server" in result.output
 
 
 def test_unwrap_claude_keep_flags_skip_cleanup(
     runner: CliRunner,
 ) -> None:
     with (
-        patch("headroom.mcp_registry.ClaudeRegistrar") as registrar,
-        patch("headroom.cli.wrap._remove_claude_rtk_hooks") as remove_rtk,
-        patch("headroom.cli.wrap._stop_local_proxy_for_unwrap") as stop_proxy,
+        patch("copium.mcp_registry.ClaudeRegistrar") as registrar,
+        patch("copium.cli.wrap._remove_claude_rtk_hooks") as remove_rtk,
+        patch("copium.cli.wrap._stop_local_proxy_for_unwrap") as stop_proxy,
     ):
         result = runner.invoke(
             main,
@@ -225,8 +225,8 @@ def test_remove_claude_rtk_hooks_removes_init_hooks_and_env(tmp_path: Path) -> N
                                 {
                                     "type": "command",
                                     "command": (
-                                        "/home/u/.local/bin/headroom init hook ensure "
-                                        "--profile init-user --marker headroom-init-claude"
+                                        "/home/u/.local/bin/copium init hook ensure "
+                                        "--profile init-user --marker copium-init-claude"
                                     ),
                                     "timeout": 15,
                                 }
@@ -239,7 +239,7 @@ def test_remove_claude_rtk_hooks_removes_init_hooks_and_env(tmp_path: Path) -> N
                             "hooks": [
                                 {
                                     "type": "command",
-                                    "command": "headroom init hook ensure --marker headroom-init-claude",
+                                    "command": "copium init hook ensure --marker copium-init-claude",
                                 },
                                 {"type": "command", "command": "echo keep-me"},
                             ],

@@ -1,17 +1,17 @@
-# headroom-ai
+# copium-ai
 
 Compress LLM context. Save tokens. Fit more into every request.
 
 ## Install
 
 ```bash
-npm install headroom-ai
+npm install copium-ai
 ```
 
 ## Quick Start
 
 ```typescript
-import { compress } from 'headroom-ai';
+import { compress } from 'copium-ai';
 
 const result = await compress(messages, { model: 'gpt-4o' });
 console.log(`Saved ${result.tokensSaved} tokens (${((1 - result.compressionRatio) * 100).toFixed(0)}%)`);
@@ -23,18 +23,18 @@ const response = await openai.chat.completions.create({
 });
 ```
 
-Requires a running Headroom proxy (`headroom proxy`) or Headroom Cloud API key.
+Requires a running Copium proxy (`copium proxy`) or Copium Cloud API key.
 
 ## Framework Adapters
 
 ### Vercel AI SDK
 
 ```typescript
-import { withHeadroom } from 'headroom-ai/vercel-ai';
+import { withCopium } from 'copium-ai/vercel-ai';
 import { openai } from '@ai-sdk/openai';
 import { generateText } from 'ai';
 
-const model = withHeadroom(openai('gpt-4o'));
+const model = withCopium(openai('gpt-4o'));
 const { text } = await generateText({ model, messages });
 ```
 
@@ -42,12 +42,12 @@ const { text } = await generateText({ model, messages });
 <summary>Advanced: using middleware directly</summary>
 
 ```typescript
-import { headroomMiddleware } from 'headroom-ai/vercel-ai';
+import { copiumMiddleware } from 'copium-ai/vercel-ai';
 import { wrapLanguageModel } from 'ai';
 
 const model = wrapLanguageModel({
   model: openai('gpt-4o'),
-  middleware: headroomMiddleware({ baseUrl: 'http://localhost:8787' }),
+  middleware: copiumMiddleware({ baseUrl: 'http://localhost:8787' }),
 });
 ```
 
@@ -56,10 +56,10 @@ const model = wrapLanguageModel({
 ### OpenAI SDK
 
 ```typescript
-import { withHeadroom } from 'headroom-ai/openai';
+import { withCopium } from 'copium-ai/openai';
 import OpenAI from 'openai';
 
-const client = withHeadroom(new OpenAI());
+const client = withCopium(new OpenAI());
 const response = await client.chat.completions.create({
   model: 'gpt-4o',
   messages: longConversation,
@@ -69,10 +69,10 @@ const response = await client.chat.completions.create({
 ### Anthropic SDK
 
 ```typescript
-import { withHeadroom } from 'headroom-ai/anthropic';
+import { withCopium } from 'copium-ai/anthropic';
 import Anthropic from '@anthropic-ai/sdk';
 
-const client = withHeadroom(new Anthropic());
+const client = withCopium(new Anthropic());
 const response = await client.messages.create({
   model: 'claude-sonnet-4-5-20250929',
   messages: longConversation,
@@ -83,25 +83,25 @@ const response = await client.messages.create({
 ### Google Gemini
 
 ```typescript
-import { withHeadroom } from 'headroom-ai/gemini';
+import { withCopium } from 'copium-ai/gemini';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-const model = withHeadroom(genAI.getGenerativeModel({ model: 'gemini-2.0-flash' }));
+const model = withCopium(genAI.getGenerativeModel({ model: 'gemini-2.0-flash' }));
 
 const result = await model.generateContent({
   contents: longConversation,
 });
 ```
 
-## HeadroomClient
+## CopiumClient
 
 The full client provides direct access to the proxy's OpenAI and Anthropic passthrough endpoints, plus metrics, CCR, and observability.
 
 ```typescript
-import { HeadroomClient } from 'headroom-ai';
+import { CopiumClient } from 'copium-ai';
 
-const client = new HeadroomClient({
+const client = new CopiumClient({
   baseUrl: 'http://localhost:8787',
   providerApiKey: process.env.OPENAI_API_KEY,
   config: {
@@ -117,7 +117,7 @@ const client = new HeadroomClient({
 const response = await client.chat.completions.create({
   model: 'gpt-4o',
   messages: longConversation,
-  headroomMode: 'optimize',
+  copiumMode: 'optimize',
 });
 ```
 
@@ -128,7 +128,7 @@ const response = await client.messages.create({
   model: 'claude-sonnet-4-5-20250929',
   messages: longConversation,
   max_tokens: 1024,
-  headroomMode: 'optimize',
+  copiumMode: 'optimize',
 });
 ```
 
@@ -143,7 +143,7 @@ const result = await client.compress(messages, { model: 'gpt-4o', tokenBudget: 4
 See what compression would do without calling the LLM.
 
 ```typescript
-import { simulate } from 'headroom-ai';
+import { simulate } from 'copium-ai';
 
 const sim = await simulate(messages, { model: 'gpt-4o' });
 console.log(`Would save ${sim.tokensSaved} tokens (${sim.estimatedSavings})`);
@@ -166,8 +166,8 @@ const sim = await client.chat.completions.simulate({
 Customize compression with pre/post hooks — matching the Python `CompressionHooks` API.
 
 ```typescript
-import { compress, CompressionHooks } from 'headroom-ai';
-import type { CompressContext, CompressEvent } from 'headroom-ai';
+import { compress, CompressionHooks } from 'copium-ai';
+import type { CompressContext, CompressEvent } from 'copium-ai';
 
 class MyHooks extends CompressionHooks {
   // Modify messages before compression
@@ -194,7 +194,7 @@ const result = await compress(messages, { model: 'gpt-4o', hooks: new MyHooks() 
 Compressed inter-agent context sharing — matching the Python `SharedContext` API.
 
 ```typescript
-import { SharedContext } from 'headroom-ai';
+import { SharedContext } from 'copium-ai';
 
 const ctx = new SharedContext({ model: 'gpt-4o', ttl: 3600, maxEntries: 100 });
 
@@ -220,7 +220,7 @@ Retrieve original content when the LLM needs full details.
 ```typescript
 const result = await client.compress(messages, { model: 'gpt-4o' });
 
-// Later, when the LLM calls headroom_retrieve:
+// Later, when the LLM calls copium_retrieve:
 for (const hash of result.ccrHashes) {
   const original = await client.retrieve(hash);
   console.log(`${original.originalTokens} original tokens for ${original.toolName}`);
@@ -286,9 +286,9 @@ const patterns = await client.toin.getPatterns(20);
 Full TypeScript interfaces for every Python config dataclass.
 
 ```typescript
-import type { HeadroomConfig, SmartCrusherConfig, CCRConfig } from 'headroom-ai';
+import type { CopiumConfig, SmartCrusherConfig, CCRConfig } from 'copium-ai';
 
-const config: HeadroomConfig = {
+const config: CopiumConfig = {
   defaultMode: 'optimize',
   smartCrusher: {
     enabled: true,
@@ -303,7 +303,7 @@ const config: HeadroomConfig = {
   intelligentContext: { enabled: true, useImportanceScoring: true },
 };
 
-const client = new HeadroomClient({ config });
+const client = new CopiumClient({ config });
 ```
 
 ## Error Handling
@@ -312,10 +312,10 @@ Full error hierarchy matching the Python SDK.
 
 ```typescript
 import {
-  HeadroomError,
-  HeadroomConnectionError,
-  HeadroomAuthError,
-  HeadroomCompressError,
+  CopiumError,
+  CopiumConnectionError,
+  CopiumAuthError,
+  CopiumCompressError,
   ConfigurationError,
   ProviderError,
   StorageError,
@@ -323,14 +323,14 @@ import {
   CacheError,
   ValidationError,
   TransformError,
-} from 'headroom-ai';
+} from 'copium-ai';
 
 try {
   await client.compress(messages);
 } catch (err) {
-  if (err instanceof HeadroomAuthError) {
-    console.error('Auth failed — check HEADROOM_API_KEY');
-  } else if (err instanceof HeadroomCompressError) {
+  if (err instanceof CopiumAuthError) {
+    console.error('Auth failed — check COPIUM_API_KEY');
+  } else if (err instanceof CopiumCompressError) {
     console.error(`Compression error ${err.statusCode}: ${err.errorType}`);
   } else if (err instanceof ConfigurationError) {
     console.error('Bad config:', err.details);
@@ -343,7 +343,7 @@ try {
 Auto-detects and converts between OpenAI, Anthropic, Vercel AI SDK, and Gemini formats.
 
 ```typescript
-import { detectFormat, toOpenAI, fromOpenAI } from 'headroom-ai';
+import { detectFormat, toOpenAI, fromOpenAI } from 'copium-ai';
 
 const format = detectFormat(messages); // 'openai' | 'anthropic' | 'vercel' | 'gemini'
 const openaiMessages = toOpenAI(messages);
@@ -355,12 +355,12 @@ The `compress()` function handles this automatically — pass any format and get
 ## Configuration
 
 ```typescript
-import { compress } from 'headroom-ai';
+import { compress } from 'copium-ai';
 
 const result = await compress(messages, {
   model: 'gpt-4o',
-  baseUrl: 'http://localhost:8787',  // or https://api.headroom.ai
-  apiKey: 'hr_...',                   // for Headroom Cloud
+  baseUrl: 'http://localhost:8787',  // or https://api.copium.ai
+  apiKey: 'hr_...',                   // for Copium Cloud
   timeout: 30000,                     // ms
   fallback: true,                     // return uncompressed if proxy is down (default)
   retries: 1,                         // retry on transient failures (default)
@@ -370,23 +370,23 @@ const result = await compress(messages, {
 ```
 
 Or use environment variables:
-- `HEADROOM_BASE_URL` — proxy/cloud URL
-- `HEADROOM_API_KEY` — Cloud API key
+- `COPIUM_BASE_URL` — proxy/cloud URL
+- `COPIUM_API_KEY` — Cloud API key
 
 ## Utilities
 
 ```typescript
 // Case conversion for proxy communication
-import { deepCamelCase, deepSnakeCase } from 'headroom-ai';
+import { deepCamelCase, deepSnakeCase } from 'copium-ai';
 
 const tsObj = deepCamelCase({ tokens_before: 100 }); // { tokensBefore: 100 }
 const pyObj = deepSnakeCase({ tokensBefore: 100 });   // { tokens_before: 100 }
 
 // SSE stream parsing
-import { parseSSE, collectStream } from 'headroom-ai';
+import { parseSSE, collectStream } from 'copium-ai';
 
 // Hook helpers
-import { extractUserQuery, countTurns, extractToolCalls } from 'headroom-ai';
+import { extractUserQuery, countTurns, extractToolCalls } from 'copium-ai';
 ```
 
 ## License

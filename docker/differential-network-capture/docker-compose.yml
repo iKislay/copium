@@ -1,4 +1,4 @@
-name: headroom-network-diff
+name: copium-network-diff
 
 services:
   mitm-direct:
@@ -27,12 +27,12 @@ services:
     ports:
       - "${DIRECT_MITM_PORT:-18080}:8080"
 
-  mitm-headroom-client:
+  mitm-copium-client:
     image: mitmproxy/mitmproxy:12
     command:
       - mitmdump
       - --mode
-      - reverse:http://headroom-proxy:8787
+      - reverse:http://copium-proxy:8787
       - --listen-host
       - 0.0.0.0
       - --listen-port
@@ -40,19 +40,19 @@ services:
       - -s
       - /capture/mitm_capture.py
     environment:
-      CAPTURE_LANE: headroom-client
-      CAPTURE_OUTPUT: /captures/headroom-client.jsonl
-      CAPTURE_INCLUDE_HOSTS: ${CAPTURE_CLIENT_INCLUDE_HOSTS:-mitm-headroom-client,headroom-proxy,api.anthropic.com}
+      CAPTURE_LANE: copium-client
+      CAPTURE_OUTPUT: /captures/copium-client.jsonl
+      CAPTURE_INCLUDE_HOSTS: ${CAPTURE_CLIENT_INCLUDE_HOSTS:-mitm-copium-client,copium-proxy,api.anthropic.com}
       CAPTURE_BODY_BYTES: ${CAPTURE_BODY_BYTES:-262144}
     volumes:
       - ./mitm_capture.py:/capture/mitm_capture.py:ro
       - ./captures:/captures
     ports:
-      - "${HEADROOM_CLIENT_MITM_PORT:-18082}:8080"
+      - "${COPIUM_CLIENT_MITM_PORT:-18082}:8080"
     depends_on:
-      - headroom-proxy
+      - copium-proxy
 
-  mitm-headroom-upstream:
+  mitm-copium-upstream:
     image: mitmproxy/mitmproxy:12
     command:
       - mitmdump
@@ -67,18 +67,18 @@ services:
       - -s
       - /capture/mitm_capture.py
     environment:
-      CAPTURE_LANE: headroom-upstream
-      CAPTURE_OUTPUT: /captures/headroom-upstream.jsonl
+      CAPTURE_LANE: copium-upstream
+      CAPTURE_OUTPUT: /captures/copium-upstream.jsonl
       CAPTURE_INCLUDE_HOSTS: ${CAPTURE_INCLUDE_HOSTS:-api.anthropic.com}
       CAPTURE_BODY_BYTES: ${CAPTURE_BODY_BYTES:-262144}
     volumes:
       - ./mitm_capture.py:/capture/mitm_capture.py:ro
       - ./captures:/captures
-      - mitm_headroom_ca:/mitmproxy
+      - mitm_copium_ca:/mitmproxy
     ports:
-      - "${HEADROOM_MITM_PORT:-18081}:8080"
+      - "${COPIUM_MITM_PORT:-18081}:8080"
 
-  headroom-proxy:
+  copium-proxy:
     build:
       context: ../..
       dockerfile: Dockerfile
@@ -86,15 +86,15 @@ services:
     environment:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?Set ANTHROPIC_API_KEY}
       ANTHROPIC_TARGET_API_URL: ${ANTHROPIC_TARGET_API_URL:-https://api.anthropic.com}
-      HTTPS_PROXY: http://mitm-headroom-upstream:8080
-      HTTP_PROXY: http://mitm-headroom-upstream:8080
-      NO_PROXY: 127.0.0.1,localhost,headroom-proxy
+      HTTPS_PROXY: http://mitm-copium-upstream:8080
+      HTTP_PROXY: http://mitm-copium-upstream:8080
+      NO_PROXY: 127.0.0.1,localhost,copium-proxy
       REQUESTS_CA_BUNDLE: /mitmproxy/mitmproxy-ca-cert.pem
       SSL_CERT_FILE: /mitmproxy/mitmproxy-ca-cert.pem
     volumes:
-      - mitm_headroom_ca:/mitmproxy:ro
+      - mitm_copium_ca:/mitmproxy:ro
     depends_on:
-      - mitm-headroom-upstream
+      - mitm-copium-upstream
 
   claude-direct:
     build:
@@ -119,7 +119,7 @@ services:
     depends_on:
       - mitm-direct
 
-  claude-headroom:
+  claude-copium:
     build:
       context: .
       dockerfile: Dockerfile.runner
@@ -128,15 +128,15 @@ services:
     profiles: ["run"]
     environment:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?Set ANTHROPIC_API_KEY}
-      ANTHROPIC_BASE_URL: http://mitm-headroom-client:8080
-      CLAUDE_LANE: headroom
+      ANTHROPIC_BASE_URL: http://mitm-copium-client:8080
+      CLAUDE_LANE: copium
       CLAUDE_PROMPT: ${CLAUDE_PROMPT:-Summarize this repository in one sentence.}
-      CLAUDE_ARGS: ${CLAUDE_HEADROOM_ARGS:-}
+      CLAUDE_ARGS: ${CLAUDE_COPIUM_ARGS:-}
     volumes:
       - ../..:/workspace:ro
     depends_on:
-      - mitm-headroom-client
+      - mitm-copium-client
 
 volumes:
   mitm_direct_ca:
-  mitm_headroom_ca:
+  mitm_copium_ca:

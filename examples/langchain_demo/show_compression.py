@@ -1,6 +1,6 @@
-"""Demonstrate Headroom compression on LangChain tool outputs.
+"""Demonstrate Copium compression on LangChain tool outputs.
 
-This script shows EXACTLY what Headroom does to large tool outputs:
+This script shows EXACTLY what Copium does to large tool outputs:
 - Before: Full 100-item JSON array
 - After: Compressed to ~20 relevant items
 
@@ -19,8 +19,8 @@ except ImportError:
     print("ERROR: tiktoken required. Run: uv pip install tiktoken")
     sys.exit(1)
 
-from headroom.providers import OpenAIProvider
-from headroom.transforms import SmartCrusher
+from copium.providers import OpenAIProvider
+from copium.transforms import SmartCrusher
 
 from .mock_tools import TOOL_FUNCTIONS
 
@@ -65,7 +65,7 @@ def demonstrate_compression(tool_name: str, tool_arg: str, context: str):
     print(raw_output[:500] + "...")
 
     # Create SmartCrusher with context
-    from headroom.config import SmartCrusherConfig
+    from copium.config import SmartCrusherConfig
 
     smart_config = SmartCrusherConfig(
         enabled=True,
@@ -150,10 +150,10 @@ def main():
     """Run compression demonstrations."""
 
     print("\n" + "=" * 70)
-    print("HEADROOM SMARTCRUSHER: BEFORE/AFTER COMPRESSION")
+    print("COPIUM SMARTCRUSHER: BEFORE/AFTER COMPRESSION")
     print("=" * 70)
     print("""
-This demonstrates how Headroom's SmartCrusher compresses large tool outputs.
+This demonstrates how Copium's SmartCrusher compresses large tool outputs.
 
 Key techniques:
 1. Pattern detection (logs, time-series, search results)

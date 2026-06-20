@@ -1,4 +1,4 @@
-"""Tests for `headroom wrap goose` command (PR-G1, Phase G).
+"""Tests for `copium wrap goose` command (PR-G1, Phase G).
 
 Hint-file injection tests (.goosehints idempotency, no-context-tool,
 existing-content preservation, Ctrl-C handling) live in
@@ -16,8 +16,8 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 
-from headroom.cli import wrap as wrap_mod
-from headroom.cli.main import main
+from copium.cli import wrap as wrap_mod
+from copium.cli.main import main
 
 
 @pytest.fixture
@@ -32,7 +32,7 @@ def test_wrap_goose_sets_provider_envs(
 ) -> None:
     """OPENAI_BASE_URL, OPENAI_API_BASE, ANTHROPIC_BASE_URL are set on launch."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
 
     captured: dict[str, object] = {}
 
@@ -62,7 +62,7 @@ def test_wrap_goose_missing_binary_errors_clearly(
 ) -> None:
     """If the goose binary is missing the command must fail with a clear error."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
 
     with patch.object(wrap_mod.shutil, "which", return_value=None):
         with patch.object(wrap_mod, "_ensure_rtk_binary", return_value=Path("/tmp/rtk")):

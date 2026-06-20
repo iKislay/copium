@@ -8,16 +8,16 @@ Tests cover:
 5. Bug-fix regressions and routing-gap fixtures
 
 Stage 3b note (2026-04-25): the Python `DiffCompressor` implementation
-was retired in favor of the Rust-backed shim (`headroom._core` via PyO3).
+was retired in favor of the Rust-backed shim (`copium._core` via PyO3).
 Tests that probed Python-only internals — `_parse_diff`, `_score_hunks`,
 the `DiffHunk` / `DiffFile` parser dataclasses — were removed because
 the Rust crate has its own parallel coverage in
-`crates/headroom-core/tests`. Public-API tests (anything calling
+`crates/copium-core/tests`. Public-API tests (anything calling
 `compressor.compress(...)`) are preserved unchanged: they exercise the
 Rust backend through the same import path and assert the same outputs.
 """
 
-from headroom.transforms.diff_compressor import (
+from copium.transforms.diff_compressor import (
     DiffCompressionResult,
     DiffCompressor,
     DiffCompressorConfig,
@@ -467,7 +467,7 @@ class TestConfigOptions:
 
 def _cfg_below_threshold():
     """Small config so the parser+emitter actually run on test inputs."""
-    from headroom.transforms.diff_compressor import DiffCompressorConfig
+    from copium.transforms.diff_compressor import DiffCompressorConfig
 
     return DiffCompressorConfig(min_lines_for_ccr=5)
 
@@ -478,7 +478,7 @@ class TestBugfixRenamePreservation:
     plain modification of the old path."""
 
     def test_rename_with_similarity_index_preserved(self):
-        from headroom.transforms.diff_compressor import DiffCompressor
+        from copium.transforms.diff_compressor import DiffCompressor
 
         diff = (
             "diff --git a/old.py b/new.py\n"
@@ -499,7 +499,7 @@ class TestBugfixRenamePreservation:
         assert "rename to new.py" in result.compressed
 
     def test_dissimilarity_index_preserved(self):
-        from headroom.transforms.diff_compressor import DiffCompressor
+        from copium.transforms.diff_compressor import DiffCompressor
 
         diff = (
             "diff --git a/x.py b/y.py\n"
@@ -516,7 +516,7 @@ class TestBugfixRenamePreservation:
         assert "dissimilarity index 60%" in result.compressed
 
     def test_copy_markers_preserved(self):
-        from headroom.transforms.diff_compressor import DiffCompressor
+        from copium.transforms.diff_compressor import DiffCompressor
 
         diff = (
             "diff --git a/orig.py b/dup.py\n"
@@ -539,7 +539,7 @@ class TestBugfixCombinedDiff:
     dropped because the regex hardcoded `@@`."""
 
     def test_3way_combined_diff_content_preserved(self):
-        from headroom.transforms.diff_compressor import DiffCompressor
+        from copium.transforms.diff_compressor import DiffCompressor
 
         diff = (
             "diff --git a/merge.py b/merge.py\n"
@@ -564,7 +564,7 @@ class TestBugfixNoNewlineMarker:
     was further than max_context_lines from a +/- change."""
 
     def test_no_newline_marker_survives_distance(self):
-        from headroom.transforms.diff_compressor import DiffCompressor
+        from copium.transforms.diff_compressor import DiffCompressor
 
         diff = (
             "diff --git a/last.txt b/last.txt\n"
@@ -590,7 +590,7 @@ class TestBugfixPreDiffContent:
     metadata) was silently dropped."""
 
     def test_commit_header_preserved(self):
-        from headroom.transforms.diff_compressor import DiffCompressor
+        from copium.transforms.diff_compressor import DiffCompressor
 
         diff = (
             "commit abc1234567890abcdef\n"
@@ -617,7 +617,7 @@ class TestBugfixPreDiffContent:
     def test_no_pre_diff_content_does_not_add_blank_line(self):
         """Edge case: when there's no pre-diff content, output must NOT
         gain a leading blank line from a stray empty-list prepend."""
-        from headroom.transforms.diff_compressor import DiffCompressor
+        from copium.transforms.diff_compressor import DiffCompressor
 
         diff = "diff --git a/x.py b/x.py\n--- a/x.py\n+++ b/x.py\n@@ -1 +1 @@\n-a\n+b\n"
         result = DiffCompressor(_cfg_below_threshold()).compress(diff)
@@ -633,7 +633,7 @@ class TestRoutingGapMergeDiffs:
     """
 
     def test_diff_combined_header_starts_a_file_section(self):
-        from headroom.transforms.diff_compressor import DiffCompressor
+        from copium.transforms.diff_compressor import DiffCompressor
 
         diff = (
             "diff --combined merge_target.py\n"
@@ -654,7 +654,7 @@ class TestRoutingGapMergeDiffs:
         assert "++new_in_merge" in result.compressed
 
     def test_diff_cc_header_starts_a_file_section(self):
-        from headroom.transforms.diff_compressor import DiffCompressor
+        from copium.transforms.diff_compressor import DiffCompressor
 
         diff = (
             "diff --cc cc_target.py\n"
@@ -682,7 +682,7 @@ class TestRoutingGapDetectorScanWindow:
     """
 
     def test_detect_picks_up_diff_after_long_commit_message(self):
-        from headroom.transforms.content_detector import (
+        from copium.transforms.content_detector import (
             ContentType,
             detect_content_type,
         )
@@ -708,7 +708,7 @@ class TestRoutingGapDetectorScanWindow:
         """The detector also gained recognition for combined-diff hunk
         headers (`@@@`+) — useful when the only signal in a snippet is
         the merge-style hunk."""
-        from headroom.transforms.content_detector import (
+        from copium.transforms.content_detector import (
             ContentType,
             detect_content_type,
         )

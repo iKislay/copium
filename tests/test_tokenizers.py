@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from headroom.tokenizers import (
+from copium.tokenizers import (
     BaseTokenizer,
     CharacterCounter,
     EstimatingTokenCounter,
@@ -42,7 +42,7 @@ class TestTiktokenCounter:
         the "gpt-4o" entry first and wrongly returned o200k_base for any
         gpt-4 snapshot not in the table (e.g. a future dated build).
         """
-        from headroom.tokenizers.tiktoken_counter import get_encoding_for_model
+        from copium.tokenizers.tiktoken_counter import get_encoding_for_model
 
         assert get_encoding_for_model("gpt-4-2025-01-01") == "cl100k_base"
         assert get_encoding_for_model("gpt-4-future") == "cl100k_base"

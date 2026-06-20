@@ -12,18 +12,18 @@ import json
 
 import pytest
 
-from headroom.cache.compression_store import (
+from copium.cache.compression_store import (
     get_compression_store,
     reset_compression_store,
 )
-from headroom.ccr.response_handler import (
+from copium.ccr.response_handler import (
     CCRResponseHandler,
     CCRToolCall,
     CCRToolResult,
     ResponseHandlerConfig,
     StreamingCCRBuffer,
 )
-from headroom.ccr.tool_injection import CCR_TOOL_NAME
+from copium.ccr.tool_injection import CCR_TOOL_NAME
 
 
 class TestCCRToolCallDetection:

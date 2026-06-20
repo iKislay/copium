@@ -8,7 +8,7 @@ from unittest.mock import patch
 import click
 import pytest
 
-from headroom.providers.copilot.wrap import (
+from copium.providers.copilot.wrap import (
     build_launch_env,
     copilot_model_from_args,
     default_wire_api_for_model,
@@ -38,7 +38,7 @@ def test_query_proxy_config_handles_success_and_invalid_payload() -> None:
 
 def test_detect_running_proxy_backend_requires_string_backend(monkeypatch) -> None:
     monkeypatch.setattr(
-        "headroom.providers.copilot.wrap.query_proxy_config",
+        "copium.providers.copilot.wrap.query_proxy_config",
         lambda port: {"backend": 123} if port == 8787 else None,
     )
 
@@ -48,8 +48,8 @@ def test_detect_running_proxy_backend_requires_string_backend(monkeypatch) -> No
 
 def test_resolve_provider_type_prefers_explicit_and_env() -> None:
     assert resolve_provider_type("anthropic", "openai") == "openai"
-    assert resolve_provider_type(None, "auto", {"HEADROOM_BACKEND": "anthropic"}) == "anthropic"
-    assert resolve_provider_type(None, "auto", {"HEADROOM_BACKEND": "anyllm"}) == "openai"
+    assert resolve_provider_type(None, "auto", {"COPIUM_BACKEND": "anthropic"}) == "anthropic"
+    assert resolve_provider_type(None, "auto", {"COPIUM_BACKEND": "anyllm"}) == "openai"
 
 
 def test_validate_configuration_accepts_supported_combinations() -> None:

@@ -27,14 +27,14 @@ import asyncio
 
 import pytest
 
-from headroom import copilot_auth, copilot_linux_secret, copilot_macos_keychain
+from copium import copilot_auth, copilot_linux_secret, copilot_macos_keychain
 
 BUSINESS_API = "https://api.business.githubcopilot.com"
 
 
 def _stub_all_secret_stores(monkeypatch: pytest.MonkeyPatch) -> None:
     """Simulate 'no OS secret store / not logged in' on every platform."""
-    monkeypatch.setattr(copilot_auth, "read_headroom_copilot_oauth_token", lambda: None)
+    monkeypatch.setattr(copilot_auth, "read_copium_copilot_oauth_token", lambda: None)
     monkeypatch.setattr(copilot_auth, "_read_windows_copilot_cli_oauth_token", lambda: None)
     monkeypatch.setattr(copilot_auth, "_read_macos_keychain_oauth_token", lambda: None)
     monkeypatch.setattr(copilot_auth, "_read_linux_secret_oauth_token", lambda: None)

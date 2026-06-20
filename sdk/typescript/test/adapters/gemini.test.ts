@@ -1,8 +1,8 @@
 /**
- * Tests for Gemini adapter — withHeadroom for Google Generative AI.
+ * Tests for Gemini adapter — withCopium for Google Generative AI.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { withHeadroom } from "../../src/adapters/gemini.js";
+import { withCopium } from "../../src/adapters/gemini.js";
 
 const mockFetch = vi.fn();
 vi.stubGlobal("fetch", mockFetch);
@@ -22,7 +22,7 @@ function mockCompressResponse(messages: any[]) {
   };
 }
 
-describe("Gemini withHeadroom", () => {
+describe("Gemini withCopium", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -35,7 +35,7 @@ describe("Gemini withHeadroom", () => {
 
     mockFetch.mockResolvedValue(mockCompressResponse([]));
 
-    const wrapped = withHeadroom(mockModel, { baseUrl: "http://test:8787" });
+    const wrapped = withCopium(mockModel, { baseUrl: "http://test:8787" });
 
     const result = await wrapped.generateContent({
       contents: [
@@ -60,7 +60,7 @@ describe("Gemini withHeadroom", () => {
 
     mockFetch.mockResolvedValue(mockCompressResponse([]));
 
-    const wrapped = withHeadroom(mockModel, { baseUrl: "http://test:8787" });
+    const wrapped = withCopium(mockModel, { baseUrl: "http://test:8787" });
 
     const result = await wrapped.generateContentStream({
       contents: [{ role: "user", parts: [{ text: "Stream test" }] }],
@@ -76,7 +76,7 @@ describe("Gemini withHeadroom", () => {
       countTokens: vi.fn().mockReturnValue(42),
     };
 
-    const wrapped = withHeadroom(mockModel, { baseUrl: "http://test:8787" });
+    const wrapped = withCopium(mockModel, { baseUrl: "http://test:8787" });
     expect(wrapped.countTokens()).toBe(42);
   });
 
@@ -87,7 +87,7 @@ describe("Gemini withHeadroom", () => {
 
     mockFetch.mockResolvedValue(mockCompressResponse([]));
 
-    const wrapped = withHeadroom(mockModel, {
+    const wrapped = withCopium(mockModel, {
       baseUrl: "http://test:8787",
       model: "gemini-2.0-flash",
     });
@@ -121,7 +121,7 @@ describe("Gemini withHeadroom", () => {
       }),
     });
 
-    const wrapped = withHeadroom(mockModel, { baseUrl: "http://test:8787" });
+    const wrapped = withCopium(mockModel, { baseUrl: "http://test:8787" });
     const result = await wrapped.generateContent({
       contents: [{ role: "user", parts: [{ text: "Hello Gemini" }] }],
     });

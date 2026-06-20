@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-IMAGE_DEFAULT="ghcr.io/chopratejas/headroom:latest"
-INSTALL_IMAGE="${HEADROOM_DOCKER_IMAGE:-${IMAGE_DEFAULT}}"
+IMAGE_DEFAULT="ghcr.io/iKislay/copium:latest"
+INSTALL_IMAGE="${COPIUM_DOCKER_IMAGE:-${IMAGE_DEFAULT}}"
 INSTALL_DIR="${HOME}/.local/bin"
 if [[ ! -d "${HOME}/.local" ]]; then
   INSTALL_DIR="${HOME}/bin"
@@ -11,7 +11,7 @@ fi
 
 BASH_PATH="${BASH:-$(command -v bash)}"
 if ((BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3))); then
-  printf 'ERROR: Headroom Docker-native install requires bash >= 4.3\n' >&2
+  printf 'ERROR: Copium Docker-native install requires bash >= 4.3\n' >&2
   exit 1
 fi
 
@@ -34,8 +34,8 @@ require_cmd() {
 
 append_path_block() {
   local target_file="$1"
-  local marker_start="# >>> headroom docker-native >>>"
-  local marker_end="# <<< headroom docker-native <<<"
+  local marker_start="# >>> copium docker-native >>>"
+  local marker_end="# <<< copium docker-native <<<"
   local block="${marker_start}
 export PATH=\"${INSTALL_DIR}:\$PATH\"
 ${marker_end}"
@@ -51,21 +51,21 @@ ${marker_end}"
 }
 
 write_wrapper() {
-  local wrapper_path="${INSTALL_DIR}/headroom"
+  local wrapper_path="${INSTALL_DIR}/copium"
 
   {
     printf '#!%s\n\n' "${BASH_PATH}"
-    printf 'HEADROOM_IMAGE_DEFAULT=%q\n' "${INSTALL_IMAGE}"
+    printf 'COPIUM_IMAGE_DEFAULT=%q\n' "${INSTALL_IMAGE}"
     cat <<'WRAPPER'
 
 set -euo pipefail
 
-HEADROOM_IMAGE="${HEADROOM_DOCKER_IMAGE:-${HEADROOM_IMAGE_DEFAULT}}"
-HEADROOM_CONTAINER_HOME="${HEADROOM_CONTAINER_HOME:-/tmp/headroom-home}"
-HEADROOM_HOST_HOME="${HOME:?}"
+COPIUM_IMAGE="${COPIUM_DOCKER_IMAGE:-${COPIUM_IMAGE_DEFAULT}}"
+COPIUM_CONTAINER_HOME="${COPIUM_CONTAINER_HOME:-/tmp/copium-home}"
+COPIUM_HOST_HOME="${HOME:?}"
 
 if ((BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3))); then
-  printf 'ERROR: Headroom Docker-native wrapper requires bash >= 4.3\n' >&2
+  printf 'ERROR: Copium Docker-native wrapper requires bash >= 4.3\n' >&2
   exit 1
 fi
 
@@ -111,10 +111,10 @@ detect_rtk_target() {
 
 ensure_host_dirs() {
   mkdir -p \
-    "${HEADROOM_HOST_HOME}/.headroom" \
-    "${HEADROOM_HOST_HOME}/.claude" \
-    "${HEADROOM_HOST_HOME}/.codex" \
-    "${HEADROOM_HOST_HOME}/.gemini"
+    "${COPIUM_HOST_HOME}/.copium" \
+    "${COPIUM_HOST_HOME}/.claude" \
+    "${COPIUM_HOST_HOME}/.codex" \
+    "${COPIUM_HOST_HOME}/.gemini"
 }
 
 append_passthrough_envs() {
@@ -123,7 +123,7 @@ append_passthrough_envs() {
 
   for name in $(compgen -e); do
     case "${name}" in
-      HEADROOM_*|ANTHROPIC_*|OPENAI_*|GEMINI_*|AWS_*|AZURE_*|VERTEX_*|GOOGLE_*|GOOGLE_CLOUD_*|MISTRAL_*|GROQ_*|OPENROUTER_*|XAI_*|TOGETHER_*|COHERE_*|OLLAMA_*|LITELLM_*|OTEL_*|SUPABASE_*|QDRANT_*|NEO4J_*|LANGSMITH_*)
+      COPIUM_*|ANTHROPIC_*|OPENAI_*|GEMINI_*|AWS_*|AZURE_*|VERTEX_*|GOOGLE_*|GOOGLE_CLOUD_*|MISTRAL_*|GROQ_*|OPENROUTER_*|XAI_*|TOGETHER_*|COHERE_*|OLLAMA_*|LITELLM_*|OTEL_*|SUPABASE_*|QDRANT_*|NEO4J_*|LANGSMITH_*)
         ref+=(--env "${name}")
         ;;
     esac
@@ -135,17 +135,17 @@ append_common_container_args() {
 
   ensure_host_dirs
   ref+=(-w /workspace)
-  ref+=(--env "HOME=${HEADROOM_CONTAINER_HOME}")
+  ref+=(--env "HOME=${COPIUM_CONTAINER_HOME}")
   ref+=(--env "PYTHONUNBUFFERED=1")
-  # Canonical Headroom filesystem contract (issue #175) — forward into the
+  # Canonical Copium filesystem contract (issue #175) — forward into the
   # container so the proxy resolves state/config to the bind-mounted path.
-  ref+=(--env "HEADROOM_WORKSPACE_DIR=${HEADROOM_CONTAINER_HOME}/.headroom")
-  ref+=(--env "HEADROOM_CONFIG_DIR=${HEADROOM_CONTAINER_HOME}/.headroom/config")
+  ref+=(--env "COPIUM_WORKSPACE_DIR=${COPIUM_CONTAINER_HOME}/.copium")
+  ref+=(--env "COPIUM_CONFIG_DIR=${COPIUM_CONTAINER_HOME}/.copium/config")
   ref+=(-v "${PWD}:/workspace")
-  ref+=(-v "${HEADROOM_HOST_HOME}/.headroom:${HEADROOM_CONTAINER_HOME}/.headroom")
-  ref+=(-v "${HEADROOM_HOST_HOME}/.claude:${HEADROOM_CONTAINER_HOME}/.claude")
-  ref+=(-v "${HEADROOM_HOST_HOME}/.codex:${HEADROOM_CONTAINER_HOME}/.codex")
-  ref+=(-v "${HEADROOM_HOST_HOME}/.gemini:${HEADROOM_CONTAINER_HOME}/.gemini")
+  ref+=(-v "${COPIUM_HOST_HOME}/.copium:${COPIUM_CONTAINER_HOME}/.copium")
+  ref+=(-v "${COPIUM_HOST_HOME}/.claude:${COPIUM_CONTAINER_HOME}/.claude")
+  ref+=(-v "${COPIUM_HOST_HOME}/.codex:${COPIUM_CONTAINER_HOME}/.codex")
+  ref+=(-v "${COPIUM_HOST_HOME}/.gemini:${COPIUM_CONTAINER_HOME}/.gemini")
 
   if command -v id >/dev/null 2>&1; then
     ref+=(--user "$(id -u):$(id -g)")
@@ -166,12 +166,12 @@ append_tty_args() {
   fi
 }
 
-run_headroom() {
+run_copium() {
   local args=()
   args=(docker run --rm)
   append_tty_args args
   append_common_container_args args
-  args+=(--entrypoint headroom "${HEADROOM_IMAGE}" "$@")
+  args+=(--entrypoint copium "${COPIUM_IMAGE}" "$@")
   "${args[@]}"
 }
 
@@ -209,16 +209,16 @@ start_proxy_container() {
   local port="$1"
   shift
 
-  local container_name="headroom-proxy-${port}-$$"
+  local container_name="copium-proxy-${port}-$$"
   local args=()
   args=(docker run -d --rm --name "${container_name}" -p "${port}:${port}")
   append_common_container_args args
-  args+=("${HEADROOM_IMAGE}" --host 0.0.0.0 --port "${port}" "$@")
+  args+=("${COPIUM_IMAGE}" --host 0.0.0.0 --port "${port}" "$@")
   "${args[@]}" >/dev/null
 
   if ! wait_for_proxy "${container_name}" "${port}"; then
     docker stop "${container_name}" >/dev/null 2>&1 || true
-    die "Headroom proxy failed to start on port ${port}"
+    die "Copium proxy failed to start on port ${port}"
   fi
 
   printf '%s\n' "${container_name}"
@@ -234,7 +234,7 @@ stop_proxy_container() {
 persistent_profile_root() {
   local profile="$1"
   validate_profile_name "${profile}"
-  printf '%s/.headroom/deploy/%s\n' "${HEADROOM_HOST_HOME}" "${profile}"
+  printf '%s/.copium/deploy/%s\n' "${COPIUM_HOST_HOME}" "${profile}"
 }
 
 persistent_state_path() {
@@ -250,7 +250,7 @@ persistent_manifest_path() {
 persistent_container_name() {
   local profile="$1"
   validate_profile_name "${profile}"
-  printf 'headroom-%s\n' "${profile}"
+  printf 'copium-%s\n' "${profile}"
 }
 
 validate_profile_name() {
@@ -301,16 +301,16 @@ append_persistent_container_args() {
   local -n ref=$1
 
   ensure_host_dirs
-  ref+=(--workdir "${HEADROOM_CONTAINER_HOME}")
-  ref+=(--env "HOME=${HEADROOM_CONTAINER_HOME}")
+  ref+=(--workdir "${COPIUM_CONTAINER_HOME}")
+  ref+=(--env "HOME=${COPIUM_CONTAINER_HOME}")
   ref+=(--env "PYTHONUNBUFFERED=1")
-  # Canonical Headroom filesystem contract (issue #175).
-  ref+=(--env "HEADROOM_WORKSPACE_DIR=${HEADROOM_CONTAINER_HOME}/.headroom")
-  ref+=(--env "HEADROOM_CONFIG_DIR=${HEADROOM_CONTAINER_HOME}/.headroom/config")
-  ref+=(-v "${HEADROOM_HOST_HOME}/.headroom:${HEADROOM_CONTAINER_HOME}/.headroom")
-  ref+=(-v "${HEADROOM_HOST_HOME}/.claude:${HEADROOM_CONTAINER_HOME}/.claude")
-  ref+=(-v "${HEADROOM_HOST_HOME}/.codex:${HEADROOM_CONTAINER_HOME}/.codex")
-  ref+=(-v "${HEADROOM_HOST_HOME}/.gemini:${HEADROOM_CONTAINER_HOME}/.gemini")
+  # Canonical Copium filesystem contract (issue #175).
+  ref+=(--env "COPIUM_WORKSPACE_DIR=${COPIUM_CONTAINER_HOME}/.copium")
+  ref+=(--env "COPIUM_CONFIG_DIR=${COPIUM_CONTAINER_HOME}/.copium/config")
+  ref+=(-v "${COPIUM_HOST_HOME}/.copium:${COPIUM_CONTAINER_HOME}/.copium")
+  ref+=(-v "${COPIUM_HOST_HOME}/.claude:${COPIUM_CONTAINER_HOME}/.claude")
+  ref+=(-v "${COPIUM_HOST_HOME}/.codex:${COPIUM_CONTAINER_HOME}/.codex")
+  ref+=(-v "${COPIUM_HOST_HOME}/.gemini:${COPIUM_CONTAINER_HOME}/.gemini")
 
   if command -v id >/dev/null 2>&1; then
     ref+=(--user "$(id -u):$(id -g)")
@@ -334,7 +334,7 @@ build_manifest_proxy_args() {
     out_args+=(--no-telemetry)
   fi
   if [[ "${memory_enabled}" -eq 1 ]]; then
-    out_args+=(--memory --memory-db-path "${HEADROOM_CONTAINER_HOME}/.headroom/memory.db")
+    out_args+=(--memory --memory-db-path "${COPIUM_CONTAINER_HOME}/.copium/memory.db")
   fi
   if [[ -n "${anyllm}" ]]; then
     out_args+=(--anyllm-provider "${anyllm}")
@@ -426,17 +426,17 @@ write_persistent_manifest() {
   "region": ${region_json},
   "proxy_mode": "$(json_escape "${proxy_mode}")",
   "memory_enabled": ${memory_json},
-  "memory_db_path": "$(json_escape "${HEADROOM_CONTAINER_HOME}/.headroom/memory.db")",
+  "memory_db_path": "$(json_escape "${COPIUM_CONTAINER_HOME}/.copium/memory.db")",
   "telemetry_enabled": ${telemetry_json},
   "image": "$(json_escape "${image}")",
-  "service_name": "headroom-$(json_escape "${profile}")",
+  "service_name": "copium-$(json_escape "${profile}")",
   "container_name": "$(json_escape "$(persistent_container_name "${profile}")")",
   "health_url": "http://127.0.0.1:${port}/readyz",
   "base_env": {
-    "HEADROOM_PORT": "${port}",
-    "HEADROOM_HOST": "127.0.0.1",
-    "HEADROOM_MODE": "$(json_escape "${proxy_mode}")",
-    "HEADROOM_BACKEND": "$(json_escape "${backend}")"
+    "COPIUM_PORT": "${port}",
+    "COPIUM_HOST": "127.0.0.1",
+    "COPIUM_MODE": "$(json_escape "${proxy_mode}")",
+    "COPIUM_BACKEND": "$(json_escape "${backend}")"
   },
   "tool_envs": {},
   "proxy_args": $(json_array_from_args "${proxy_args_ref[@]}"),
@@ -496,18 +496,18 @@ start_persistent_docker_install() {
   args=(docker run -d --restart unless-stopped --name "${container_name}" -p "${port}:${port}")
   append_persistent_container_args args
   args+=(
-    --env "HEADROOM_DEPLOYMENT_PROFILE=${profile}"
-    --env "HEADROOM_DEPLOYMENT_PRESET=persistent-docker"
-    --env "HEADROOM_DEPLOYMENT_RUNTIME=docker"
-    --env "HEADROOM_DEPLOYMENT_SUPERVISOR=none"
-    --env "HEADROOM_DEPLOYMENT_SCOPE=user"
+    --env "COPIUM_DEPLOYMENT_PROFILE=${profile}"
+    --env "COPIUM_DEPLOYMENT_PRESET=persistent-docker"
+    --env "COPIUM_DEPLOYMENT_RUNTIME=docker"
+    --env "COPIUM_DEPLOYMENT_SUPERVISOR=none"
+    --env "COPIUM_DEPLOYMENT_SCOPE=user"
   )
   args+=("${image}" --host 0.0.0.0 "${proxy_args[@]:2}")
   "${args[@]}" >/dev/null
 
   if ! wait_for_proxy "${container_name}" "${port}"; then
     docker rm -f "${container_name}" >/dev/null 2>&1 || true
-    die "Headroom persistent Docker deployment failed to start on port ${port}"
+    die "Copium persistent Docker deployment failed to start on port ${port}"
   fi
 
   write_persistent_state "${profile}" "${image}" "${port}" "${backend}" "${anyllm}" "${region}" "${proxy_mode}" "${memory_enabled}" "${telemetry_enabled}"
@@ -564,12 +564,12 @@ remove_persistent_docker_install() {
 
 print_install_help() {
   cat <<'EOF'
-Usage: headroom install [OPTIONS] COMMAND [ARGS]...
+Usage: copium install [OPTIONS] COMMAND [ARGS]...
 
-  Manage persistent Docker-native Headroom deployments.
+  Manage persistent Docker-native Copium deployments.
 
   The Docker-native wrapper currently supports the persistent-docker preset only.
-  Use the Python-native `headroom install` command for persistent-service and
+  Use the Python-native `copium install` command for persistent-service and
   persistent-task installs, or when you need provider/user/system config mutation.
 
 Options:
@@ -587,7 +587,7 @@ EOF
 
 print_install_apply_help() {
   cat <<'EOF'
-Usage: headroom install apply [OPTIONS]
+Usage: copium install apply [OPTIONS]
 
   Install a persistent Docker deployment.
 
@@ -602,16 +602,16 @@ Options:
   --mode TEXT                   Proxy optimization mode.  [default: token]
   --memory                      Enable persistent memory in the runtime.
   --no-telemetry                Disable anonymous telemetry in the runtime.
-  --image TEXT                  Docker image to use.  [default: HEADROOM_DOCKER_IMAGE or ghcr.io/chopratejas/headroom:latest]
+  --image TEXT                  Docker image to use.  [default: COPIUM_DOCKER_IMAGE or ghcr.io/iKislay/copium:latest]
   -?, --help                    Show this message and exit.
 EOF
 }
 
 print_wrap_help() {
   cat <<'EOF'
-Usage: headroom wrap <COMMAND> [OPTIONS] [-- ARGS...]
+Usage: copium wrap <COMMAND> [OPTIONS] [-- ARGS...]
 
-  Launch supported host tools through a Docker-native Headroom proxy.
+  Launch supported host tools through a Docker-native Copium proxy.
 
 Supported commands:
   claude
@@ -646,7 +646,7 @@ parse_install_apply_args() {
   out_mode="token"
   out_memory=0
   out_telemetry=1
-  out_image="${HEADROOM_IMAGE}"
+  out_image="${COPIUM_IMAGE}"
 
   while (($#)); do
     case "$1" in
@@ -750,7 +750,7 @@ parse_install_apply_args() {
         exit 0
         ;;
       *)
-        die "Unsupported option for 'headroom install apply': $1"
+        die "Unsupported option for 'copium install apply': $1"
         ;;
     esac
   done
@@ -779,14 +779,14 @@ parse_install_profile_arg() {
         exit 0
         ;;
       *)
-        die "Unsupported option for 'headroom install': $1"
+        die "Unsupported option for 'copium install': $1"
         ;;
     esac
   done
 }
 
 run_claude_rtk_init() {
-  local rtk_bin="${HEADROOM_HOST_HOME}/.headroom/bin/rtk"
+  local rtk_bin="${COPIUM_HOST_HOME}/.copium/bin/rtk"
   if [[ ! -x "${rtk_bin}" ]]; then
     warn "rtk was not installed at ${rtk_bin}; Claude hooks were not registered"
     return
@@ -798,7 +798,7 @@ run_claude_rtk_init() {
 }
 
 selected_context_tool() {
-  local value="${HEADROOM_CONTEXT_TOOL:-rtk}"
+  local value="${COPIUM_CONTEXT_TOOL:-rtk}"
   value="${value,,}"
   value="${value//_/-}"
   if [[ -z "${value}" ]]; then
@@ -812,7 +812,7 @@ selected_context_tool() {
       printf '%s\n' "${value}"
       ;;
     *)
-      die "HEADROOM_CONTEXT_TOOL must be one of: lean-ctx, rtk"
+      die "COPIUM_CONTEXT_TOOL must be one of: lean-ctx, rtk"
       ;;
   esac
 }
@@ -939,8 +939,8 @@ run_prepare_only() {
   args=(docker run --rm)
   append_tty_args args
   append_common_container_args args
-  args+=(--env "HEADROOM_RTK_TARGET=$(detect_rtk_target)")
-  args+=(--entrypoint headroom "${HEADROOM_IMAGE}" wrap "${tool}" --prepare-only "$@")
+  args+=(--env "COPIUM_RTK_TARGET=$(detect_rtk_target)")
+  args+=(--entrypoint copium "${COPIUM_IMAGE}" wrap "${tool}" --prepare-only "$@")
   "${args[@]}"
 }
 
@@ -981,7 +981,7 @@ parse_openclaw_wrap_args() {
   shift 11
 
   out_plugin_path=""
-  out_plugin_spec="headroom-ai/openclaw"
+  out_plugin_spec="copium-ai/openclaw"
   out_skip_build=0
   out_copy=0
   out_proxy_port=8787
@@ -1073,7 +1073,7 @@ parse_openclaw_wrap_args() {
         shift
         ;;
       *)
-        die "Unsupported option for 'headroom wrap openclaw': $1"
+        die "Unsupported option for 'copium wrap openclaw': $1"
         ;;
     esac
   done
@@ -1098,7 +1098,7 @@ parse_openclaw_unwrap_args() {
         shift
         ;;
       *)
-        die "Unsupported option for 'headroom unwrap openclaw': $1"
+        die "Unsupported option for 'copium unwrap openclaw': $1"
         ;;
     esac
   done
@@ -1106,7 +1106,7 @@ parse_openclaw_unwrap_args() {
 
 get_openclaw_existing_entry_json() {
   local output=""
-  if output="$(openclaw config get plugins.entries.headroom 2>/dev/null)"; then
+  if output="$(openclaw config get plugins.entries.copium 2>/dev/null)"; then
     printf '%s' "${output}"
   fi
 }
@@ -1122,7 +1122,7 @@ prepare_openclaw_entry_json() {
   local args=()
   args=(docker run --rm)
   append_common_container_args args
-  args+=(--entrypoint headroom "${HEADROOM_IMAGE}" wrap openclaw --prepare-only)
+  args+=(--entrypoint copium "${COPIUM_IMAGE}" wrap openclaw --prepare-only)
   args+=(--proxy-port "${proxy_port}" --startup-timeout-ms "${startup_timeout_ms}")
 
   if [[ -n "${existing_entry_json}" ]]; then
@@ -1148,7 +1148,7 @@ prepare_openclaw_unwrap_entry_json() {
   local args=()
   args=(docker run --rm)
   append_common_container_args args
-  args+=(--entrypoint headroom "${HEADROOM_IMAGE}" unwrap openclaw --prepare-only)
+  args+=(--entrypoint copium "${COPIUM_IMAGE}" unwrap openclaw --prepare-only)
   if [[ -n "${existing_entry_json}" ]]; then
     args+=(--existing-entry-json "${existing_entry_json}")
   fi
@@ -1200,7 +1200,7 @@ copy_openclaw_plugin_into_extensions() {
 
   local extensions_dir
   extensions_dir="$(resolve_openclaw_extensions_dir)"
-  local target_dir="${extensions_dir}/headroom"
+  local target_dir="${extensions_dir}/copium"
   mkdir -p "${target_dir}"
   rm -rf "${target_dir}/dist" "${target_dir}/hook-shim"
   cp -R "${dist_dir}" "${target_dir}/dist"
@@ -1318,7 +1318,7 @@ wrap_openclaw_host() {
   entry_json="$(prepare_openclaw_entry_json "${existing_entry_json}" "${proxy_port}" "${startup_timeout_ms}" "${python_path}" "${no_auto_start}" "${gateway_provider_ids[@]}")"
 
   printf '\n  ╔═══════════════════════════════════════════════╗\n'
-  printf '  ║           HEADROOM WRAP: OPENCLAW             ║\n'
+  printf '  ║           COPIUM WRAP: OPENCLAW             ║\n'
   printf '  ╚═══════════════════════════════════════════════╝\n\n'
   if [[ -n "${plugin_path}" ]]; then
     printf '  Plugin source: local (%s)\n' "${plugin_path}"
@@ -1328,15 +1328,15 @@ wrap_openclaw_host() {
 
   printf '  Writing plugin configuration...\n'
   run_openclaw_checked \
-    "openclaw config set plugins.entries.headroom" \
-    openclaw config set plugins.entries.headroom "${entry_json}" --strict-json >/dev/null
+    "openclaw config set plugins.entries.copium" \
+    openclaw config set plugins.entries.copium "${entry_json}" --strict-json >/dev/null
 
   printf '  Installing OpenClaw plugin with required unsafe-install flag...\n'
   install_openclaw_plugin "${plugin_path}" "${plugin_spec}" "${skip_build}" "${copy_mode}" "${verbose}"
 
   run_openclaw_checked \
     "openclaw config set plugins.slots.contextEngine" \
-    openclaw config set plugins.slots.contextEngine '"headroom"' --strict-json >/dev/null
+    openclaw config set plugins.slots.contextEngine '"copium"' --strict-json >/dev/null
   run_openclaw_checked "openclaw config validate" openclaw config validate >/dev/null
 
   if [[ "${no_restart}" -eq 1 ]]; then
@@ -1352,14 +1352,14 @@ wrap_openclaw_host() {
   fi
 
   local inspect_output=""
-  inspect_output="$(run_openclaw_checked "openclaw plugins inspect headroom" openclaw plugins inspect headroom)"
+  inspect_output="$(run_openclaw_checked "openclaw plugins inspect copium" openclaw plugins inspect copium)"
   if [[ "${verbose}" -eq 1 && -n "${inspect_output}" ]]; then
     printf '%s\n' "${inspect_output}"
   fi
 
-  printf '\n✓ OpenClaw is configured to use Headroom context compression.\n'
-  printf '  Plugin: headroom\n'
-  printf '  Slot:   plugins.slots.contextEngine = headroom\n\n'
+  printf '\n✓ OpenClaw is configured to use Copium context compression.\n'
+  printf '  Plugin: copium\n'
+  printf '  Slot:   plugins.slots.contextEngine = copium\n\n'
 }
 
 unwrap_openclaw_host() {
@@ -1373,13 +1373,13 @@ unwrap_openclaw_host() {
   entry_json="$(prepare_openclaw_unwrap_entry_json "${existing_entry_json}")"
 
   printf '\n  ╔═══════════════════════════════════════════════╗\n'
-  printf '  ║          HEADROOM UNWRAP: OPENCLAW            ║\n'
+  printf '  ║          COPIUM UNWRAP: OPENCLAW            ║\n'
   printf '  ╚═══════════════════════════════════════════════╝\n\n'
-  printf '  Disabling Headroom plugin and removing engine mapping...\n'
+  printf '  Disabling Copium plugin and removing engine mapping...\n'
 
   run_openclaw_checked \
-    "openclaw config set plugins.entries.headroom" \
-    openclaw config set plugins.entries.headroom "${entry_json}" --strict-json >/dev/null
+    "openclaw config set plugins.entries.copium" \
+    openclaw config set plugins.entries.copium "${entry_json}" --strict-json >/dev/null
   run_openclaw_checked \
     "openclaw config set plugins.slots.contextEngine" \
     openclaw config set plugins.slots.contextEngine '"legacy"' --strict-json >/dev/null
@@ -1399,14 +1399,14 @@ unwrap_openclaw_host() {
 
   if [[ "${verbose}" -eq 1 ]]; then
     local inspect_output=""
-    inspect_output="$(run_openclaw_checked "openclaw plugins inspect headroom" openclaw plugins inspect headroom)"
+    inspect_output="$(run_openclaw_checked "openclaw plugins inspect copium" openclaw plugins inspect copium)"
     if [[ -n "${inspect_output}" ]]; then
       printf '%s\n' "${inspect_output}"
     fi
   fi
 
-  printf '\n✓ OpenClaw Headroom wrap removed.\n'
-  printf '  Plugin: headroom (installed, disabled)\n'
+  printf '\n✓ OpenClaw Copium wrap removed.\n'
+  printf '  Plugin: copium (installed, disabled)\n'
   printf '  Slot:   plugins.slots.contextEngine = legacy\n\n'
 }
 
@@ -1414,7 +1414,7 @@ main() {
   require_cmd docker
 
   if (($# == 0)); then
-    run_headroom --help
+    run_copium --help
     return
   fi
 
@@ -1476,7 +1476,7 @@ main() {
         return
       fi
 
-      (($# >= 2)) || die "Usage: headroom wrap <claude|codex|aider|cursor|openclaw> [...]"
+      (($# >= 2)) || die "Usage: copium wrap <claude|codex|aider|cursor|openclaw> [...]"
       local tool="$2"
       shift 2
 
@@ -1490,7 +1490,7 @@ main() {
 
       if [[ "${tool}" == "openclaw" ]]; then
         if contains_help_flag "$@"; then
-          run_headroom wrap openclaw "$@"
+          run_copium wrap openclaw "$@"
           return
         fi
         wrap_openclaw_host "$@"
@@ -1498,7 +1498,7 @@ main() {
       fi
 
       if contains_help_flag "$@"; then
-        run_headroom wrap "${tool}" "$@"
+        run_copium wrap "${tool}" "$@"
         return
       fi
 
@@ -1556,7 +1556,7 @@ main() {
           ;;
         cursor)
           cat <<EOF
-Headroom proxy is running for Cursor.
+Copium proxy is running for Cursor.
 
 OpenAI base URL:     http://127.0.0.1:${port}/v1
 Anthropic base URL:  http://127.0.0.1:${port}
@@ -1571,20 +1571,20 @@ EOF
       ;;
     unwrap)
       if (($# == 1)) || [[ "$2" == "--help" || "$2" == "-?" ]]; then
-        run_headroom unwrap --help
+        run_copium unwrap --help
         return
       fi
 
       if (($# >= 2)) && [[ "$2" == "openclaw" ]]; then
         shift 2
         if contains_help_flag "$@"; then
-          run_headroom unwrap openclaw "$@"
+          run_copium unwrap openclaw "$@"
           return
         fi
         unwrap_openclaw_host "$@"
         return
       fi
-      run_headroom "$@"
+      run_copium "$@"
       ;;
     proxy)
       shift
@@ -1617,11 +1617,11 @@ EOF
       append_tty_args run_args
       append_common_container_args run_args
       run_args+=(-p "${port}:${port}")
-      run_args+=(--entrypoint headroom "${HEADROOM_IMAGE}" "${args[@]}")
+      run_args+=(--entrypoint copium "${COPIUM_IMAGE}" "${args[@]}")
       "${run_args[@]}"
       ;;
     *)
-      run_headroom "$@"
+      run_copium "$@"
       ;;
   esac
 }
@@ -1644,9 +1644,9 @@ main() {
   append_path_block "${HOME}/.zshrc"
   append_path_block "${HOME}/.profile"
 
-  if [[ -n "${HEADROOM_DOCKER_IMAGE:-}" ]]; then
+  if [[ -n "${COPIUM_DOCKER_IMAGE:-}" ]]; then
     if docker image inspect "${INSTALL_IMAGE}" >/dev/null 2>&1; then
-      info "Using existing HEADROOM_DOCKER_IMAGE=${INSTALL_IMAGE}"
+      info "Using existing COPIUM_DOCKER_IMAGE=${INSTALL_IMAGE}"
     else
       info "Pulling ${INSTALL_IMAGE}"
       docker pull "${INSTALL_IMAGE}" >/dev/null
@@ -1658,15 +1658,15 @@ main() {
 
   cat <<EOF
 
-Headroom Docker-native install complete.
+Copium Docker-native install complete.
 
 Installed wrapper:
-  ${INSTALL_DIR}/headroom
+  ${INSTALL_DIR}/copium
 
 Next steps:
   1. Restart your shell or run: export PATH="${INSTALL_DIR}:\$PATH"
-  2. Try: headroom proxy
-  3. Docs: https://github.com/chopratejas/headroom/blob/main/docs/docker-install.md
+  2. Try: copium proxy
+  3. Docs: https://github.com/iKislay/copium/blob/main/docs/docker-install.md
 EOF
 }
 

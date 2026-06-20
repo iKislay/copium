@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib.metadata
 from dataclasses import dataclass
 
-from headroom.pipeline import (
+from copium.pipeline import (
     CANONICAL_PIPELINE_STAGES,
     ENTRY_POINT_GROUP,
     PipelineEvent,
@@ -96,7 +96,7 @@ def test_pipeline_manager_emit_and_summary(monkeypatch) -> None:
 
     hook = Hook()
     monkeypatch.setattr(
-        "headroom.pipeline.discover_pipeline_extensions",
+        "copium.pipeline.discover_pipeline_extensions",
         lambda: [BrokenExtension()],
     )
 

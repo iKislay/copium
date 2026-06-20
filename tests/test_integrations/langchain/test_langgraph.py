@@ -46,7 +46,7 @@ class TestCompressToolMessages:
 
     def test_compresses_large_tool_message(self):
         """Large ToolMessage content should be compressed."""
-        from headroom.integrations.langchain.langgraph import compress_tool_messages
+        from copium.integrations.langchain.langgraph import compress_tool_messages
 
         large_output = _make_large_tool_output(200)
         messages = _make_messages_with_tool_output(large_output)
@@ -61,7 +61,7 @@ class TestCompressToolMessages:
 
     def test_preserves_small_tool_messages(self):
         """Small ToolMessages should not be compressed."""
-        from headroom.integrations.langchain.langgraph import compress_tool_messages
+        from copium.integrations.langchain.langgraph import compress_tool_messages
 
         small_output = '{"result": "ok"}'
         messages = _make_messages_with_tool_output(small_output)
@@ -74,7 +74,7 @@ class TestCompressToolMessages:
 
     def test_preserves_non_tool_messages(self):
         """HumanMessage and AIMessage should pass through unchanged."""
-        from headroom.integrations.langchain.langgraph import compress_tool_messages
+        from copium.integrations.langchain.langgraph import compress_tool_messages
 
         large_output = _make_large_tool_output(200)
         messages = _make_messages_with_tool_output(large_output)
@@ -91,7 +91,7 @@ class TestCompressToolMessages:
 
     def test_preserves_tool_call_id(self):
         """Compressed ToolMessages must keep their tool_call_id."""
-        from headroom.integrations.langchain.langgraph import compress_tool_messages
+        from copium.integrations.langchain.langgraph import compress_tool_messages
 
         large_output = _make_large_tool_output(200)
         messages = _make_messages_with_tool_output(large_output, tool_call_id="call_abc123")
@@ -104,7 +104,7 @@ class TestCompressToolMessages:
 
     def test_preserves_error_content_by_default(self):
         """ToolMessages with error indicators should be skipped by default."""
-        from headroom.integrations.langchain.langgraph import compress_tool_messages
+        from copium.integrations.langchain.langgraph import compress_tool_messages
 
         # Large content but contains error indicator
         error_output = json.dumps(
@@ -123,7 +123,7 @@ class TestCompressToolMessages:
 
     def test_compresses_error_content_when_disabled(self):
         """Error content should be compressed when preserve_errors=False."""
-        from headroom.integrations.langchain.langgraph import compress_tool_messages
+        from copium.integrations.langchain.langgraph import compress_tool_messages
 
         error_output = json.dumps(
             {
@@ -140,7 +140,7 @@ class TestCompressToolMessages:
 
     def test_handles_empty_messages(self):
         """Empty message list should return empty result."""
-        from headroom.integrations.langchain.langgraph import compress_tool_messages
+        from copium.integrations.langchain.langgraph import compress_tool_messages
 
         result = compress_tool_messages([])
 
@@ -150,7 +150,7 @@ class TestCompressToolMessages:
 
     def test_handles_no_tool_messages(self):
         """Message list with no ToolMessages should pass through."""
-        from headroom.integrations.langchain.langgraph import compress_tool_messages
+        from copium.integrations.langchain.langgraph import compress_tool_messages
 
         messages = [
             HumanMessage(content="Hello"),
@@ -166,7 +166,7 @@ class TestCompressToolMessages:
 
     def test_multiple_tool_messages(self):
         """Should compress multiple ToolMessages independently."""
-        from headroom.integrations.langchain.langgraph import compress_tool_messages
+        from copium.integrations.langchain.langgraph import compress_tool_messages
 
         large_output_1 = _make_large_tool_output(200)
         large_output_2 = _make_large_tool_output(150)
@@ -193,7 +193,7 @@ class TestCompressToolMessages:
 
     def test_min_tokens_to_compress_config(self):
         """Custom min_tokens_to_compress should be respected."""
-        from headroom.integrations.langchain.langgraph import compress_tool_messages
+        from copium.integrations.langchain.langgraph import compress_tool_messages
 
         # Content that's ~100 tokens (400 chars) — below a 200 token threshold
         medium_output = json.dumps({"data": "x" * 400})
@@ -211,7 +211,7 @@ class TestCompressToolMessagesResult:
 
     def test_total_tokens_saved(self):
         """total_tokens_saved should sum across compressed metrics."""
-        from headroom.integrations.langchain.langgraph import compress_tool_messages
+        from copium.integrations.langchain.langgraph import compress_tool_messages
 
         large_output = _make_large_tool_output(200)
         messages = _make_messages_with_tool_output(large_output)
@@ -225,7 +225,7 @@ class TestCompressToolMessagesResult:
 
     def test_messages_compressed_count(self):
         """messages_compressed should count actually compressed messages."""
-        from headroom.integrations.langchain.langgraph import compress_tool_messages
+        from copium.integrations.langchain.langgraph import compress_tool_messages
 
         messages = [
             HumanMessage(content="test"),
@@ -242,7 +242,7 @@ class TestCompressToolMessagesConfig:
 
     def test_config_object(self):
         """Config object should override kwargs."""
-        from headroom.integrations.langchain.langgraph import (
+        from copium.integrations.langchain.langgraph import (
             CompressToolMessagesConfig,
             compress_tool_messages,
         )
@@ -262,7 +262,7 @@ class TestCompressToolMessagesConfig:
 
     def test_default_config(self):
         """Default config should have sensible defaults."""
-        from headroom.integrations.langchain.langgraph import CompressToolMessagesConfig
+        from copium.integrations.langchain.langgraph import CompressToolMessagesConfig
 
         config = CompressToolMessagesConfig()
         assert config.min_tokens_to_compress == 100
@@ -274,14 +274,14 @@ class TestCreateCompressToolMessagesNode:
 
     def test_returns_callable(self):
         """Factory should return a callable node function."""
-        from headroom.integrations.langchain.langgraph import create_compress_tool_messages_node
+        from copium.integrations.langchain.langgraph import create_compress_tool_messages_node
 
         node = create_compress_tool_messages_node()
         assert callable(node)
 
     def test_node_reads_messages_from_state(self):
         """Node should read messages from state dict and return updated state."""
-        from headroom.integrations.langchain.langgraph import create_compress_tool_messages_node
+        from copium.integrations.langchain.langgraph import create_compress_tool_messages_node
 
         large_output = _make_large_tool_output(200)
         state = {
@@ -298,7 +298,7 @@ class TestCreateCompressToolMessagesNode:
 
     def test_node_preserves_tool_call_id(self):
         """Node should preserve tool_call_id on compressed messages."""
-        from headroom.integrations.langchain.langgraph import create_compress_tool_messages_node
+        from copium.integrations.langchain.langgraph import create_compress_tool_messages_node
 
         large_output = _make_large_tool_output(200)
         state = {
@@ -316,7 +316,7 @@ class TestCreateCompressToolMessagesNode:
 
     def test_node_handles_empty_state(self):
         """Node should handle empty messages gracefully."""
-        from headroom.integrations.langchain.langgraph import create_compress_tool_messages_node
+        from copium.integrations.langchain.langgraph import create_compress_tool_messages_node
 
         node = create_compress_tool_messages_node()
         result_state = node({"messages": []})
@@ -325,7 +325,7 @@ class TestCreateCompressToolMessagesNode:
 
     def test_node_handles_missing_messages_key(self):
         """Node should handle state without messages key."""
-        from headroom.integrations.langchain.langgraph import create_compress_tool_messages_node
+        from copium.integrations.langchain.langgraph import create_compress_tool_messages_node
 
         node = create_compress_tool_messages_node()
         result_state = node({})
@@ -334,7 +334,7 @@ class TestCreateCompressToolMessagesNode:
 
     def test_node_with_custom_config(self):
         """Node should respect custom configuration."""
-        from headroom.integrations.langchain.langgraph import create_compress_tool_messages_node
+        from copium.integrations.langchain.langgraph import create_compress_tool_messages_node
 
         node = create_compress_tool_messages_node(min_tokens_to_compress=10000)
 

@@ -1,59 +1,59 @@
 # CLI Reference
 
-This page is the authoritative reference for the **Python Headroom CLI** exposed by the `headroom` console script.
+This page is the authoritative reference for the **Python Copium CLI** exposed by the `copium` console script.
 
 ## Global behavior
 
 ### Entry points
 
-- Console script: `headroom`
-- Python module entrypoint: `python -m headroom.cli`
+- Console script: `copium`
+- Python module entrypoint: `python -m copium.cli`
 
 ### Global options
 
 | Option | Scope | Meaning |
 |---|---|---|
 | `--help`, `-?` | root, groups, commands | Show help and exit |
-| `--version`, `-v` | root only | Show the Headroom version and exit |
+| `--version`, `-v` | root only | Show the Copium version and exit |
 
-> `-v` is a **root-level version alias**. Inside subcommands such as `headroom wrap claude -v`, `-v` keeps its subcommand meaning (`--verbose`), not version.
+> `-v` is a **root-level version alias**. Inside subcommands such as `copium wrap claude -v`, `-v` keeps its subcommand meaning (`--verbose`), not version.
 
 ## Command index
 
 | Command | Purpose | Docker-native parity |
 |---|---|---|
-| `headroom install ...` | Install and manage persistent deployments | **python-native; Docker-native wrapper supports `persistent-docker` lifecycle subset** |
-| `headroom proxy` | Run the Headroom proxy server | **native in container** |
-| `headroom learn` | Learn from past tool-call failures | **native in container** |
-| `headroom perf` | Summarize recent proxy performance | **native in container** |
-| `headroom evals ...` | Run memory evaluation workflows | **native in container** |
-| `headroom memory ...` | Inspect and manage stored memories | **native in container** |
-| `headroom mcp ...` | Install, inspect, remove, or serve MCP integration | **native in container** |
-| `headroom wrap claude` | Start proxy and launch Claude Code | **host-bridged** |
-| `headroom wrap copilot` | Start proxy and launch GitHub Copilot CLI | **python-native only** |
-| `headroom wrap codex` | Start proxy and launch Codex CLI | **host-bridged** |
-| `headroom wrap aider` | Start proxy and launch Aider | **host-bridged** |
-| `headroom wrap cursor` | Start proxy and print Cursor config guidance | **host-bridged** |
-| `headroom wrap openclaw` | Install and configure the OpenClaw plugin | **host-bridged** |
-| `headroom unwrap openclaw` | Disable the Headroom OpenClaw plugin | **host-bridged** |
+| `copium install ...` | Install and manage persistent deployments | **python-native; Docker-native wrapper supports `persistent-docker` lifecycle subset** |
+| `copium proxy` | Run the Copium proxy server | **native in container** |
+| `copium learn` | Learn from past tool-call failures | **native in container** |
+| `copium perf` | Summarize recent proxy performance | **native in container** |
+| `copium evals ...` | Run memory evaluation workflows | **native in container** |
+| `copium memory ...` | Inspect and manage stored memories | **native in container** |
+| `copium mcp ...` | Install, inspect, remove, or serve MCP integration | **native in container** |
+| `copium wrap claude` | Start proxy and launch Claude Code | **host-bridged** |
+| `copium wrap copilot` | Start proxy and launch GitHub Copilot CLI | **python-native only** |
+| `copium wrap codex` | Start proxy and launch Codex CLI | **host-bridged** |
+| `copium wrap aider` | Start proxy and launch Aider | **host-bridged** |
+| `copium wrap cursor` | Start proxy and print Cursor config guidance | **host-bridged** |
+| `copium wrap openclaw` | Install and configure the OpenClaw plugin | **host-bridged** |
+| `copium unwrap openclaw` | Disable the Copium OpenClaw plugin | **host-bridged** |
 
 ## Captured `--help` output
 
 The sections below capture the current top-level help output from the live CLI.
 
-### `headroom --help`
+### `copium --help`
 
 ```text
-Usage: headroom [OPTIONS] COMMAND [ARGS]...
+Usage: copium [OPTIONS] COMMAND [ARGS]...
 
-  Headroom - The Context Optimization Layer for LLM Applications.
+  Copium - The Context Optimization Layer for LLM Applications.
 
   Manage memories, run the optimization proxy, and analyze metrics.
 
   Examples:
-      headroom proxy              Start the optimization proxy
-      headroom memory list        List stored memories
-      headroom memory stats       Show memory statistics
+      copium proxy              Start the optimization proxy
+      copium memory list        List stored memories
+      copium memory stats       Show memory statistics
 
 Options:
   -v, --version  Show the version and exit.
@@ -61,30 +61,30 @@ Options:
 
 Commands:
   evals   Memory evaluation commands.
-  install Install and manage persistent Headroom deployments.
+  install Install and manage persistent Copium deployments.
   learn   Learn from past tool call failures to prevent future ones.
   mcp     MCP server for Claude Code integration.
-  memory  Manage memories stored in Headroom.
+  memory  Manage memories stored in Copium.
   perf    Analyze proxy performance from logs.
   proxy   Start the optimization proxy server.
-  unwrap  Undo durable Headroom wrapping for supported tools.
-  wrap    Wrap CLI tools to run through Headroom.
+  unwrap  Undo durable Copium wrapping for supported tools.
+  wrap    Wrap CLI tools to run through Copium.
 ```
 
 ### Top-level command help snapshots
 
 <details>
-<summary><code>headroom proxy --help</code></summary>
+<summary><code>copium proxy --help</code></summary>
 
 ```text
-Usage: headroom proxy [OPTIONS]
+Usage: copium proxy [OPTIONS]
 
   Start the optimization proxy server.
 
   Examples:
-      headroom proxy                    Start proxy on port 8787
-      headroom proxy --port 8080        Start proxy on port 8080
-      headroom proxy --no-optimize      Passthrough mode (no optimization)
+      copium proxy                    Start proxy on port 8787
+      copium proxy --port 8080        Start proxy on port 8080
+      copium proxy --no-optimize      Passthrough mode (no optimization)
 
   Usage with Claude Code:
       ANTHROPIC_BASE_URL=http://localhost:8787 claude
@@ -96,10 +96,10 @@ Usage: headroom proxy [OPTIONS]
 </details>
 
 <details>
-<summary><code>headroom learn --help</code></summary>
+<summary><code>copium learn --help</code></summary>
 
 ```text
-Usage: headroom learn [OPTIONS]
+Usage: copium learn [OPTIONS]
 
   Learn from past tool call failures to prevent future ones.
 ```
@@ -107,10 +107,10 @@ Usage: headroom learn [OPTIONS]
 </details>
 
 <details>
-<summary><code>headroom perf --help</code></summary>
+<summary><code>copium perf --help</code></summary>
 
 ```text
-Usage: headroom perf [OPTIONS]
+Usage: copium perf [OPTIONS]
 
   Analyze proxy performance from logs.
 ```
@@ -118,10 +118,10 @@ Usage: headroom perf [OPTIONS]
 </details>
 
 <details>
-<summary><code>headroom evals --help</code></summary>
+<summary><code>copium evals --help</code></summary>
 
 ```text
-Usage: headroom evals [OPTIONS] COMMAND [ARGS]...
+Usage: copium evals [OPTIONS] COMMAND [ARGS]...
 
   Memory evaluation commands.
 
@@ -133,12 +133,12 @@ Commands:
 </details>
 
 <details>
-<summary><code>headroom memory --help</code></summary>
+<summary><code>copium memory --help</code></summary>
 
 ```text
-Usage: headroom memory [OPTIONS] COMMAND [ARGS]...
+Usage: copium memory [OPTIONS] COMMAND [ARGS]...
 
-  Manage memories stored in Headroom.
+  Manage memories stored in Copium.
 
 Commands:
   delete  Delete one or more memories by ID.
@@ -155,35 +155,35 @@ Commands:
 </details>
 
 <details>
-<summary><code>headroom mcp --help</code></summary>
+<summary><code>copium mcp --help</code></summary>
 
 ```text
-Usage: headroom mcp [OPTIONS] COMMAND [ARGS]...
+Usage: copium mcp [OPTIONS] COMMAND [ARGS]...
 
   MCP server for Claude Code integration.
 
 Commands:
-  install    Install Headroom MCP server into Claude Code config.
+  install    Install Copium MCP server into Claude Code config.
   serve      Start the MCP server (called by Claude Code).
-  status     Check Headroom MCP configuration status.
-  uninstall  Remove Headroom MCP server from Claude Code config.
+  status     Check Copium MCP configuration status.
+  uninstall  Remove Copium MCP server from Claude Code config.
 ```
 
 </details>
 
 <details>
-<summary><code>headroom install --help</code></summary>
+<summary><code>copium install --help</code></summary>
 
 ```text
-Usage: headroom install [OPTIONS] COMMAND [ARGS]...
+Usage: copium install [OPTIONS] COMMAND [ARGS]...
 
-  Install and manage persistent Headroom deployments.
+  Install and manage persistent Copium deployments.
 
 Options:
   -?, --help  Show this message and exit.
 
 Commands:
-  apply    Install a persistent Headroom deployment.
+  apply    Install a persistent Copium deployment.
   remove   Remove a persistent deployment and undo managed config.
   restart  Restart a persistent deployment.
   start    Start a persistent deployment.
@@ -194,53 +194,53 @@ Commands:
 </details>
 
 <details>
-<summary><code>headroom wrap --help</code></summary>
+<summary><code>copium wrap --help</code></summary>
 
 ```text
-Usage: headroom wrap [OPTIONS] COMMAND [ARGS]...
+Usage: copium wrap [OPTIONS] COMMAND [ARGS]...
 
-  Wrap CLI tools to run through Headroom.
+  Wrap CLI tools to run through Copium.
 
 Commands:
-  aider     Launch aider through Headroom proxy.
-  claude    Launch Claude Code through Headroom proxy.
-  copilot   Launch GitHub Copilot CLI through Headroom proxy.
-  codex     Launch OpenAI Codex CLI through Headroom proxy.
-  cursor    Start Headroom proxy for use with Cursor.
-  openclaw  Install and configure Headroom OpenClaw plugin in one command.
+  aider     Launch aider through Copium proxy.
+  claude    Launch Claude Code through Copium proxy.
+  copilot   Launch GitHub Copilot CLI through Copium proxy.
+  codex     Launch OpenAI Codex CLI through Copium proxy.
+  cursor    Start Copium proxy for use with Cursor.
+  openclaw  Install and configure Copium OpenClaw plugin in one command.
 ```
 
 </details>
 
 <details>
-<summary><code>headroom unwrap --help</code></summary>
+<summary><code>copium unwrap --help</code></summary>
 
 ```text
-Usage: headroom unwrap [OPTIONS] COMMAND [ARGS]...
+Usage: copium unwrap [OPTIONS] COMMAND [ARGS]...
 
-  Undo durable Headroom wrapping for supported tools.
+  Undo durable Copium wrapping for supported tools.
 
 Commands:
-  openclaw  Disable the Headroom OpenClaw plugin and restore the legacy engine slot.
+  openclaw  Disable the Copium OpenClaw plugin and restore the legacy engine slot.
 ```
 
 </details>
 
-## `headroom proxy`
+## `copium proxy`
 
 Start the optimization proxy server.
 
 ```bash
-headroom proxy
-headroom proxy --port 8787
-headroom proxy --mode cache
+copium proxy
+copium proxy --port 8787
+copium proxy --mode cache
 ```
 
 | Option | Default | Meaning |
 |---|---|---|
 | `--host` | `127.0.0.1` | Host interface to bind |
 | `--port`, `-p` | `8787` | Port to bind |
-| `--mode` | runtime default | Optimization mode: `token`, `cache`, `token_mode`, `cache_mode`, `token_savings`, `cost_savings`, `token_headroom` |
+| `--mode` | runtime default | Optimization mode: `token`, `cache`, `token_mode`, `cache_mode`, `token_savings`, `cost_savings`, `token_copium` |
 | `--no-optimize` | off | Disable optimization and operate in passthrough mode |
 | `--no-cache` | off | Disable semantic caching |
 | `--no-rate-limit` | off | Disable rate limiting |
@@ -252,13 +252,13 @@ headroom proxy --mode cache
 | `--log-file` | unset | JSONL log output path |
 | `--budget` | unset | Daily USD budget limit |
 | `--no-code-aware` | off | Disable AST-aware code compression |
-| `--code-aware` | off | Enable code-aware compression in the proxy (env: HEADROOM_CODE_AWARE_ENABLED) |
+| `--code-aware` | off | Enable code-aware compression in the proxy (env: COPIUM_CODE_AWARE_ENABLED) |
 | `--no-read-lifecycle` | off | Disable stale/superseded read compression |
 | `--no-intelligent-context` | off | Disable intelligent context manager |
 | `--no-intelligent-scoring` | off | Disable multi-factor importance scoring |
 | `--no-compress-first` | off | Disable deep compression before dropping messages |
 | `--memory` | off | Enable persistent user memory |
-| `--memory-db-path` | `""` | Override memory DB path (help text: `{cwd}/.headroom/memory.db`) |
+| `--memory-db-path` | `""` | Override memory DB path (help text: `{cwd}/.copium/memory.db`) |
 | `--no-memory-tools` | off | Disable automatic memory tool injection |
 | `--no-memory-context` | off | Disable automatic memory context injection |
 | `--memory-top-k` | `10` | Number of memories to inject |
@@ -277,19 +277,19 @@ headroom proxy --mode cache
 Notes:
 
 - `--learn` implies memory unless `--no-learn` is also set.
-- Proxy startup can also read environment variables such as `HEADROOM_HOST`, `HEADROOM_PORT`, `HEADROOM_BUDGET`, `HEADROOM_MODE`, `HEADROOM_ANYLLM_PROVIDER`, `HEADROOM_ANTHROPIC_PRE_UPSTREAM_CONCURRENCY`, `HEADROOM_ANTHROPIC_PRE_UPSTREAM_ACQUIRE_TIMEOUT_SECONDS`, `HEADROOM_ANTHROPIC_PRE_UPSTREAM_MEMORY_CONTEXT_TIMEOUT_SECONDS`, `ANTHROPIC_TARGET_API_URL`, `OPENAI_TARGET_API_URL`, and `GEMINI_TARGET_API_URL`. CLI flags take precedence over environment variables.
+- Proxy startup can also read environment variables such as `COPIUM_HOST`, `COPIUM_PORT`, `COPIUM_BUDGET`, `COPIUM_MODE`, `COPIUM_ANYLLM_PROVIDER`, `COPIUM_ANTHROPIC_PRE_UPSTREAM_CONCURRENCY`, `COPIUM_ANTHROPIC_PRE_UPSTREAM_ACQUIRE_TIMEOUT_SECONDS`, `COPIUM_ANTHROPIC_PRE_UPSTREAM_MEMORY_CONTEXT_TIMEOUT_SECONDS`, `ANTHROPIC_TARGET_API_URL`, `OPENAI_TARGET_API_URL`, and `GEMINI_TARGET_API_URL`. CLI flags take precedence over environment variables.
 - The default Anthropic pre-upstream cap is intentionally conservative for CPU/ONNX-heavy work. Larger containers may want to raise it after checking the resolved runtime values on `/readyz` or `/debug/warmup`.
 
 See also: [Proxy Server](proxy.md), [Configuration](configuration.md)
 
-## `headroom learn`
+## `copium learn`
 
 Learn from past tool-call failures and produce agent guidance.
 
 ```bash
-headroom learn
-headroom learn --apply
-headroom learn --agent codex --all
+copium learn
+copium learn --apply
+copium learn --agent codex --all
 ```
 
 | Option | Default | Meaning |
@@ -303,19 +303,19 @@ headroom learn --agent codex --all
 Notes:
 
 - `--agent auto` scans all detected agent data sources.
-- If `--project` is omitted, Headroom resolves from the current directory upward.
-- External agent integrations register through the `headroom.learn_plugin` entry point.
+- If `--project` is omitted, Copium resolves from the current directory upward.
+- External agent integrations register through the `copium.learn_plugin` entry point.
 
 See also: [Failure Learning](learn.md)
 
-## `headroom perf`
+## `copium perf`
 
 Summarize recent proxy performance from the local proxy log.
 
 ```bash
-headroom perf
-headroom perf --hours 24
-headroom perf --raw
+copium perf
+copium perf --hours 24
+copium perf --raw
 ```
 
 | Option | Default | Meaning |
@@ -323,21 +323,21 @@ headroom perf --raw
 | `--hours` | `168.0` | Time window in hours |
 | `--raw` | off | Print raw PERF records instead of the summarized report |
 
-The command reads `${HEADROOM_WORKSPACE_DIR}/logs/proxy.log` (defaults
-to `~/.headroom/logs/proxy.log` — see the
+The command reads `${COPIUM_WORKSPACE_DIR}/logs/proxy.log` (defaults
+to `~/.copium/logs/proxy.log` — see the
 [Filesystem Contract](filesystem-contract.md)).
 
-## `headroom evals`
+## `copium evals`
 
 Memory evaluation command group.
 
-### `headroom evals memory`
+### `copium evals memory`
 
 Run the LoCoMo memory evaluation benchmark.
 
 ```bash
-headroom evals memory -n 3
-headroom evals memory --answer-model gpt-4o --llm-judge
+copium evals memory -n 3
+copium evals memory --answer-model gpt-4o --llm-judge
 ```
 
 | Option | Default | Meaning |
@@ -358,13 +358,13 @@ headroom evals memory --answer-model gpt-4o --llm-judge
 | `--parallel` | `10` | Parallel worker count |
 | `--debug` | off | Enable debug output |
 
-### `headroom evals memory-v2`
+### `copium evals memory-v2`
 
 Run the V2 memory evaluation flow with LLM-controlled tools.
 
 ```bash
-headroom evals memory-v2
-headroom evals memory-v2 --save-model gpt-4o-mini --llm-judge
+copium evals memory-v2
+copium evals memory-v2 --save-model gpt-4o-mini --llm-judge
 ```
 
 | Option | Default | Meaning |
@@ -385,94 +385,94 @@ headroom evals memory-v2 --save-model gpt-4o-mini --llm-judge
 
 Hidden compatibility shims exist for older command paths:
 
-- `headroom memory-eval`
-- `headroom memory-eval-v2`
+- `copium memory-eval`
+- `copium memory-eval-v2`
 
 These are intentionally omitted from normal usage docs.
 
-## `headroom memory`
+## `copium memory`
 
 Memory management command group. This group is only registered when the optional memory dependencies import successfully.
 
-### `headroom memory list`
+### `copium memory list`
 
 ```bash
-headroom memory list
-headroom memory list --scope USER --since 7d
-headroom memory list -q "budget"
+copium memory list
+copium memory list --scope USER --since 7d
+copium memory list -q "budget"
 ```
 
 | Option | Default | Meaning |
 |---|---|---|
-| `--db-path` | `headroom_memory.db` | Memory database path |
+| `--db-path` | `copium_memory.db` | Memory database path |
 | `--limit`, `-n` | `50` | Maximum memories to show |
 | `--session`, `-s` | unset | Filter by session ID |
 | `--scope` | unset | `USER`, `SESSION`, `AGENT`, or `TURN` |
 | `--since` | unset | Age filter using duration syntax such as `7d`, `2w`, `1m` |
 | `--search`, `-q` | unset | Content search query |
 
-### `headroom memory show <memory_id>`
+### `copium memory show <memory_id>`
 
 ```bash
-headroom memory show 1234abcd
-headroom memory show 1234abcd --json
+copium memory show 1234abcd
+copium memory show 1234abcd --json
 ```
 
 | Argument / option | Default | Meaning |
 |---|---|---|
 | `memory_id` | required | Full or partial memory ID |
-| `--db-path` | `headroom_memory.db` | Memory database path |
+| `--db-path` | `copium_memory.db` | Memory database path |
 | `--json` | off | Emit raw JSON |
 
-### `headroom memory stats`
+### `copium memory stats`
 
 ```bash
-headroom memory stats
+copium memory stats
 ```
 
 | Option | Default | Meaning |
 |---|---|---|
-| `--db-path` | `headroom_memory.db` | Memory database path |
+| `--db-path` | `copium_memory.db` | Memory database path |
 
-### `headroom memory edit <memory_id>`
+### `copium memory edit <memory_id>`
 
 ```bash
-headroom memory edit 1234abcd --content "Updated note"
-headroom memory edit 1234abcd --importance 0.9
+copium memory edit 1234abcd --content "Updated note"
+copium memory edit 1234abcd --importance 0.9
 ```
 
 | Argument / option | Default | Meaning |
 |---|---|---|
 | `memory_id` | required | Full or partial memory ID |
-| `--db-path` | `headroom_memory.db` | Memory database path |
+| `--db-path` | `copium_memory.db` | Memory database path |
 | `--content`, `-c` | unset | New memory content |
 | `--importance`, `-i` | unset | New importance score (`0.0` to `1.0`) |
 
 At least one of `--content` or `--importance` is required.
 
-### `headroom memory delete <memory_ids...>`
+### `copium memory delete <memory_ids...>`
 
 ```bash
-headroom memory delete 1234abcd 5678efgh
-headroom memory delete 1234abcd --force
+copium memory delete 1234abcd 5678efgh
+copium memory delete 1234abcd --force
 ```
 
 | Argument / option | Default | Meaning |
 |---|---|---|
 | `memory_ids...` | required | One or more memory IDs |
-| `--db-path` | `headroom_memory.db` | Memory database path |
+| `--db-path` | `copium_memory.db` | Memory database path |
 | `--force`, `-f` | off | Skip confirmation |
 
-### `headroom memory prune`
+### `copium memory prune`
 
 ```bash
-headroom memory prune --older-than 30d --dry-run
-headroom memory prune --scope SESSION --force
+copium memory prune --older-than 30d --dry-run
+copium memory prune --scope SESSION --force
 ```
 
 | Option | Default | Meaning |
 |---|---|---|
-| `--db-path` | `headroom_memory.db` | Memory database path |
+| `--db-path` | `copium_memory.db` | Memory database path |
 | `--older-than` | unset | Age threshold |
 | `--scope` | unset | Scope filter: `USER`, `SESSION`, `AGENT`, `TURN` |
 | `--low-importance` | unset | Importance cutoff |
@@ -482,86 +482,86 @@ headroom memory prune --scope SESSION --force
 
 At least one filter is required. Filters combine with **AND** semantics.
 
-### `headroom memory purge`
+### `copium memory purge`
 
 ```bash
-headroom memory purge --confirm
+copium memory purge --confirm
 ```
 
 | Option | Default | Meaning |
 |---|---|---|
-| `--db-path` | `headroom_memory.db` | Memory database path |
+| `--db-path` | `copium_memory.db` | Memory database path |
 | `--confirm` | off | Required confirmation flag |
 
-### `headroom memory export`
+### `copium memory export`
 
 ```bash
-headroom memory export
-headroom memory export --output export.json
+copium memory export
+copium memory export --output export.json
 ```
 
 | Option | Default | Meaning |
 |---|---|---|
-| `--db-path` | `headroom_memory.db` | Memory database path |
+| `--db-path` | `copium_memory.db` | Memory database path |
 | `--output`, `-o` | stdout | Output path |
 
-### `headroom memory import <file>`
+### `copium memory import <file>`
 
 ```bash
-headroom memory import export.json
-headroom memory import export.json --force
+copium memory import export.json
+copium memory import export.json --force
 ```
 
 | Argument / option | Default | Meaning |
 |---|---|---|
 | `file` | required | JSON file containing exported memories |
-| `--db-path` | `headroom_memory.db` | Memory database path |
+| `--db-path` | `copium_memory.db` | Memory database path |
 | `--force`, `-f` | off | Skip confirmation |
 
 The import expects a JSON array. Malformed entries are skipped.
 
-## `headroom mcp`
+## `copium mcp`
 
-Manage the Headroom MCP server integration.
+Manage the Copium MCP server integration.
 
-### `headroom mcp install`
+### `copium mcp install`
 
 ```bash
-headroom mcp install
-headroom mcp install --proxy-url http://127.0.0.1:9000
+copium mcp install
+copium mcp install --proxy-url http://127.0.0.1:9000
 ```
 
 | Option | Default | Meaning |
 |---|---|---|
 | `--proxy-url` | `http://127.0.0.1:8787` | Proxy URL written into MCP config |
-| `--force` | off | Overwrite an existing Headroom MCP config |
+| `--force` | off | Overwrite an existing Copium MCP config |
 
-### `headroom mcp uninstall`
+### `copium mcp uninstall`
 
 ```bash
-headroom mcp uninstall
+copium mcp uninstall
 ```
 
-This removes the Headroom MCP server entry from the Claude configuration.
+This removes the Copium MCP server entry from the Claude configuration.
 
-### `headroom mcp status`
+### `copium mcp status`
 
 ```bash
-headroom mcp status
+copium mcp status
 ```
 
 This inspects MCP SDK availability, Claude config state, and proxy reachability.
 
-### `headroom mcp serve`
+### `copium mcp serve`
 
 ```bash
-headroom mcp serve
-headroom mcp serve --proxy-url http://127.0.0.1:9000 --debug
+copium mcp serve
+copium mcp serve --proxy-url http://127.0.0.1:9000 --debug
 ```
 
 | Option | Default | Meaning |
 |---|---|---|
-| `--proxy-url` | `http://127.0.0.1:8787` | Proxy URL (also reads `HEADROOM_PROXY_URL`) |
+| `--proxy-url` | `http://127.0.0.1:8787` | Proxy URL (also reads `COPIUM_PROXY_URL`) |
 | `--direct` | off | Disable stdio transport wrapping |
 | `--debug` | off | Enable debug logging |
 
@@ -569,22 +569,22 @@ headroom mcp serve --proxy-url http://127.0.0.1:9000 --debug
 
 See also: [MCP Tools](mcp.md)
 
-## `headroom install`
+## `copium install`
 
-Install and manage persistent local Headroom deployments.
+Install and manage persistent local Copium deployments.
 
-### `headroom install apply --help`
+### `copium install apply --help`
 
 ```text
-Usage: headroom install apply [OPTIONS]
+Usage: copium install apply [OPTIONS]
 
-  Install a persistent Headroom deployment.
+  Install a persistent Copium deployment.
 
 Options:
   --preset [persistent-service|persistent-task|persistent-docker]
                                   Persistent runtime preset to install.
                                   [default: persistent-service]
-  --runtime [python|docker]       Runtime used to execute Headroom for
+  --runtime [python|docker]       Runtime used to execute Copium for
                                   service/task modes.  [default: python]
   --scope [provider|user|system]  Where to apply persistent configuration.
                                   [default: user]
@@ -606,16 +606,16 @@ Options:
   --no-telemetry                  Disable anonymous telemetry in the runtime.
   --image TEXT                    Docker image to use when runtime=docker or
                                   preset=persistent-docker.  [default:
-                                  ghcr.io/chopratejas/headroom:latest]
+                                  ghcr.io/iKislay/copium:latest]
   -?, --help                      Show this message and exit.
 ```
 
-### `headroom install apply`
+### `copium install apply`
 
 ```bash
-headroom install apply --preset persistent-service --providers auto
-headroom install apply --preset persistent-task --providers manual --target claude --target codex
-headroom install apply --preset persistent-docker --scope user
+copium install apply --preset persistent-service --providers auto
+copium install apply --preset persistent-task --providers manual --target claude --target codex
+copium install apply --preset persistent-docker --scope user
 ```
 
 | Option | Default | Meaning |
@@ -633,62 +633,62 @@ headroom install apply --preset persistent-docker --scope user
 | `--mode` | `token` | Proxy optimization mode |
 | `--memory` | off | Enable persistent memory in the managed runtime |
 | `--no-telemetry` | off | Disable anonymous telemetry |
-| `--image` | `ghcr.io/chopratejas/headroom:latest` | Docker image for Docker-backed installs |
+| `--image` | `ghcr.io/iKislay/copium:latest` | Docker image for Docker-backed installs |
 
 `apply` stores a manifest under
-`${HEADROOM_WORKSPACE_DIR}/deploy/<profile>/manifest.json` (default
-`~/.headroom/deploy/<profile>/manifest.json`), applies managed tool
+`${COPIUM_WORKSPACE_DIR}/deploy/<profile>/manifest.json` (default
+`~/.copium/deploy/<profile>/manifest.json`), applies managed tool
 configuration, starts the chosen runtime, and waits for `readyz`.
 
-Docker-native host wrappers expose a narrower `headroom install` subset for `persistent-docker` only: `apply`, `status`, `start`, `stop`, `restart`, and `remove`. Those wrapper flows preserve the same port and manifest behavior, but they intentionally reject `persistent-service`, `persistent-task`, and provider mutation flags like `--scope`, `--providers`, and `--target`.
+Docker-native host wrappers expose a narrower `copium install` subset for `persistent-docker` only: `apply`, `status`, `start`, `stop`, `restart`, and `remove`. Those wrapper flows preserve the same port and manifest behavior, but they intentionally reject `persistent-service`, `persistent-task`, and provider mutation flags like `--scope`, `--providers`, and `--target`.
 
-### `headroom install status`
+### `copium install status`
 
 ```bash
-headroom install status
-headroom install status --profile default
+copium install status
+copium install status --profile default
 ```
 
 Shows the stored profile, preset, runtime, supervisor kind, scope, port, runtime status, readiness, and backend from `/health`.
 
-### `headroom install start`
+### `copium install start`
 
 ```bash
-headroom install start
-headroom install start --profile default
+copium install start
+copium install start --profile default
 ```
 
 Starts a previously installed deployment profile without reapplying mutations.
 
-### `headroom install stop`
+### `copium install stop`
 
 ```bash
-headroom install stop
+copium install stop
 ```
 
 Stops the managed runtime for an installed deployment profile.
 
-### `headroom install restart`
+### `copium install restart`
 
 ```bash
-headroom install restart
+copium install restart
 ```
 
 Stops and starts the selected deployment profile.
 
-### `headroom install remove`
+### `copium install remove`
 
 ```bash
-headroom install remove
+copium install remove
 ```
 
 Stops the runtime, removes installed supervisor artifacts, reverts managed configuration changes, and deletes the stored manifest.
 
 See also: [Persistent Installs](persistent-installs.md)
 
-## `headroom wrap`
+## `copium wrap`
 
-Wrap external coding tools so their traffic flows through Headroom.
+Wrap external coding tools so their traffic flows through Copium.
 
 ### Shared semantics
 
@@ -698,12 +698,12 @@ Wrap external coding tools so their traffic flows through Headroom.
 - `-v`, `--verbose` means **verbose output**
 - Hidden `--prepare-only` exists for internal Docker-native bridge flows and is intentionally omitted from normal usage
 
-### `headroom wrap claude`
+### `copium wrap claude`
 
 ```bash
-headroom wrap claude
-headroom wrap claude --resume <session-id>
-headroom wrap claude --port 9999
+copium wrap claude
+copium wrap claude --resume <session-id>
+copium wrap claude --port 9999
 ```
 
 | Option / arg | Default | Meaning |
@@ -717,12 +717,12 @@ headroom wrap claude --port 9999
 
 Requires the `claude` binary on the host.
 
-### `headroom wrap codex`
+### `copium wrap codex`
 
 ```bash
-headroom wrap codex
-headroom wrap codex -- "fix the bug"
-headroom wrap codex --backend anyllm --anyllm-provider groq
+copium wrap codex
+copium wrap codex -- "fix the bug"
+copium wrap codex --backend anyllm --anyllm-provider groq
 ```
 
 | Option / arg | Default | Meaning |
@@ -739,11 +739,11 @@ headroom wrap codex --backend anyllm --anyllm-provider groq
 
 Requires the `codex` binary on the host.
 
-### `headroom wrap copilot`
+### `copium wrap copilot`
 
 ```bash
-headroom wrap copilot -- --model claude-sonnet-4-20250514
-headroom wrap copilot --backend anyllm --anyllm-provider groq -- --model gpt-4o
+copium wrap copilot -- --model claude-sonnet-4-20250514
+copium wrap copilot --backend anyllm --anyllm-provider groq -- --model gpt-4o
 ```
 
 | Option / arg | Default | Meaning |
@@ -762,12 +762,12 @@ headroom wrap copilot --backend anyllm --anyllm-provider groq -- --model gpt-4o
 
 Requires the `copilot` binary on the host. When a matching persistent deployment exists on the requested port, `wrap copilot` reuses or recovers it before falling back to an ephemeral proxy.
 
-### `headroom wrap aider`
+### `copium wrap aider`
 
 ```bash
-headroom wrap aider
-headroom wrap aider -- --model gpt-4o
-headroom wrap aider --backend litellm-vertex --region us-central1
+copium wrap aider
+copium wrap aider -- --model gpt-4o
+copium wrap aider --backend litellm-vertex --region us-central1
 ```
 
 | Option / arg | Default | Meaning |
@@ -784,12 +784,12 @@ headroom wrap aider --backend litellm-vertex --region us-central1
 
 Requires the `aider` binary on the host.
 
-### `headroom wrap cursor`
+### `copium wrap cursor`
 
 ```bash
-headroom wrap cursor
-headroom wrap cursor --port 9999
-headroom wrap cursor --no-rtk
+copium wrap cursor
+copium wrap cursor --port 9999
+copium wrap cursor --no-rtk
 ```
 
 | Option | Default | Meaning |
@@ -802,38 +802,38 @@ headroom wrap cursor --no-rtk
 
 This command prints Cursor configuration instructions and waits while the proxy stays up. It does **not** launch Cursor directly.
 
-### `headroom wrap openclaw`
+### `copium wrap openclaw`
 
 ```bash
-headroom wrap openclaw
-headroom wrap openclaw --plugin-path ./plugins/openclaw
+copium wrap openclaw
+copium wrap openclaw --plugin-path ./plugins/openclaw
 ```
 
 | Option | Default | Meaning |
 |---|---|---|
 | `--plugin-path` | unset | Local plugin source directory |
-| `--plugin-spec` | `headroom-ai/openclaw` | NPM plugin spec |
+| `--plugin-spec` | `copium-ai/openclaw` | NPM plugin spec |
 | `--skip-build` | off | Skip local `npm install` / build steps |
 | `--copy` | off | Copy plugin instead of linked install |
-| `--proxy-port` | `8787` | Headroom proxy port |
+| `--proxy-port` | `8787` | Copium proxy port |
 | `--startup-timeout-ms` | `20000` | Proxy startup timeout |
-| `--gateway-provider-id` | repeatable | OpenClaw provider IDs routed through Headroom |
+| `--gateway-provider-id` | repeatable | OpenClaw provider IDs routed through Copium |
 | `--python-path` | unset | Python launcher override |
 | `--no-auto-start` | off | Disable plugin auto-start behavior |
 | `--no-restart` | off | Do not restart the OpenClaw gateway |
 | `--verbose`, `-v` | off | Verbose output |
 
-Requires the `openclaw` binary on the host, and local-source mode may also require `npm`. In Docker-native mode, the installed host wrapper drives the host `openclaw` CLI while the plugin auto-starts the host `headroom` wrapper from `PATH`.
+Requires the `openclaw` binary on the host, and local-source mode may also require `npm`. In Docker-native mode, the installed host wrapper drives the host `openclaw` CLI while the plugin auto-starts the host `copium` wrapper from `PATH`.
 
-## `headroom unwrap`
+## `copium unwrap`
 
 Undo durable wrapping for supported tools.
 
-### `headroom unwrap openclaw`
+### `copium unwrap openclaw`
 
 ```bash
-headroom unwrap openclaw
-headroom unwrap openclaw --no-restart
+copium unwrap openclaw
+copium unwrap openclaw --no-restart
 ```
 
 | Option | Default | Meaning |
@@ -841,7 +841,7 @@ headroom unwrap openclaw --no-restart
 | `--no-restart` | off | Do not restart the OpenClaw gateway |
 | `--verbose`, `-v` | off | Verbose output |
 
-This disables the Headroom OpenClaw plugin and restores the legacy context engine slot.
+This disables the Copium OpenClaw plugin and restores the legacy context engine slot.
 
 ## Docker-native parity matrix
 
@@ -849,29 +849,29 @@ This matrix compares the **Python CLI contract** to the Docker-native host wrapp
 
 Legend:
 
-- **native in container** — the command runs entirely inside the Headroom container
-- **host-bridged** — Headroom runs in Docker, but the wrapped external tool still runs on the host
+- **native in container** — the command runs entirely inside the Copium container
+- **host-bridged** — Copium runs in Docker, but the wrapped external tool still runs on the host
 
 | Command path | Python CLI | Docker-native wrapper | Parity |
 |---|---|---|---|
-| `headroom proxy` | native | native in container | full |
-| `headroom learn` | native | native in container | full |
-| `headroom perf` | native | native in container | full |
-| `headroom evals memory` | native | native in container | full |
-| `headroom evals memory-v2` | native | native in container | full |
-| `headroom memory ...` | native (when memory deps are available) | native in container | full |
-| `headroom mcp install` | native | native in container | full |
-| `headroom mcp uninstall` | native | native in container | full |
-| `headroom mcp status` | native | native in container | full |
-| `headroom mcp serve` | native | native in container | full |
-| `headroom install apply|status|start|stop|restart|remove` | native | Docker-native wrapper for `persistent-docker`; compose remains an alternative | partial |
-| `headroom wrap claude` | native | host-bridged | partial |
-| `headroom wrap copilot` | native | not implemented in Docker-native wrapper | none |
-| `headroom wrap codex` | native | host-bridged | partial |
-| `headroom wrap aider` | native | host-bridged | partial |
-| `headroom wrap cursor` | native | host-bridged | partial |
-| `headroom wrap openclaw` | native | host-bridged | partial |
-| `headroom unwrap openclaw` | native | host-bridged | partial |
+| `copium proxy` | native | native in container | full |
+| `copium learn` | native | native in container | full |
+| `copium perf` | native | native in container | full |
+| `copium evals memory` | native | native in container | full |
+| `copium evals memory-v2` | native | native in container | full |
+| `copium memory ...` | native (when memory deps are available) | native in container | full |
+| `copium mcp install` | native | native in container | full |
+| `copium mcp uninstall` | native | native in container | full |
+| `copium mcp status` | native | native in container | full |
+| `copium mcp serve` | native | native in container | full |
+| `copium install apply|status|start|stop|restart|remove` | native | Docker-native wrapper for `persistent-docker`; compose remains an alternative | partial |
+| `copium wrap claude` | native | host-bridged | partial |
+| `copium wrap copilot` | native | not implemented in Docker-native wrapper | none |
+| `copium wrap codex` | native | host-bridged | partial |
+| `copium wrap aider` | native | host-bridged | partial |
+| `copium wrap cursor` | native | host-bridged | partial |
+| `copium wrap openclaw` | native | host-bridged | partial |
+| `copium unwrap openclaw` | native | host-bridged | partial |
 
 For the Docker-native execution model itself, see [Docker-Native Install](docker-install.md). For persistent service/task/docker lifecycle management, see [Persistent Installs](persistent-installs.md).
 
@@ -879,8 +879,8 @@ For the Docker-native execution model itself, see [Docker-Native Install](docker
 
 These exist in code but are intentionally excluded from normal user docs:
 
-- `headroom memory-eval`
-- `headroom memory-eval-v2`
+- `copium memory-eval`
+- `copium memory-eval-v2`
 - hidden internal `--prepare-only` flags on `wrap` subcommands
 
-If you are documenting operational behavior or debugging internal wrapper flows, refer to the implementation in `headroom/cli/wrap.py`.
+If you are documenting operational behavior or debugging internal wrapper flows, refer to the implementation in `copium/cli/wrap.py`.

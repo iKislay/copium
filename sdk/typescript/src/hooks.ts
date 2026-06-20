@@ -1,5 +1,5 @@
 /**
- * Compression hooks matching Python headroom.hooks.
+ * Compression hooks matching Python copium.hooks.
  * Allows customizing compression behavior with pre/post hooks.
  */
 

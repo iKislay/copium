@@ -1,9 +1,9 @@
-site_name: Headroom
+site_name: Copium
 docs_dir: wiki
 site_description: "The Context Optimization Layer for LLM Applications — compress everything your AI agent reads."
-site_url: https://chopratejas.github.io/headroom
-repo_url: https://github.com/chopratejas/headroom
-repo_name: chopratejas/headroom
+site_url: https://chopratejas.github.io/copium
+repo_url: https://github.com/iKislay/copium
+repo_name: iKislay/copium
 edit_uri: edit/main/docs/
 
 theme:
@@ -128,9 +128,9 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/chopratejas/headroom
+      link: https://github.com/iKislay/copium
     - icon: fontawesome/brands/python
-      link: https://pypi.org/project/headroom-ai/
+      link: https://pypi.org/project/copium-ai/
     - icon: fontawesome/brands/discord
       link: https://discord.gg/yRmaUNpsPJ
   generator: false

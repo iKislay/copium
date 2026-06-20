@@ -2,14 +2,14 @@
 """
 Agent Cost Crisis Benchmark - The Compelling Story
 
-This benchmark demonstrates WHY Headroom matters by showing:
+This benchmark demonstrates WHY Copium matters by showing:
 
 1. THE PROBLEM: Context explosion in real-world agent workloads
    - Tokens grow exponentially with conversation length
    - Tool outputs dominate context (often 70%+ of tokens)
    - Dynamic content breaks cache efficiency
 
-2. THE SOLUTION: Headroom's impact on real workloads
+2. THE SOLUTION: Copium's impact on real workloads
    - Token reduction from SmartCrusher (50-80% on tool outputs)
    - Cache alignment improvement (10x+ potential savings)
    - Context windowing (stay within limits without losing info)
@@ -44,8 +44,8 @@ from benchmarks.scenarios.tool_outputs import (
     generate_search_results,
 )
 
-# Headroom imports
-from headroom.transforms.smart_crusher import SmartCrusherConfig, smart_crush_tool_output
+# Copium imports
+from copium.transforms.smart_crusher import SmartCrusherConfig, smart_crush_tool_output
 
 # =============================================================================
 # PRICING DATA (as of 2025)
@@ -156,7 +156,7 @@ def benchmark_coding_agent_explosion() -> BenchmarkResult:
     original_content = json.dumps(messages)
     result.tokens_original = len(original_content) // CHARS_PER_TOKEN
 
-    # Apply Headroom transforms using convenience function
+    # Apply Copium transforms using convenience function
     config = SmartCrusherConfig(max_items_after_crush=20)
 
     start = time.perf_counter()
@@ -247,7 +247,7 @@ def benchmark_cache_alignment() -> BenchmarkResult:
     Without alignment: 0% cache hits
     With alignment: 90%+ cache hits
     """
-    from headroom.cache import DetectorConfig, DynamicContentDetector
+    from copium.cache import DetectorConfig, DynamicContentDetector
 
     result = BenchmarkResult(
         name="Cache Alignment Impact",
@@ -351,7 +351,7 @@ Be concise and helpful."""
 
 def benchmark_rag_scaling() -> BenchmarkResult:
     """
-    Show how RAG context grows and how Headroom manages it.
+    Show how RAG context grows and how Copium manages it.
 
     Simulates large RAG context with multiple queries.
     """
@@ -423,7 +423,7 @@ def benchmark_conversation_scaling() -> list[BenchmarkResult]:
     Show how costs scale with conversation length.
 
     Generates conversations of increasing length (10, 25, 50, 100, 200 turns)
-    and shows the scaling curve with and without Headroom.
+    and shows the scaling curve with and without Copium.
     """
     results = []
     turn_counts = [10, 25, 50, 100, 200]
@@ -600,7 +600,7 @@ def _generate_terminal_report(results: list[BenchmarkResult]) -> str:
 
     lines.append("")
     lines.append("=" * 80)
-    lines.append("  HEADROOM AGENT COST BENCHMARK")
+    lines.append("  COPIUM AGENT COST BENCHMARK")
     lines.append("  The Context Optimization Layer for LLM Applications")
     lines.append("=" * 80)
 
@@ -662,8 +662,8 @@ def _generate_terminal_report(results: list[BenchmarkResult]) -> str:
         lines.append(f"  Overall Reduction:     {(total_savings / total_baseline) * 100:.1f}%")
     lines.append("")
     lines.append("  At 1M requests/month:")
-    lines.append(f"    Without Headroom:    ${total_baseline * 1_000_000:.2f}")
-    lines.append(f"    With Headroom:       ${(total_baseline - total_savings) * 1_000_000:.2f}")
+    lines.append(f"    Without Copium:    ${total_baseline * 1_000_000:.2f}")
+    lines.append(f"    With Copium:       ${(total_baseline - total_savings) * 1_000_000:.2f}")
     lines.append(f"    Monthly Savings:     ${total_savings * 1_000_000:.2f}")
     lines.append("")
 
@@ -674,13 +674,13 @@ def _generate_markdown_report(results: list[BenchmarkResult]) -> str:
     """Generate markdown report for documentation."""
     lines = []
 
-    lines.append("# Headroom Agent Cost Benchmark")
+    lines.append("# Copium Agent Cost Benchmark")
     lines.append("")
     lines.append("> The Context Optimization Layer for LLM Applications")
     lines.append("")
     lines.append("## Executive Summary")
     lines.append("")
-    lines.append("This benchmark demonstrates Headroom's impact on real-world agent workloads:")
+    lines.append("This benchmark demonstrates Copium's impact on real-world agent workloads:")
     lines.append("")
     lines.append("| Metric | Impact |")
     lines.append("|--------|--------|")
@@ -732,7 +732,7 @@ def _generate_markdown_report(results: list[BenchmarkResult]) -> str:
     lines.append("")
     lines.append("Based on Claude 3.5 Sonnet pricing ($3/1M input tokens):")
     lines.append("")
-    lines.append("| Scale | Without Headroom | With Headroom | Monthly Savings |")
+    lines.append("| Scale | Without Copium | With Copium | Monthly Savings |")
     lines.append("|-------|------------------|---------------|-----------------|")
 
     base_cost_per_request = sum(r.cost_analysis.cost_baseline for r in results) / len(results)
@@ -762,7 +762,7 @@ def _generate_markdown_report(results: list[BenchmarkResult]) -> str:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Headroom Agent Cost Benchmark")
+    parser = argparse.ArgumentParser(description="Copium Agent Cost Benchmark")
     parser.add_argument("--format", choices=["terminal", "markdown"], default="terminal")
     parser.add_argument(
         "--scenario",

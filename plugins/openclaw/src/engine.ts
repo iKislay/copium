@@ -1,31 +1,31 @@
 /**
- * HeadroomContextEngine — ContextEngine implementation for OpenClaw.
+ * CopiumContextEngine — ContextEngine implementation for OpenClaw.
  *
- * Compresses tool outputs and conversation context using the Headroom proxy.
+ * Compresses tool outputs and conversation context using the Copium proxy.
  * Zero LLM calls — all compression is algorithmic (SmartCrusher, ContentRouter, etc.)
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { compress } from "headroom-ai";
+import { compress } from "copium-ai";
 import { ProxyManager, defaultLogger, type ProxyManagerConfig, type ProxyManagerLogger } from "./proxy-manager.js";
 import { agentToOpenAI, normalizeAgentMessages, openAIToAgent } from "./convert.js";
 
-export interface HeadroomEngineConfig extends ProxyManagerConfig {
+export interface CopiumEngineConfig extends ProxyManagerConfig {
   enabled?: boolean;
 }
 
-export class HeadroomContextEngine {
+export class CopiumContextEngine {
   readonly info = {
-    id: "headroom",
-    name: "Headroom Context Compression",
+    id: "copium",
+    name: "Copium Context Compression",
     version: "0.1.0",
     ownsCompaction: true,
   };
 
   private proxyManager: ProxyManager;
   private proxyUrl: string | null = null;
-  private config: HeadroomEngineConfig;
+  private config: CopiumEngineConfig;
   private logger: ProxyManagerLogger;
   private proxyReadyListeners = new Set<(proxyUrl: string) => void | Promise<void>>();
   private proxyStartupPromise: Promise<string> | null = null;
@@ -36,7 +36,7 @@ export class HeadroomContextEngine {
     compactions: 0,
   };
 
-  constructor(config: HeadroomEngineConfig = {}, logger?: ProxyManagerLogger) {
+  constructor(config: CopiumEngineConfig = {}, logger?: ProxyManagerLogger) {
     this.config = config;
     this.logger = logger ?? defaultLogger;
     this.proxyManager = new ProxyManager(config, this.logger);
@@ -132,7 +132,7 @@ export class HeadroomContextEngine {
         estimatedTokens: result.tokensAfter,
         systemPromptAddition:
           result.tokensSaved > 100
-            ? `[Context compressed by Headroom: ${result.tokensSaved} tokens saved. Use headroom_retrieve with the hash to get full details.]`
+            ? `[Context compressed by Copium: ${result.tokensSaved} tokens saved. Use copium_retrieve with the hash to get full details.]`
             : undefined,
       };
     } catch (error) {
@@ -149,7 +149,7 @@ export class HeadroomContextEngine {
    * - SmartCrusher: aggressive JSON compression (70-90% on tool outputs)
    * - Kompress: ModernBERT text compression (40-60% on assistant text)
    * - RollingWindow: drops oldest messages if still over budget
-   * - CCR: stores originals for retrieval via headroom_retrieve tool
+   * - CCR: stores originals for retrieval via copium_retrieve tool
    *
    * Zero LLM calls. All algorithmic.
    */
@@ -188,7 +188,7 @@ export class HeadroomContextEngine {
     return {
       ok: true,
       compacted: true,
-      reason: "Headroom applies SmartCrusher + Kompress + RollingWindow on next assemble()",
+      reason: "Copium applies SmartCrusher + Kompress + RollingWindow on next assemble()",
     };
   }
 
@@ -245,11 +245,11 @@ export class HeadroomContextEngine {
       .then(async (proxyUrl) => {
         this.proxyUrl = proxyUrl;
         await this.notifyProxyReady(proxyUrl);
-        this.logger.info(`Headroom proxy ready at ${proxyUrl}`);
+        this.logger.info(`Copium proxy ready at ${proxyUrl}`);
         return proxyUrl;
       })
       .catch((error) => {
-        this.logger.warn(`Headroom proxy unavailable: ${error}`);
+        this.logger.warn(`Copium proxy unavailable: ${error}`);
         throw error;
       })
       .finally(() => {
@@ -271,7 +271,7 @@ export class HeadroomContextEngine {
 
     this.ensureProxyStarted();
     if (!this.proxyStartupPromise) {
-      throw new Error("Headroom proxy startup is disabled");
+      throw new Error("Copium proxy startup is disabled");
     }
     return this.proxyStartupPromise;
   }

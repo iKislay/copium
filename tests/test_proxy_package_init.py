@@ -1,4 +1,4 @@
-"""Unit tests for headroom.proxy lazy __getattr__ (PEP 562)."""
+"""Unit tests for copium.proxy lazy __getattr__ (PEP 562)."""
 
 from __future__ import annotations
 
@@ -12,9 +12,9 @@ import pytest
 def test_proxy_getattr_resolves_create_app_and_caches_it(monkeypatch) -> None:
     sentinel = object()
     fake_server = types.SimpleNamespace(create_app=sentinel, run_server=object())
-    monkeypatch.setitem(sys.modules, "headroom.proxy.server", fake_server)
+    monkeypatch.setitem(sys.modules, "copium.proxy.server", fake_server)
 
-    import headroom.proxy as proxy
+    import copium.proxy as proxy
 
     module = importlib.reload(proxy)
     module.__dict__.pop("create_app", None)
@@ -32,9 +32,9 @@ def test_proxy_getattr_resolves_create_app_and_caches_it(monkeypatch) -> None:
 def test_proxy_getattr_resolves_run_server(monkeypatch) -> None:
     sentinel = object()
     fake_server = types.SimpleNamespace(create_app=object(), run_server=sentinel)
-    monkeypatch.setitem(sys.modules, "headroom.proxy.server", fake_server)
+    monkeypatch.setitem(sys.modules, "copium.proxy.server", fake_server)
 
-    import headroom.proxy as proxy
+    import copium.proxy as proxy
 
     module = importlib.reload(proxy)
     module.__dict__.pop("create_app", None)
@@ -48,7 +48,7 @@ def test_proxy_getattr_resolves_run_server(monkeypatch) -> None:
 
 
 def test_proxy_getattr_raises_for_unknown_attribute() -> None:
-    import headroom.proxy as proxy
+    import copium.proxy as proxy
 
     with pytest.raises(AttributeError, match="has no attribute 'nonexistent'"):
         proxy.__getattr__("nonexistent")

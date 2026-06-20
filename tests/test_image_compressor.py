@@ -31,19 +31,19 @@ except ImportError:
 
 torch = pytest.importorskip("torch")
 
-from headroom.image.compressor import (  # noqa: E402
+from copium.image.compressor import (  # noqa: E402
     CompressionResult,
     ImageCompressor,
     Technique,
     compress_images,
     get_compressor,
 )
-from headroom.image.trained_router import (  # noqa: E402
+from copium.image.trained_router import (  # noqa: E402
     ImageSignals,
     RouteDecision,
     TrainedRouter,
 )
-from headroom.image.trained_router import (  # noqa: E402
+from copium.image.trained_router import (  # noqa: E402
     Technique as RouterTechnique,
 )
 
@@ -752,7 +752,7 @@ class TestTrainedRouterMocked:
         router._siglip_processor = object()
         router._text_embeddings = object()
 
-        with patch("headroom.models.ml_models.MLModelRegistry.unload_many") as unload_many:
+        with patch("copium.models.ml_models.MLModelRegistry.unload_many") as unload_many:
             router.release_models()
 
         unload_many.assert_called_once_with(["technique_router:demo", "siglip:demo"])
@@ -919,7 +919,7 @@ class TestContentRouterIntegration:
 
     def test_content_router_loads_image_compressor(self):
         """Verify ContentRouter can load ImageCompressor (not None)."""
-        from headroom.transforms.content_router import ContentRouter
+        from copium.transforms.content_router import ContentRouter
 
         router = ContentRouter()
         compressor = router._get_image_optimizer()
@@ -936,8 +936,8 @@ class TestContentRouterIntegration:
 
     def test_content_router_compressor_is_image_compressor(self):
         """Verify ContentRouter uses ImageCompressor (not old ImageOptimizer)."""
-        from headroom.image import ImageCompressor
-        from headroom.transforms.content_router import ContentRouter
+        from copium.image import ImageCompressor
+        from copium.transforms.content_router import ContentRouter
 
         router = ContentRouter()
         compressor = router._get_image_optimizer()
@@ -952,7 +952,7 @@ class TestContentRouterIntegration:
 
     def test_content_router_compressor_is_fresh_per_call(self):
         """ContentRouter should not share image compressors across callers."""
-        from headroom.transforms.content_router import ContentRouter
+        from copium.transforms.content_router import ContentRouter
 
         router = ContentRouter()
         first = router._get_image_optimizer()
@@ -970,7 +970,7 @@ class TestContentRouterIntegration:
         """Test optimize_images_in_messages returns valid result."""
         from unittest.mock import MagicMock
 
-        from headroom.transforms.content_router import ContentRouter
+        from copium.transforms.content_router import ContentRouter
 
         router = ContentRouter()
         tokenizer = MagicMock()
@@ -985,7 +985,7 @@ class TestContentRouterIntegration:
 
     def test_content_router_returns_metrics_and_closes_after_compression(self):
         """Image optimization should report savings and close the compressor."""
-        from headroom.transforms.content_router import ContentRouter
+        from copium.transforms.content_router import ContentRouter
 
         router = ContentRouter()
         tokenizer = MagicMock()
@@ -1021,7 +1021,7 @@ class TestContentRouterIntegration:
 
     def test_content_router_returns_basic_metrics_when_compression_has_no_result(self):
         """Missing compressor result should still close and return neutral metrics."""
-        from headroom.transforms.content_router import ContentRouter
+        from copium.transforms.content_router import ContentRouter
 
         router = ContentRouter()
         tokenizer = MagicMock()
@@ -1044,7 +1044,7 @@ class TestContentRouterIntegration:
 
     def test_content_router_image_optimizer_returns_none_when_image_stack_missing(self):
         """Import failures should disable image optimization without raising."""
-        from headroom.transforms.content_router import ContentRouter
+        from copium.transforms.content_router import ContentRouter
 
         real_import = builtins.__import__
 
@@ -1061,7 +1061,7 @@ class TestContentRouterIntegration:
 
     def test_content_router_releases_image_optimizer_after_use(self):
         """ContentRouter should drop the compressor after each optimization pass."""
-        from headroom.transforms.content_router import ContentRouter
+        from copium.transforms.content_router import ContentRouter
 
         router = ContentRouter()
         tokenizer = MagicMock()

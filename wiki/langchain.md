@@ -1,14 +1,14 @@
 # LangChain Integration
 
-Headroom provides seamless integration with LangChain, enabling automatic context optimization across all LangChain patterns: chat models, memory, retrievers, agents, and observability.
+Copium provides seamless integration with LangChain, enabling automatic context optimization across all LangChain patterns: chat models, memory, retrievers, agents, and observability.
 
 ## Installation
 
 ```bash
-pip install "headroom-ai[langchain]"
+pip install "copium-ai[langchain]"
 ```
 
-This installs Headroom with LangChain dependencies (`langchain-core`).
+This installs Copium with LangChain dependencies (`langchain-core`).
 
 ## Quick Start
 
@@ -16,16 +16,16 @@ This installs Headroom with LangChain dependencies (`langchain-core`).
 
 ```python
 from langchain_openai import ChatOpenAI
-from headroom.integrations import HeadroomChatModel
+from copium.integrations import CopiumChatModel
 
 # Wrap your model - that's it!
-llm = HeadroomChatModel(ChatOpenAI(model="gpt-4o"))
+llm = CopiumChatModel(ChatOpenAI(model="gpt-4o"))
 
 # Use exactly like before
 response = llm.invoke("Hello!")
 ```
 
-Headroom automatically:
+Copium automatically:
 - Detects the provider (OpenAI, Anthropic, Google)
 - Compresses tool outputs in conversation history
 - Optimizes for provider caching
@@ -45,29 +45,29 @@ print(llm.get_metrics())
 
 ### 1. Chat Model Wrapper
 
-The `HeadroomChatModel` wraps any LangChain `BaseChatModel`:
+The `CopiumChatModel` wraps any LangChain `BaseChatModel`:
 
 ```python
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
-from headroom.integrations import HeadroomChatModel
+from copium.integrations import CopiumChatModel
 
 # OpenAI
-llm = HeadroomChatModel(ChatOpenAI(model="gpt-4o"))
+llm = CopiumChatModel(ChatOpenAI(model="gpt-4o"))
 
 # Anthropic (auto-detected)
-llm = HeadroomChatModel(ChatAnthropic(model="claude-3-5-sonnet-20241022"))
+llm = CopiumChatModel(ChatAnthropic(model="claude-3-5-sonnet-20241022"))
 
 # Custom configuration
-from headroom import HeadroomConfig, HeadroomMode
+from copium import CopiumConfig, CopiumMode
 
-config = HeadroomConfig(
-    default_mode=HeadroomMode.OPTIMIZE,
+config = CopiumConfig(
+    default_mode=CopiumMode.OPTIMIZE,
     smart_crusher_target_ratio=0.3,  # Target 70% compression
 )
-llm = HeadroomChatModel(
+llm = CopiumChatModel(
     ChatOpenAI(model="gpt-4o"),
-    headroom_config=config,
+    copium_config=config,
 )
 ```
 
@@ -105,16 +105,16 @@ response = llm_with_tools.invoke("Search for Python tutorials")
 
 ### 2. Memory Integration
 
-`HeadroomChatMessageHistory` wraps any chat history with automatic compression:
+`CopiumChatMessageHistory` wraps any chat history with automatic compression:
 
 ```python
 from langchain.memory import ConversationBufferMemory
 from langchain_community.chat_message_histories import ChatMessageHistory
-from headroom.integrations import HeadroomChatMessageHistory
+from copium.integrations import CopiumChatMessageHistory
 
 # Wrap any history
 base_history = ChatMessageHistory()
-compressed_history = HeadroomChatMessageHistory(
+compressed_history = CopiumChatMessageHistory(
     base_history,
     compress_threshold_tokens=4000,  # Compress when over 4K tokens
     keep_recent_turns=5,             # Always keep last 5 turns
@@ -127,7 +127,7 @@ memory = ConversationBufferMemory(chat_memory=compressed_history)
 chain = ConversationChain(llm=llm, memory=memory)
 ```
 
-**Why this matters**: Long conversations can blow up to 50K+ tokens. HeadroomChatMessageHistory automatically compresses older turns while preserving recent context.
+**Why this matters**: Long conversations can blow up to 50K+ tokens. CopiumChatMessageHistory automatically compresses older turns while preserving recent context.
 
 ```python
 # Check compression stats
@@ -139,19 +139,19 @@ print(compressed_history.get_compression_stats())
 
 ### 3. Retriever Integration
 
-`HeadroomDocumentCompressor` filters retrieved documents by relevance:
+`CopiumDocumentCompressor` filters retrieved documents by relevance:
 
 ```python
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain_community.vectorstores import FAISS
-from headroom.integrations import HeadroomDocumentCompressor
+from copium.integrations import CopiumDocumentCompressor
 
 # Create vector store retriever (retrieve many for recall)
 vectorstore = FAISS.from_documents(documents, embeddings)
 base_retriever = vectorstore.as_retriever(search_kwargs={"k": 50})
 
-# Wrap with Headroom compression (keep best for precision)
-compressor = HeadroomDocumentCompressor(
+# Wrap with Copium compression (keep best for precision)
+compressor = CopiumDocumentCompressor(
     max_documents=10,      # Keep top 10
     min_relevance=0.3,     # Minimum relevance score
     prefer_diverse=True,   # MMR-style diversity
@@ -166,18 +166,18 @@ retriever = ContextualCompressionRetriever(
 docs = retriever.invoke("What is Python?")
 ```
 
-**Why this matters**: Vector search often returns many marginally-relevant documents. HeadroomDocumentCompressor uses BM25-style scoring to keep only the most relevant ones, reducing context size while improving answer quality.
+**Why this matters**: Vector search often returns many marginally-relevant documents. CopiumDocumentCompressor uses BM25-style scoring to keep only the most relevant ones, reducing context size while improving answer quality.
 
 ---
 
 ### 4. Agent Tool Wrapping
 
-`wrap_tools_with_headroom` compresses tool outputs for agents:
+`wrap_tools_with_copium` compresses tool outputs for agents:
 
 ```python
 from langchain.agents import create_openai_tools_agent, AgentExecutor
 from langchain_core.tools import tool
-from headroom.integrations import wrap_tools_with_headroom
+from copium.integrations import wrap_tools_with_copium
 
 @tool
 def search_database(query: str) -> str:
@@ -193,7 +193,7 @@ def fetch_logs(service: str) -> str:
 
 # Wrap tools with compression
 tools = [search_database, fetch_logs]
-wrapped_tools = wrap_tools_with_headroom(
+wrapped_tools = wrap_tools_with_copium(
     tools,
     min_chars_to_compress=1000,  # Only compress large outputs
 )
@@ -209,7 +209,7 @@ result = executor.invoke({"input": "Find users who logged in yesterday"})
 **Per-tool metrics:**
 
 ```python
-from headroom.integrations import get_tool_metrics
+from copium.integrations import get_tool_metrics
 
 metrics = get_tool_metrics()
 print(metrics.get_summary())
@@ -231,7 +231,7 @@ print(metrics.get_summary())
 Track output tokens during streaming:
 
 ```python
-from headroom.integrations import StreamingMetricsTracker
+from copium.integrations import StreamingMetricsTracker
 
 tracker = StreamingMetricsTracker(model="gpt-4o")
 
@@ -247,7 +247,7 @@ print(f"Duration: {metrics.duration_ms:.0f}ms")
 **Context manager style:**
 
 ```python
-from headroom.integrations import StreamingMetricsCallback
+from copium.integrations import StreamingMetricsCallback
 
 with StreamingMetricsCallback(model="gpt-4o") as tracker:
     for chunk in llm.stream(messages):
@@ -261,25 +261,25 @@ print(f"Metrics: {tracker.metrics}")
 
 ### 6. LangSmith Integration
 
-Add Headroom metrics to LangSmith traces:
+Add Copium metrics to LangSmith traces:
 
 ```python
-from headroom.integrations import HeadroomLangSmithCallbackHandler
+from copium.integrations import CopiumLangSmithCallbackHandler
 
 # Create callback handler
-langsmith_handler = HeadroomLangSmithCallbackHandler()
+langsmith_handler = CopiumLangSmithCallbackHandler()
 
 # Use with your LLM
-llm = HeadroomChatModel(
+llm = CopiumChatModel(
     ChatOpenAI(model="gpt-4o"),
     callbacks=[langsmith_handler],
 )
 
 # After calls, metrics appear in LangSmith traces:
-# - headroom.tokens_before
-# - headroom.tokens_after
-# - headroom.tokens_saved
-# - headroom.compression_ratio
+# - copium.tokens_before
+# - copium.tokens_after
+# - copium.tokens_saved
+# - copium.compression_ratio
 ```
 
 ---
@@ -294,7 +294,7 @@ The ReAct pattern is the most common agent architecture. Here's how to optimize 
 from langchain_openai import ChatOpenAI
 from langchain_core.tools import tool
 from langgraph.prebuilt import create_react_agent
-from headroom.integrations import HeadroomChatModel, wrap_tools_with_headroom
+from copium.integrations import CopiumChatModel, wrap_tools_with_copium
 
 # Define tools that return large outputs
 @tool
@@ -317,11 +317,11 @@ def query_database(sql: str) -> str:
         "total": 500,
     })
 
-# Wrap model with Headroom
-llm = HeadroomChatModel(ChatOpenAI(model="gpt-4o"))
+# Wrap model with Copium
+llm = CopiumChatModel(ChatOpenAI(model="gpt-4o"))
 
 # Wrap tools with compression
-tools = wrap_tools_with_headroom([search_web, query_database])
+tools = wrap_tools_with_copium([search_web, query_database])
 
 # Create ReAct agent
 agent = create_react_agent(llm, tools)
@@ -335,8 +335,8 @@ result = agent.invoke({
 print(f"Tokens saved: {llm.get_metrics()['tokens_saved']}")
 ```
 
-**Without Headroom**: Each tool call adds 10-50K tokens to context.
-**With Headroom**: Tool outputs compressed to 1-2K tokens, agent runs faster and cheaper.
+**Without Copium**: Each tool call adds 10-50K tokens to context.
+**With Copium**: Tool outputs compressed to 1-2K tokens, agent runs faster and cheaper.
 
 ---
 
@@ -350,7 +350,7 @@ you can insert a compression node between tools and the agent. This compresses a
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
 from langgraph.graph import StateGraph, MessagesState, START, END
-from headroom.integrations.langchain import create_compress_tool_messages_node
+from copium.integrations.langchain import create_compress_tool_messages_node
 
 # Define your agent and tools nodes
 def agent_node(state: MessagesState):
@@ -383,7 +383,7 @@ result = app.invoke({"messages": [HumanMessage(content="Find sales data")]})
 You can also use `compress_tool_messages` directly as a standalone function:
 
 ```python
-from headroom.integrations.langchain import compress_tool_messages
+from copium.integrations.langchain import compress_tool_messages
 
 # Compress ToolMessages in any list of LangChain messages
 result = compress_tool_messages(messages, min_tokens_to_compress=100)
@@ -400,7 +400,7 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from langchain.retrievers import ContextualCompressionRetriever
-from headroom.integrations import HeadroomChatModel, HeadroomDocumentCompressor
+from copium.integrations import CopiumChatModel, CopiumDocumentCompressor
 
 # Setup vector store
 embeddings = OpenAIEmbeddings()
@@ -409,8 +409,8 @@ vectorstore = Chroma.from_documents(documents, embeddings)
 # High-recall retriever (get many candidates)
 base_retriever = vectorstore.as_retriever(search_kwargs={"k": 50})
 
-# Headroom compressor for precision
-compressor = HeadroomDocumentCompressor(
+# Copium compressor for precision
+compressor = CopiumDocumentCompressor(
     max_documents=5,       # Keep only top 5
     min_relevance=0.4,     # Must be 40%+ relevant
     prefer_diverse=True,   # Avoid redundant docs
@@ -423,7 +423,7 @@ retriever = ContextualCompressionRetriever(
 )
 
 # Wrap LLM
-llm = HeadroomChatModel(ChatOpenAI(model="gpt-4o"))
+llm = CopiumChatModel(ChatOpenAI(model="gpt-4o"))
 
 # Create QA chain
 qa_chain = RetrievalQA.from_chain_type(
@@ -440,7 +440,7 @@ print(f"Sources: {len(result['source_documents'])} docs")
 
 **Impact**:
 - Without filtering: 50 docs × ~500 tokens = 25K context tokens
-- With Headroom: 5 docs × ~500 tokens = 2.5K context tokens (90% reduction)
+- With Copium: 5 docs × ~500 tokens = 2.5K context tokens (90% reduction)
 
 ---
 
@@ -451,14 +451,14 @@ from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain.chains import ConversationChain
-from headroom.integrations import HeadroomChatModel, HeadroomChatMessageHistory
+from copium.integrations import CopiumChatModel, CopiumChatMessageHistory
 
 # Wrap LLM
-llm = HeadroomChatModel(ChatOpenAI(model="gpt-4o"))
+llm = CopiumChatModel(ChatOpenAI(model="gpt-4o"))
 
 # Wrap memory with auto-compression
 base_history = ChatMessageHistory()
-compressed_history = HeadroomChatMessageHistory(
+compressed_history = CopiumChatMessageHistory(
     base_history,
     compress_threshold_tokens=8000,  # Compress when over 8K
     keep_recent_turns=10,            # Always keep last 10 turns
@@ -482,7 +482,7 @@ print(compressed_history.get_compression_stats())
 # {'compression_count': 8, 'total_tokens_saved': 45000}
 ```
 
-**Impact**: Without compression, 100-turn conversation = 100K+ tokens. With HeadroomChatMessageHistory, it stays under 8K tokens while preserving recent context.
+**Impact**: Without compression, 100-turn conversation = 100K+ tokens. With CopiumChatMessageHistory, it stays under 8K tokens while preserving recent context.
 
 ---
 
@@ -493,9 +493,9 @@ from langchain_openai import ChatOpenAI
 from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.tools import tool
-from headroom.integrations import (
-    HeadroomChatModel,
-    wrap_tools_with_headroom,
+from copium.integrations import (
+    CopiumChatModel,
+    wrap_tools_with_copium,
     get_tool_metrics,
     reset_tool_metrics,
 )
@@ -516,8 +516,8 @@ def fetch_documentation(url: str) -> str:
     return "..." * 5000  # Large doc content
 
 # Wrap everything
-llm = HeadroomChatModel(ChatOpenAI(model="gpt-4o"))
-tools = wrap_tools_with_headroom([search_arxiv, search_github, fetch_documentation])
+llm = CopiumChatModel(ChatOpenAI(model="gpt-4o"))
+tools = wrap_tools_with_copium([search_arxiv, search_github, fetch_documentation])
 
 prompt = ChatPromptTemplate.from_messages([
     ("system", "You are a research assistant. Use tools to gather information."),
@@ -546,20 +546,20 @@ print(f"Per-tool breakdown: {metrics['by_tool']}")
 
 ## Configuration Options
 
-### HeadroomChatModel
+### CopiumChatModel
 
 ```python
-HeadroomChatModel(
+CopiumChatModel(
     wrapped_model,                     # Any LangChain BaseChatModel
-    headroom_config=HeadroomConfig(),  # Headroom configuration
+    copium_config=CopiumConfig(),  # Copium configuration
     auto_detect_provider=True,         # Auto-detect from wrapped model
 )
 ```
 
-### HeadroomChatMessageHistory
+### CopiumChatMessageHistory
 
 ```python
-HeadroomChatMessageHistory(
+CopiumChatMessageHistory(
     base_history,                      # Any BaseChatMessageHistory
     compress_threshold_tokens=4000,    # Token threshold for compression
     keep_recent_turns=5,               # Minimum turns to preserve
@@ -567,20 +567,20 @@ HeadroomChatMessageHistory(
 )
 ```
 
-### HeadroomDocumentCompressor
+### CopiumDocumentCompressor
 
 ```python
-HeadroomDocumentCompressor(
+CopiumDocumentCompressor(
     max_documents=10,                  # Maximum docs to return
     min_relevance=0.0,                 # Minimum relevance score (0-1)
     prefer_diverse=False,              # Use MMR for diversity
 )
 ```
 
-### wrap_tools_with_headroom
+### wrap_tools_with_copium
 
 ```python
-wrap_tools_with_headroom(
+wrap_tools_with_copium(
     tools,                             # List of LangChain tools
     min_chars_to_compress=1000,        # Minimum output size
     smart_crusher_config=None,         # SmartCrusher configuration
@@ -592,19 +592,19 @@ wrap_tools_with_headroom(
 ## Import Reference
 
 ```python
-from headroom.integrations import (
+from copium.integrations import (
     # Chat Model
-    HeadroomChatModel,
+    CopiumChatModel,
 
     # Memory
-    HeadroomChatMessageHistory,
+    CopiumChatMessageHistory,
 
     # Retrievers
-    HeadroomDocumentCompressor,
+    CopiumDocumentCompressor,
 
     # Agents
-    HeadroomToolWrapper,
-    wrap_tools_with_headroom,
+    CopiumToolWrapper,
+    wrap_tools_with_copium,
     get_tool_metrics,
     reset_tool_metrics,
 
@@ -614,16 +614,16 @@ from headroom.integrations import (
     track_streaming_response,
 
     # LangSmith
-    HeadroomLangSmithCallbackHandler,
+    CopiumLangSmithCallbackHandler,
 
     # Provider Detection
     detect_provider,
-    get_headroom_provider,
+    get_copium_provider,
 )
 
 # Or import from subpackage directly
-from headroom.integrations.langchain import HeadroomChatModel
-from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+from copium.integrations.langchain import CopiumChatModel
+from copium.integrations.langchain.memory import CopiumChatMessageHistory
 ```
 
 ---
@@ -633,19 +633,19 @@ from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
 ### LangChain not detected
 
 ```python
-from headroom.integrations import langchain_available
+from copium.integrations import langchain_available
 
 if not langchain_available():
-    print("Install with: pip install headroom-ai[langchain]")
+    print("Install with: pip install copium-ai[langchain]")
 ```
 
 ### Provider detection failing
 
 ```python
 # Force a specific provider
-from headroom.providers import AnthropicProvider
+from copium.providers import AnthropicProvider
 
-llm = HeadroomChatModel(
+llm = CopiumChatModel(
     ChatAnthropic(model="claude-3-5-sonnet-20241022"),
     auto_detect_provider=False,
 )
@@ -657,7 +657,7 @@ llm._provider = AnthropicProvider()
 Check that your message count exceeds the threshold:
 
 ```python
-history = HeadroomChatMessageHistory(
+history = CopiumChatMessageHistory(
     base_history,
     compress_threshold_tokens=1000,  # Lower threshold
     keep_recent_turns=2,             # Fewer preserved turns

@@ -2,14 +2,14 @@
 
 Stage 3b verification, post-deletion. The Python implementation has
 been retired; the only remaining `DiffCompressor` is Rust-backed via
-PyO3 (`headroom._core`). These tests guard against regressions by
+PyO3 (`copium._core`). These tests guard against regressions by
 replaying every recorded fixture in
 `tests/parity/fixtures/diff_compressor/` through the Rust backend and
 asserting the output matches the recording byte-for-byte.
 
-Skipped automatically when the `headroom._core` wheel isn't installed
+Skipped automatically when the `copium._core` wheel isn't installed
 (e.g. CI lane without the maturin step). The Rust crate's own
-`cargo run -p headroom-parity` covers the same fixtures from the Rust
+`cargo run -p copium-parity` covers the same fixtures from the Rust
 side; this Python-side test catches PyO3 bridge regressions
 (input/output mistranslation) that the Rust-only test cannot.
 """
@@ -24,7 +24,7 @@ import pytest
 
 def _has_core() -> bool:
     try:
-        import headroom._core  # noqa: F401
+        import copium._core  # noqa: F401
 
         return True
     except ImportError:
@@ -33,7 +33,7 @@ def _has_core() -> bool:
 
 pytestmark = pytest.mark.skipif(
     not _has_core(),
-    reason="headroom._core wheel not installed (run `scripts/build_rust_extension.sh`)",
+    reason="copium._core wheel not installed (run `scripts/build_rust_extension.sh`)",
 )
 
 
@@ -57,10 +57,10 @@ def test_at_least_27_fixtures_present():
 def test_rust_backend_matches_recorded_output(fixture_path: Path):
     """Replay each recorded input through the Rust backend; every output
     field must match the recording. Any mismatch is a PyO3 bridge bug or a
-    real Rust regression (cross-check with `cargo run -p headroom-parity`
+    real Rust regression (cross-check with `cargo run -p copium-parity`
     to localize).
     """
-    from headroom.transforms.diff_compressor import DiffCompressor, DiffCompressorConfig
+    from copium.transforms.diff_compressor import DiffCompressor, DiffCompressorConfig
 
     rec = json.loads(fixture_path.read_text())
     cfg = DiffCompressorConfig(**rec["config"])
@@ -85,7 +85,7 @@ def test_compress_with_stats_returns_python_dataclass_and_pyo3_stats():
     _core.DiffCompressorStats)` tuple. Verify both halves are usable from
     Python — PyO3 doesn't auto-promote the stats class to a dataclass.
     """
-    from headroom.transforms.diff_compressor import (
+    from copium.transforms.diff_compressor import (
         DiffCompressionResult,
         DiffCompressor,
         DiffCompressorConfig,
@@ -108,8 +108,8 @@ def test_content_router_uses_rust_backend():
     left, so this guards against an accidental re-introduction of a
     Python-side stub or fallback.
     """
-    from headroom.transforms.content_router import ContentRouter, ContentRouterConfig
-    from headroom.transforms.diff_compressor import DiffCompressor
+    from copium.transforms.content_router import ContentRouter, ContentRouterConfig
+    from copium.transforms.diff_compressor import DiffCompressor
 
     router = ContentRouter(ContentRouterConfig())
     compressor = router._get_diff_compressor()

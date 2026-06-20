@@ -10,12 +10,12 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from headroom.memory.models import Memory
-from headroom.memory.ports import VectorFilter
+from copium.memory.models import Memory
+from copium.memory.ports import VectorFilter
 
 # Check if hnswlib is available (use lazy check to avoid SIGILL on incompatible CPUs)
 try:
-    from headroom.memory.adapters.hnsw import _check_hnswlib_available
+    from copium.memory.adapters.hnsw import _check_hnswlib_available
 
     HNSW_AVAILABLE = _check_hnswlib_available()
 except ImportError:
@@ -36,7 +36,7 @@ class TestHNSWVectorIndex:
     @pytest.fixture
     def vector_index(self, temp_db_path):
         """Create an HNSW vector index for testing."""
-        from headroom.memory.adapters.hnsw import HNSWVectorIndex
+        from copium.memory.adapters.hnsw import HNSWVectorIndex
 
         return HNSWVectorIndex(dimension=384, save_path=temp_db_path.with_suffix(".hnsw"))
 
@@ -82,7 +82,7 @@ class TestHNSWVectorIndex:
     @pytest.mark.asyncio
     async def test_bounded_index_eviction(self, temp_db_path):
         """Test that bounded index evicts low-importance entries."""
-        from headroom.memory.adapters.hnsw import HNSWVectorIndex
+        from copium.memory.adapters.hnsw import HNSWVectorIndex
 
         # Create bounded index with max 5 entries
         index = HNSWVectorIndex(
@@ -142,7 +142,7 @@ class TestHNSWVectorIndex:
     @pytest.mark.asyncio
     async def test_bounded_index_stats(self, temp_db_path):
         """Test that bounded index reports correct stats."""
-        from headroom.memory.adapters.hnsw import HNSWVectorIndex
+        from copium.memory.adapters.hnsw import HNSWVectorIndex
 
         index = HNSWVectorIndex(
             dimension=384,
@@ -173,7 +173,7 @@ class TestHNSWVectorIndex:
     @pytest.mark.asyncio
     async def test_unbounded_index_no_eviction(self, temp_db_path):
         """Test that unbounded index doesn't evict."""
-        from headroom.memory.adapters.hnsw import HNSWVectorIndex
+        from copium.memory.adapters.hnsw import HNSWVectorIndex
 
         # Create unbounded index (max_entries=None)
         index = HNSWVectorIndex(dimension=384)
@@ -203,7 +203,7 @@ class TestHNSWVectorIndex:
         """Test eviction order: lowest importance first, then oldest."""
         import time
 
-        from headroom.memory.adapters.hnsw import HNSWVectorIndex
+        from copium.memory.adapters.hnsw import HNSWVectorIndex
 
         index = HNSWVectorIndex(
             dimension=384,
@@ -245,7 +245,7 @@ class TestHNSWVectorIndex:
     @pytest.mark.asyncio
     async def test_save_load_preserves_eviction_settings(self, temp_db_path):
         """Test that save/load preserves eviction settings."""
-        from headroom.memory.adapters.hnsw import HNSWVectorIndex
+        from copium.memory.adapters.hnsw import HNSWVectorIndex
 
         index = HNSWVectorIndex(
             dimension=384,

@@ -11,23 +11,23 @@ from unittest.mock import patch
 
 import pytest
 
-from headroom.lean_ctx import get_lean_ctx_path, installer
+from copium.lean_ctx import get_lean_ctx_path, installer
 
 
 def test_get_lean_ctx_path_finds_windows_managed_binary(tmp_path: Path) -> None:
-    managed_dir = tmp_path / ".headroom" / "bin"
+    managed_dir = tmp_path / ".copium" / "bin"
     managed_dir.mkdir(parents=True)
     managed_path = managed_dir / "lean-ctx.exe"
     managed_path.write_bytes(b"binary")
 
-    with patch("headroom.lean_ctx.LEAN_CTX_BIN_DIR", managed_dir):
-        with patch("headroom.lean_ctx.LEAN_CTX_BIN_PATH", managed_dir / "lean-ctx"):
-            with patch("headroom.lean_ctx.shutil.which", return_value=None):
+    with patch("copium.lean_ctx.LEAN_CTX_BIN_DIR", managed_dir):
+        with patch("copium.lean_ctx.LEAN_CTX_BIN_PATH", managed_dir / "lean-ctx"):
+            with patch("copium.lean_ctx.shutil.which", return_value=None):
                 assert get_lean_ctx_path() == managed_path
 
 
 def test_get_target_triple_uses_override(monkeypatch) -> None:
-    monkeypatch.setenv("HEADROOM_LEAN_CTX_TARGET", "x86_64-pc-windows-msvc")
+    monkeypatch.setenv("COPIUM_LEAN_CTX_TARGET", "x86_64-pc-windows-msvc")
     assert installer._get_target_triple() == "x86_64-pc-windows-msvc"
 
 
@@ -46,7 +46,7 @@ def test_detect_runtime_target_triple_handles_linux_musl_arm() -> None:
 
 
 def test_get_download_url_uses_windows_zip(monkeypatch) -> None:
-    monkeypatch.delenv("HEADROOM_LEAN_CTX_TARGET", raising=False)
+    monkeypatch.delenv("COPIUM_LEAN_CTX_TARGET", raising=False)
     monkeypatch.setenv("LEAN_CTX_TARGET", "x86_64-pc-windows-msvc")
 
     url, ext = installer._get_download_url("v1.2.3")
@@ -75,7 +75,7 @@ def test_download_lean_ctx_skips_verify_for_non_native_target(monkeypatch, tmp_p
         def read(self) -> bytes:
             return archive_bytes
 
-    monkeypatch.setenv("HEADROOM_LEAN_CTX_TARGET", "x86_64-apple-darwin")
+    monkeypatch.setenv("COPIUM_LEAN_CTX_TARGET", "x86_64-apple-darwin")
 
     with patch.object(installer, "LEAN_CTX_BIN_DIR", tmp_path):
         with patch.object(installer, "urlopen", return_value=_Response()):
@@ -102,7 +102,7 @@ def test_download_lean_ctx_extracts_zip_binary(monkeypatch, tmp_path: Path) -> N
         def read(self) -> bytes:
             return archive.getvalue()
 
-    monkeypatch.setenv("HEADROOM_LEAN_CTX_TARGET", "x86_64-pc-windows-msvc")
+    monkeypatch.setenv("COPIUM_LEAN_CTX_TARGET", "x86_64-pc-windows-msvc")
 
     with patch.object(installer, "LEAN_CTX_BIN_DIR", tmp_path):
         with patch.object(installer, "urlopen", return_value=_Response()):
@@ -113,7 +113,7 @@ def test_download_lean_ctx_extracts_zip_binary(monkeypatch, tmp_path: Path) -> N
 
 
 def test_download_lean_ctx_verifies_native_target(monkeypatch, tmp_path: Path) -> None:
-    monkeypatch.delenv("HEADROOM_LEAN_CTX_TARGET", raising=False)
+    monkeypatch.delenv("COPIUM_LEAN_CTX_TARGET", raising=False)
     monkeypatch.delenv("LEAN_CTX_TARGET", raising=False)
 
     archive = io.BytesIO()
@@ -169,7 +169,7 @@ def test_download_lean_ctx_rejects_invalid_download_url(tmp_path: Path) -> None:
 
 
 def test_ensure_lean_ctx_returns_none_when_download_fails() -> None:
-    with patch("headroom.lean_ctx.get_lean_ctx_path", return_value=None):
+    with patch("copium.lean_ctx.get_lean_ctx_path", return_value=None):
         with patch.object(
             installer, "download_lean_ctx", side_effect=RuntimeError("download failed")
         ):

@@ -46,12 +46,12 @@ jobs:
           pip install -e ".[proxy]"
           cyclonedx-py environment \
             --output-format json \
-            --outfile dist/headroom-sbom.cdx.json
+            --outfile dist/copium-sbom.cdx.json
 
       - name: Upload SBOM to release
         uses: softprops/action-gh-release@v3
         with:
-          files: dist/headroom-sbom.cdx.json
+          files: dist/copium-sbom.cdx.json
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

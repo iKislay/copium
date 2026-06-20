@@ -1,12 +1,12 @@
 /**
  * Example 05: Multi-Provider Compression
  *
- * Use the same withHeadroom wrapper across different providers.
- * Headroom compresses identically regardless of which LLM you use.
+ * Use the same withCopium wrapper across different providers.
+ * Copium compresses identically regardless of which LLM you use.
  *
  * Run: npx tsx examples/05-multi-provider.ts
  */
-import { withHeadroom } from "headroom-ai/vercel-ai";
+import { withCopium } from "copium-ai/vercel-ai";
 import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
 
@@ -37,14 +37,14 @@ const messages = [
 async function main() {
   // GPT-4o with compression
   console.log("=== OpenAI GPT-4o ===");
-  const gpt = withHeadroom(openai("gpt-4o"));
+  const gpt = withCopium(openai("gpt-4o"));
   const gptResult = await generateText({ model: gpt, messages });
   console.log(gptResult.text);
   console.log(`Tokens: ${gptResult.usage.promptTokens} prompt, ${gptResult.usage.completionTokens} completion\n`);
 
   // GPT-4o-mini with compression (cheaper, faster)
   console.log("=== OpenAI GPT-4o-mini ===");
-  const mini = withHeadroom(openai("gpt-4o-mini"));
+  const mini = withCopium(openai("gpt-4o-mini"));
   const miniResult = await generateText({ model: mini, messages });
   console.log(miniResult.text);
   console.log(`Tokens: ${miniResult.usage.promptTokens} prompt, ${miniResult.usage.completionTokens} completion\n`);

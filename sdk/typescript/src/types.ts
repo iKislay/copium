@@ -1,5 +1,5 @@
 /**
- * Core types for the Headroom TypeScript SDK.
+ * Core types for the Copium TypeScript SDK.
  * Error classes moved to errors.ts — re-exported here for backwards compatibility.
  */
 
@@ -62,12 +62,12 @@ export interface CompressOptions {
   timeout?: number;
   fallback?: boolean;
   retries?: number;
-  client?: HeadroomClientInterface;
+  client?: CopiumClientInterface;
   /** Token budget — compress to fit within this limit. Used for compaction. */
   tokenBudget?: number;
   /** Compression hooks for pre/post processing. */
   hooks?: CompressionHooks;
-  /** Integration slug sent as X-Headroom-Stack (e.g. "adapter_ts_openai"). */
+  /** Integration slug sent as X-Copium-Stack (e.g. "adapter_ts_openai"). */
   stack?: string;
 }
 
@@ -85,17 +85,17 @@ export interface CompressResult {
 
 // --- Client ---
 
-export interface HeadroomClientOptions {
+export interface CopiumClientOptions {
   baseUrl?: string;
   apiKey?: string;
   timeout?: number;
   fallback?: boolean;
   retries?: number;
-  /** Integration slug sent as X-Headroom-Stack on every request. */
+  /** Integration slug sent as X-Copium-Stack on every request. */
   stack?: string;
 }
 
-export interface HeadroomClientInterface {
+export interface CopiumClientInterface {
   compress(
     messages: OpenAIMessage[],
     options?: { model?: string; tokenBudget?: number },
@@ -105,10 +105,10 @@ export interface HeadroomClientInterface {
 // --- Re-export errors for backwards compatibility ---
 
 export {
-  HeadroomError,
-  HeadroomConnectionError,
-  HeadroomAuthError,
-  HeadroomCompressError,
+  CopiumError,
+  CopiumConnectionError,
+  CopiumAuthError,
+  CopiumCompressError,
   ConfigurationError,
   ProviderError,
   StorageError,

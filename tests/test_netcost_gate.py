@@ -1,6 +1,6 @@
 """Net-cost mutation gate in ContentRouter (#856 P2, flag-gated).
 
-``HEADROOM_NET_COST_POLICY=1`` routes every router mutation candidate
+``COPIUM_NET_COST_POLICY=1`` routes every router mutation candidate
 through ``CompressionPolicy.net_mutation_gain`` with the issue's v1
 estimators (exact ΔT, S = token total after the slot, env-tunable R and
 P_alive). Flag off (default) preserves exact current behavior.
@@ -12,8 +12,8 @@ import json
 
 import pytest
 
-from headroom import OpenAIProvider, Tokenizer
-from headroom.transforms.content_router import ContentRouter, ContentRouterConfig
+from copium import OpenAIProvider, Tokenizer
+from copium.transforms.content_router import ContentRouter, ContentRouterConfig
 
 _provider = OpenAIProvider()
 
@@ -50,7 +50,7 @@ def _tool_slot_compressed(result, messages) -> bool:
 
 class TestNetCostGate:
     def test_flag_off_compresses_as_before(self, router, tokenizer, monkeypatch):
-        monkeypatch.delenv("HEADROOM_NET_COST_POLICY", raising=False)
+        monkeypatch.delenv("COPIUM_NET_COST_POLICY", raising=False)
         messages = _messages(_tool_json(300), suffix_filler_words=4000)
         result = router.apply([dict(m) for m in messages], tokenizer)
         assert _tool_slot_compressed(result, messages)
@@ -59,7 +59,7 @@ class TestNetCostGate:
     def test_flag_on_blocks_when_suffix_dominates(self, router, tokenizer, monkeypatch):
         # Big suffix after a modest shave: corrected formula says the cache
         # invalidation outweighs the saving -> slot left untouched.
-        monkeypatch.setenv("HEADROOM_NET_COST_POLICY", "1")
+        monkeypatch.setenv("COPIUM_NET_COST_POLICY", "1")
         messages = _messages(_tool_json(300), suffix_filler_words=40000)
         result = router.apply([dict(m) for m in messages], tokenizer)
         assert not _tool_slot_compressed(result, messages)
@@ -67,7 +67,7 @@ class TestNetCostGate:
 
     def test_flag_on_allows_when_shave_dominates(self, router, tokenizer, monkeypatch):
         # Tiny suffix after a huge shave -> gate allows, compression applies.
-        monkeypatch.setenv("HEADROOM_NET_COST_POLICY", "1")
+        monkeypatch.setenv("COPIUM_NET_COST_POLICY", "1")
         messages = _messages(_tool_json(2000), suffix_filler_words=5)
         result = router.apply([dict(m) for m in messages], tokenizer)
         assert _tool_slot_compressed(result, messages)
@@ -77,19 +77,19 @@ class TestNetCostGate:
         # First apply warms the result cache with the flag off; second apply
         # with the flag on must still gate the cache-hit path.
         messages = _messages(_tool_json(300), suffix_filler_words=40000)
-        monkeypatch.delenv("HEADROOM_NET_COST_POLICY", raising=False)
+        monkeypatch.delenv("COPIUM_NET_COST_POLICY", raising=False)
         warm = router.apply([dict(m) for m in messages], tokenizer)
         assert _tool_slot_compressed(warm, messages)
 
-        monkeypatch.setenv("HEADROOM_NET_COST_POLICY", "1")
+        monkeypatch.setenv("COPIUM_NET_COST_POLICY", "1")
         gated = router.apply([dict(m) for m in messages], tokenizer)
         assert not _tool_slot_compressed(gated, messages)
         assert any(t.startswith("netcost:skip:") for t in gated.transforms_applied)
 
     def test_malformed_env_falls_back_to_defaults(self, router, tokenizer, monkeypatch):
-        monkeypatch.setenv("HEADROOM_NET_COST_POLICY", "1")
-        monkeypatch.setenv("HEADROOM_NET_COST_EXPECTED_READS", "lots")
-        monkeypatch.setenv("HEADROOM_NET_COST_P_ALIVE", "warm")
+        monkeypatch.setenv("COPIUM_NET_COST_POLICY", "1")
+        monkeypatch.setenv("COPIUM_NET_COST_EXPECTED_READS", "lots")
+        monkeypatch.setenv("COPIUM_NET_COST_P_ALIVE", "warm")
         messages = _messages(_tool_json(300), suffix_filler_words=40000)
         # Must not raise; defaults (R=10, P=1) still block this scenario.
         result = router.apply([dict(m) for m in messages], tokenizer)
@@ -97,8 +97,8 @@ class TestNetCostGate:
 
     def test_p_alive_zero_disables_penalty(self, router, tokenizer, monkeypatch):
         # Cold cache (P_alive=0): no suffix penalty, mutation always wins.
-        monkeypatch.setenv("HEADROOM_NET_COST_POLICY", "1")
-        monkeypatch.setenv("HEADROOM_NET_COST_P_ALIVE", "0")
+        monkeypatch.setenv("COPIUM_NET_COST_POLICY", "1")
+        monkeypatch.setenv("COPIUM_NET_COST_P_ALIVE", "0")
         messages = _messages(_tool_json(300), suffix_filler_words=40000)
         result = router.apply([dict(m) for m in messages], tokenizer)
         assert _tool_slot_compressed(result, messages)
@@ -107,9 +107,9 @@ class TestNetCostGate:
         # ``float("inf")``/``float("nan")`` parse without ValueError; the gate
         # must reject them and fall back to defaults so telemetry isn't
         # poisoned. With R=10/P=1 defaults this scenario still skips.
-        monkeypatch.setenv("HEADROOM_NET_COST_POLICY", "1")
-        monkeypatch.setenv("HEADROOM_NET_COST_EXPECTED_READS", "inf")
-        monkeypatch.setenv("HEADROOM_NET_COST_P_ALIVE", "nan")
+        monkeypatch.setenv("COPIUM_NET_COST_POLICY", "1")
+        monkeypatch.setenv("COPIUM_NET_COST_EXPECTED_READS", "inf")
+        monkeypatch.setenv("COPIUM_NET_COST_P_ALIVE", "nan")
         messages = _messages(_tool_json(300), suffix_filler_words=40000)
         result = router.apply([dict(m) for m in messages], tokenizer)
         assert not _tool_slot_compressed(result, messages)
@@ -135,7 +135,7 @@ _GAIN_BANDS = {
 
 class TestNetCostHelpers:
     def test_gain_bucket_bands_and_sign(self):
-        from headroom.transforms.content_router import _gain_bucket
+        from copium.transforms.content_router import _gain_bucket
 
         assert _gain_bucket(0) == "0"
         assert _gain_bucket(50) == "lt100"
@@ -150,7 +150,7 @@ class TestNetCostHelpers:
     def test_message_tokens_block_list_beats_repr(self, tokenizer):
         # str(content) over a block list counts repr punctuation/type names;
         # the block-aware helper counts only the text-bearing payload.
-        from headroom.transforms.content_router import _netcost_message_tokens
+        from copium.transforms.content_router import _netcost_message_tokens
 
         text = "word " * 200
         block_msg = {
@@ -168,7 +168,7 @@ class TestNetCostHelpers:
         assert helper < tokenizer.count_text(str(block_msg["content"]))
 
     def test_message_tokens_tool_result_blocks(self, tokenizer):
-        from headroom.transforms.content_router import _netcost_message_tokens
+        from copium.transforms.content_router import _netcost_message_tokens
 
         payload = "log line " * 100
         msg = {
@@ -184,7 +184,7 @@ class TestNetCostHelpers:
         assert _netcost_message_tokens(msg, tokenizer) >= tokenizer.count_text(payload) * 0.8
 
     def test_message_tokens_string_content(self, tokenizer):
-        from headroom.transforms.content_router import _netcost_message_tokens
+        from copium.transforms.content_router import _netcost_message_tokens
 
         s = "plain string content " * 50
         assert _netcost_message_tokens({"role": "user", "content": s}, tokenizer) == (
@@ -210,7 +210,7 @@ class TestNetCostFrozenUnlock:
     def test_flag_off_frozen_stays_frozen(self, router, tokenizer, monkeypatch):
         # Default (flag off): a message in the prefix cache is never mutated,
         # however compressible it is — the binary floor wins.
-        monkeypatch.delenv("HEADROOM_NET_COST_POLICY", raising=False)
+        monkeypatch.delenv("COPIUM_NET_COST_POLICY", raising=False)
         messages = _frozen_messages(_tool_json(2000), suffix_filler_words=5)
         result = router.apply([dict(m) for m in messages], tokenizer, frozen_message_count=2)
         assert not _tool_slot_compressed(result, messages)
@@ -220,7 +220,7 @@ class TestNetCostFrozenUnlock:
         # Huge shave deep in the frozen zone, tiny suffix after -> the
         # break-even gate clears the deep edit and it proceeds (the "50K
         # stale dump, 10K suffix" user story).
-        monkeypatch.setenv("HEADROOM_NET_COST_POLICY", "1")
+        monkeypatch.setenv("COPIUM_NET_COST_POLICY", "1")
         messages = _frozen_messages(_tool_json(2000), suffix_filler_words=5)
         result = router.apply([dict(m) for m in messages], tokenizer, frozen_message_count=2)
         assert _tool_slot_compressed(result, messages)
@@ -231,7 +231,7 @@ class TestNetCostFrozenUnlock:
         # but rejects it. The frozen message is left byte-identical and no
         # unlock marker is emitted, proving the floor opened yet the formula
         # still protected the cache.
-        monkeypatch.setenv("HEADROOM_NET_COST_POLICY", "1")
+        monkeypatch.setenv("COPIUM_NET_COST_POLICY", "1")
         messages = _frozen_messages(_tool_json(300), suffix_filler_words=40000)
         result = router.apply([dict(m) for m in messages], tokenizer, frozen_message_count=2)
         assert not _tool_slot_compressed(result, messages)
@@ -242,7 +242,7 @@ class TestNetCostFrozenUnlock:
         # The gate is wired into the string and parallel-merge paths only;
         # block-list frozen content (whose per-block cache_control contract
         # is not net-cost aware) stays frozen even with a tiny suffix.
-        monkeypatch.setenv("HEADROOM_NET_COST_POLICY", "1")
+        monkeypatch.setenv("COPIUM_NET_COST_POLICY", "1")
         big = "log line of output " * 400
         messages = [
             {"role": "user", "content": "fetch"},
@@ -292,7 +292,7 @@ class TestNetCostBatchReclaim:
 
     def test_flag_off_no_batch_marker(self, router, tokenizer, monkeypatch):
         # Without the flag the batch path is inert -- no marker, no counter.
-        monkeypatch.delenv("HEADROOM_NET_COST_POLICY", raising=False)
+        monkeypatch.delenv("COPIUM_NET_COST_POLICY", raising=False)
         messages = self._convo(_tool_json(2000), _tool_json(800), filler_words=5)
         original = [dict(m) for m in messages]
         result = router.apply([dict(m) for m in messages], tokenizer)
@@ -304,7 +304,7 @@ class TestNetCostBatchReclaim:
     def test_deeper_edit_rides_free(self, router, tokenizer, monkeypatch):
         # Slot 1 (huge shave) admits on its own merit and opens the floor;
         # slot 2 then admits via the batch reclaim path and emits the marker.
-        monkeypatch.setenv("HEADROOM_NET_COST_POLICY", "1")
+        monkeypatch.setenv("COPIUM_NET_COST_POLICY", "1")
         messages = self._convo(_tool_json(2000), _tool_json(800), filler_words=5)
         original = [dict(m) for m in messages]
         result = router.apply([dict(m) for m in messages], tokenizer)
@@ -319,7 +319,7 @@ class TestNetCostBatchReclaim:
         # own S, but slot 1's admit already busted the suffix -- so slot 2 rides
         # free. Pairs with test_no_prior_admit_keeps_block, which shows the same
         # slot-2 config stays blocked when no shallower edit opens the floor.
-        monkeypatch.setenv("HEADROOM_NET_COST_POLICY", "1")
+        monkeypatch.setenv("COPIUM_NET_COST_POLICY", "1")
         messages = self._convo(_tool_json(2000), _tool_json(300), filler_words=4000)
         original = [dict(m) for m in messages]
         result = router.apply([dict(m) for m in messages], tokenizer)
@@ -332,7 +332,7 @@ class TestNetCostBatchReclaim:
         # suffix), so the floor is never opened and no slot rides free. Guards
         # against a floor-init / off-by-one bug that would grant a free ride
         # with no genuine shallower mutation behind it.
-        monkeypatch.setenv("HEADROOM_NET_COST_POLICY", "1")
+        monkeypatch.setenv("COPIUM_NET_COST_POLICY", "1")
         messages = self._convo(_tool_json(300), _tool_json(300), filler_words=40000)
         original = [dict(m) for m in messages]
         result = router.apply([dict(m) for m in messages], tokenizer)
@@ -344,7 +344,7 @@ class TestNetCostBatchReclaim:
         # Two frozen string slots inside the prefix (frozen_message_count=3).
         # Slot 1 unlocks and sets the floor; slot 2 unlocks AND rides free.
         # Slot 2 carries both markers; the batch counter must not double-count.
-        monkeypatch.setenv("HEADROOM_NET_COST_POLICY", "1")
+        monkeypatch.setenv("COPIUM_NET_COST_POLICY", "1")
         messages = self._convo(_tool_json(2000), _tool_json(800), filler_words=5)
         original = [dict(m) for m in messages]
         result = router.apply([dict(m) for m in messages], tokenizer, frozen_message_count=3)
@@ -369,7 +369,7 @@ class TestNetCostIdleCompaction:
     def test_idle_near_ttl_unlocks_blocked_edit(self, router, tokenizer, monkeypatch):
         # idle ~= cache TTL (default 300s) -> P_alive ~= 0 -> penalty ~= 0 ->
         # the otherwise-blocked deep edit is admitted and marked.
-        monkeypatch.setenv("HEADROOM_NET_COST_POLICY", "1")
+        monkeypatch.setenv("COPIUM_NET_COST_POLICY", "1")
         messages = _messages(_tool_json(300), suffix_filler_words=40000)
         result = router.apply([dict(m) for m in messages], tokenizer, idle_seconds=295.0)
         assert _tool_slot_compressed(result, messages)
@@ -379,7 +379,7 @@ class TestNetCostIdleCompaction:
     def test_idle_zero_matches_constant_baseline(self, router, tokenizer, monkeypatch):
         # idle=0 -> P_alive=1.0, identical to the env-constant default: the
         # edit stays blocked and no idle marker is emitted.
-        monkeypatch.setenv("HEADROOM_NET_COST_POLICY", "1")
+        monkeypatch.setenv("COPIUM_NET_COST_POLICY", "1")
         messages = _messages(_tool_json(300), suffix_filler_words=40000)
         result = router.apply([dict(m) for m in messages], tokenizer, idle_seconds=0.0)
         assert not _tool_slot_compressed(result, messages)
@@ -388,7 +388,7 @@ class TestNetCostIdleCompaction:
 
     def test_idle_absent_uses_env_constant(self, router, tokenizer, monkeypatch):
         # No idle_seconds kwarg -> override is None -> P2 env-constant path.
-        monkeypatch.setenv("HEADROOM_NET_COST_POLICY", "1")
+        monkeypatch.setenv("COPIUM_NET_COST_POLICY", "1")
         messages = _messages(_tool_json(300), suffix_filler_words=40000)
         result = router.apply([dict(m) for m in messages], tokenizer)
         assert not _tool_slot_compressed(result, messages)
@@ -397,7 +397,7 @@ class TestNetCostIdleCompaction:
     def test_malformed_idle_falls_back_to_constant(self, router, tokenizer, monkeypatch):
         # Non-numeric idle_seconds is ignored (override stays None), so the
         # gate keeps the constant behaviour rather than crashing the request.
-        monkeypatch.setenv("HEADROOM_NET_COST_POLICY", "1")
+        monkeypatch.setenv("COPIUM_NET_COST_POLICY", "1")
         messages = _messages(_tool_json(300), suffix_filler_words=40000)
         result = router.apply([dict(m) for m in messages], tokenizer, idle_seconds="soon")
         assert not _tool_slot_compressed(result, messages)
@@ -405,8 +405,8 @@ class TestNetCostIdleCompaction:
 
     def test_custom_ttl_env_controls_decay(self, router, tokenizer, monkeypatch):
         # A shorter TTL makes the same idle fully decay P_alive -> unlock.
-        monkeypatch.setenv("HEADROOM_NET_COST_POLICY", "1")
-        monkeypatch.setenv("HEADROOM_NET_COST_CACHE_TTL_SECONDS", "60")
+        monkeypatch.setenv("COPIUM_NET_COST_POLICY", "1")
+        monkeypatch.setenv("COPIUM_NET_COST_CACHE_TTL_SECONDS", "60")
         messages = _messages(_tool_json(300), suffix_filler_words=40000)
         result = router.apply([dict(m) for m in messages], tokenizer, idle_seconds=59.0)
         assert _tool_slot_compressed(result, messages)

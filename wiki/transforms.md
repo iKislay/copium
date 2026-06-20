@@ -1,6 +1,6 @@
 # Transform Reference
 
-Headroom provides several transforms that work together to optimize LLM context.
+Copium provides several transforms that work together to optimize LLM context.
 
 ## SmartCrusher
 
@@ -19,7 +19,7 @@ SmartCrusher analyzes JSON arrays and selectively keeps important items:
 ### Configuration
 
 ```python
-from headroom import SmartCrusherConfig
+from copium import SmartCrusherConfig
 
 config = SmartCrusherConfig(
     min_tokens_to_crush=200,      # Only compress if > 200 tokens
@@ -35,7 +35,7 @@ config = SmartCrusherConfig(
 ### Example
 
 ```python
-from headroom import SmartCrusher
+from copium import SmartCrusher
 
 crusher = SmartCrusher(config)
 
@@ -76,7 +76,7 @@ LLM providers cache request prefixes. But dynamic content breaks caching:
 CacheAligner extracts dynamic content to stabilize the prefix:
 
 ```python
-from headroom import CacheAligner
+from copium import CacheAligner
 
 aligner = CacheAligner()
 result = aligner.align(messages)
@@ -91,7 +91,7 @@ result = aligner.align(messages)
 ### Configuration
 
 ```python
-from headroom import CacheAlignerConfig
+from copium import CacheAlignerConfig
 
 config = CacheAlignerConfig(
     extract_dates=True,           # Move dates to dynamic section
@@ -128,7 +128,7 @@ Long conversations exceed context limits. Naive truncation breaks tool calls:
 RollingWindow drops complete tool units, preserving pairs:
 
 ```python
-from headroom import RollingWindow
+from copium import RollingWindow
 
 window = RollingWindow(config)
 result = window.apply(messages, max_tokens=100000)
@@ -143,7 +143,7 @@ result = window.apply(messages, max_tokens=100000)
 ### Configuration
 
 ```python
-from headroom import RollingWindowConfig
+from copium import RollingWindowConfig
 
 config = RollingWindowConfig(
     max_tokens=100000,            # Target token limit
@@ -181,7 +181,7 @@ RollingWindow drops messages by position (oldest first), but position doesn't eq
 IntelligentContextManager uses multi-factor importance scoring:
 
 ```python
-from headroom.transforms import IntelligentContextManager, IntelligentContextConfig
+from copium.transforms import IntelligentContextManager, IntelligentContextConfig
 
 manager = IntelligentContextManager(config)
 result = manager.apply(messages, tokenizer, model_limit=128000)
@@ -211,8 +211,8 @@ Messages are scored on multiple factors (all learned, no hardcodes):
 ### Configuration
 
 ```python
-from headroom.transforms import IntelligentContextManager
-from headroom.config import IntelligentContextConfig, ScoringWeights
+from copium.transforms import IntelligentContextManager
+from copium.config import IntelligentContextConfig, ScoringWeights
 
 # Custom scoring weights
 weights = ScoringWeights(
@@ -261,7 +261,7 @@ IntelligentContextManager is a **message-level compressor**. Just like SmartCrus
 4. **Retrievals feed back to TOIN**: If users retrieve dropped messages, TOIN learns to score those patterns higher
 
 ```python
-from headroom.telemetry import get_toin
+from copium.telemetry import get_toin
 
 toin = get_toin()
 manager = IntelligentContextManager(config, toin=toin)
@@ -308,7 +308,7 @@ Result: Preserves critical error message
 Convert from RollingWindowConfig:
 
 ```python
-from headroom.config import IntelligentContextConfig, RollingWindowConfig
+from copium.config import IntelligentContextConfig, RollingWindowConfig
 
 rolling_config = RollingWindowConfig(
     max_tokens=100000,
@@ -329,9 +329,9 @@ intelligent_config = IntelligentContextConfig(
 
 The earlier LLMLingua-2 integration (`LLMLinguaCompressor`,
 `LLMLinguaConfig`, `is_llmlingua_model_loaded`, `unload_llmlingua_model`,
-the `headroom-ai[llmlingua]` extra, and the `--llmlingua` proxy flag)
+the `copium-ai[llmlingua]` extra, and the `--llmlingua` proxy flag)
 was retired in 0.9.x and replaced by **Kompress** (ModernBERT).
-`pip install 'headroom-ai[llmlingua]'` no longer resolves; use the
+`pip install 'copium-ai[llmlingua]'` no longer resolves; use the
 `[ml]` extra instead. The Kompress transform shipped with the proxy
 runs as Transform 4 in the live-zone pipeline (see
 [ARCHITECTURE.md](ARCHITECTURE.md)).
@@ -360,13 +360,13 @@ AST-based compression for source code using tree-sitter.
 ### Installation
 
 ```bash
-pip install "headroom-ai[code]"  # Adds tree-sitter-language-pack
+pip install "copium-ai[code]"  # Adds tree-sitter-language-pack
 ```
 
 ### Configuration
 
 ```python
-from headroom.transforms import CodeAwareCompressor, CodeCompressorConfig, DocstringMode
+from copium.transforms import CodeAwareCompressor, CodeCompressorConfig, DocstringMode
 
 config = CodeCompressorConfig(
     preserve_imports=True,              # Always keep imports
@@ -387,7 +387,7 @@ compressor = CodeAwareCompressor(config)
 ### Example
 
 ```python
-from headroom.transforms import CodeAwareCompressor
+from copium.transforms import CodeAwareCompressor
 
 compressor = CodeAwareCompressor()
 
@@ -432,7 +432,7 @@ print(f"Syntax valid: {result.syntax_valid}")  # True
 ### Memory Management
 
 ```python
-from headroom.transforms import is_tree_sitter_available, unload_tree_sitter
+from copium.transforms import is_tree_sitter_available, unload_tree_sitter
 
 # Check if tree-sitter is installed
 print(is_tree_sitter_available())  # True/False
@@ -459,7 +459,7 @@ ContentRouter analyzes content and selects the best compression strategy:
 ### Configuration
 
 ```python
-from headroom.transforms import ContentRouter, ContentRouterConfig, CompressionStrategy
+from copium.transforms import ContentRouter, ContentRouterConfig, CompressionStrategy
 
 config = ContentRouterConfig(
     min_section_tokens=100,             # Minimum tokens to compress
@@ -475,7 +475,7 @@ router = ContentRouter(config)
 ### Example
 
 ```python
-from headroom.transforms import ContentRouter
+from copium.transforms import ContentRouter
 
 router = ContentRouter()
 
@@ -528,7 +528,7 @@ This enables the feedback loop where compression decisions improve based on actu
 Combine transforms for optimal results.
 
 ```python
-from headroom import TransformPipeline, SmartCrusher, CacheAligner, RollingWindow
+from copium import TransformPipeline, SmartCrusher, CacheAligner, RollingWindow
 
 pipeline = TransformPipeline([
     SmartCrusher(),      # First: compress tool outputs

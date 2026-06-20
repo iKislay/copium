@@ -12,8 +12,8 @@ pytest.importorskip("fastapi")
 
 from fastapi.testclient import TestClient
 
-from headroom.proxy.handlers.anthropic import AnthropicHandlerMixin
-from headroom.proxy.server import ProxyConfig, create_app
+from copium.proxy.handlers.anthropic import AnthropicHandlerMixin
+from copium.proxy.server import ProxyConfig, create_app
 
 
 class _FakePrefixTracker:
@@ -410,7 +410,7 @@ def test_memory_context_avoids_system_mutation_when_prefix_frozen() -> None:
             headers={
                 "x-api-key": "test-key",
                 "anthropic-version": "2023-06-01",
-                "x-headroom-user-id": "u1",
+                "x-copium-user-id": "u1",
             },
             json={
                 "model": "claude-sonnet-4-6",
@@ -462,7 +462,7 @@ def test_ccr_system_instruction_injection_disabled_when_prefix_frozen(monkeypatc
             def scan_for_markers(self, messages):  # noqa: ANN001
                 return []
 
-        monkeypatch.setattr("headroom.ccr.CCRToolInjector", _FakeInjector)
+        monkeypatch.setattr("copium.ccr.CCRToolInjector", _FakeInjector)
 
         async def _fake_retry(method, url, headers, body, stream=False, **kwargs):  # noqa: ANN001
             return httpx.Response(
@@ -529,7 +529,7 @@ def test_ccr_tool_injection_disabled_when_prefix_frozen(monkeypatch) -> None:
             def scan_for_markers(self, messages):  # noqa: ANN001
                 return []
 
-        monkeypatch.setattr("headroom.ccr.CCRToolInjector", _FakeInjector)
+        monkeypatch.setattr("copium.ccr.CCRToolInjector", _FakeInjector)
 
         async def _fake_retry(method, url, headers, body, stream=False, **kwargs):  # noqa: ANN001
             return httpx.Response(
@@ -761,7 +761,7 @@ def test_token_mode_does_not_force_freeze_all_previous_turns() -> None:
         )
 
         assert response.status_code == 200
-        # In token_headroom mode, mark_stable_from_messages marks prior turns
+        # In token_copium mode, mark_stable_from_messages marks prior turns
         # as stable, so frozen count reflects the number of prior-turn messages.
         # The compression cache's compute_frozen_count returns 0 (no cached
         # compressions yet), but mark_stable marks previous turns as frozen

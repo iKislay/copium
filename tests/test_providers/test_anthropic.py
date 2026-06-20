@@ -5,17 +5,17 @@ import pytest
 
 class TestAnthropicModelSanitization:
     def test_sanitize_model_id_removes_ansi_escape_sequences(self):
-        from headroom.providers.anthropic import sanitize_anthropic_model_id
+        from copium.providers.anthropic import sanitize_anthropic_model_id
 
         assert sanitize_anthropic_model_id("claude-opus-4-8\x1b[1m") == "claude-opus-4-8"
 
     def test_sanitize_model_id_removes_displayed_style_suffix(self):
-        from headroom.providers.anthropic import sanitize_anthropic_model_id
+        from copium.providers.anthropic import sanitize_anthropic_model_id
 
         assert sanitize_anthropic_model_id("claude-opus-4-8[1m]") == "claude-opus-4-8"
 
     def test_sanitize_model_metadata_cleans_nested_model_ids(self):
-        from headroom.providers.anthropic import sanitize_anthropic_model_metadata
+        from copium.providers.anthropic import sanitize_anthropic_model_metadata
 
         payload = {
             "data": [
@@ -37,7 +37,7 @@ class TestAnthropicModelSanitization:
 class TestAnthropicTokenCounting:
     @pytest.fixture
     def anthropic_provider(self):
-        from headroom.providers.anthropic import AnthropicProvider
+        from copium.providers.anthropic import AnthropicProvider
 
         return AnthropicProvider()
 
@@ -62,7 +62,7 @@ class TestAnthropicTokenCounting:
 class TestAnthropicModelLimits:
     @pytest.fixture
     def anthropic_provider(self):
-        from headroom.providers.anthropic import AnthropicProvider
+        from copium.providers.anthropic import AnthropicProvider
 
         return AnthropicProvider()
 
@@ -93,7 +93,7 @@ class TestAnthropicModelLimits:
 class TestAnthropicCostEstimation:
     @pytest.fixture
     def anthropic_provider(self):
-        from headroom.providers.anthropic import AnthropicProvider
+        from copium.providers.anthropic import AnthropicProvider
 
         return AnthropicProvider()
 

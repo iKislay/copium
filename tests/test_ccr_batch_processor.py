@@ -13,19 +13,19 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from headroom.ccr.batch_processor import (
+from copium.ccr.batch_processor import (
     BatchResultProcessor,
     BatchResultProcessorConfig,
     ProcessedBatchResult,
     process_batch_results,
 )
-from headroom.ccr.batch_store import (
+from copium.ccr.batch_store import (
     BatchContext,
     BatchContextStore,
     BatchRequestContext,
     reset_batch_context_store,
 )
-from headroom.ccr.tool_injection import CCR_TOOL_NAME
+from copium.ccr.tool_injection import CCR_TOOL_NAME
 
 
 class TestBatchResultProcessorConfig:
@@ -546,7 +546,7 @@ class TestProcessResults:
         await store.store(context)
 
         with patch(
-            "headroom.ccr.batch_processor.get_batch_context_store",
+            "copium.ccr.batch_processor.get_batch_context_store",
             return_value=store,
         ):
             results = [
@@ -579,7 +579,7 @@ class TestProcessResults:
         await store.store(context)
 
         with patch(
-            "headroom.ccr.batch_processor.get_batch_context_store",
+            "copium.ccr.batch_processor.get_batch_context_store",
             return_value=store,
         ):
             results = [
@@ -963,7 +963,7 @@ class TestErrorHandling:
         processor._process_single_result = AsyncMock(side_effect=Exception("Processing failed"))
 
         with patch(
-            "headroom.ccr.batch_processor.get_batch_context_store",
+            "copium.ccr.batch_processor.get_batch_context_store",
             return_value=store,
         ):
             results = [
@@ -1034,7 +1034,7 @@ class TestMultipleResultsProcessing:
         await store.store(context)
 
         with patch(
-            "headroom.ccr.batch_processor.get_batch_context_store",
+            "copium.ccr.batch_processor.get_batch_context_store",
             return_value=store,
         ):
             results = [

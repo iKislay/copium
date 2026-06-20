@@ -28,7 +28,7 @@ class TestTOINConfidenceMathFix:
 
     def test_confidence_user_boost_at_3_users(self):
         """With 3 users (min for network effect), boost should be meaningful."""
-        from headroom.telemetry.toin import (
+        from copium.telemetry.toin import (
             TOINConfig,
             ToolIntelligenceNetwork,
             ToolPattern,
@@ -60,7 +60,7 @@ class TestTOINConfidenceMathFix:
 
     def test_confidence_user_boost_at_10_users(self):
         """With 10 users, boost should hit or approach cap."""
-        from headroom.telemetry.toin import (
+        from copium.telemetry.toin import (
             TOINConfig,
             ToolIntelligenceNetwork,
             ToolPattern,
@@ -101,8 +101,8 @@ class TestTOINDoubleCountFix:
 
     def test_user_count_no_double_counting_after_cap(self):
         """Same instance shouldn't be counted twice even after cap hit."""
-        from headroom.telemetry.models import ToolSignature
-        from headroom.telemetry.toin import TOINConfig, ToolIntelligenceNetwork, reset_toin
+        from copium.telemetry.models import ToolSignature
+        from copium.telemetry.toin import TOINConfig, ToolIntelligenceNetwork, reset_toin
 
         reset_toin()
         toin = ToolIntelligenceNetwork(TOINConfig())
@@ -158,11 +158,11 @@ class TestCompressionFeedbackRaceCondition:
 
     def test_analyze_from_store_thread_safety(self):
         """Concurrent analyze_from_store and record_retrieval should not lose events."""
-        from headroom.cache.compression_feedback import (
+        from copium.cache.compression_feedback import (
             CompressionFeedback,
             reset_compression_feedback,
         )
-        from headroom.cache.compression_store import CompressionStore, RetrievalEvent
+        from copium.cache.compression_store import CompressionStore, RetrievalEvent
 
         reset_compression_feedback()
 
@@ -203,11 +203,11 @@ class TestCompressionFeedbackRaceCondition:
 
     def test_timestamp_filtering_inside_lock(self):
         """Verify that timestamp filtering happens atomically with update."""
-        from headroom.cache.compression_feedback import (
+        from copium.cache.compression_feedback import (
             CompressionFeedback,
             reset_compression_feedback,
         )
-        from headroom.cache.compression_store import CompressionStore, RetrievalEvent
+        from copium.cache.compression_store import CompressionStore, RetrievalEvent
 
         reset_compression_feedback()
         store = CompressionStore()
@@ -272,11 +272,11 @@ class TestUnboundedStrategyDicts:
 
     def test_strategy_dicts_have_size_limits(self):
         """Strategy dicts should be bounded to prevent memory leaks."""
-        from headroom.cache.compression_feedback import (
+        from copium.cache.compression_feedback import (
             CompressionFeedback,
             reset_compression_feedback,
         )
-        from headroom.cache.compression_store import CompressionStore
+        from copium.cache.compression_store import CompressionStore
 
         reset_compression_feedback()
         store = CompressionStore()

@@ -1,10 +1,10 @@
 """Tests for startup log noise suppression.
 
 Covers the fixes in:
-- headroom/memory/adapters/embedders.py (HF env vars, httpx logger)
-- headroom/providers/anthropic.py (warn=False suppresses tiktoken warning)
-- headroom/providers/litellm.py (suppress_debug_info, set_verbose)
-- headroom/transforms/html_extractor.py (trafilatura logger CRITICAL)
+- copium/memory/adapters/embedders.py (HF env vars, httpx logger)
+- copium/providers/anthropic.py (warn=False suppresses tiktoken warning)
+- copium/providers/litellm.py (suppress_debug_info, set_verbose)
+- copium/transforms/html_extractor.py (trafilatura logger CRITICAL)
 """
 
 from __future__ import annotations
@@ -22,8 +22,8 @@ class TestAnthropicWarnParameter:
 
     def test_warn_true_emits_warning_without_client(self):
         """Default warn=True should emit UserWarning when no client is given."""
-        import headroom.providers.anthropic as _mod
-        from headroom.providers.anthropic import AnthropicProvider
+        import copium.providers.anthropic as _mod
+        from copium.providers.anthropic import AnthropicProvider
 
         # Only runs if the module-level dedup flag hasn't fired yet in this process;
         # we reset it to guarantee the warning fires.
@@ -46,8 +46,8 @@ class TestAnthropicWarnParameter:
 
     def test_warn_false_suppresses_warning(self):
         """warn=False must produce zero UserWarnings about tiktoken fallback."""
-        import headroom.providers.anthropic as _mod
-        from headroom.providers.anthropic import AnthropicProvider
+        import copium.providers.anthropic as _mod
+        from copium.providers.anthropic import AnthropicProvider
 
         original = _mod._FALLBACK_WARNING_SHOWN
         _mod._FALLBACK_WARNING_SHOWN = False
@@ -72,7 +72,7 @@ class TestAnthropicWarnParameter:
         """The internal proxy provider registry must pass warn=False to AnthropicProvider."""
         import inspect
 
-        from headroom.providers import registry as _registry_mod
+        from copium.providers import registry as _registry_mod
 
         source = inspect.getsource(_registry_mod)
         assert "AnthropicProvider(warn=False)" in source, (
@@ -81,11 +81,11 @@ class TestAnthropicWarnParameter:
 
 
 class TestEmbedderLogLevels:
-    """headroom.memory.adapters.embedders must set specific logger levels at import time."""
+    """copium.memory.adapters.embedders must set specific logger levels at import time."""
 
     def test_huggingface_hub_logger_is_error_or_higher(self):
         """huggingface_hub logger must be silenced to ERROR or above."""
-        import headroom.memory.adapters.embedders  # noqa: F401
+        import copium.memory.adapters.embedders  # noqa: F401
 
         level = logging.getLogger("huggingface_hub").level
         assert level >= logging.ERROR, (
@@ -94,7 +94,7 @@ class TestEmbedderLogLevels:
 
     def test_httpx_logger_is_warning_or_higher(self):
         """httpx logger must be set to WARNING or above to suppress HEAD request INFO lines."""
-        import headroom.memory.adapters.embedders  # noqa: F401
+        import copium.memory.adapters.embedders  # noqa: F401
 
         level = logging.getLogger("httpx").level
         assert level >= logging.WARNING, (
@@ -105,7 +105,7 @@ class TestEmbedderLogLevels:
         """HF Hub env vars to disable progress bars and implicit tokens must be set."""
         import os
 
-        import headroom.memory.adapters.embedders  # noqa: F401
+        import copium.memory.adapters.embedders  # noqa: F401
 
         assert os.environ.get("HF_HUB_DISABLE_PROGRESS_BARS") == "1"
         assert os.environ.get("HF_HUB_DISABLE_IMPLICIT_TOKEN") == "1"
@@ -119,7 +119,7 @@ class TestLiteLLMLogSuppression:
         import os
 
         monkeypatch.delenv("LITELLM_SUPPRESS_DEBUG_INFO", raising=False)
-        sys.modules.pop("headroom.providers.litellm", None)
+        sys.modules.pop("copium.providers.litellm", None)
         sys.modules.pop("litellm", None)
 
         original_import = builtins.__import__
@@ -140,9 +140,9 @@ class TestLiteLLMLogSuppression:
 
         monkeypatch.setattr(builtins, "__import__", import_spy)
         try:
-            importlib.import_module("headroom.providers.litellm")
+            importlib.import_module("copium.providers.litellm")
         finally:
-            sys.modules.pop("headroom.providers.litellm", None)
+            sys.modules.pop("copium.providers.litellm", None)
             sys.modules.pop("litellm", None)
 
         assert observed_env
@@ -154,7 +154,7 @@ class TestLiteLLMLogSuppression:
         if litellm is None:
             return  # litellm not installed — skip gracefully
 
-        import headroom.providers.litellm  # noqa: F401
+        import copium.providers.litellm  # noqa: F401
 
         assert litellm.suppress_debug_info is True, (
             "litellm.suppress_debug_info must be True to silence startup banner"
@@ -166,7 +166,7 @@ class TestLiteLLMLogSuppression:
         if litellm is None:
             return
 
-        import headroom.providers.litellm  # noqa: F401
+        import copium.providers.litellm  # noqa: F401
 
         assert litellm.set_verbose is False, (
             "litellm.set_verbose must be False to suppress verbose debug output"
@@ -190,7 +190,7 @@ class TestTrafilaturaLogLevel:
         """trafilatura logger must be CRITICAL or above after importing html_extractor."""
         pytest_importorskip_trafilatura()
 
-        import headroom.transforms.html_extractor  # noqa: F401
+        import copium.transforms.html_extractor  # noqa: F401
 
         level = logging.getLogger("trafilatura").level
         assert level >= logging.CRITICAL, (

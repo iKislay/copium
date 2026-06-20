@@ -7,7 +7,7 @@ pytest.importorskip("fastapi")
 
 from httpx import ASGITransport, AsyncClient
 
-from headroom.proxy.server import create_app
+from copium.proxy.server import create_app
 
 
 @pytest.fixture

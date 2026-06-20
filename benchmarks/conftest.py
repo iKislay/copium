@@ -1,4 +1,4 @@
-"""Pytest fixtures for Headroom benchmarks.
+"""Pytest fixtures for Copium benchmarks.
 
 This module provides shared fixtures for benchmark tests including:
 - Generated data arrays of various sizes
@@ -82,7 +82,7 @@ def mock_token_counter() -> MockTokenCounter:
 @pytest.fixture
 def mock_tokenizer(mock_token_counter: MockTokenCounter):
     """Provide mock Tokenizer wrapper."""
-    from headroom.tokenizer import Tokenizer
+    from copium.tokenizer import Tokenizer
 
     return Tokenizer(token_counter=mock_token_counter, model="benchmark-model")
 
@@ -288,7 +288,7 @@ def messages_with_system_date(system_prompt_with_date) -> list[dict[str, Any]]:
 @pytest.fixture
 def smart_crusher_config():
     """SmartCrusher config optimized for benchmarks."""
-    from headroom.config import SmartCrusherConfig
+    from copium.config import SmartCrusherConfig
 
     return SmartCrusherConfig(
         enabled=True,
@@ -302,7 +302,7 @@ def smart_crusher_config():
 @pytest.fixture
 def cache_aligner_config():
     """CacheAligner config for benchmarks."""
-    from headroom.config import CacheAlignerConfig
+    from copium.config import CacheAlignerConfig
 
     return CacheAlignerConfig(
         enabled=True,

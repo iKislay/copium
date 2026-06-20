@@ -5,7 +5,7 @@ The rapidocr ecosystem split after 1.4.x:
 * `rapidocr-onnxruntime` 1.4.x — Python <3.13 only; tuple result.
 * `rapidocr` 3.x — Python 3.13+; `RapidOCROutput` dataclass result.
 
-`headroom/image/compressor.py` adapts both at runtime via
+`copium/image/compressor.py` adapts both at runtime via
 `_resolve_rapidocr` + per-version branches in `_ocr_extract`. These
 tests pin both branches so a future "let me clean up the v1 path"
 refactor doesn't silently break Python <3.13 users.
@@ -19,8 +19,8 @@ from typing import Any
 
 import pytest
 
-from headroom.image import compressor as compressor_module
-from headroom.image.compressor import ImageCompressor
+from copium.image import compressor as compressor_module
+from copium.image.compressor import ImageCompressor
 
 
 def _install_fake_module(monkeypatch: pytest.MonkeyPatch, name: str, attrs: dict[str, Any]) -> None:
@@ -214,7 +214,7 @@ def test_ocr_extract_v3_mismatched_lengths_logs_and_returns_none(
     _install_fake_module(monkeypatch, "rapidocr", {"RapidOCR": _V3RapidOCR})
 
     c = _make_compressor()
-    with caplog.at_level("WARNING", logger="headroom.image.compressor"):
+    with caplog.at_level("WARNING", logger="copium.image.compressor"):
         result = c._ocr_extract(b"\x89PNG fake")
     assert result is None
     assert any("event=ocr_unknown_api_shape" in r.getMessage() for r in caplog.records)

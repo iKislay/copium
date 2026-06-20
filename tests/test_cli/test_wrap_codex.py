@@ -1,7 +1,7 @@
-"""Tests for `headroom wrap codex` and `headroom unwrap codex`.
+"""Tests for `copium wrap codex` and `copium unwrap codex`.
 
 These exercise the Codex-specific ``config.toml`` injection and restoration
-helpers that route Codex through the Headroom proxy.  They are deliberately
+helpers that route Codex through the Copium proxy.  They are deliberately
 end-to-end-ish: the unit tests call the helpers directly against a temp
 ``$HOME``, and the integration tests invoke the real Click commands the same
 way a user would from the shell.
@@ -16,8 +16,8 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 
-from headroom.cli import wrap as wrap_mod
-from headroom.cli.main import main
+from copium.cli import wrap as wrap_mod
+from copium.cli.main import main
 
 
 def _set_test_home(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -37,53 +37,53 @@ def runner() -> CliRunner:
 # ---------------------------------------------------------------------------
 
 
-class TestStripCodexHeadroomBlocks:
+class TestStripCodexCopiumBlocks:
     """Tests for the regex-based cleanup helper."""
 
     def test_empty_content_returns_empty(self) -> None:
-        assert wrap_mod._strip_codex_headroom_blocks("") == ""
+        assert wrap_mod._strip_codex_copium_blocks("") == ""
 
     def test_returns_content_unchanged_when_no_markers(self) -> None:
         original = '[profiles.default]\nmodel = "gpt-4o"\n'
-        cleaned = wrap_mod._strip_codex_headroom_blocks(original)
+        cleaned = wrap_mod._strip_codex_copium_blocks(original)
         # Trailing whitespace normalization only — semantic content preserved.
         assert 'model = "gpt-4o"' in cleaned
         assert "[profiles.default]" in cleaned
 
-    def test_removes_complete_headroom_block(self) -> None:
+    def test_removes_complete_copium_block(self) -> None:
         wrapped = (
             f"{wrap_mod._CODEX_TOP_LEVEL_MARKER}\n"
-            'model_provider = "headroom"\n'
+            'model_provider = "copium"\n'
             "\n"
-            "[model_providers.headroom]\n"
+            "[model_providers.copium]\n"
             'base_url = "http://127.0.0.1:8787/v1"\n'
             f"{wrap_mod._CODEX_END_MARKER}\n"
         )
-        assert wrap_mod._strip_codex_headroom_blocks(wrapped) == ""
+        assert wrap_mod._strip_codex_copium_blocks(wrapped) == ""
 
     def test_preserves_user_content_around_block(self) -> None:
         user_pre = '[profiles.default]\nmodel = "gpt-4o"\n'
         user_post = '[mcp_servers.foo]\ncommand = "echo"\n'
         wrapped = (
             f"{wrap_mod._CODEX_TOP_LEVEL_MARKER}\n"
-            'model_provider = "headroom"\n'
+            'model_provider = "copium"\n'
             f"{wrap_mod._CODEX_END_MARKER}\n" + user_pre + "\n"
             f"{wrap_mod._CODEX_TOP_LEVEL_MARKER}\n"
-            "[model_providers.headroom]\n"
+            "[model_providers.copium]\n"
             'base_url = "http://127.0.0.1:8787/v1"\n'
             f"{wrap_mod._CODEX_END_MARKER}\n" + user_post
         )
-        cleaned = wrap_mod._strip_codex_headroom_blocks(wrapped)
+        cleaned = wrap_mod._strip_codex_copium_blocks(wrapped)
         assert wrap_mod._CODEX_TOP_LEVEL_MARKER not in cleaned
         assert wrap_mod._CODEX_END_MARKER not in cleaned
         assert 'model = "gpt-4o"' in cleaned
         assert "[mcp_servers.foo]" in cleaned
 
     def test_removes_stray_top_level_model_provider_line(self) -> None:
-        # Old wrap versions left `model_provider = "headroom"` outside markers.
-        content = 'foo = 1\nmodel_provider = "headroom"\nbar = 2\n'
-        cleaned = wrap_mod._strip_codex_headroom_blocks(content, remove_mcp=True)
-        assert 'model_provider = "headroom"' not in cleaned
+        # Old wrap versions left `model_provider = "copium"` outside markers.
+        content = 'foo = 1\nmodel_provider = "copium"\nbar = 2\n'
+        cleaned = wrap_mod._strip_codex_copium_blocks(content, remove_mcp=True)
+        assert 'model_provider = "copium"' not in cleaned
         assert "foo = 1" in cleaned
         assert "bar = 2" in cleaned
 
@@ -91,24 +91,24 @@ class TestStripCodexHeadroomBlocks:
         content = (
             '[profiles.default]\nmodel = "gpt-4o"\n\n'
             f"{wrap_mod._CODEX_MCP_MARKER}\n"
-            "[mcp_servers.headroom]\n"
-            'command = "headroom"\n'
+            "[mcp_servers.copium]\n"
+            'command = "copium"\n'
             f"{wrap_mod._CODEX_MCP_END}\n\n"
-            "# --- Headroom MCP server: serena ---\n"
+            "# --- Copium MCP server: serena ---\n"
             "[mcp_servers.serena]\n"
             'command = "uvx"\n'
-            "# --- end Headroom MCP server: serena ---\n\n"
+            "# --- end Copium MCP server: serena ---\n\n"
             f"{wrap_mod._MEMORY_MCP_MARKER}\n"
-            "[mcp_servers.headroom_memory]\n"
+            "[mcp_servers.copium_memory]\n"
             'command = "python"\n'
             f"{wrap_mod._MEMORY_MCP_END}\n"
         )
 
-        cleaned = wrap_mod._strip_codex_headroom_blocks(content, remove_mcp=True)
+        cleaned = wrap_mod._strip_codex_copium_blocks(content, remove_mcp=True)
 
-        assert "[mcp_servers.headroom]" not in cleaned
+        assert "[mcp_servers.copium]" not in cleaned
         assert "[mcp_servers.serena]" not in cleaned
-        assert "[mcp_servers.headroom_memory]" not in cleaned
+        assert "[mcp_servers.copium_memory]" not in cleaned
         assert 'model = "gpt-4o"' in cleaned
 
 
@@ -117,7 +117,7 @@ class TestSnapshotCodexConfig:
 
     def test_creates_backup_on_first_call(self, tmp_path: Path) -> None:
         config_file = tmp_path / "config.toml"
-        backup_file = tmp_path / "config.toml.headroom-backup"
+        backup_file = tmp_path / "config.toml.copium-backup"
         config_file.write_text('model = "gpt-4o"\n')
 
         wrap_mod._snapshot_codex_config_if_unwrapped(config_file, backup_file)
@@ -127,7 +127,7 @@ class TestSnapshotCodexConfig:
 
     def test_does_not_overwrite_existing_backup(self, tmp_path: Path) -> None:
         config_file = tmp_path / "config.toml"
-        backup_file = tmp_path / "config.toml.headroom-backup"
+        backup_file = tmp_path / "config.toml.copium-backup"
         config_file.write_text("second-wrap content\n")
         backup_file.write_text("original-pre-wrap content\n")
 
@@ -138,7 +138,7 @@ class TestSnapshotCodexConfig:
 
     def test_no_backup_when_config_missing(self, tmp_path: Path) -> None:
         config_file = tmp_path / "config.toml"
-        backup_file = tmp_path / "config.toml.headroom-backup"
+        backup_file = tmp_path / "config.toml.copium-backup"
 
         wrap_mod._snapshot_codex_config_if_unwrapped(config_file, backup_file)
 
@@ -146,10 +146,10 @@ class TestSnapshotCodexConfig:
 
     def test_no_backup_when_config_already_wrapped(self, tmp_path: Path) -> None:
         config_file = tmp_path / "config.toml"
-        backup_file = tmp_path / "config.toml.headroom-backup"
+        backup_file = tmp_path / "config.toml.copium-backup"
         config_file.write_text(
             f"{wrap_mod._CODEX_TOP_LEVEL_MARKER}\n"
-            'model_provider = "headroom"\n'
+            'model_provider = "copium"\n'
             f"{wrap_mod._CODEX_END_MARKER}\n"
         )
 
@@ -170,13 +170,13 @@ class TestInjectAndRestoreRoundTrip:
 
         wrap_mod._inject_codex_provider_config(8787)
         assert config_file.exists()
-        assert 'model_provider = "headroom"' in config_file.read_text()
+        assert 'model_provider = "copium"' in config_file.read_text()
 
         status, _ = wrap_mod._restore_codex_provider_config()
         # No prior config existed → the injected file is fully removed.
         assert status == "removed"
         assert not config_file.exists()
-        assert not (tmp_path / ".codex" / "config.toml.headroom-backup").exists()
+        assert not (tmp_path / ".codex" / "config.toml.copium-backup").exists()
 
     def test_wrap_unwrap_respects_codex_home(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -188,7 +188,7 @@ class TestInjectAndRestoreRoundTrip:
 
         wrap_mod._inject_codex_provider_config(8787)
         assert config_file.exists()
-        assert 'model_provider = "headroom"' in config_file.read_text()
+        assert 'model_provider = "copium"' in config_file.read_text()
         assert not (tmp_path / ".codex" / "config.toml").exists()
 
         status, _ = wrap_mod._restore_codex_provider_config()
@@ -213,13 +213,13 @@ class TestInjectAndRestoreRoundTrip:
 
         wrap_mod._inject_codex_provider_config(8787)
         wrapped = config_file.read_text()
-        assert 'model_provider = "headroom"' in wrapped
-        assert "[model_providers.headroom]" in wrapped
+        assert 'model_provider = "copium"' in wrapped
+        assert "[model_providers.copium]" in wrapped
 
         status, _ = wrap_mod._restore_codex_provider_config()
         assert status == "restored"
         assert config_file.read_text() == original
-        assert not (config_dir / "config.toml.headroom-backup").exists()
+        assert not (config_dir / "config.toml.copium-backup").exists()
 
     def test_wrap_is_idempotent(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         _set_test_home(monkeypatch, tmp_path)
@@ -234,7 +234,7 @@ class TestInjectAndRestoreRoundTrip:
         wrap_mod._inject_codex_provider_config(9999)  # port change
 
         content = config_file.read_text()
-        # Exactly two Headroom blocks — a top-level-key block and the
+        # Exactly two Copium blocks — a top-level-key block and the
         # provider-table block.  Re-wrapping must not duplicate them.
         assert content.count(wrap_mod._CODEX_TOP_LEVEL_MARKER) == 2
         assert content.count(wrap_mod._CODEX_END_MARKER) == 2
@@ -269,8 +269,8 @@ class TestInjectAndRestoreRoundTrip:
         user_content = '[profiles.default]\nmodel = "gpt-4o"\n'
         config_file.write_text(
             user_content + f"{wrap_mod._CODEX_TOP_LEVEL_MARKER}\n"
-            'model_provider = "headroom"\n\n'
-            "[model_providers.headroom]\n"
+            'model_provider = "copium"\n\n'
+            "[model_providers.copium]\n"
             'base_url = "http://127.0.0.1:8787/v1"\n'
             f"{wrap_mod._CODEX_END_MARKER}\n"
         )
@@ -280,7 +280,7 @@ class TestInjectAndRestoreRoundTrip:
         cleaned = config_file.read_text()
         assert wrap_mod._CODEX_TOP_LEVEL_MARKER not in cleaned
         assert wrap_mod._CODEX_END_MARKER not in cleaned
-        assert 'model_provider = "headroom"' not in cleaned
+        assert 'model_provider = "copium"' not in cleaned
         assert 'model = "gpt-4o"' in cleaned
 
     def test_unwrap_without_backup_removes_provider_and_mcp_blocks(
@@ -293,14 +293,14 @@ class TestInjectAndRestoreRoundTrip:
         config_file.write_text(
             '[profiles.default]\nmodel = "gpt-4o"\n\n'
             f"{wrap_mod._CODEX_TOP_LEVEL_MARKER}\n"
-            'model_provider = "headroom"\n'
+            'model_provider = "copium"\n'
             f"{wrap_mod._CODEX_END_MARKER}\n\n"
             f"{wrap_mod._CODEX_MCP_MARKER}\n"
-            "[mcp_servers.headroom]\n"
-            'command = "headroom"\n'
+            "[mcp_servers.copium]\n"
+            'command = "copium"\n'
             f"{wrap_mod._CODEX_MCP_END}\n\n"
             f"{wrap_mod._MEMORY_MCP_MARKER}\n"
-            "[mcp_servers.headroom_memory]\n"
+            "[mcp_servers.copium_memory]\n"
             'command = "python"\n'
             f"{wrap_mod._MEMORY_MCP_END}\n"
         )
@@ -310,7 +310,7 @@ class TestInjectAndRestoreRoundTrip:
         assert status == "cleaned"
         cleaned = config_file.read_text()
         assert 'model = "gpt-4o"' in cleaned
-        assert "headroom" not in cleaned
+        assert "copium" not in cleaned
 
     def test_unwrap_handles_malformed_prior_config(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -331,13 +331,13 @@ class TestInjectAndRestoreRoundTrip:
 
 
 # ---------------------------------------------------------------------------
-# Thread retag: wrap pulls native threads into the headroom menu, unwrap hands
+# Thread retag: wrap pulls native threads into the copium menu, unwrap hands
 # them back, so the Codex history list stays whole across the proxy boundary.
 # ---------------------------------------------------------------------------
 
 
 class TestWrapRetagsThreadProviders:
-    """``wrap codex`` retags ``openai`` threads to ``headroom`` and back."""
+    """``wrap codex`` retags ``openai`` threads to ``copium`` and back."""
 
     @staticmethod
     def _seed_threads(db: Path, rows: list[tuple[str, str]]) -> None:
@@ -367,25 +367,25 @@ class TestWrapRetagsThreadProviders:
         _set_test_home(monkeypatch, tmp_path)
         gui_db = tmp_path / ".codex" / "sqlite" / "state_5.sqlite"
         cli_db = tmp_path / ".codex" / "state_5.sqlite"
-        self._seed_threads(gui_db, [("a", "openai"), ("b", "headroom"), ("c", "anthropic")])
+        self._seed_threads(gui_db, [("a", "openai"), ("b", "copium"), ("c", "anthropic")])
         self._seed_threads(cli_db, [("d", "openai")])
 
-        with patch("headroom.cli.wrap._ensure_rtk_binary", return_value=None):
+        with patch("copium.cli.wrap._ensure_rtk_binary", return_value=None):
             wrap_result = runner.invoke(main, ["wrap", "codex", "--prepare-only", "--port", "8787"])
         assert wrap_result.exit_code == 0, wrap_result.output
-        # Native threads are now visible under the headroom provider menu;
+        # Native threads are now visible under the copium provider menu;
         # third-party providers are left untouched.
-        assert self._count(gui_db, "headroom") == 2
+        assert self._count(gui_db, "copium") == 2
         assert self._count(gui_db, "openai") == 0
         assert self._count(gui_db, "anthropic") == 1
-        assert self._count(cli_db, "headroom") == 1
+        assert self._count(cli_db, "copium") == 1
 
-        with patch("headroom.cli.wrap._stop_local_proxy_for_unwrap", return_value="stopped"):
+        with patch("copium.cli.wrap._stop_local_proxy_for_unwrap", return_value="stopped"):
             unwrap_result = runner.invoke(main, ["unwrap", "codex", "--port", "8787"])
         assert unwrap_result.exit_code == 0, unwrap_result.output
         # Back to native so the unproxied Codex menu is whole again.
         assert self._count(gui_db, "openai") == 2
-        assert self._count(gui_db, "headroom") == 0
+        assert self._count(gui_db, "copium") == 0
         assert self._count(gui_db, "anthropic") == 1
         assert self._count(cli_db, "openai") == 1
 
@@ -468,7 +468,7 @@ class TestSubscriptionRouting:
         content = (
             '[profiles.default]\nmodel = "gpt-4o"\nopenai_base_url = "http://127.0.0.1:8787/v1"\n'
         )
-        cleaned = wrap_mod._strip_codex_headroom_blocks(content)
+        cleaned = wrap_mod._strip_codex_copium_blocks(content)
         assert "openai_base_url" not in cleaned
         assert 'model = "gpt-4o"' in cleaned
 
@@ -530,8 +530,8 @@ class TestInjectAvoidsDuplicateTopLevelKeys:
         # No duplicate top-level key for either redirectable key.
         assert content.count("model_provider =") == 1
         assert content.count("openai_base_url =") == 1
-        # And the rewritten values are the headroom ones.
-        assert 'model_provider = "headroom"' in content
+        # And the rewritten values are the copium ones.
+        assert 'model_provider = "copium"' in content
         assert 'openai_base_url = "http://127.0.0.1:8787/v1"' in content
 
     @pytest.mark.parametrize("blank", ["", "   ", "\n\t\n"])
@@ -579,7 +579,7 @@ class TestInjectAvoidsDuplicateTopLevelKeys:
         content = config_file.read_text()
         tomllib.loads(content)
         assert content.count("model_provider =") == 1
-        assert 'model_provider = "headroom"' in content
+        assert 'model_provider = "copium"' in content
         # Port updated in the openai_base_url we injected.
         assert 'openai_base_url = "http://127.0.0.1:9999/v1"' in content
         assert 'openai_base_url = "http://127.0.0.1:8787/v1"' not in content
@@ -593,9 +593,9 @@ class TestInjectAvoidsDuplicateTopLevelKeys:
 
         content = (tmp_path / ".codex" / "config.toml").read_text()
         assert wrap_mod._CODEX_TOP_LEVEL_MARKER in content
-        assert 'model_provider = "headroom"' in content
+        assert 'model_provider = "copium"' in content
         assert 'openai_base_url = "http://127.0.0.1:8787/v1"' in content
-        assert "[model_providers.headroom]" in content
+        assert "[model_providers.copium]" in content
 
     def test_unwrap_restores_prior_model_provider_after_rewrite(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -616,7 +616,7 @@ class TestInjectAvoidsDuplicateTopLevelKeys:
 
 
 # ---------------------------------------------------------------------------
-# Integration tests: full `headroom wrap codex` / `headroom unwrap codex`
+# Integration tests: full `copium wrap codex` / `copium unwrap codex`
 # ---------------------------------------------------------------------------
 
 
@@ -629,12 +629,12 @@ def test_wrap_codex_prepare_only_creates_backup_and_config(
     original = 'model_provider = "openai"\n'
     config_file.write_text(original)
 
-    with patch("headroom.cli.wrap._ensure_rtk_binary", return_value=None):
+    with patch("copium.cli.wrap._ensure_rtk_binary", return_value=None):
         result = runner.invoke(main, ["wrap", "codex", "--prepare-only", "--port", "8787"])
 
     assert result.exit_code == 0, result.output
-    assert 'model_provider = "headroom"' in config_file.read_text()
-    backup = tmp_path / ".codex" / "config.toml.headroom-backup"
+    assert 'model_provider = "copium"' in config_file.read_text()
+    backup = tmp_path / ".codex" / "config.toml.copium-backup"
     assert backup.exists()
     assert backup.read_text() == original
 
@@ -647,7 +647,7 @@ def test_wrap_codex_prepare_only_respects_codex_home(
     codex_home.mkdir()
     monkeypatch.setenv("CODEX_HOME", str(codex_home))
 
-    with patch("headroom.cli.wrap._ensure_rtk_binary", return_value=None):
+    with patch("copium.cli.wrap._ensure_rtk_binary", return_value=None):
         result = runner.invoke(
             main,
             ["wrap", "codex", "--prepare-only", "--no-serena", "--port", "8787"],
@@ -657,8 +657,8 @@ def test_wrap_codex_prepare_only_respects_codex_home(
     config_file = codex_home / "config.toml"
     assert config_file.exists()
     content = config_file.read_text()
-    assert 'model_provider = "headroom"' in content
-    assert "[mcp_servers.headroom]" in content
+    assert 'model_provider = "copium"' in content
+    assert "[mcp_servers.copium]" in content
     assert not (tmp_path / ".codex" / "config.toml").exists()
 
 
@@ -670,7 +670,7 @@ def test_unwrap_codex_without_codex_home_warns_on_ambiguous_noop(
     codex_home.mkdir()
     monkeypatch.setenv("CODEX_HOME", str(codex_home))
 
-    with patch("headroom.cli.wrap._ensure_rtk_binary", return_value=None):
+    with patch("copium.cli.wrap._ensure_rtk_binary", return_value=None):
         wrap_result = runner.invoke(
             main,
             [
@@ -692,11 +692,11 @@ def test_unwrap_codex_without_codex_home_warns_on_ambiguous_noop(
     unwrap_result = runner.invoke(main, ["unwrap", "codex", "--no-stop-proxy"])
 
     assert unwrap_result.exit_code == 0, unwrap_result.output
-    assert "Warning: found no Headroom wrap markers in the default Codex config" in (
+    assert "Warning: found no Copium wrap markers in the default Codex config" in (
         unwrap_result.output
     )
     assert "If you wrapped Codex with CODEX_HOME" in unwrap_result.output
-    assert "CODEX_HOME=/path/to/codex-home headroom unwrap codex" in unwrap_result.output
+    assert "CODEX_HOME=/path/to/codex-home copium unwrap codex" in unwrap_result.output
     assert "Nothing to undo" in unwrap_result.output
     assert 'openai_base_url = "http://127.0.0.1:8787/v1"' in config_file.read_text()
 
@@ -752,10 +752,10 @@ def test_start_proxy_applies_agent_90_defaults(
 
     env = popen_kwargs["env"]
     assert isinstance(env, dict)
-    assert env["HEADROOM_SAVINGS_PROFILE"] == "agent-90"
-    assert env["HEADROOM_TARGET_RATIO"] == "0.10"
-    assert env["HEADROOM_MAX_ITEMS"] == "8"
-    assert env["HEADROOM_SMART_CRUSHER_COMPACTION"] == "0"
+    assert env["COPIUM_SAVINGS_PROFILE"] == "agent-90"
+    assert env["COPIUM_TARGET_RATIO"] == "0.10"
+    assert env["COPIUM_MAX_ITEMS"] == "8"
+    assert env["COPIUM_SMART_CRUSHER_COMPACTION"] == "0"
 
 
 def test_start_proxy_preserves_explicit_savings_overrides(
@@ -774,8 +774,8 @@ def test_start_proxy_preserves_explicit_savings_overrides(
         popen_kwargs.update(kwargs)
         return FakeProc()
 
-    monkeypatch.setenv("HEADROOM_TARGET_RATIO", "0.20")
-    monkeypatch.setenv("HEADROOM_MAX_ITEMS", "12")
+    monkeypatch.setenv("COPIUM_TARGET_RATIO", "0.20")
+    monkeypatch.setenv("COPIUM_MAX_ITEMS", "12")
     monkeypatch.setattr(wrap_mod, "_get_log_path", lambda: tmp_path / "proxy.log")
     monkeypatch.setattr(wrap_mod, "_check_proxy", lambda port: True)
     monkeypatch.setattr(wrap_mod.subprocess, "Popen", fake_popen)
@@ -784,8 +784,8 @@ def test_start_proxy_preserves_explicit_savings_overrides(
 
     env = popen_kwargs["env"]
     assert isinstance(env, dict)
-    assert env["HEADROOM_TARGET_RATIO"] == "0.20"
-    assert env["HEADROOM_MAX_ITEMS"] == "12"
+    assert env["COPIUM_TARGET_RATIO"] == "0.20"
+    assert env["COPIUM_MAX_ITEMS"] == "12"
 
 
 def test_launch_tool_ignores_sigint_in_wrapper(
@@ -825,23 +825,23 @@ def test_wrap_codex_prepare_only_updates_stale_mcp_proxy_url(
     config_file = tmp_path / ".codex" / "config.toml"
     config_file.parent.mkdir(parents=True)
     config_file.write_text(
-        "# --- Headroom MCP server ---\n"
-        "[mcp_servers.headroom]\n"
-        'command = "headroom"\n'
+        "# --- Copium MCP server ---\n"
+        "[mcp_servers.copium]\n"
+        'command = "copium"\n'
         'args = ["mcp", "serve"]\n'
         "\n"
-        "[mcp_servers.headroom.env]\n"
-        'HEADROOM_PROXY_URL = "http://127.0.0.1:9000"\n'
-        "# --- end Headroom MCP server ---\n"
+        "[mcp_servers.copium.env]\n"
+        'COPIUM_PROXY_URL = "http://127.0.0.1:9000"\n'
+        "# --- end Copium MCP server ---\n"
     )
 
-    with patch("headroom.cli.wrap._ensure_rtk_binary", return_value=None):
+    with patch("copium.cli.wrap._ensure_rtk_binary", return_value=None):
         result = runner.invoke(main, ["wrap", "codex", "--prepare-only", "--port", "8787"])
 
     assert result.exit_code == 0, result.output
     content = config_file.read_text()
-    assert "[mcp_servers.headroom]" in content
-    assert 'command = "headroom"' in content
+    assert "[mcp_servers.copium]" in content
+    assert 'command = "copium"' in content
     assert 'args = ["mcp", "serve"]' in content
     assert "http://127.0.0.1:9000" not in content
 
@@ -858,8 +858,8 @@ def test_wrap_codex_prepare_only_registers_serena_when_uvx_exists(
             return "/usr/local/bin/uvx"
         return None
 
-    with patch("headroom.cli.wrap._ensure_rtk_binary", return_value=None):
-        with patch("headroom.cli.wrap.shutil.which", side_effect=fake_which):
+    with patch("copium.cli.wrap._ensure_rtk_binary", return_value=None):
+        with patch("copium.cli.wrap.shutil.which", side_effect=fake_which):
             result = runner.invoke(main, ["wrap", "codex", "--prepare-only"])
 
     assert result.exit_code == 0, result.output
@@ -876,7 +876,7 @@ def test_wrap_codex_prepare_only_no_serena_skips_serena(
     config_file = tmp_path / ".codex" / "config.toml"
     config_file.parent.mkdir(parents=True)
 
-    with patch("headroom.cli.wrap._ensure_rtk_binary", return_value=None):
+    with patch("copium.cli.wrap._ensure_rtk_binary", return_value=None):
         result = runner.invoke(main, ["wrap", "codex", "--prepare-only", "--no-serena"])
 
     assert result.exit_code == 0, result.output
@@ -899,15 +899,15 @@ def test_unwrap_codex_restores_prior_config_end_to_end(
     )
     config_file.write_text(original)
 
-    with patch("headroom.cli.wrap._ensure_rtk_binary", return_value=None):
+    with patch("copium.cli.wrap._ensure_rtk_binary", return_value=None):
         wrap_result = runner.invoke(main, ["wrap", "codex", "--prepare-only", "--port", "8787"])
     assert wrap_result.exit_code == 0, wrap_result.output
-    assert 'model_provider = "headroom"' in config_file.read_text()
+    assert 'model_provider = "copium"' in config_file.read_text()
 
     stopped: list[int] = []
 
     with patch(
-        "headroom.cli.wrap._stop_local_proxy_for_unwrap",
+        "copium.cli.wrap._stop_local_proxy_for_unwrap",
         side_effect=lambda port: stopped.append(port) or "stopped",
     ):
         unwrap_result = runner.invoke(main, ["unwrap", "codex", "--port", "9999"])
@@ -917,10 +917,10 @@ def test_unwrap_codex_restores_prior_config_end_to_end(
     # injected block must be gone — no more "Missing OPENAI_API_KEY" when the
     # proxy is stopped.
     assert config_file.read_text() == original
-    assert 'model_provider = "headroom"' not in config_file.read_text()
-    assert not (tmp_path / ".codex" / "config.toml.headroom-backup").exists()
+    assert 'model_provider = "copium"' not in config_file.read_text()
+    assert not (tmp_path / ".codex" / "config.toml.copium-backup").exists()
     assert stopped == [9999]
-    assert "Stopped local Headroom proxy on port 9999" in unwrap_result.output
+    assert "Stopped local Copium proxy on port 9999" in unwrap_result.output
 
 
 def test_unwrap_codex_no_stop_proxy_leaves_proxy_alone(
@@ -929,14 +929,14 @@ def test_unwrap_codex_no_stop_proxy_leaves_proxy_alone(
     _set_test_home(monkeypatch, tmp_path)
     monkeypatch.setenv("CODEX_HOME", str(tmp_path / "explicit-codex-home"))
 
-    with patch("headroom.cli.wrap._stop_local_proxy_for_unwrap") as stop_proxy:
+    with patch("copium.cli.wrap._stop_local_proxy_for_unwrap") as stop_proxy:
         result = runner.invoke(main, ["unwrap", "codex", "--no-stop-proxy"])
 
     assert result.exit_code == 0, result.output
     stop_proxy.assert_not_called()
 
 
-def test_stop_local_proxy_for_unwrap_kills_identified_headroom_proxy(
+def test_stop_local_proxy_for_unwrap_kills_identified_copium_proxy(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     killed: list[tuple[int, int]] = []
@@ -959,7 +959,7 @@ def test_stop_local_proxy_for_unwrap_refuses_unidentified_listener(
     monkeypatch.setattr(wrap_mod, "_check_proxy", lambda port: True)
     monkeypatch.setattr(wrap_mod, "_query_proxy_config", lambda port: None)
 
-    with patch("headroom.cli.wrap._kill_proxy_by_pid") as kill_proxy:
+    with patch("copium.cli.wrap._kill_proxy_by_pid") as kill_proxy:
         assert wrap_mod._stop_local_proxy_for_unwrap(8787) == "unidentified"
 
     kill_proxy.assert_not_called()
@@ -978,12 +978,12 @@ def test_unwrap_codex_is_safe_noop_with_explicit_codex_home(
     assert not (tmp_path / ".codex" / "config.toml").exists()
 
 
-def test_unwrap_codex_removes_headroom_only_config_file(
+def test_unwrap_codex_removes_copium_only_config_file(
     runner: CliRunner, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     _set_test_home(monkeypatch, tmp_path)
 
-    with patch("headroom.cli.wrap._ensure_rtk_binary", return_value=None):
+    with patch("copium.cli.wrap._ensure_rtk_binary", return_value=None):
         wrap_result = runner.invoke(main, ["wrap", "codex", "--prepare-only", "--port", "8787"])
     assert wrap_result.exit_code == 0, wrap_result.output
 
@@ -1005,7 +1005,7 @@ def test_unwrap_codex_preserves_unrelated_sections(
     original = '[mcp_servers.local_thing]\ncommand = "/usr/local/bin/thing"\nargs = ["--serve"]\n'
     config_file.write_text(original)
 
-    with patch("headroom.cli.wrap._ensure_rtk_binary", return_value=None):
+    with patch("copium.cli.wrap._ensure_rtk_binary", return_value=None):
         runner.invoke(main, ["wrap", "codex", "--prepare-only", "--port", "8787"])
 
     result = runner.invoke(main, ["unwrap", "codex"])
@@ -1020,11 +1020,11 @@ def test_unwrap_codex_preserves_unrelated_sections(
 
 
 class TestCodexProjectHeaderConfig:
-    """The injected provider maps X-Headroom-Project to HEADROOM_PROJECT.
+    """The injected provider maps X-Copium-Project to COPIUM_PROJECT.
 
     Codex's ``env_http_headers`` sends a header only when the mapped env var
-    is set at Codex runtime, so `headroom wrap codex` exports
-    ``HEADROOM_PROJECT`` and the proxy attributes savings per project.
+    is set at Codex runtime, so `copium wrap codex` exports
+    ``COPIUM_PROJECT`` and the proxy attributes savings per project.
     """
 
     def test_inject_writes_env_http_headers_mapping(
@@ -1035,19 +1035,19 @@ class TestCodexProjectHeaderConfig:
         wrap_mod._inject_codex_provider_config(8787)
 
         content = (tmp_path / ".codex" / "config.toml").read_text()
-        assert 'env_http_headers = { "X-Headroom-Project" = "HEADROOM_PROJECT" }' in content
+        assert 'env_http_headers = { "X-Copium-Project" = "COPIUM_PROJECT" }' in content
 
     def test_env_http_headers_inside_provider_section(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
-        """The mapping must live inside [model_providers.headroom], before
-        the closing marker, so it applies to the Headroom provider."""
+        """The mapping must live inside [model_providers.copium], before
+        the closing marker, so it applies to the Copium provider."""
         _set_test_home(monkeypatch, tmp_path)
 
         wrap_mod._inject_codex_provider_config(8787)
 
         content = (tmp_path / ".codex" / "config.toml").read_text()
-        section_start = content.index("[model_providers.headroom]")
+        section_start = content.index("[model_providers.copium]")
         mapping_pos = content.index("env_http_headers")
         end_marker_pos = content.index(wrap_mod._CODEX_END_MARKER, section_start)
         assert section_start < mapping_pos < end_marker_pos
@@ -1055,7 +1055,7 @@ class TestCodexProjectHeaderConfig:
     def test_strip_removes_block_with_env_http_headers(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
-        """_strip_codex_headroom_blocks removes the whole injected block,
+        """_strip_codex_copium_blocks removes the whole injected block,
         including the new env_http_headers line, leaving user content."""
         _set_test_home(monkeypatch, tmp_path)
         config_dir = tmp_path / ".codex"
@@ -1068,8 +1068,8 @@ class TestCodexProjectHeaderConfig:
         wrapped = config_file.read_text()
         assert "env_http_headers" in wrapped
 
-        cleaned = wrap_mod._strip_codex_headroom_blocks(wrapped)
+        cleaned = wrap_mod._strip_codex_copium_blocks(wrapped)
         assert "env_http_headers" not in cleaned
-        assert "X-Headroom-Project" not in cleaned
-        assert "[model_providers.headroom]" not in cleaned
+        assert "X-Copium-Project" not in cleaned
+        assert "[model_providers.copium]" not in cleaned
         assert 'model = "gpt-4o"' in cleaned

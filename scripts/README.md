@@ -1,18 +1,18 @@
 # scripts/
 
-Utility scripts bundled with the Headroom repo. Most are one-off operator
+Utility scripts bundled with the Copium repo. Most are one-off operator
 tools; a few are runnable as part of development workflows.
 
 ## Reproducing the reconnect storm
 
 `repro_codex_replay.py` reproduces the multi-agent Codex reconnect/retry storm
-against a local Headroom proxy (default `http://127.0.0.1:8787`), as described
+against a local Copium proxy (default `http://127.0.0.1:8787`), as described
 in `wiki/plans/2026-04-17-codex-proxy-runtime-analysis.md` under "Latest
 Correction". Use it to:
 
 - Regression-check that `/livez` stays responsive under a cold-start storm.
 - Empirically tune the Unit 4 pre-upstream semaphore default
-  (`HEADROOM_ANTHROPIC_PRE_UPSTREAM_CONCURRENCY`).
+  (`COPIUM_ANTHROPIC_PRE_UPSTREAM_CONCURRENCY`).
 - Exercise the Codex WS lifecycle + Anthropic HTTP path simultaneously
   without needing to replay captured production traffic.
 
@@ -57,7 +57,7 @@ captured traffic to replay instead.
 
 - `/livez p99` under threshold means the event loop is not starved during the
   storm. If it rises with the semaphore unbounded
-  (`HEADROOM_ANTHROPIC_PRE_UPSTREAM_CONCURRENCY=10000`) and drops back under
+  (`COPIUM_ANTHROPIC_PRE_UPSTREAM_CONCURRENCY=10000`) and drops back under
   the default, Unit 4's backpressure is working.
 - `Codex WS: opened` should equal `--ws-clients`. `response.completed`
   typically stays low when upstream auth isn't configured locally — the goal

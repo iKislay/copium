@@ -7,14 +7,14 @@ Two regressions in main as of 2026-05-14 (issue #327):
   the upstream SSE chunks. Cache reads/writes are absent from
   ``cost_tracker.record_tokens``, ``SavingsTracker.record_request``, the
   ``RequestLog``, *and* the ``PERF`` log line — the latter is missing entirely
-  for this path, so ``headroom perf`` shows 0 cache writes for every
+  for this path, so ``copium perf`` shows 0 cache writes for every
   Azure-GPT/Codex backend-routed request.
 
 * ``StreamingMixin._stream_response_bedrock`` (Bedrock-native streaming) hard-
   codes ``cache_read=0 cache_write=0 cache_hit_pct=0`` in its PERF log line
   regardless of what ``message_start.usage`` reported.
 
-Both surface to the user as "Cache write: 0 tokens" in ``headroom perf``.
+Both surface to the user as "Cache write: 0 tokens" in ``copium perf``.
 """
 
 from __future__ import annotations
@@ -33,8 +33,8 @@ httpx = pytest.importorskip("httpx")
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from headroom.backends.base import StreamEvent  # noqa: E402
-from headroom.proxy.server import ProxyConfig, create_app  # noqa: E402
+from copium.backends.base import StreamEvent  # noqa: E402
+from copium.proxy.server import ProxyConfig, create_app  # noqa: E402
 
 PERF_RE = re.compile(
     r"\bcache_read=(?P<cr>\d+)\s+cache_write=(?P<cw>\d+)\s+cache_hit_pct=(?P<chp>\d+)"
@@ -59,11 +59,11 @@ def _find_perf_record(records: list[logging.LogRecord]) -> tuple[int, int, int]:
 class _ListHandler(logging.Handler):
     """Tiny direct handler that survives the proxy disabling propagation.
 
-    ``caplog`` attaches to root; ``headroom.proxy.helpers._setup_file_logging``
-    flips ``logging.getLogger("headroom").propagate = False`` once a proxy
+    ``caplog`` attaches to root; ``copium.proxy.helpers._setup_file_logging``
+    flips ``logging.getLogger("copium").propagate = False`` once a proxy
     instance is constructed in the test, after which root-attached handlers
-    stop receiving headroom-namespaced records. Attaching directly to
-    ``headroom.proxy`` sidesteps that.
+    stop receiving copium-namespaced records. Attaching directly to
+    ``copium.proxy`` sidesteps that.
     """
 
     def __init__(self) -> None:
@@ -76,7 +76,7 @@ class _ListHandler(logging.Handler):
 
 def _attach_proxy_log_capture():
     handler = _ListHandler()
-    target = logging.getLogger("headroom.proxy")
+    target = logging.getLogger("copium.proxy")
     target.addHandler(handler)
     prior_level = target.level
     target.setLevel(logging.INFO)
@@ -136,7 +136,7 @@ def test_openai_backend_streaming_emits_perf_with_cache_read_and_inferred_write(
     OpenAI never reports a separate write counter, so we infer it as
     ``max(prompt_tokens - cached_tokens, 0)`` (see
     ``_infer_openai_cache_write_tokens``). The PERF log line consumed by
-    ``headroom perf`` must report both.
+    ``copium perf`` must report both.
     """
     config = ProxyConfig(
         optimize=False,
@@ -160,7 +160,7 @@ def test_openai_backend_streaming_emits_perf_with_cache_read_and_inferred_write(
 
     log_handle = _attach_proxy_log_capture()
     try:
-        with patch("headroom.proxy.server.AnyLLMBackend", return_value=backend):
+        with patch("copium.proxy.server.AnyLLMBackend", return_value=backend):
             app = create_app(config)
             with TestClient(app) as client:
                 resp = client.post(
@@ -191,7 +191,7 @@ def test_openai_backend_streaming_perf_zeros_when_upstream_omits_usage() -> None
     """When the upstream omits a usage chunk, cache values must be zero — not absent.
 
     Without ``stream_options.include_usage=true`` (or when upstream drops the
-    final usage chunk) the PERF line still has to emit so ``headroom perf``
+    final usage chunk) the PERF line still has to emit so ``copium perf``
     counts the request.
     """
     config = ProxyConfig(
@@ -210,7 +210,7 @@ def test_openai_backend_streaming_perf_zeros_when_upstream_omits_usage() -> None
 
     log_handle = _attach_proxy_log_capture()
     try:
-        with patch("headroom.proxy.server.AnyLLMBackend", return_value=backend):
+        with patch("copium.proxy.server.AnyLLMBackend", return_value=backend):
             app = create_app(config)
             with TestClient(app) as client:
                 resp = client.post(
@@ -309,7 +309,7 @@ def test_bedrock_streaming_emits_perf_with_message_start_cache_usage() -> None:
 
     log_handle = _attach_proxy_log_capture()
     try:
-        with patch("headroom.proxy.server.AnyLLMBackend", return_value=backend):
+        with patch("copium.proxy.server.AnyLLMBackend", return_value=backend):
             app = create_app(config)
             with TestClient(app) as client:
                 resp = client.post(
@@ -347,7 +347,7 @@ def test_streaming_perf_log_has_no_hardcoded_cache_zeros() -> None:
     """Catch any future re-introduction of ``cache_read=0 cache_write=0`` literal."""
     from pathlib import Path
 
-    src = Path(__file__).resolve().parents[1] / "headroom" / "proxy" / "handlers" / "streaming.py"
+    src = Path(__file__).resolve().parents[1] / "copium" / "proxy" / "handlers" / "streaming.py"
     text = src.read_text()
     assert "cache_read=0 cache_write=0" not in text, (
         "streaming.py contains a hardcoded `cache_read=0 cache_write=0` PERF log fragment. "

@@ -18,7 +18,7 @@ import pytest
 
 pytest.importorskip("fastapi")
 
-from headroom.proxy.warmup import WarmupRegistry, WarmupSlot
+from copium.proxy.warmup import WarmupRegistry, WarmupSlot
 
 # -------------------------------------------------------------------
 # WarmupSlot / WarmupRegistry unit tests
@@ -99,7 +99,7 @@ def test_warmup_registry_to_dict_has_expected_keys():
 
 
 # -------------------------------------------------------------------
-# Startup orchestration tests — use HeadroomProxy + stubbed transforms
+# Startup orchestration tests — use CopiumProxy + stubbed transforms
 # -------------------------------------------------------------------
 
 
@@ -111,7 +111,7 @@ def _stub_pipelines(monkeypatch):
     assertion that dedup prevents double-loading relies on that counter.
     """
     pytest.importorskip("httpx")
-    from headroom.proxy.server import HeadroomProxy, ProxyConfig
+    from copium.proxy.server import CopiumProxy, ProxyConfig
 
     class SpyTransform:
         def __init__(self) -> None:
@@ -133,7 +133,7 @@ def _stub_pipelines(monkeypatch):
         cost_tracking_enabled=False,
         code_aware_enabled=False,
     )
-    proxy = HeadroomProxy(config)
+    proxy = CopiumProxy(config)
 
     spy = SpyTransform()
     # Replace both pipeline transform lists with the SAME instance so the
@@ -160,7 +160,7 @@ async def test_startup_runs_shared_transform_once(_stub_pipelines):
 @pytest.mark.asyncio
 async def test_startup_optimize_false_leaves_slots_null():
     pytest.importorskip("httpx")
-    from headroom.proxy.server import HeadroomProxy, ProxyConfig
+    from copium.proxy.server import CopiumProxy, ProxyConfig
 
     config = ProxyConfig(
         optimize=False,
@@ -168,7 +168,7 @@ async def test_startup_optimize_false_leaves_slots_null():
         rate_limit_enabled=False,
         cost_tracking_enabled=False,
     )
-    proxy = HeadroomProxy(config)
+    proxy = CopiumProxy(config)
 
     called = {"n": 0}
 
@@ -193,8 +193,8 @@ async def test_startup_optimize_false_leaves_slots_null():
 @pytest.mark.asyncio
 async def test_startup_memory_embedder_warmup_encodes_once(tmp_path, monkeypatch):
     pytest.importorskip("httpx")
-    from headroom.proxy.memory_handler import MemoryConfig, MemoryHandler
-    from headroom.proxy.server import HeadroomProxy, ProxyConfig
+    from copium.proxy.memory_handler import MemoryConfig, MemoryHandler
+    from copium.proxy.server import CopiumProxy, ProxyConfig
 
     config = ProxyConfig(
         optimize=False,
@@ -202,7 +202,7 @@ async def test_startup_memory_embedder_warmup_encodes_once(tmp_path, monkeypatch
         rate_limit_enabled=False,
         cost_tracking_enabled=False,
     )
-    proxy = HeadroomProxy(config)
+    proxy = CopiumProxy(config)
 
     # Swap in a hand-rolled MemoryHandler whose backend exposes a mock
     # embedder. We don't want real ONNX here — just a spy.
@@ -241,8 +241,8 @@ async def test_startup_memory_embedder_warmup_encodes_once(tmp_path, monkeypatch
 @pytest.mark.asyncio
 async def test_startup_memory_backend_error_surfaced_and_health_degraded(tmp_path):
     pytest.importorskip("httpx")
-    from headroom.proxy.memory_handler import MemoryConfig, MemoryHandler
-    from headroom.proxy.server import HeadroomProxy, ProxyConfig
+    from copium.proxy.memory_handler import MemoryConfig, MemoryHandler
+    from copium.proxy.server import CopiumProxy, ProxyConfig
 
     config = ProxyConfig(
         optimize=False,
@@ -250,7 +250,7 @@ async def test_startup_memory_backend_error_surfaced_and_health_degraded(tmp_pat
         rate_limit_enabled=False,
         cost_tracking_enabled=False,
     )
-    proxy = HeadroomProxy(config)
+    proxy = CopiumProxy(config)
 
     handler = MemoryHandler(
         MemoryConfig(enabled=True, backend="local", db_path=str(tmp_path / "mem.db"))

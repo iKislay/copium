@@ -8,14 +8,14 @@ pytest.importorskip("httpx")
 
 from fastapi.testclient import TestClient
 
-from headroom.proxy.server import ProxyConfig, create_app
+from copium.proxy.server import ProxyConfig, create_app
 
 
 @pytest.fixture
 def client(monkeypatch):
     # Skip the live upstream connectivity probe in unit tests — tests verify
     # the check logic separately (see test_readyz_upstream_check_* below).
-    monkeypatch.setenv("HEADROOM_SKIP_UPSTREAM_CHECK", "1")
+    monkeypatch.setenv("COPIUM_SKIP_UPSTREAM_CHECK", "1")
     config = ProxyConfig(
         optimize=False,
         cache_enabled=False,
@@ -32,7 +32,7 @@ def test_livez_reports_process_health(client):
 
     assert response.status_code == 200
     data = response.json()
-    assert data["service"] == "headroom-proxy"
+    assert data["service"] == "copium-proxy"
     assert data["status"] == "healthy"
     assert data["alive"] is True
     assert data["uptime_seconds"] >= 0
@@ -123,12 +123,12 @@ def test_health_reports_agent_savings_config():
 
 
 def test_health_includes_deployment_metadata_when_present(monkeypatch):
-    monkeypatch.setenv("HEADROOM_SKIP_UPSTREAM_CHECK", "1")
-    monkeypatch.setenv("HEADROOM_DEPLOYMENT_PROFILE", "default")
-    monkeypatch.setenv("HEADROOM_DEPLOYMENT_PRESET", "persistent-service")
-    monkeypatch.setenv("HEADROOM_DEPLOYMENT_RUNTIME", "python")
-    monkeypatch.setenv("HEADROOM_DEPLOYMENT_SUPERVISOR", "service")
-    monkeypatch.setenv("HEADROOM_DEPLOYMENT_SCOPE", "user")
+    monkeypatch.setenv("COPIUM_SKIP_UPSTREAM_CHECK", "1")
+    monkeypatch.setenv("COPIUM_DEPLOYMENT_PROFILE", "default")
+    monkeypatch.setenv("COPIUM_DEPLOYMENT_PRESET", "persistent-service")
+    monkeypatch.setenv("COPIUM_DEPLOYMENT_RUNTIME", "python")
+    monkeypatch.setenv("COPIUM_DEPLOYMENT_SUPERVISOR", "service")
+    monkeypatch.setenv("COPIUM_DEPLOYMENT_SCOPE", "user")
 
     config = ProxyConfig(
         optimize=False,
@@ -161,7 +161,7 @@ def test_health_remains_200_when_proxy_is_not_ready(client):
 
 
 def test_readyz_reports_memory_backend_when_enabled(tmp_path, monkeypatch):
-    monkeypatch.setenv("HEADROOM_SKIP_UPSTREAM_CHECK", "1")
+    monkeypatch.setenv("COPIUM_SKIP_UPSTREAM_CHECK", "1")
     config = ProxyConfig(
         optimize=False,
         cache_enabled=False,
@@ -169,7 +169,7 @@ def test_readyz_reports_memory_backend_when_enabled(tmp_path, monkeypatch):
         cost_tracking_enabled=False,
         memory_enabled=True,
         memory_backend="local",
-        memory_db_path=str(tmp_path / "headroom_memory.db"),
+        memory_db_path=str(tmp_path / "copium_memory.db"),
         memory_inject_tools=True,
         memory_inject_context=True,
     )
@@ -186,8 +186,8 @@ def test_readyz_reports_memory_backend_when_enabled(tmp_path, monkeypatch):
 
 
 def test_readyz_initializes_qdrant_memory_backend(monkeypatch):
-    monkeypatch.setenv("HEADROOM_SKIP_UPSTREAM_CHECK", "1")
-    from headroom.memory.backends import direct_mem0
+    monkeypatch.setenv("COPIUM_SKIP_UPSTREAM_CHECK", "1")
+    from copium.memory.backends import direct_mem0
 
     init_calls: list[str] = []
 
@@ -222,7 +222,7 @@ def test_readyz_initializes_qdrant_memory_backend(monkeypatch):
 
 
 def test_shutdown_tolerates_stubbed_memory_handler(monkeypatch):
-    monkeypatch.setenv("HEADROOM_SKIP_UPSTREAM_CHECK", "1")
+    monkeypatch.setenv("COPIUM_SKIP_UPSTREAM_CHECK", "1")
     config = ProxyConfig(
         optimize=False,
         cache_enabled=False,
@@ -252,8 +252,8 @@ def test_shutdown_tolerates_stubbed_memory_handler(monkeypatch):
 
 
 def test_readyz_upstream_check_disabled_by_env_var(monkeypatch):
-    """HEADROOM_SKIP_UPSTREAM_CHECK=1 suppresses the probe and reports ready."""
-    monkeypatch.setenv("HEADROOM_SKIP_UPSTREAM_CHECK", "1")
+    """COPIUM_SKIP_UPSTREAM_CHECK=1 suppresses the probe and reports ready."""
+    monkeypatch.setenv("COPIUM_SKIP_UPSTREAM_CHECK", "1")
     config = ProxyConfig(
         optimize=False,
         cache_enabled=False,
@@ -279,7 +279,7 @@ def test_readyz_upstream_check_failure_returns_503(monkeypatch):
 
     import httpx
 
-    monkeypatch.delenv("HEADROOM_SKIP_UPSTREAM_CHECK", raising=False)
+    monkeypatch.delenv("COPIUM_SKIP_UPSTREAM_CHECK", raising=False)
 
     config = ProxyConfig(
         optimize=False,
@@ -308,7 +308,7 @@ def test_readyz_upstream_check_failure_returns_503(monkeypatch):
 
 def test_health_includes_upstream_check_result(monkeypatch):
     """/health always returns 200 but exposes the upstream check result."""
-    monkeypatch.setenv("HEADROOM_SKIP_UPSTREAM_CHECK", "1")
+    monkeypatch.setenv("COPIUM_SKIP_UPSTREAM_CHECK", "1")
     config = ProxyConfig(
         optimize=False,
         cache_enabled=False,

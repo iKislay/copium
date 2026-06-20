@@ -9,7 +9,7 @@ from types import ModuleType, SimpleNamespace
 
 import pytest
 
-from headroom.graph import installer, watcher
+from copium.graph import installer, watcher
 
 
 def _build_archive(member_name: str = installer.CBM_BIN_NAME) -> bytes:
@@ -153,7 +153,7 @@ def test_ensure_cbm_uses_existing_or_returns_none_on_failure(monkeypatch, tmp_pa
 def test_code_graph_watcher_init_start_stop_and_event_filtering(
     monkeypatch, tmp_path: Path
 ) -> None:
-    monkeypatch.setattr("headroom.graph.installer.get_cbm_path", lambda: tmp_path / "cbm")
+    monkeypatch.setattr("copium.graph.installer.get_cbm_path", lambda: tmp_path / "cbm")
     graph_watcher = watcher.CodeGraphWatcher(tmp_path)
     assert graph_watcher.cbm_binary == str(tmp_path / "cbm")
 

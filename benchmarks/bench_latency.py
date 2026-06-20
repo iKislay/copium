@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Latency benchmark for Headroom compression pipeline.
+"""Latency benchmark for Copium compression pipeline.
 
 Measures compression overhead across content types and input sizes,
 profiles individual transform stages, and computes cost-benefit analysis
@@ -628,10 +628,10 @@ class ProfilingPipeline:
     """Wraps TransformPipeline to record per-transform timing."""
 
     def __init__(self) -> None:
-        from headroom.config import HeadroomConfig
-        from headroom.transforms.pipeline import TransformPipeline
+        from copium.config import CopiumConfig
+        from copium.transforms.pipeline import TransformPipeline
 
-        self.config = HeadroomConfig()
+        self.config = CopiumConfig()
         self.pipeline = TransformPipeline(config=self.config)
         self.last_transform_timings: dict[str, float] = {}
 
@@ -646,9 +646,9 @@ class ProfilingPipeline:
         Returns the TransformResult from the pipeline.
         Per-transform timings are stored in self.last_transform_timings.
         """
-        from headroom.tokenizer import Tokenizer
-        from headroom.tokenizers import get_tokenizer
-        from headroom.utils import deep_copy_messages
+        from copium.tokenizer import Tokenizer
+        from copium.tokenizers import get_tokenizer
+        from copium.utils import deep_copy_messages
 
         tokenizer = Tokenizer(get_tokenizer(model), model)
         current_messages = deep_copy_messages(messages)
@@ -825,7 +825,7 @@ def format_terminal_report(results: list[LatencyResult]) -> str:
 
     lines.append("")
     lines.append("=" * 100)
-    lines.append("  HEADROOM LATENCY BENCHMARK")
+    lines.append("  COPIUM LATENCY BENCHMARK")
     lines.append("=" * 100)
     lines.append("")
 
@@ -947,7 +947,7 @@ def format_markdown_report(results: list[LatencyResult]) -> str:
     """Format results as a publishable markdown report."""
     lines: list[str] = []
 
-    lines.append("# Headroom Latency Benchmarks")
+    lines.append("# Copium Latency Benchmarks")
     lines.append("")
     lines.append(
         "Measured compression overhead across content types and sizes to answer: "
@@ -963,7 +963,7 @@ def format_markdown_report(results: list[LatencyResult]) -> str:
     lines.append(f"- **Platform**: {platform.platform()}")
     lines.append(f"- **Processor**: {platform.processor() or platform.machine()}")
     lines.append(f"- **Python**: {platform.python_version()}")
-    lines.append("- **Headroom**: v0.3.7")
+    lines.append("- **Copium**: v0.3.7")
     lines.append("")
 
     # TL;DR
@@ -1181,7 +1181,7 @@ def format_markdown_report(results: list[LatencyResult]) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Headroom latency benchmark",
+        description="Copium latency benchmark",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
@@ -1225,7 +1225,7 @@ def main() -> int:
 
     args = parser.parse_args()
 
-    print("Headroom Latency Benchmark")
+    print("Copium Latency Benchmark")
     print("=" * 40)
     print()
 

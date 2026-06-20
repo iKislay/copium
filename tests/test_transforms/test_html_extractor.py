@@ -10,7 +10,7 @@ import pytest
 # Skip entire module if trafilatura not installed
 pytest.importorskip("trafilatura")
 
-from headroom.transforms.html_extractor import (
+from copium.transforms.html_extractor import (
     HTMLExtractionResult,
     HTMLExtractor,
     HTMLExtractorConfig,
@@ -549,7 +549,7 @@ class TestContentDetectorIntegration:
 
     def test_detector_identifies_html(self):
         """Tests that content_detector correctly identifies HTML."""
-        from headroom.transforms.content_detector import ContentType, detect_content_type
+        from copium.transforms.content_detector import ContentType, detect_content_type
 
         html = """<!DOCTYPE html>
         <html>
@@ -566,7 +566,7 @@ class TestContentDetectorIntegration:
 
     def test_detector_rejects_non_html(self):
         """Tests that content_detector doesn't misidentify non-HTML."""
-        from headroom.transforms.content_detector import ContentType, detect_content_type
+        from copium.transforms.content_detector import ContentType, detect_content_type
 
         # Plain text
         result = detect_content_type("Just some plain text without HTML.")

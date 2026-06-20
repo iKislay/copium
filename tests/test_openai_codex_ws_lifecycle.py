@@ -15,9 +15,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from headroom.proxy.handlers.openai import OpenAIHandlerMixin
-from headroom.proxy.helpers import COMPRESSION_TIMEOUT_SECONDS
-from headroom.proxy.ws_session_registry import WebSocketSessionRegistry
+from copium.proxy.handlers.openai import OpenAIHandlerMixin
+from copium.proxy.helpers import COMPRESSION_TIMEOUT_SECONDS
+from copium.proxy.ws_session_registry import WebSocketSessionRegistry
 
 # ---------------------------------------------------------------------------
 # Test doubles
@@ -91,10 +91,10 @@ class _DummyOpenAIHandler(OpenAIHandlerMixin):
         return fn()
 
     async def _record_request_outcome(self, outcome) -> None:
-        # Mirror of ``HeadroomProxy._record_request_outcome`` for the
+        # Mirror of ``CopiumProxy._record_request_outcome`` for the
         # mixin tests. Delegates to the free funnel function so the
         # wire shape is identical to production.
-        from headroom.proxy.outcome import emit_request_outcome
+        from copium.proxy.outcome import emit_request_outcome
 
         await emit_request_outcome(self, outcome)
 
@@ -738,7 +738,7 @@ async def test_ws_forwards_codex_headers_to_client_accept():
     with (
         patch.dict(sys.modules, {"websockets": fake_ws_mod}),
         patch(
-            "headroom.subscription.codex_rate_limits.get_codex_rate_limit_state",
+            "copium.subscription.codex_rate_limits.get_codex_rate_limit_state",
             _fake_state,
         ),
     ):
@@ -775,7 +775,7 @@ async def test_ws_first_frame_timeout_after_connect_closes_upstream():
     with (
         patch.dict(sys.modules, {"websockets": fake_ws_mod}),
         patch(
-            "headroom.proxy.handlers.openai.WS_FIRST_FRAME_TIMEOUT_SECONDS",
+            "copium.proxy.handlers.openai.WS_FIRST_FRAME_TIMEOUT_SECONDS",
             0.05,
         ),
     ):

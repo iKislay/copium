@@ -1,6 +1,6 @@
-# LangChain + Headroom Demo
+# LangChain + Copium Demo
 
-Real-world demonstration of Headroom optimization on LangChain agents.
+Real-world demonstration of Copium optimization on LangChain agents.
 
 ## Quick Start
 
@@ -40,7 +40,7 @@ PYTHONPATH=. python -m examples.langchain_demo.run_comparison
 - Per request: $0.19 → $0.05
 - At 1000 req/day: **$4,196/month saved**
 
-## What Headroom Does
+## What Copium Does
 
 SmartCrusher intelligently compresses tool outputs by:
 

@@ -5,7 +5,7 @@ from pathlib import Path
 import click
 import pytest
 
-from headroom.install import paths as install_paths
+from copium.install import paths as install_paths
 
 
 def test_validate_profile_name_accepts_and_rejects_values() -> None:
@@ -17,7 +17,7 @@ def test_validate_profile_name_accepts_and_rejects_values() -> None:
 
 
 def test_profile_and_artifact_paths(monkeypatch, tmp_path: Path) -> None:
-    monkeypatch.setattr("headroom.install.paths._paths.deploy_root", lambda: tmp_path / "deploy")
+    monkeypatch.setattr("copium.install.paths._paths.deploy_root", lambda: tmp_path / "deploy")
 
     assert install_paths.deploy_root() == tmp_path / "deploy"
     assert install_paths.profile_root("demo") == tmp_path / "deploy" / "demo"
@@ -26,37 +26,37 @@ def test_profile_and_artifact_paths(monkeypatch, tmp_path: Path) -> None:
     assert install_paths.pid_path("demo") == tmp_path / "deploy" / "demo" / "runner.pid"
     assert (
         install_paths.unix_run_script_path("demo")
-        == tmp_path / "deploy" / "demo" / "run-headroom.sh"
+        == tmp_path / "deploy" / "demo" / "run-copium.sh"
     )
     assert install_paths.unix_ensure_script_path("demo") == (
-        tmp_path / "deploy" / "demo" / "ensure-headroom.sh"
+        tmp_path / "deploy" / "demo" / "ensure-copium.sh"
     )
     assert install_paths.windows_run_script_path("demo") == (
-        tmp_path / "deploy" / "demo" / "run-headroom.ps1"
+        tmp_path / "deploy" / "demo" / "run-copium.ps1"
     )
     assert install_paths.windows_run_cmd_path("demo") == (
-        tmp_path / "deploy" / "demo" / "run-headroom.cmd"
+        tmp_path / "deploy" / "demo" / "run-copium.cmd"
     )
     assert install_paths.windows_ensure_script_path("demo") == (
-        tmp_path / "deploy" / "demo" / "ensure-headroom.ps1"
+        tmp_path / "deploy" / "demo" / "ensure-copium.ps1"
     )
     assert install_paths.windows_ensure_cmd_path("demo") == (
-        tmp_path / "deploy" / "demo" / "ensure-headroom.cmd"
+        tmp_path / "deploy" / "demo" / "ensure-copium.cmd"
     )
 
 
 def test_env_target_and_config_paths(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setattr("headroom.install.paths.sys.platform", "linux")
+    monkeypatch.setattr("copium.install.paths.sys.platform", "linux")
 
     assert install_paths.unix_user_env_targets() == [
         tmp_path / ".bashrc",
         tmp_path / ".zshrc",
         tmp_path / ".profile",
     ]
-    assert install_paths.unix_system_env_targets() == [Path("/etc/profile.d/headroom.sh")]
+    assert install_paths.unix_system_env_targets() == [Path("/etc/profile.d/copium.sh")]
 
-    monkeypatch.setattr("headroom.install.paths.sys.platform", "darwin")
+    monkeypatch.setattr("copium.install.paths.sys.platform", "darwin")
     assert install_paths.unix_system_env_targets() == [
         Path("/etc/profile"),
         Path("/etc/zprofile"),

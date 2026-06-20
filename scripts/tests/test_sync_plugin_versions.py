@@ -73,7 +73,7 @@ def test_main_runs_plugin_only_version_sync(monkeypatch) -> None:
 
 def test_main_is_noop_on_feature_branch(monkeypatch, capsys) -> None:
     """Locks the branch-aware contract: when ``_should_sync`` returns
-    False (feature branch, no HEADROOM_SYNC_VERSIONS opt-in), main()
+    False (feature branch, no COPIUM_SYNC_VERSIONS opt-in), main()
     prints a skip line and returns without invoking the version-sync
     subprocess. Pre-this-fix the hook bumped manifests on every commit
     regardless of branch — leaking version-bump noise into every PR."""
@@ -96,11 +96,11 @@ def test_main_is_noop_on_feature_branch(monkeypatch, capsys) -> None:
 
 
 def test_should_sync_honours_env_override(monkeypatch) -> None:
-    """``HEADROOM_SYNC_VERSIONS=1`` forces a sync even on feature
+    """``COPIUM_SYNC_VERSIONS=1`` forces a sync even on feature
     branches — the release workflow uses this opt-in so the canonical
     manifest sync still happens at publish time."""
     module = _load_module()
-    monkeypatch.setenv("HEADROOM_SYNC_VERSIONS", "1")
+    monkeypatch.setenv("COPIUM_SYNC_VERSIONS", "1")
     # Even on a "feature" branch, env override wins.
     monkeypatch.setattr(module, "_current_branch", lambda root: "feature/foo")
     assert module._should_sync(Path("ignored")) is True
@@ -109,7 +109,7 @@ def test_should_sync_honours_env_override(monkeypatch) -> None:
 def test_should_sync_main_branch_runs(monkeypatch) -> None:
     """On ``main``, sync runs without needing the env var."""
     module = _load_module()
-    monkeypatch.delenv("HEADROOM_SYNC_VERSIONS", raising=False)
+    monkeypatch.delenv("COPIUM_SYNC_VERSIONS", raising=False)
     monkeypatch.setattr(module, "_current_branch", lambda root: "main")
     assert module._should_sync(Path("ignored")) is True
 
@@ -117,7 +117,7 @@ def test_should_sync_main_branch_runs(monkeypatch) -> None:
 def test_should_sync_feature_branch_is_skip(monkeypatch) -> None:
     """On any non-main branch without the env var, sync is a no-op."""
     module = _load_module()
-    monkeypatch.delenv("HEADROOM_SYNC_VERSIONS", raising=False)
+    monkeypatch.delenv("COPIUM_SYNC_VERSIONS", raising=False)
     monkeypatch.setattr(module, "_current_branch", lambda root: "fix/some-bug")
     assert module._should_sync(Path("ignored")) is False
 
@@ -126,6 +126,6 @@ def test_should_sync_returns_false_when_git_unavailable(monkeypatch) -> None:
     """Defensive: if ``_current_branch`` returns None (git not on
     PATH, detached HEAD, etc.) the safe default is no-op."""
     module = _load_module()
-    monkeypatch.delenv("HEADROOM_SYNC_VERSIONS", raising=False)
+    monkeypatch.delenv("COPIUM_SYNC_VERSIONS", raising=False)
     monkeypatch.setattr(module, "_current_branch", lambda root: None)
     assert module._should_sync(Path("ignored")) is False

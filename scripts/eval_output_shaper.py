@@ -31,7 +31,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import anthropic  # noqa: E402
 
-from headroom.proxy.output_shaper import OutputShaperSettings, shape_request  # noqa: E402
+from copium.proxy.output_shaper import OutputShaperSettings, shape_request  # noqa: E402
 
 MODEL = "claude-opus-4-8"
 TRIALS = 2

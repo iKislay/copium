@@ -1,9 +1,9 @@
 ## Description
 
 Implement unified CI/CD release automation with semantic versioning across all three packages:
-- **Python (headroom-ai)** — pip package on PyPI
-- **TypeScript SDK (headroom-ai)** — npm package on npmjs.org
-- **OpenClaw plugin (headroom-openclaw)** — npm package on npmjs.org and GitHub Package Registry
+- **Python (copium-ai)** — pip package on PyPI
+- **TypeScript SDK (copium-ai)** — npm package on npmjs.org
+- **OpenClaw plugin (copium-openclaw)** — npm package on npmjs.org and GitHub Package Registry
 
 Currently the three packages are independently versioned (0.5.25 / 0.1.0 / 0.1.0). This PR introduces a single-source-of-truth version in `pyproject.toml` that propagates to all packages on every release, driven by conventional commit messages.
 
@@ -56,7 +56,7 @@ Fixes #(issue number)
   - `scripts/tests/test_version_sync.py` — 5/5 passing
   - `scripts/tests/test_changelog_gen.py` — 23/23 passing
 - [x] Linting passes (`ruff check .`)
-- [ ] Type checking passes (`mypy headroom`) — pre-existing issue in `headroom/cli/wrap.py:487` (unrelated)
+- [ ] Type checking passes (`mypy copium`) — pre-existing issue in `copium/cli/wrap.py:487` (unrelated)
 - [x] New tests added for new functionality
 - [x] Workflow tested with `act` (dry-run passes all jobs through build step — no infinite loop)
 
@@ -104,10 +104,10 @@ The git tag uses `v{canonical}.{height}` (e.g., `v0.5.25.3` = 3 commits since ca
 
 | Package | Target | Status |
 |---------|--------|--------|
-| `headroom-ai` (Python) | PyPI | ✅ via `pypa/gh-action-pypi-publish` |
-| `headroom-ai` (TypeScript SDK) | npmjs.org | ✅ via `npm publish` |
-| `headroom-openclaw` | npmjs.org | ✅ via `npm publish` |
-| `headroom-openclaw` | GitHub Package Registry | ✅ via `npm publish --registry npm.pkg.github.com` |
+| `copium-ai` (Python) | PyPI | ✅ via `pypa/gh-action-pypi-publish` |
+| `copium-ai` (TypeScript SDK) | npmjs.org | ✅ via `npm publish` |
+| `copium-openclaw` | npmjs.org | ✅ via `npm publish` |
+| `copium-openclaw` | GitHub Package Registry | ✅ via `npm publish --registry npm.pkg.github.com` |
 
 ### Safety Gates
 
@@ -161,10 +161,10 @@ All package names and registries are top-level `env` constants in `release.yml`:
 
 ```yaml
 env:
-  PYPI_PACKAGE: headroom-ai
+  PYPI_PACKAGE: copium-ai
   PYPI_ENVIRONMENT: pypi
   NPM_REGISTRY_URL: https://registry.npmjs.org
-  NPM_SDK_PACKAGE: headroom-ai
-  NPM_OPENCLAW_PACKAGE: headroom-openclaw
+  NPM_SDK_PACKAGE: copium-ai
+  NPM_OPENCLAW_PACKAGE: copium-openclaw
   GITHUB_PACKAGES_REGISTRY_URL: https://npm.pkg.github.com
 ```

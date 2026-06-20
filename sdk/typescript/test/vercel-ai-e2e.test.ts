@@ -1,7 +1,7 @@
 /**
- * End-to-end test: Vercel AI SDK + Headroom compress()
+ * End-to-end test: Vercel AI SDK + Copium compress()
  *
- * Tests REAL calls through the Vercel AI SDK with Headroom compression.
+ * Tests REAL calls through the Vercel AI SDK with Copium compression.
  * Uses actual OpenAI and Anthropic API keys.
  *
  * Requires:
@@ -9,7 +9,7 @@
  *   - OPENAI_API_KEY in .env
  *   - ANTHROPIC_API_KEY in .env
  *
- * Run: HEADROOM_INTEGRATION=1 npx vitest run test/vercel-ai-e2e.test.ts
+ * Run: COPIUM_INTEGRATION=1 npx vitest run test/vercel-ai-e2e.test.ts
  */
 import { describe, it, expect, beforeAll } from "vitest";
 import { config } from "dotenv";
@@ -18,9 +18,9 @@ import { resolve } from "path";
 config({ path: resolve(__dirname, "../../../.env") });
 
 const PROXY_URL = "http://localhost:8787";
-const RUN = process.env.HEADROOM_INTEGRATION === "1";
+const RUN = process.env.COPIUM_INTEGRATION === "1";
 
-describe.skipIf(!RUN)("E2E: Vercel AI SDK + Headroom", () => {
+describe.skipIf(!RUN)("E2E: Vercel AI SDK + Copium", () => {
   beforeAll(async () => {
     const res = await fetch(`${PROXY_URL}/health`);
     if (!res.ok) throw new Error("Proxy not running");
@@ -84,17 +84,17 @@ describe.skipIf(!RUN)("E2E: Vercel AI SDK + Headroom", () => {
     expect(text.toLowerCase()).toMatch(/server/i);
   });
 
-  it("headroomMiddleware() transparently compresses before LLM call (OpenAI)", { timeout: 30000 }, async () => {
+  it("copiumMiddleware() transparently compresses before LLM call (OpenAI)", { timeout: 30000 }, async () => {
     const { generateText, wrapLanguageModel } = await import("ai");
     const { createOpenAI } = await import("@ai-sdk/openai");
-    const { headroomMiddleware } = await import("../src/adapters/vercel-ai.js");
+    const { copiumMiddleware } = await import("../src/adapters/vercel-ai.js");
 
     const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-    // Wrap model with Headroom middleware
+    // Wrap model with Copium middleware
     const model = wrapLanguageModel({
       model: openai("gpt-4o-mini"),
-      middleware: headroomMiddleware({ baseUrl: PROXY_URL }),
+      middleware: copiumMiddleware({ baseUrl: PROXY_URL }),
     });
 
     // Big log dump as user message

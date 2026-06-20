@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from headroom.mcp_registry.base import (
+from copium.mcp_registry.base import (
     MCPRegistrar,
     RegisterResult,
     RegisterStatus,
     ServerSpec,
 )
-from headroom.mcp_registry.install import (
+from copium.mcp_registry.install import (
     DEFAULT_PROXY_URL,
-    build_headroom_spec,
+    build_copium_spec,
     build_serena_spec,
     install_everywhere,
 )
@@ -47,25 +47,25 @@ class _FakeRegistrar(MCPRegistrar):
 
 
 # ----------------------------------------------------------------------
-# build_headroom_spec
+# build_copium_spec
 # ----------------------------------------------------------------------
 
 
 def test_build_spec_default_proxy_no_env() -> None:
-    spec = build_headroom_spec()
-    assert spec.name == "headroom"
-    assert spec.command == "headroom"
+    spec = build_copium_spec()
+    assert spec.name == "copium"
+    assert spec.command == "copium"
     assert spec.args == ("mcp", "serve")
     assert spec.env == {}
 
 
 def test_build_spec_custom_proxy_sets_env() -> None:
-    spec = build_headroom_spec("http://127.0.0.1:9999")
-    assert spec.env == {"HEADROOM_PROXY_URL": "http://127.0.0.1:9999"}
+    spec = build_copium_spec("http://127.0.0.1:9999")
+    assert spec.env == {"COPIUM_PROXY_URL": "http://127.0.0.1:9999"}
 
 
 def test_build_spec_default_url_omits_env() -> None:
-    spec = build_headroom_spec(DEFAULT_PROXY_URL)
+    spec = build_copium_spec(DEFAULT_PROXY_URL)
     assert spec.env == {}
 
 
@@ -88,7 +88,7 @@ def test_build_serena_spec_uses_agent_context() -> None:
 
 
 def test_build_serena_spec_disables_dashboard_popup_by_default() -> None:
-    # Headroom installs Serena by default; the dashboard browser tab must not
+    # Copium installs Serena by default; the dashboard browser tab must not
     # auto-open. The flag overrides the user's serena_config.yml at startup,
     # so this holds even when the user never created a Serena config.
     for context in ("codex", "claude-code"):
@@ -143,7 +143,7 @@ def test_install_everywhere_passes_proxy_url_into_spec() -> None:
     reg = CapturingRegistrar("x")
     install_everywhere(proxy_url="http://localhost:9000", registrars=[reg])
     assert len(captured) == 1
-    assert captured[0].env == {"HEADROOM_PROXY_URL": "http://localhost:9000"}
+    assert captured[0].env == {"COPIUM_PROXY_URL": "http://localhost:9000"}
 
 
 def test_install_everywhere_passes_force_flag() -> None:

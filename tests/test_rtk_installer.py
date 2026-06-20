@@ -7,23 +7,23 @@ import tarfile
 from pathlib import Path
 from unittest.mock import patch
 
-from headroom.rtk import get_rtk_path, installer
+from copium.rtk import get_rtk_path, installer
 
 
 def test_get_rtk_path_finds_windows_managed_binary(tmp_path: Path) -> None:
-    managed_dir = tmp_path / ".headroom" / "bin"
+    managed_dir = tmp_path / ".copium" / "bin"
     managed_dir.mkdir(parents=True)
     managed_path = managed_dir / "rtk.exe"
     managed_path.write_bytes(b"binary")
 
-    with patch("headroom.rtk.RTK_BIN_DIR", managed_dir):
-        with patch("headroom.rtk.RTK_BIN_PATH", managed_dir / "rtk"):
-            with patch("headroom.rtk.shutil.which", return_value=None):
+    with patch("copium.rtk.RTK_BIN_DIR", managed_dir):
+        with patch("copium.rtk.RTK_BIN_PATH", managed_dir / "rtk"):
+            with patch("copium.rtk.shutil.which", return_value=None):
                 assert get_rtk_path() == managed_path
 
 
 def test_get_target_triple_uses_override(monkeypatch) -> None:
-    monkeypatch.setenv("HEADROOM_RTK_TARGET", "x86_64-pc-windows-msvc")
+    monkeypatch.setenv("COPIUM_RTK_TARGET", "x86_64-pc-windows-msvc")
     assert installer._get_target_triple() == "x86_64-pc-windows-msvc"
 
 
@@ -46,7 +46,7 @@ def test_download_rtk_skips_verify_for_non_native_target(monkeypatch, tmp_path: 
         def read(self) -> bytes:
             return archive_bytes
 
-    monkeypatch.setenv("HEADROOM_RTK_TARGET", "x86_64-apple-darwin")
+    monkeypatch.setenv("COPIUM_RTK_TARGET", "x86_64-apple-darwin")
 
     with patch.object(installer, "RTK_BIN_DIR", tmp_path):
         with patch.object(installer, "urlopen", return_value=_Response()):

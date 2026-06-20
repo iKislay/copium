@@ -21,7 +21,7 @@ pytest.importorskip("httpx")
 
 from fastapi.testclient import TestClient
 
-from headroom.proxy.server import ProxyConfig, create_app
+from copium.proxy.server import ProxyConfig, create_app
 
 # =============================================================================
 # Fixtures

@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from headroom.telemetry import (
+from copium.telemetry import (
     DEFAULT_AUTH_MODE,
     DEFAULT_MODEL_FAMILY,
     TOINConfig,
@@ -33,7 +33,7 @@ from headroom.telemetry import (
 def _reset_toin(monkeypatch, tmp_path: Path):
     """Force every test to use a fresh tempfile-backed TOIN."""
     storage = tmp_path / "toin_obs_test.json"
-    monkeypatch.setenv("HEADROOM_TOIN_PATH", str(storage))
+    monkeypatch.setenv("COPIUM_TOIN_PATH", str(storage))
     reset_toin()
     # Also reset the class-level deprecation flag so each test gets a
     # fresh "one warning" budget. Without this, test ordering would
@@ -71,11 +71,11 @@ def test_get_recommendation_returns_none_with_deprecation_warning():
 
 
 def test_compression_hint_is_not_publicly_exported():
-    """`CompressionHint` is no longer re-exported from `headroom.telemetry`."""
-    import headroom.telemetry as telemetry_pkg
+    """`CompressionHint` is no longer re-exported from `copium.telemetry`."""
+    import copium.telemetry as telemetry_pkg
 
     assert not hasattr(telemetry_pkg, "CompressionHint"), (
-        "PR-B5: CompressionHint was retired and must not be importable from headroom.telemetry."
+        "PR-B5: CompressionHint was retired and must not be importable from copium.telemetry."
     )
 
 
@@ -186,7 +186,7 @@ def test_record_does_not_alter_compression_decision():
     pre-B5 hint — and asserts byte equality. This pins the
     observation-only contract: TOIN observes; never mutates.
     """
-    smart_crusher_module = pytest.importorskip("headroom.transforms.smart_crusher")
+    smart_crusher_module = pytest.importorskip("copium.transforms.smart_crusher")
     SmartCrusher = smart_crusher_module.SmartCrusher
     SmartCrusherConfig = smart_crusher_module.SmartCrusherConfig
 
@@ -249,7 +249,7 @@ def test_record_does_not_alter_compression_decision():
 )
 def test_smart_crusher_determinism_parametrized(items: list[dict[str, object]]) -> None:
     """Two crush() calls on the same input must return byte-equal output."""
-    smart_crusher_module = pytest.importorskip("headroom.transforms.smart_crusher")
+    smart_crusher_module = pytest.importorskip("copium.transforms.smart_crusher")
     SmartCrusher = smart_crusher_module.SmartCrusher
     SmartCrusherConfig = smart_crusher_module.SmartCrusherConfig
     import json as _json
@@ -265,14 +265,14 @@ def test_smart_crusher_determinism_property():
     """Property: any input → byte-stable SmartCrusher output across two calls.
 
     Skipped if `hypothesis` is not installed (it is not a hard dep of
-    Headroom). The parametrized test above covers the deterministic
+    Copium). The parametrized test above covers the deterministic
     surface unconditionally.
     """
     pytest.importorskip("hypothesis")
     from hypothesis import given, settings
     from hypothesis import strategies as st
 
-    smart_crusher_module = pytest.importorskip("headroom.transforms.smart_crusher")
+    smart_crusher_module = pytest.importorskip("copium.transforms.smart_crusher")
     SmartCrusher = smart_crusher_module.SmartCrusher
     SmartCrusherConfig = smart_crusher_module.SmartCrusherConfig
     crusher = SmartCrusher(config=SmartCrusherConfig(enabled=True))

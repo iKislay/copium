@@ -12,7 +12,7 @@ class TestCompressPreservesTags:
 
     def test_system_reminder_survives(self):
         """<system-reminder> tags in tool output survive compression."""
-        from headroom import compress
+        from copium import compress
 
         messages = [
             {"role": "user", "content": "What are the rules?"},
@@ -41,7 +41,7 @@ class TestCompressPreservesTags:
 
     def test_tool_call_tags_survive(self):
         """<tool_call> tags survive compression."""
-        from headroom import compress
+        from copium import compress
 
         messages = [
             {"role": "user", "content": "Search for results"},
@@ -67,7 +67,7 @@ class TestCompressPreservesTags:
 
     def test_thinking_tags_survive(self):
         """<thinking> tags survive compression."""
-        from headroom import compress
+        from copium import compress
 
         messages = [
             {"role": "user", "content": "Analyze this data"},
@@ -94,7 +94,7 @@ class TestCompressPreservesTags:
 
     def test_html_tags_still_compressible(self):
         """Standard HTML tags are NOT protected — they're just text to the compressor."""
-        from headroom.transforms.tag_protector import protect_tags
+        from copium.transforms.tag_protector import protect_tags
 
         html_text = "<div>Some content</div> <span>More content</span>"
         cleaned, protected = protect_tags(html_text)
@@ -105,7 +105,7 @@ class TestCompressPreservesTags:
 
     def test_multiple_custom_tags_in_messages(self):
         """Multiple different custom tags all survive."""
-        from headroom import compress
+        from copium import compress
 
         messages = [
             {"role": "user", "content": "What should I do?"},
@@ -146,7 +146,7 @@ class TestRealAPIWithTags:
         We verify the compressed output still contains the protected tags
         and their content — which is what matters for tool/workflow correctness.
         """
-        from headroom import compress
+        from copium import compress
 
         # Tool output with workflow tags (realistic: tags appear in tool results,
         # not user messages)

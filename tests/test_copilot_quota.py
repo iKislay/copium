@@ -1,4 +1,4 @@
-"""Unit tests for headroom.subscription.copilot_quota."""
+"""Unit tests for copium.subscription.copilot_quota."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import time
 
 import pytest
 
-from headroom.subscription.copilot_quota import (
+from copium.subscription.copilot_quota import (
     CopilotQuotaCategory,
     CopilotQuotaSnapshot,
     discover_github_token,
@@ -297,7 +297,7 @@ class TestCopilotQuotaPollLoopLeak:
         """
         import asyncio
 
-        from headroom.subscription.copilot_quota import _CopilotQuotaTracker
+        from copium.subscription.copilot_quota import _CopilotQuotaTracker
 
         # No token configured → _maybe_poll returns immediately each cycle.
         for var in ("GITHUB_COPILOT_GITHUB_TOKEN", "GITHUB_TOKEN"):

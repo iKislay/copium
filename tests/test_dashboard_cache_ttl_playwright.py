@@ -9,7 +9,7 @@ from urllib.parse import urlsplit
 
 import pytest
 
-from headroom.dashboard import get_dashboard_html
+from copium.dashboard import get_dashboard_html
 
 playwright = pytest.importorskip("playwright.sync_api")
 Page = playwright.Page
@@ -188,13 +188,13 @@ def _install_dashboard_routes(page: Page) -> None:
 
 
 def test_dashboard_renders_observed_ttl_metrics_and_can_capture_screenshot() -> None:
-    artifact_dir = os.environ.get("HEADROOM_PLAYWRIGHT_ARTIFACT_DIR")
+    artifact_dir = os.environ.get("COPIUM_PLAYWRIGHT_ARTIFACT_DIR")
 
     with sync_playwright() as pw:
         browser = pw.chromium.launch()
         page = browser.new_page(viewport={"width": 1720, "height": 1400}, color_scheme="dark")
         _install_dashboard_routes(page)
-        page.goto("http://headroom.local/dashboard", wait_until="load")
+        page.goto("http://copium.local/dashboard", wait_until="load")
 
         expect(page.get_by_text("Observed TTL Buckets")).to_be_visible()
         expect(page.get_by_text("Provider-reported cache write mix")).to_be_visible()

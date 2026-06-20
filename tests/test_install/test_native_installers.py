@@ -274,14 +274,14 @@ def test_bash_native_installer_supports_persistent_docker_lifecycle(tmp_path: Pa
     home = tmp_path / "home"
     (home / ".local").mkdir(parents=True)
     env = _build_env(home, tmp_path)
-    env["HEADROOM_DOCKER_IMAGE"] = "headroom:test-image"
+    env["COPIUM_DOCKER_IMAGE"] = "copium:test-image"
 
     try:
         _run(["bash", str(REPO_ROOT / "scripts" / "install.sh")], env=env, cwd=REPO_ROOT)
 
-        wrapper = home / ".local" / "bin" / "headroom"
+        wrapper = home / ".local" / "bin" / "copium"
         assert wrapper.exists()
-        assert "HEADROOM_IMAGE_DEFAULT=headroom:test-image" in wrapper.read_text(encoding="utf-8")
+        assert "COPIUM_IMAGE_DEFAULT=copium:test-image" in wrapper.read_text(encoding="utf-8")
 
         help_result = _run([str(wrapper), "install", "-?"], env=env)
         assert "persistent-docker preset only" in help_result.stdout
@@ -375,20 +375,20 @@ def test_bash_native_installer_supports_persistent_docker_lifecycle(tmp_path: Pa
                 "--memory",
                 "--no-telemetry",
                 "--image",
-                "fake/headroom:test",
+                "fake/copium:test",
             ],
             env=env,
         )
 
-        manifest_path = home / ".headroom" / "deploy" / "smoke" / "manifest.json"
+        manifest_path = home / ".copium" / "deploy" / "smoke" / "manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         assert manifest["preset"] == "persistent-docker"
         assert manifest["port"] == port
         assert manifest["memory_enabled"] is True
-        assert manifest["memory_db_path"] == "/tmp/headroom-home/.headroom/memory.db"
+        assert manifest["memory_db_path"] == "/tmp/copium-home/.copium/memory.db"
         assert manifest["telemetry_enabled"] is False
 
-        state_path = home / ".headroom" / "deploy" / "smoke" / "docker-native.env"
+        state_path = home / ".copium" / "deploy" / "smoke" / "docker-native.env"
         state_text = state_path.read_text(encoding="utf-8")
         assert f"PORT={port!r}" in state_text
 
@@ -402,11 +402,11 @@ def test_bash_native_installer_supports_persistent_docker_lifecycle(tmp_path: Pa
         install_call = next(
             call for call in docker_calls if call[:2] == ["run", "-d"] and "--name" in call
         )
-        assert "/tmp/headroom-home/.headroom/memory.db" in install_call
+        assert "/tmp/copium-home/.copium/memory.db" in install_call
         # Canonical filesystem contract env vars (issue #175) forwarded into
         # the container so the proxy resolves state/config to the bind mount.
-        assert "HEADROOM_WORKSPACE_DIR=/tmp/headroom-home/.headroom" in install_call
-        assert "HEADROOM_CONFIG_DIR=/tmp/headroom-home/.headroom/config" in install_call
+        assert "COPIUM_WORKSPACE_DIR=/tmp/copium-home/.copium" in install_call
+        assert "COPIUM_CONFIG_DIR=/tmp/copium-home/.copium/config" in install_call
 
         status_result = _run(
             [str(wrapper), "install", "status", "--profile", "smoke"],
@@ -458,7 +458,7 @@ def test_powershell_native_installer_supports_persistent_docker_lifecycle(tmp_pa
     home = tmp_path / "home"
     (home / ".local").mkdir(parents=True)
     env = _build_env(home, tmp_path)
-    env["HEADROOM_DOCKER_IMAGE"] = "headroom:test-image"
+    env["COPIUM_DOCKER_IMAGE"] = "copium:test-image"
 
     try:
         _run(
@@ -474,11 +474,11 @@ def test_powershell_native_installer_supports_persistent_docker_lifecycle(tmp_pa
             cwd=REPO_ROOT,
         )
 
-        wrapper = home / ".local" / "bin" / "headroom.ps1"
+        wrapper = home / ".local" / "bin" / "copium.ps1"
         assert wrapper.exists()
-        assert "__HEADROOM_INSTALL_IMAGE__" not in wrapper.read_text(encoding="utf-8")
-        assert "headroom:test-image" in wrapper.read_text(encoding="utf-8")
-        cmd_wrapper = home / ".local" / "bin" / "headroom.cmd"
+        assert "__COPIUM_INSTALL_IMAGE__" not in wrapper.read_text(encoding="utf-8")
+        assert "copium:test-image" in wrapper.read_text(encoding="utf-8")
+        cmd_wrapper = home / ".local" / "bin" / "copium.cmd"
         assert cmd_wrapper.exists()
 
         help_result = _run(
@@ -618,13 +618,13 @@ def test_powershell_native_installer_supports_persistent_docker_lifecycle(tmp_pa
                 "--memory",
                 "--no-telemetry",
                 "--image",
-                "fake/headroom:test",
+                "fake/copium:test",
             ],
             env=env,
         )
 
-        manifest_path = home / ".headroom" / "deploy" / "smoke" / "manifest.json"
-        state_path = home / ".headroom" / "deploy" / "smoke" / "docker-native.json"
+        manifest_path = home / ".copium" / "deploy" / "smoke" / "manifest.json"
+        state_path = home / ".copium" / "deploy" / "smoke" / "docker-native.json"
         manifest_bytes = manifest_path.read_bytes()
         state_bytes = state_path.read_bytes()
         assert not manifest_bytes.startswith(b"\xef\xbb\xbf")
@@ -634,9 +634,9 @@ def test_powershell_native_installer_supports_persistent_docker_lifecycle(tmp_pa
         assert manifest["preset"] == "persistent-docker"
         assert manifest["port"] == port
         assert manifest["memory_enabled"] is True
-        assert manifest["memory_db_path"] == "/tmp/headroom-home/.headroom/memory.db"
+        assert manifest["memory_db_path"] == "/tmp/copium-home/.copium/memory.db"
         assert manifest["telemetry_enabled"] is False
-        assert state["container_name"] == "headroom-smoke"
+        assert state["container_name"] == "copium-smoke"
 
         docker_calls = _read_fake_docker_log(env)
         help_call = next(
@@ -654,10 +654,10 @@ def test_powershell_native_installer_supports_persistent_docker_lifecycle(tmp_pa
         install_call = next(
             call for call in docker_calls if call[:2] == ["run", "-d"] and "--name" in call
         )
-        assert "/tmp/headroom-home/.headroom/memory.db" in install_call
+        assert "/tmp/copium-home/.copium/memory.db" in install_call
         # Canonical filesystem contract env vars (issue #175).
-        assert "HEADROOM_WORKSPACE_DIR=/tmp/headroom-home/.headroom" in install_call
-        assert "HEADROOM_CONFIG_DIR=/tmp/headroom-home/.headroom/config" in install_call
+        assert "COPIUM_WORKSPACE_DIR=/tmp/copium-home/.copium" in install_call
+        assert "COPIUM_CONFIG_DIR=/tmp/copium-home/.copium/config" in install_call
 
         status_result = _run(
             [

@@ -9,7 +9,7 @@ These are NOT skewed to show summaries as amazing — they test
 real-world data patterns and verify correctness.
 """
 
-from headroom.transforms.compression_summary import (
+from copium.transforms.compression_summary import (
     summarize_compressed_code,
     summarize_dropped_items,
 )

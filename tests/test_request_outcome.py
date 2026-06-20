@@ -1,5 +1,5 @@
-"""Tests for :class:`headroom.proxy.outcome.RequestOutcome` and the
-:meth:`HeadroomProxy._record_request_outcome` funnel.
+"""Tests for :class:`copium.proxy.outcome.RequestOutcome` and the
+:meth:`CopiumProxy._record_request_outcome` funnel.
 
 The point of this file is the *contract* — every behavioural assertion
 here is a thing that, prior to the funnel, lived inline at one or more
@@ -18,7 +18,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from headroom.proxy.outcome import RequestOutcome
+from copium.proxy.outcome import RequestOutcome
 
 # ── Value-type contract ────────────────────────────────────────────────
 
@@ -64,7 +64,7 @@ def test_cache_hit_pct_handles_zero_denominator() -> None:
 
 
 def test_cache_hit_pct_rounds_to_int() -> None:
-    """PERF log line consumed by ``headroom perf`` parses an integer here;
+    """PERF log line consumed by ``copium perf`` parses an integer here;
     keep the type contract tight."""
     o = _outcome(cache_read_tokens=2, cache_write_tokens=1)  # 66.66%
     assert o.cache_hit_pct == 67
@@ -147,7 +147,7 @@ def test_stream_outcome_derives_gemini_contents_metadata() -> None:
 
 
 def test_classify_client_recognises_known_harness_user_agents() -> None:
-    from headroom.proxy.auth_mode import classify_client
+    from copium.proxy.auth_mode import classify_client
 
     cases = [
         ({"User-Agent": "codex-cli/0.30.0 (osx)"}, "codex"),
@@ -164,7 +164,7 @@ def test_classify_client_recognises_known_harness_user_agents() -> None:
 
 
 def test_classify_client_x_client_header_wins_over_user_agent() -> None:
-    from headroom.proxy.auth_mode import classify_client
+    from copium.proxy.auth_mode import classify_client
 
     # X-Client wins even when UA matches a different harness
     h = {"User-Agent": "codex-cli/0.30.0", "X-Client": "my-custom-harness"}
@@ -175,7 +175,7 @@ def test_classify_client_returns_none_for_unknown_traffic() -> None:
     """``None`` is the loud "unidentified" signal — downstream consumers
     can group these as "unknown" rather than silently bucketing into
     a default that would mislead dashboards."""
-    from headroom.proxy.auth_mode import classify_client
+    from copium.proxy.auth_mode import classify_client
 
     assert classify_client({"User-Agent": "Mozilla/5.0"}) is None
     assert classify_client({}) is None
@@ -196,7 +196,7 @@ class _CollectingLogger:
 
 
 class _FunnelHarness:
-    """Pulls just enough of HeadroomProxy onto an object to exercise
+    """Pulls just enough of CopiumProxy onto an object to exercise
     ``_record_request_outcome`` without instantiating the full proxy.
 
     The harness assigns the real method to ``self`` via descriptor
@@ -205,14 +205,14 @@ class _FunnelHarness:
     """
 
     def __init__(self, *, with_cost_tracker: bool = True, with_logger: bool = True) -> None:
-        from headroom.proxy.server import HeadroomProxy
+        from copium.proxy.server import CopiumProxy
 
         self.metrics = MagicMock()
         self.metrics.record_request = AsyncMock()
         self.cost_tracker = MagicMock() if with_cost_tracker else None
         self.logger = _CollectingLogger() if with_logger else None
         # Bind the real method to this harness.
-        self._record_request_outcome = HeadroomProxy._record_request_outcome.__get__(
+        self._record_request_outcome = CopiumProxy._record_request_outcome.__get__(
             self, type(self)
         )
 
@@ -330,14 +330,14 @@ async def test_funnel_skips_request_log_when_logger_absent() -> None:
 async def test_funnel_emits_perf_log_with_canonical_shape(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """``headroom perf`` parses this exact ``key=value`` format. Changing
+    """``copium perf`` parses this exact ``key=value`` format. Changing
     it breaks the analyzer. The contract: model, msgs, tok_before,
     tok_after, tok_saved, cache_read, cache_write, cache_hit_pct,
     opt_ms, transforms — in that order, space-separated."""
     h = _FunnelHarness()
     # Direct handler attach: caplog otherwise drops propagation-disabled
-    # records (the proxy disables ``headroom.*`` propagation once started).
-    target = logging.getLogger("headroom.proxy")
+    # records (the proxy disables ``copium.*`` propagation once started).
+    target = logging.getLogger("copium.proxy")
     captured: list[logging.LogRecord] = []
 
     class _H(logging.Handler):
@@ -387,11 +387,11 @@ async def test_funnel_emits_perf_log_with_canonical_shape(
 
 @pytest.mark.asyncio
 async def test_funnel_appends_client_to_perf_log_when_set() -> None:
-    """``headroom perf --client X`` filtering relies on the ``client=X``
+    """``copium perf --client X`` filtering relies on the ``client=X``
     token at the end of the PERF line. Absent client means no token —
     the PERF line stays clean for unidentified traffic."""
     h = _FunnelHarness()
-    target = logging.getLogger("headroom.proxy")
+    target = logging.getLogger("copium.proxy")
     captured: list[logging.LogRecord] = []
 
     class _H(logging.Handler):
@@ -419,7 +419,7 @@ async def test_funnel_omits_client_from_perf_log_when_unidentified() -> None:
     bogus ``client=`` token — that would mislead the parser into
     bucketing unidentified traffic as the empty string."""
     h = _FunnelHarness()
-    target = logging.getLogger("headroom.proxy")
+    target = logging.getLogger("copium.proxy")
     captured: list[logging.LogRecord] = []
 
     class _H(logging.Handler):

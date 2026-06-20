@@ -1,4 +1,4 @@
-"""Tests for the Codex read-pattern audit (headroom.audit.codex)."""
+"""Tests for the Codex read-pattern audit (copium.audit.codex)."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from headroom.audit.codex import audit_codex, classify_command, render_codex_text, strip_wrappers
+from copium.audit.codex import audit_codex, classify_command, render_codex_text, strip_wrappers
 
 
 class TestClassifier:
@@ -22,8 +22,8 @@ class TestClassifier:
             ("sed -n '1,200p' src/foo.py", "read", True),
             ("rtk read src/foo.py --lines 10-50", "read", True),
             ("head -50 src/foo.py", "read", True),
-            ("nl headroom/config.py", "read", False),
-            ("rg -n 'def apply' headroom/", "search", False),
+            ("nl copium/config.py", "read", False),
+            ("rg -n 'def apply' copium/", "search", False),
             ("rtk grep -n pattern .", "search", False),
             ("git diff HEAD~1", "git", False),
             ("apply_patch <<'EOF'\n*** Begin Patch\nEOF", "edit", False),
@@ -44,8 +44,8 @@ class TestClassifier:
         assert path == "/abs/foo.py"
 
     def test_sed_range_not_mistaken_for_path(self):
-        _, path, _ = classify_command("sed -n '5,30p' headroom/config.py")
-        assert path == "headroom/config.py"
+        _, path, _ = classify_command("sed -n '5,30p' copium/config.py")
+        assert path == "copium/config.py"
 
     def test_compound_command_with_read(self):
         cat, path, _ = classify_command("cat foo.py | grep def", workdir="/r")
@@ -117,7 +117,7 @@ class TestCli:
     def test_cli_codex_mode(self, codex_dir):
         from click.testing import CliRunner
 
-        from headroom.cli.main import main
+        from copium.cli.main import main
 
         runner = CliRunner()
         res = runner.invoke(main, ["audit-reads", "--codex", "--path", str(codex_dir)])

@@ -21,16 +21,16 @@ interface GeminiModelLike {
  *
  * @example
  * ```typescript
- * import { withHeadroom } from 'headroom-ai/gemini';
+ * import { withCopium } from 'copium-ai/gemini';
  * import { GoogleGenerativeAI } from '@google/generative-ai';
  *
  * const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
- * const model = withHeadroom(genAI.getGenerativeModel({ model: 'gemini-2.0-flash' }));
+ * const model = withCopium(genAI.getGenerativeModel({ model: 'gemini-2.0-flash' }));
  *
  * const result = await model.generateContent({ contents: longConversation });
  * ```
  */
-export function withHeadroom<T extends GeminiModelLike>(
+export function withCopium<T extends GeminiModelLike>(
   model: T,
   options: CompressOptions = {},
 ): T {

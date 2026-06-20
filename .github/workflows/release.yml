@@ -5,13 +5,13 @@ name: Release
 # All values are referenced via ${{ env.VAR }} throughout the workflow.
 env:
   # PyPI
-  PYPI_PACKAGE: headroom-ai
+  PYPI_PACKAGE: copium-ai
   PYPI_ENVIRONMENT: pypi
 
   # npm (npmjs.org)
   NPM_REGISTRY_URL: https://registry.npmjs.org
-  NPM_SDK_PACKAGE: headroom-ai
-  NPM_OPENCLAW_PACKAGE: headroom-openclaw
+  NPM_SDK_PACKAGE: copium-ai
+  NPM_OPENCLAW_PACKAGE: copium-openclaw
 
   # GitHub Package Registry
   GITHUB_PACKAGES_REGISTRY_URL: https://npm.pkg.github.com
@@ -37,8 +37,8 @@ on:
   # X2: PR-time release dry-run. Trigger on PRs that touch release-
   # critical paths so the wheel matrix + smoke-import gate run BEFORE
   # merge — not after the tag is pushed and main is broken. Path
-  # filter is deliberately narrow: source-only PRs to headroom-core
-  # / headroom-proxy don't change wheel layout, so they don't need
+  # filter is deliberately narrow: source-only PRs to copium-core
+  # / copium-proxy don't change wheel layout, so they don't need
   # the dry-run. Issues this would have caught: #379 (docker bake
   # name=), #382 (sdist os-mismatch), #384/#385/#386 (glibc shim
   # iterations), #387's own shellcheck regression.
@@ -46,7 +46,7 @@ on:
     paths:
       - ".github/workflows/release.yml"
       - ".github/workflows/docker.yml"
-      - "crates/headroom-py/**"
+      - "crates/copium-py/**"
       - "pyproject.toml"
       - "scripts/verify-versions.py"
       - "scripts/version-sync.py"
@@ -114,7 +114,7 @@ jobs:
       - name: Compute semantic version from canonical + release history
         id: ver
         run: |
-          python headroom/release_version.py
+          python copium/release_version.py
         env:
           MANUAL_VER: ${{ steps.manualver.outputs.value }}
 
@@ -196,7 +196,7 @@ jobs:
           npm pack --pack-destination ../../release-assets
 
           cd ../../plugins/openclaw
-          npm install ../../release-assets/headroom-ai-${{ needs.detect-version.outputs.npm_version }}.tgz
+          npm install ../../release-assets/copium-ai-${{ needs.detect-version.outputs.npm_version }}.tgz
           npm install
           npm run build
           npm version ${{ needs.detect-version.outputs.npm_version }} --no-git-tag-version --allow-same-version
@@ -210,9 +210,9 @@ jobs:
 
   # Cross-platform wheel matrix. Each entry produces wheels for cp310/11/12/13
   # in one maturin invocation (PyO3 ABI3 forward-compat handles 3.14+ until
-  # we bump pyo3 past 0.22). The `headroom-ai` wheel contains the entire
-  # Python source under `headroom/` plus the compiled `headroom/_core.so`
-  # — one atomic install via `pip install headroom-ai`.
+  # we bump pyo3 past 0.22). The `copium-ai` wheel contains the entire
+  # Python source under `copium/` plus the compiled `copium/_core.so`
+  # — one atomic install via `pip install copium-ai`.
   build-wheels:
     needs: [detect-version, build]
     # Minimal privilege: this job only checks out source, builds wheels,
@@ -229,7 +229,7 @@ jobs:
           # to manylinux2014 / CentOS 7 / OpenSSL 1.0.2k — too old for
           # `openssl-sys 0.9`). manylinux_2_28 is AlmaLinux 8 / glibc 2.28,
           # the same baseline our e2e Dockerfiles use post-#360. The
-          # `openssl/vendored` Cargo feature (added in headroom-proxy)
+          # `openssl/vendored` Cargo feature (added in copium-proxy)
           # compiles OpenSSL from source so the system version doesn't
           # matter, but pinning the floor keeps us off CentOS 7's ancient
           # gcc/glibc surface anyway.
@@ -290,7 +290,7 @@ jobs:
           # `ort-download-binaries-rustls-tls` features, which removed
           # `openssl-sys` from our build tree entirely. The wheel build
           # no longer needs system OpenSSL or any perl modules.
-          # `cargo tree -p headroom-py -i openssl-sys` returns "not
+          # `cargo tree -p copium-py -i openssl-sys` returns "not
           # found" — that's the regression gate (see test_release_workflows
           # ::test_no_openssl_sys_in_wheel_build_tree).
         env:
@@ -381,7 +381,7 @@ jobs:
       # The build host has glibc 2.38 so the link succeeds and CI
       # passes — but every customer with libc < 2.38 sees
       # `ImportError: undefined symbol: __isoc23_strtoll` at
-      # `import headroom._core`. The script compares every UND symbol
+      # `import copium._core`. The script compares every UND symbol
       # against the wheel's manylinux tag and fails the release if
       # any symbol exceeds the floor.
       - name: Audit wheel glibc symbols (Linux only)
@@ -449,7 +449,7 @@ jobs:
   #
   # This job spins up a matrix of representative customer environments
   # — the manylinux floor we promise + common older/newer glibc + macOS
-  # native — and runs the actual `import headroom._core` check the
+  # native — and runs the actual `import copium._core` check the
   # proxy's `_check_rust_core` does at startup. Failure here BLOCKS
   # publish-pypi, publish-docker, and create-release. Better to find
   # a broken wheel here than 8 minutes after `pypa/gh-action-pypi-publish`
@@ -528,8 +528,8 @@ jobs:
         run: |
           cat > "${RUNNER_TEMP}/smoke_import.py" <<'PY'
           import sys
-          import headroom
-          from headroom._core import hello as _rust_hello
+          import copium
+          from copium._core import hello as _rust_hello
           print(f"smoke-import OK: python={sys.version_info[:3]} hello={_rust_hello()}")
           PY
 
@@ -602,7 +602,7 @@ jobs:
                 aarch64-unknown-linux-gnu) arch_tag=manylinux_2_28_aarch64 ;;
                 *) echo "ERROR: unknown wheel target $WHEEL_TARGET" >&2; exit 1 ;;
               esac
-              whl=$(find /wheels -maxdepth 1 -type f -name "headroom_ai-*-${py_tag}-${py_tag}-${arch_tag}.whl" -print -quit)
+              whl=$(find /wheels -maxdepth 1 -type f -name "copium_ai-*-${py_tag}-${py_tag}-${arch_tag}.whl" -print -quit)
               if [ -z "$whl" ]; then
                 # No version-specific wheel — fall back to a stable-ABI
                 # (abi3) wheel. A cp3<floor>-abi3 wheel installs on any
@@ -610,7 +610,7 @@ jobs:
                 # forward-compatible to 3.14+ (Cargo.toml pyo3 abi3-py310).
                 # Pick the abi3 wheel whose floor is <= the interpreter.
                 py_minor=${PYTHON_VERSION#*.}
-                abi3=$(find /wheels -maxdepth 1 -type f -name "headroom_ai-*-abi3-${arch_tag}.whl" -print -quit)
+                abi3=$(find /wheels -maxdepth 1 -type f -name "copium_ai-*-abi3-${arch_tag}.whl" -print -quit)
                 if [ -n "$abi3" ]; then
                   abi3_base=${abi3##*/}
                   abi3_floor=${abi3_base#*-cp3}
@@ -647,12 +647,12 @@ jobs:
           set -e
           py_tag=cp$(echo "$PYTHON_VERSION" | tr -d .)
           # macOS wheels are tagged macosx_*_arm64 (Apple Silicon only).
-          whl=$(find dist -maxdepth 1 -type f -name "headroom_ai-*-${py_tag}-${py_tag}-macosx_*_arm64.whl" -print -quit)
+          whl=$(find dist -maxdepth 1 -type f -name "copium_ai-*-${py_tag}-${py_tag}-macosx_*_arm64.whl" -print -quit)
           if [ -z "$whl" ]; then
             # Stable-ABI (abi3) fallback — see the Linux path above. A
             # cp3<floor>-abi3 wheel installs on any CPython >= floor.
             py_minor=${PYTHON_VERSION#*.}
-            abi3=$(find dist -maxdepth 1 -type f -name "headroom_ai-*-abi3-macosx_*_arm64.whl" -print -quit)
+            abi3=$(find dist -maxdepth 1 -type f -name "copium_ai-*-abi3-macosx_*_arm64.whl" -print -quit)
             if [ -n "$abi3" ]; then
               abi3_base=${abi3##*/}
               abi3_floor=${abi3_base#*-cp3}
@@ -840,7 +840,7 @@ jobs:
           const fs = require("fs");
           const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
           pkg.dependencies = pkg.dependencies || {};
-          delete pkg.dependencies["headroom-ai"];
+          delete pkg.dependencies["copium-ai"];
           fs.writeFileSync("package.json", `${JSON.stringify(pkg, null, 2)}\n`);
           EOF
           npm install
@@ -850,10 +850,10 @@ jobs:
           node <<'EOF'
           const fs = require("fs");
           const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
-          const scopedSdk = `@${process.env.GITHUB_PACKAGES_SCOPE}/headroom-ai`;
+          const scopedSdk = `@${process.env.GITHUB_PACKAGES_SCOPE}/copium-ai`;
           pkg.name = `@${process.env.GITHUB_PACKAGES_SCOPE}/${pkg.name}`;
           pkg.dependencies = pkg.dependencies || {};
-          delete pkg.dependencies["headroom-ai"];
+          delete pkg.dependencies["copium-ai"];
           pkg.dependencies[scopedSdk] = `^${pkg.version}`;
           pkg.publishConfig = {
             ...(pkg.publishConfig || {}),

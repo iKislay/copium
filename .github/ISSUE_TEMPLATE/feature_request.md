@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest a new feature for Headroom
+about: Suggest a new feature for Copium
 title: '[FEATURE] '
 labels: enhancement
 assignees: ''
@@ -33,7 +33,7 @@ If you have ideas about how the API should look:
 
 ```python
 # How you'd like to use this feature
-from headroom import SomeNewFeature
+from copium import SomeNewFeature
 
 # Example usage
 ```

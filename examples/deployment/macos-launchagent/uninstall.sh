@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# Headroom Proxy LaunchAgent Uninstaller for macOS
+# Copium Proxy LaunchAgent Uninstaller for macOS
 #
-# This script removes the headroom proxy LaunchAgent and optionally cleans up logs.
+# This script removes the copium proxy LaunchAgent and optionally cleans up logs.
 #
 # Usage: ./uninstall.sh [--remove-logs]
 #
@@ -20,10 +20,10 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-PLIST_LABEL="com.headroom.proxy"
+PLIST_LABEL="com.copium.proxy"
 PLIST_FILENAME="${PLIST_LABEL}.plist"
 PLIST_PATH="${HOME}/Library/LaunchAgents/${PLIST_FILENAME}"
-LOG_DIR="${HOME}/Library/Logs/headroom"
+LOG_DIR="${HOME}/Library/Logs/copium"
 USER_UID=$(id -u)
 
 # Parse command line arguments
@@ -130,7 +130,7 @@ fi
 # Display success message
 echo ""
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}✓ Headroom proxy uninstalled successfully!${NC}"
+echo -e "${GREEN}✓ Copium proxy uninstalled successfully!${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 echo "Next steps:"

@@ -2,12 +2,12 @@
 
 import pytest
 
-from headroom.cache import (
+from copium.cache import (
     AnthropicCacheOptimizer,
     CacheConfig,
     OptimizationContext,
 )
-from headroom.cache.base import CacheStrategy
+from copium.cache.base import CacheStrategy
 
 
 class TestAnthropicCacheOptimizer:

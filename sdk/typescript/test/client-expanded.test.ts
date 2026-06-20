@@ -1,9 +1,9 @@
 /**
- * Tests for expanded HeadroomClient — chat.completions, messages, metrics, CCR, etc.
+ * Tests for expanded CopiumClient — chat.completions, messages, metrics, CCR, etc.
  * Uses mocked proxy (no real server needed).
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { HeadroomClient } from "../src/client.js";
+import { CopiumClient } from "../src/client.js";
 
 const mockFetch = vi.fn();
 vi.stubGlobal("fetch", mockFetch);
@@ -17,9 +17,9 @@ function jsonResponse(data: any, ok = true) {
   };
 }
 
-describe("HeadroomClient constructor", () => {
+describe("CopiumClient constructor", () => {
   it("accepts extended options", () => {
-    const client = new HeadroomClient({
+    const client = new CopiumClient({
       baseUrl: "http://proxy:8787",
       apiKey: "hdr-key",
       providerApiKey: "sk-openai-key",
@@ -31,36 +31,36 @@ describe("HeadroomClient constructor", () => {
   });
 
   it("has chat.completions sub-client", () => {
-    const client = new HeadroomClient();
+    const client = new CopiumClient();
     expect(client.chat).toBeDefined();
     expect(client.chat.completions).toBeDefined();
   });
 
   it("has messages sub-client", () => {
-    const client = new HeadroomClient();
+    const client = new CopiumClient();
     expect(client.messages).toBeDefined();
   });
 
   it("has telemetry namespace", () => {
-    const client = new HeadroomClient();
+    const client = new CopiumClient();
     expect(client.telemetry).toBeDefined();
     expect(client.telemetry.getStats).toBeTypeOf("function");
   });
 
   it("has feedback namespace", () => {
-    const client = new HeadroomClient();
+    const client = new CopiumClient();
     expect(client.feedback).toBeDefined();
     expect(client.feedback.getStats).toBeTypeOf("function");
   });
 
   it("has toin namespace", () => {
-    const client = new HeadroomClient();
+    const client = new CopiumClient();
     expect(client.toin).toBeDefined();
     expect(client.toin.getStats).toBeTypeOf("function");
   });
 });
 
-describe("HeadroomClient.health()", () => {
+describe("CopiumClient.health()", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("returns health status", async () => {
@@ -72,7 +72,7 @@ describe("HeadroomClient.health()", () => {
       }),
     );
 
-    const client = new HeadroomClient({ baseUrl: "http://test:8787" });
+    const client = new CopiumClient({ baseUrl: "http://test:8787" });
     const health = await client.health();
 
     expect(health.status).toBe("healthy");
@@ -81,7 +81,7 @@ describe("HeadroomClient.health()", () => {
   });
 });
 
-describe("HeadroomClient.proxyStats()", () => {
+describe("CopiumClient.proxyStats()", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("returns proxy stats with camelCase keys", async () => {
@@ -92,7 +92,7 @@ describe("HeadroomClient.proxyStats()", () => {
       }),
     );
 
-    const client = new HeadroomClient({ baseUrl: "http://test:8787" });
+    const client = new CopiumClient({ baseUrl: "http://test:8787" });
     const stats = await client.proxyStats();
 
     expect(stats.requests.total).toBe(100);
@@ -101,7 +101,7 @@ describe("HeadroomClient.proxyStats()", () => {
   });
 });
 
-describe("HeadroomClient.getMetrics()", () => {
+describe("CopiumClient.getMetrics()", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("returns request metrics from proxy", async () => {
@@ -114,7 +114,7 @@ describe("HeadroomClient.getMetrics()", () => {
       }),
     );
 
-    const client = new HeadroomClient({ baseUrl: "http://test:8787" });
+    const client = new CopiumClient({ baseUrl: "http://test:8787" });
     const metrics = await client.getMetrics();
 
     expect(metrics).toHaveLength(2);
@@ -132,7 +132,7 @@ describe("HeadroomClient.getMetrics()", () => {
       }),
     );
 
-    const client = new HeadroomClient({ baseUrl: "http://test:8787" });
+    const client = new CopiumClient({ baseUrl: "http://test:8787" });
     const metrics = await client.getMetrics({ model: "gpt-4o" });
 
     expect(metrics).toHaveLength(1);
@@ -150,14 +150,14 @@ describe("HeadroomClient.getMetrics()", () => {
       }),
     );
 
-    const client = new HeadroomClient({ baseUrl: "http://test:8787" });
+    const client = new CopiumClient({ baseUrl: "http://test:8787" });
     const metrics = await client.getMetrics({ limit: 2 });
 
     expect(metrics).toHaveLength(2);
   });
 });
 
-describe("HeadroomClient.getSummary()", () => {
+describe("CopiumClient.getSummary()", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("returns aggregated summary", async () => {
@@ -168,7 +168,7 @@ describe("HeadroomClient.getSummary()", () => {
       }),
     );
 
-    const client = new HeadroomClient({ baseUrl: "http://test:8787" });
+    const client = new CopiumClient({ baseUrl: "http://test:8787" });
     const summary = await client.getSummary();
 
     expect(summary.totalRequests).toBe(50);
@@ -177,7 +177,7 @@ describe("HeadroomClient.getSummary()", () => {
   });
 });
 
-describe("HeadroomClient.validateSetup()", () => {
+describe("CopiumClient.validateSetup()", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("returns valid when healthy", async () => {
@@ -188,7 +188,7 @@ describe("HeadroomClient.validateSetup()", () => {
       }),
     );
 
-    const client = new HeadroomClient({ baseUrl: "http://test:8787" });
+    const client = new CopiumClient({ baseUrl: "http://test:8787" });
     const result = await client.validateSetup();
 
     expect(result.valid).toBe(true);
@@ -203,7 +203,7 @@ describe("HeadroomClient.validateSetup()", () => {
       }),
     );
 
-    const client = new HeadroomClient({ baseUrl: "http://test:8787" });
+    const client = new CopiumClient({ baseUrl: "http://test:8787" });
     const result = await client.validateSetup();
 
     expect(result.valid).toBe(false);
@@ -211,7 +211,7 @@ describe("HeadroomClient.validateSetup()", () => {
   });
 });
 
-describe("HeadroomClient.retrieve()", () => {
+describe("CopiumClient.retrieve()", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("retrieves by hash", async () => {
@@ -227,7 +227,7 @@ describe("HeadroomClient.retrieve()", () => {
       }),
     );
 
-    const client = new HeadroomClient({ baseUrl: "http://test:8787" });
+    const client = new CopiumClient({ baseUrl: "http://test:8787" });
     const result = await client.retrieve("abc123") as any;
 
     expect(result.hash).toBe("abc123");
@@ -245,7 +245,7 @@ describe("HeadroomClient.retrieve()", () => {
       }),
     );
 
-    const client = new HeadroomClient({ baseUrl: "http://test:8787" });
+    const client = new CopiumClient({ baseUrl: "http://test:8787" });
     const result = await client.retrieve("abc123", { query: "error logs" }) as any;
 
     expect(result.query).toBe("error logs");
@@ -253,27 +253,27 @@ describe("HeadroomClient.retrieve()", () => {
   });
 });
 
-describe("HeadroomClient.clearCache()", () => {
+describe("CopiumClient.clearCache()", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("clears cache", async () => {
     mockFetch.mockResolvedValue(jsonResponse({ status: "cleared" }));
 
-    const client = new HeadroomClient({ baseUrl: "http://test:8787" });
+    const client = new CopiumClient({ baseUrl: "http://test:8787" });
     const result = await client.clearCache();
 
     expect(result.status).toBe("cleared");
   });
 });
 
-describe("HeadroomClient.close()", () => {
+describe("CopiumClient.close()", () => {
   it("is a no-op (HTTP client is stateless)", () => {
-    const client = new HeadroomClient();
+    const client = new CopiumClient();
     expect(() => client.close()).not.toThrow();
   });
 });
 
-describe("HeadroomClient.compressRaw()", () => {
+describe("CopiumClient.compressRaw()", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("sends raw body to /v1/compress", async () => {
@@ -285,7 +285,7 @@ describe("HeadroomClient.compressRaw()", () => {
       }),
     );
 
-    const client = new HeadroomClient({ baseUrl: "http://test:8787" });
+    const client = new CopiumClient({ baseUrl: "http://test:8787" });
     const result = await client.compressRaw({
       messages: [{ role: "user", content: "test" }],
       model: "gpt-4o",
@@ -299,7 +299,7 @@ describe("HeadroomClient.compressRaw()", () => {
   });
 });
 
-describe("HeadroomClient config passthrough", () => {
+describe("CopiumClient config passthrough", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("sends config as snake_case in compress body", async () => {
@@ -315,7 +315,7 @@ describe("HeadroomClient config passthrough", () => {
       }),
     );
 
-    const client = new HeadroomClient({
+    const client = new CopiumClient({
       baseUrl: "http://test:8787",
       config: {
         smartCrusher: { enabled: true, minTokensToCrush: 100 },

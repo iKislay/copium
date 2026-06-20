@@ -1,5 +1,5 @@
 /**
- * Data models matching Python headroom.config result/metrics dataclasses.
+ * Data models matching Python copium.config result/metrics dataclasses.
  */
 
 import type { BlockKind } from "./config.js";

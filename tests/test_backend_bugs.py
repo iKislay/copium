@@ -14,7 +14,7 @@ from tests._dotenv import importorskip_no_env_leak
 
 importorskip_no_env_leak("litellm")
 
-from headroom.backends.litellm import (  # noqa: E402  (must follow importorskip)
+from copium.backends.litellm import (  # noqa: E402  (must follow importorskip)
     _VERTEX_MODEL_MAP,
     LiteLLMBackend,
     _convert_anthropic_tool,
@@ -137,8 +137,8 @@ class TestLiteLLMToolsForwarding:
         mock_response.usage = MagicMock(prompt_tokens=10, completion_tokens=5)
 
         with (
-            patch("headroom.backends.litellm.acompletion", new_callable=AsyncMock) as mock_acomp,
-            patch("headroom.backends.litellm._fetch_bedrock_inference_profiles", return_value={}),
+            patch("copium.backends.litellm.acompletion", new_callable=AsyncMock) as mock_acomp,
+            patch("copium.backends.litellm._fetch_bedrock_inference_profiles", return_value={}),
         ):
             mock_acomp.return_value = mock_response
 
@@ -183,8 +183,8 @@ class TestLiteLLMToolsForwarding:
         mock_response.usage = MagicMock(prompt_tokens=10, completion_tokens=5)
 
         with (
-            patch("headroom.backends.litellm.acompletion", new_callable=AsyncMock) as mock_acomp,
-            patch("headroom.backends.litellm._fetch_bedrock_inference_profiles", return_value={}),
+            patch("copium.backends.litellm.acompletion", new_callable=AsyncMock) as mock_acomp,
+            patch("copium.backends.litellm._fetch_bedrock_inference_profiles", return_value={}),
         ):
             mock_acomp.return_value = mock_response
 
@@ -209,7 +209,7 @@ class TestConvertMessagesToolBlocks:
     """Test that _convert_messages_for_litellm converts Anthropic tool blocks to OpenAI format."""
 
     def _make_backend(self):
-        with patch("headroom.backends.litellm._fetch_bedrock_inference_profiles", return_value={}):
+        with patch("copium.backends.litellm._fetch_bedrock_inference_profiles", return_value={}):
             return LiteLLMBackend(provider="openrouter")
 
     def test_tool_result_converted_to_tool_role(self):
@@ -450,8 +450,8 @@ class TestStreamMessageToolCalls:
             yield chunk3
 
         with (
-            patch("headroom.backends.litellm.acompletion", new_callable=AsyncMock) as mock_acomp,
-            patch("headroom.backends.litellm._fetch_bedrock_inference_profiles", return_value={}),
+            patch("copium.backends.litellm.acompletion", new_callable=AsyncMock) as mock_acomp,
+            patch("copium.backends.litellm._fetch_bedrock_inference_profiles", return_value={}),
         ):
             mock_acomp.return_value = mock_stream()
             backend = LiteLLMBackend(provider="openrouter")
@@ -513,8 +513,8 @@ class TestStreamMessageToolCalls:
             yield chunk2
 
         with (
-            patch("headroom.backends.litellm.acompletion", new_callable=AsyncMock) as mock_acomp,
-            patch("headroom.backends.litellm._fetch_bedrock_inference_profiles", return_value={}),
+            patch("copium.backends.litellm.acompletion", new_callable=AsyncMock) as mock_acomp,
+            patch("copium.backends.litellm._fetch_bedrock_inference_profiles", return_value={}),
         ):
             mock_acomp.return_value = mock_stream()
             backend = LiteLLMBackend(provider="openrouter")
@@ -575,8 +575,8 @@ class TestStreamMessageToolCalls:
             yield chunk3
 
         with (
-            patch("headroom.backends.litellm.acompletion", new_callable=AsyncMock) as mock_acomp,
-            patch("headroom.backends.litellm._fetch_bedrock_inference_profiles", return_value={}),
+            patch("copium.backends.litellm.acompletion", new_callable=AsyncMock) as mock_acomp,
+            patch("copium.backends.litellm._fetch_bedrock_inference_profiles", return_value={}),
         ):
             mock_acomp.return_value = mock_stream()
             backend = LiteLLMBackend(provider="openrouter")
@@ -621,8 +621,8 @@ class TestLiteLLMStreamingParams:
             yield chunk
 
         with (
-            patch("headroom.backends.litellm.acompletion", new_callable=AsyncMock) as mock_acomp,
-            patch("headroom.backends.litellm._fetch_bedrock_inference_profiles", return_value={}),
+            patch("copium.backends.litellm.acompletion", new_callable=AsyncMock) as mock_acomp,
+            patch("copium.backends.litellm._fetch_bedrock_inference_profiles", return_value={}),
         ):
             mock_acomp.return_value = mock_stream()
 
@@ -709,9 +709,9 @@ class TestOpenAIURLNormalization:
     """Test that OPENAI_TARGET_API_URL with /v1 suffix is normalized."""
 
     def test_v1_suffix_stripped(self):
-        from headroom.proxy.server import HeadroomProxy, ProxyConfig
+        from copium.proxy.server import CopiumProxy, ProxyConfig
 
-        original = HeadroomProxy.OPENAI_API_URL
+        original = CopiumProxy.OPENAI_API_URL
         try:
             config = ProxyConfig(
                 openai_api_url="http://localhost:4000/v1",
@@ -719,15 +719,15 @@ class TestOpenAIURLNormalization:
                 cache_enabled=False,
                 rate_limit_enabled=False,
             )
-            proxy = HeadroomProxy(config)
+            proxy = CopiumProxy(config)
             assert proxy.OPENAI_API_URL == "http://localhost:4000"
         finally:
-            HeadroomProxy.OPENAI_API_URL = original
+            CopiumProxy.OPENAI_API_URL = original
 
     def test_v1_slash_suffix_stripped(self):
-        from headroom.proxy.server import HeadroomProxy, ProxyConfig
+        from copium.proxy.server import CopiumProxy, ProxyConfig
 
-        original = HeadroomProxy.OPENAI_API_URL
+        original = CopiumProxy.OPENAI_API_URL
         try:
             config = ProxyConfig(
                 openai_api_url="http://localhost:4000/v1/",
@@ -735,15 +735,15 @@ class TestOpenAIURLNormalization:
                 cache_enabled=False,
                 rate_limit_enabled=False,
             )
-            proxy = HeadroomProxy(config)
+            proxy = CopiumProxy(config)
             assert proxy.OPENAI_API_URL == "http://localhost:4000"
         finally:
-            HeadroomProxy.OPENAI_API_URL = original
+            CopiumProxy.OPENAI_API_URL = original
 
     def test_no_v1_unchanged(self):
-        from headroom.proxy.server import HeadroomProxy, ProxyConfig
+        from copium.proxy.server import CopiumProxy, ProxyConfig
 
-        original = HeadroomProxy.OPENAI_API_URL
+        original = CopiumProxy.OPENAI_API_URL
         try:
             config = ProxyConfig(
                 openai_api_url="http://localhost:4000",
@@ -751,10 +751,10 @@ class TestOpenAIURLNormalization:
                 cache_enabled=False,
                 rate_limit_enabled=False,
             )
-            proxy = HeadroomProxy(config)
+            proxy = CopiumProxy(config)
             assert proxy.OPENAI_API_URL == "http://localhost:4000"
         finally:
-            HeadroomProxy.OPENAI_API_URL = original
+            CopiumProxy.OPENAI_API_URL = original
 
 
 # =============================================================================

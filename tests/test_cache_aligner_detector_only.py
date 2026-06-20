@@ -12,9 +12,9 @@ from contextlib import contextmanager
 
 import pytest
 
-from headroom import OpenAIProvider, Tokenizer
-from headroom.config import CacheAlignerConfig
-from headroom.transforms.cache_aligner import (
+from copium import OpenAIProvider, Tokenizer
+from copium.config import CacheAlignerConfig
+from copium.transforms.cache_aligner import (
     CacheAligner,
     detect_volatile_content,
 )
@@ -52,7 +52,7 @@ def _capture_warnings() -> Iterator[list[str]]:
         def emit(self, record: logging.LogRecord) -> None:
             captured.append(record.getMessage())
 
-    target_logger = logging.getLogger("headroom.transforms.cache_aligner")
+    target_logger = logging.getLogger("copium.transforms.cache_aligner")
     prev_level = target_logger.level
     target_logger.setLevel(logging.WARNING)
     handler = _ListHandler(level=logging.WARNING)
@@ -212,7 +212,7 @@ def test_should_apply_false_when_policy_disables_aligner(tokenizer: Tokenizer) -
     defaults from ``policy_for_mode(AuthMode.SUBSCRIPTION)`` so the
     fixture mirrors a real subscription request.
     """
-    from headroom.transforms.compression_policy import CompressionPolicy
+    from copium.transforms.compression_policy import CompressionPolicy
 
     messages = _system_user_messages("Session: 550e8400-e29b-41d4-a716-446655440000")
     aligner = CacheAligner(CacheAlignerConfig(enabled=True))
@@ -237,7 +237,7 @@ def test_should_apply_true_when_policy_enables_aligner(tokenizer: Tokenizer) -> 
     PAYG defaults from ``policy_for_mode(AuthMode.PAYG)`` so the
     fixture mirrors a real PAYG request.
     """
-    from headroom.transforms.compression_policy import CompressionPolicy
+    from copium.transforms.compression_policy import CompressionPolicy
 
     messages = _system_user_messages("Session: 550e8400-e29b-41d4-a716-446655440000")
     aligner = CacheAligner(CacheAlignerConfig(enabled=True))
@@ -329,9 +329,9 @@ def test_alignment_score_decreases_with_dynamic_content() -> None:
 
 def test_no_regex_imported() -> None:
     """The cache_aligner module must not import ``re`` (build constraint)."""
-    import headroom.transforms.cache_aligner as mod
+    import copium.transforms.cache_aligner as mod
 
     # ``re`` should not be in the module's globals.
     assert "re" not in mod.__dict__, (
-        "headroom.transforms.cache_aligner must not depend on the regex module"
+        "copium.transforms.cache_aligner must not depend on the regex module"
     )

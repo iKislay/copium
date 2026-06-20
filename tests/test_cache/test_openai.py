@@ -2,8 +2,8 @@
 
 import pytest
 
-from headroom.cache import CacheConfig, OpenAICacheOptimizer, OptimizationContext
-from headroom.cache.base import CacheStrategy
+from copium.cache import CacheConfig, OpenAICacheOptimizer, OptimizationContext
+from copium.cache.base import CacheStrategy
 
 
 class TestOpenAICacheOptimizer:

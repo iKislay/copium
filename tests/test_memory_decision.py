@@ -1,4 +1,4 @@
-"""Tests for :class:`headroom.proxy.memory_decision.MemoryDecision`.
+"""Tests for :class:`copium.proxy.memory_decision.MemoryDecision`.
 
 The point of this file is the *contract* — every behavioural assertion
 here is the canonical answer to "should this request have memory
@@ -10,11 +10,11 @@ Specifically locks (post-PR-this):
 * Sites 1/2/3 (Anthropic ``/v1/messages``, Gemini
   ``:generateContent``, OpenAI ``/v1/chat/completions``) MUST gate on
   bypass — pre-this-PR they didn't, so memory injection silently
-  mutated requests under ``x-headroom-bypass: true``.
+  mutated requests under ``x-copium-bypass: true``.
 * Site 4 (OpenAI ``/v1/responses``) already gated; locked here.
 * Site 6 (OpenAI WS ``/v1/responses``) already gated; locked here.
 * ``MemoryMode`` values (``auto_tail`` / ``tool``) and the env-driven
-  ``HEADROOM_MEMORY_INJECTION_MODE`` (``disabled`` / ``auto_tail`` /
+  ``COPIUM_MEMORY_INJECTION_MODE`` (``disabled`` / ``auto_tail`` /
   ``tool``) all surface as explicit ``skip_reason`` values, not as
   hidden conditional code.
 
@@ -30,7 +30,7 @@ from dataclasses import FrozenInstanceError
 from types import SimpleNamespace
 from typing import Any
 
-from headroom.proxy.memory_decision import MemoryDecision
+from copium.proxy.memory_decision import MemoryDecision
 
 
 def _memory_handler() -> Any:
@@ -79,13 +79,13 @@ def test_injects_when_every_gate_open() -> None:
 
 
 def test_bypass_header_wins_over_every_other_gate() -> None:
-    """``x-headroom-bypass: true`` is the user's "do not touch my
+    """``x-copium-bypass: true`` is the user's "do not touch my
     bytes" signal — highest priority, even when memory is otherwise
     fully wired. Memory injection mutates the request bytes; bypass
     must skip it. (This was the 3-bug Gemini-class problem pre-PR
     on Anthropic, OpenAI chat, Gemini.)"""
     d = MemoryDecision.decide(
-        headers={"x-headroom-bypass": "true"},
+        headers={"x-copium-bypass": "true"},
         memory_handler=_memory_handler(),
         memory_user_id="u1",
         mode_name="auto_tail",
@@ -95,10 +95,10 @@ def test_bypass_header_wins_over_every_other_gate() -> None:
 
 
 def test_passthrough_mode_header_also_triggers_bypass_skip() -> None:
-    """``x-headroom-mode: passthrough`` is the alternate spelling of
-    the bypass signal — mirrors _headroom_bypass_enabled semantics."""
+    """``x-copium-mode: passthrough`` is the alternate spelling of
+    the bypass signal — mirrors _copium_bypass_enabled semantics."""
     d = MemoryDecision.decide(
-        headers={"x-headroom-mode": "passthrough"},
+        headers={"x-copium-mode": "passthrough"},
         memory_handler=_memory_handler(),
         memory_user_id="u1",
         mode_name="auto_tail",
@@ -135,7 +135,7 @@ def test_empty_user_id_string_is_skip() -> None:
 
 
 def test_mode_disabled_is_skip() -> None:
-    """Operator override via HEADROOM_MEMORY_INJECTION_MODE=disabled."""
+    """Operator override via COPIUM_MEMORY_INJECTION_MODE=disabled."""
     d = MemoryDecision.decide(
         headers={}, memory_handler=_memory_handler(), memory_user_id="u1", mode_name="disabled"
     )
@@ -160,7 +160,7 @@ def test_bypass_beats_no_handler() -> None:
     """When both bypass AND no_handler would skip, surface bypass —
     user's explicit signal is the more informative dashboard slice."""
     d = MemoryDecision.decide(
-        headers={"x-headroom-bypass": "true"},
+        headers={"x-copium-bypass": "true"},
         memory_handler=None,
         memory_user_id=None,
         mode_name="disabled",
@@ -218,7 +218,7 @@ def test_observability_booleans_populated_when_injecting() -> None:
 def test_observability_booleans_populated_when_skipping() -> None:
     """Same on the skip path — every constituent must be visible."""
     d = MemoryDecision.decide(
-        headers={"x-headroom-bypass": "true"},
+        headers={"x-copium-bypass": "true"},
         memory_handler=None,
         memory_user_id="u1",
         mode_name="auto_tail",
@@ -236,7 +236,7 @@ def test_apply_to_tags_stamps_reason_when_skipping() -> None:
     """Skip decisions surface ``memory_skip_reason`` in tags so the
     dashboard can slice memory-blind traffic by cause."""
     d = MemoryDecision.decide(
-        headers={"x-headroom-bypass": "true"},
+        headers={"x-copium-bypass": "true"},
         memory_handler=_memory_handler(),
         memory_user_id="u1",
         mode_name="auto_tail",
@@ -277,7 +277,7 @@ def test_apply_to_tags_for_every_skip_reason() -> None:
     """Every skip reason name must round-trip through apply_to_tags."""
     cases: dict[str, dict[str, Any]] = {
         "bypass_header": {
-            "headers": {"x-headroom-bypass": "true"},
+            "headers": {"x-copium-bypass": "true"},
             "memory_handler": _memory_handler(),
             "memory_user_id": "u1",
             "mode_name": "auto_tail",

@@ -32,7 +32,7 @@ from typing import Any
 
 import pytest
 
-from headroom.proxy.memory_handler import MemoryConfig, MemoryHandler, MemoryMode
+from copium.proxy.memory_handler import MemoryConfig, MemoryHandler, MemoryMode
 
 # ---------------------------------------------------------------------------
 # Fixtures: a deterministic in-memory backend stub.

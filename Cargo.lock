@@ -1865,7 +1865,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "headroom-core"
+name = "copium-core"
 version = "0.1.0"
 dependencies = [
  "aho-corasick",
@@ -1897,19 +1897,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "headroom-parity"
+name = "copium-parity"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
- "headroom-core",
+ "copium-core",
  "serde",
  "serde_json",
  "thiserror 1.0.69",
 ]
 
 [[package]]
-name = "headroom-proxy"
+name = "copium-proxy"
 version = "0.1.0"
 dependencies = [
  "async-trait",
@@ -1925,7 +1925,7 @@ dependencies = [
  "futures",
  "futures-util",
  "gcp_auth",
- "headroom-core",
+ "copium-core",
  "http 1.4.0",
  "http-body-util",
  "humantime",
@@ -1955,11 +1955,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "headroom-py"
+name = "copium-py"
 version = "0.1.0"
 dependencies = [
  "cc",
- "headroom-core",
+ "copium-core",
  "pyo3",
  "serde_json",
 ]

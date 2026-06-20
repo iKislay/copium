@@ -26,14 +26,14 @@ from pathlib import Path
 import httpx
 import pytest
 
-from headroom.memory.config import MemoryConfig
-from headroom.memory.core import HierarchicalMemory
-from headroom.memory.models import Memory, ScopeLevel
-from headroom.memory.ports import MemoryFilter
+from copium.memory.config import MemoryConfig
+from copium.memory.core import HierarchicalMemory
+from copium.memory.models import Memory, ScopeLevel
+from copium.memory.ports import MemoryFilter
 
 # Check if hnswlib is available (HierarchicalMemory requires it)
 try:
-    from headroom.memory.adapters.hnsw import _check_hnswlib_available
+    from copium.memory.adapters.hnsw import _check_hnswlib_available
 
     HNSW_AVAILABLE = _check_hnswlib_available()
 except ImportError:

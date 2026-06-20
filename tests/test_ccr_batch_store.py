@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from dataclasses import dataclass
 
-from headroom.ccr.batch_store import (
+from copium.ccr.batch_store import (
     BatchContext,
     BatchContextStore,
     BatchRequestContext,
@@ -13,7 +13,7 @@ from headroom.ccr.batch_store import (
 
 
 def test_batch_context_defaults_and_expiry(monkeypatch) -> None:
-    monkeypatch.setattr("headroom.ccr.batch_store.time.time", lambda: 100.0)
+    monkeypatch.setattr("copium.ccr.batch_store.time.time", lambda: 100.0)
     context = BatchContext(batch_id="batch-1", provider="anthropic", created_at=100.0)
     assert context.expires_at == 100.0 + 86400
     assert context.is_expired is False
@@ -30,13 +30,13 @@ def test_batch_context_defaults_and_expiry(monkeypatch) -> None:
     assert context.get_request("req-1") is request
     assert context.get_request("missing") is None
 
-    monkeypatch.setattr("headroom.ccr.batch_store.time.time", lambda: context.expires_at + 1)
+    monkeypatch.setattr("copium.ccr.batch_store.time.time", lambda: context.expires_at + 1)
     assert context.is_expired is True
 
 
 async def test_batch_context_store_core_operations(monkeypatch) -> None:
     now = {"value": 100.0}
-    monkeypatch.setattr("headroom.ccr.batch_store.time.time", lambda: now["value"])
+    monkeypatch.setattr("copium.ccr.batch_store.time.time", lambda: now["value"])
 
     store = BatchContextStore(ttl=10, max_contexts=2)
     first = BatchContext(batch_id="b1", provider="anthropic")
@@ -60,7 +60,7 @@ async def test_batch_context_store_core_operations(monkeypatch) -> None:
 
 async def test_batch_context_store_cleanup_stats_and_memory_stats(monkeypatch) -> None:
     now = {"value": 200.0}
-    monkeypatch.setattr("headroom.ccr.batch_store.time.time", lambda: now["value"])
+    monkeypatch.setattr("copium.ccr.batch_store.time.time", lambda: now["value"])
     store = BatchContextStore(ttl=5, max_contexts=10)
 
     first = BatchContext(batch_id="b1", provider="anthropic")
@@ -97,7 +97,7 @@ async def test_batch_context_store_cleanup_stats_and_memory_stats(monkeypatch) -
 
     monkeypatch.setitem(
         sys.modules,
-        "headroom.memory.tracker",
+        "copium.memory.tracker",
         type("TrackerModule", (), {"ComponentStats": FakeComponentStats}),
     )
 

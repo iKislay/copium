@@ -1,7 +1,7 @@
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
-from headroom.proxy.server import HeadroomProxy, ProxyConfig, create_app
+from copium.proxy.server import CopiumProxy, ProxyConfig, create_app
 
 CLOUDCODE_BODY = {
     "project": "test-project",
@@ -37,7 +37,7 @@ def test_google_cloudcode_alias_routes_delegate_to_handler(monkeypatch):
     async def fake_handle(self, request):  # type: ignore[no-untyped-def]
         return JSONResponse({"ok": True, "path": request.url.path})
 
-    monkeypatch.setattr(HeadroomProxy, "handle_google_cloudcode_stream", fake_handle)
+    monkeypatch.setattr(CopiumProxy, "handle_google_cloudcode_stream", fake_handle)
 
     with TestClient(create_app(ProxyConfig())) as client:
         for path in (
@@ -53,7 +53,7 @@ def test_antigravity_cloudcode_route_uses_daily_endpoint(monkeypatch):
     async def fake_stream(self, url, _headers, _body, provider, model, *_args, **_kwargs):  # type: ignore[no-untyped-def]
         return JSONResponse({"url": url, "provider": provider, "model": model})
 
-    monkeypatch.setattr(HeadroomProxy, "_stream_response", fake_stream)
+    monkeypatch.setattr(CopiumProxy, "_stream_response", fake_stream)
 
     with TestClient(create_app(ProxyConfig(optimize=False))) as client:
         response = client.post(
@@ -74,7 +74,7 @@ def test_cloudcode_route_uses_default_cloudcode_endpoint(monkeypatch):
     async def fake_stream(self, url, _headers, _body, provider, model, *_args, **_kwargs):  # type: ignore[no-untyped-def]
         return JSONResponse({"url": url, "provider": provider, "model": model})
 
-    monkeypatch.setattr(HeadroomProxy, "_stream_response", fake_stream)
+    monkeypatch.setattr(CopiumProxy, "_stream_response", fake_stream)
 
     with TestClient(create_app(ProxyConfig(optimize=False))) as client:
         response = client.post(
@@ -95,7 +95,7 @@ def test_cloudcode_route_uses_cloudcode_api_override(monkeypatch):
     async def fake_stream(self, url, _headers, _body, provider, model, *_args, **_kwargs):  # type: ignore[no-untyped-def]
         return JSONResponse({"url": url, "provider": provider, "model": model})
 
-    monkeypatch.setattr(HeadroomProxy, "_stream_response", fake_stream)
+    monkeypatch.setattr(CopiumProxy, "_stream_response", fake_stream)
 
     with TestClient(
         create_app(ProxyConfig(optimize=False, cloudcode_api_url="https://cloudcode-proxy.test/v1"))
@@ -118,7 +118,7 @@ def test_antigravity_header_detection_is_case_insensitive(monkeypatch):
     async def fake_stream(self, url, _headers, _body, provider, model, *_args, **_kwargs):  # type: ignore[no-untyped-def]
         return JSONResponse({"url": url, "provider": provider, "model": model})
 
-    monkeypatch.setattr(HeadroomProxy, "_stream_response", fake_stream)
+    monkeypatch.setattr(CopiumProxy, "_stream_response", fake_stream)
 
     body = {
         **CLOUDCODE_BODY,
@@ -145,7 +145,7 @@ def test_antigravity_route_does_not_cross_route_to_cloudcode_override(monkeypatc
     async def fake_stream(self, url, _headers, _body, provider, model, *_args, **_kwargs):  # type: ignore[no-untyped-def]
         return JSONResponse({"url": url, "provider": provider, "model": model})
 
-    monkeypatch.setattr(HeadroomProxy, "_stream_response", fake_stream)
+    monkeypatch.setattr(CopiumProxy, "_stream_response", fake_stream)
 
     with TestClient(
         create_app(ProxyConfig(optimize=False, cloudcode_api_url="https://cloudcode-proxy.test"))
@@ -168,7 +168,7 @@ def test_cloudcode_override_does_not_leak_between_app_instances(monkeypatch):
     async def fake_stream(self, url, _headers, _body, provider, model, *_args, **_kwargs):  # type: ignore[no-untyped-def]
         return JSONResponse({"url": url, "provider": provider, "model": model})
 
-    monkeypatch.setattr(HeadroomProxy, "_stream_response", fake_stream)
+    monkeypatch.setattr(CopiumProxy, "_stream_response", fake_stream)
 
     with TestClient(
         create_app(ProxyConfig(optimize=False, cloudcode_api_url="https://cloudcode-proxy.test"))

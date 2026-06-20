@@ -13,7 +13,7 @@ pytest.importorskip("fastapi")
 
 from fastapi.testclient import TestClient
 
-from headroom.proxy.server import ProxyConfig, create_app
+from copium.proxy.server import ProxyConfig, create_app
 
 
 @pytest.fixture
@@ -131,7 +131,7 @@ class TestCompressEndpointBasic:
         assert data["compression_ratio"] > 0
 
     def test_bypass_header_returns_uncompressed(self, client):
-        """X-Headroom-Bypass header should skip compression."""
+        """X-Copium-Bypass header should skip compression."""
         messages = [
             {"role": "user", "content": "Hello"},
             {"role": "assistant", "content": "Hi there!"},
@@ -140,7 +140,7 @@ class TestCompressEndpointBasic:
         response = client.post(
             "/v1/compress",
             json={"messages": messages, "model": "gpt-4"},
-            headers={"x-headroom-bypass": "true"},
+            headers={"x-copium-bypass": "true"},
         )
         assert response.status_code == 200
         data = response.json()
@@ -158,7 +158,7 @@ class TestCompressEndpointBasic:
         response = client.post(
             "/v1/compress",
             json={"messages": messages, "model": "gpt-4"},
-            headers={"x-headroom-bypass": "TRUE"},
+            headers={"x-copium-bypass": "TRUE"},
         )
         assert response.status_code == 200
         data = response.json()

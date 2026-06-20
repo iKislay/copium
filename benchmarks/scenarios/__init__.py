@@ -1,6 +1,6 @@
-"""Benchmark scenario generators for Headroom SDK.
+"""Benchmark scenario generators for Copium SDK.
 
-This package provides realistic data generators for benchmarking Headroom
+This package provides realistic data generators for benchmarking Copium
 transforms and relevance scorers.
 
 Modules:

@@ -1,6 +1,6 @@
 -- Supabase SQL: Create proxy_telemetry_v2 table
 -- Run this in the Supabase SQL Editor (https://supabase.com/dashboard → SQL Editor)
--- This table matches every field the beacon code writes in headroom/telemetry/beacon.py
+-- This table matches every field the beacon code writes in copium/telemetry/beacon.py
 
 CREATE TABLE IF NOT EXISTS proxy_telemetry_v2 (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -9,13 +9,13 @@ CREATE TABLE IF NOT EXISTS proxy_telemetry_v2 (
     -- Core identity (always present)
     session_id text NOT NULL,
     instance_id text,
-    headroom_version text,
+    copium_version text,
     python_version text,
     os text,
     sdk text,
     backend text,
     session_minutes integer,
-    headroom_stack text,
+    copium_stack text,
     install_mode text,
     requests_by_stack jsonb,
 
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS proxy_telemetry_v2 (
 -- Index for querying by session and time
 CREATE INDEX IF NOT EXISTS idx_ptv2_session_id ON proxy_telemetry_v2(session_id);
 CREATE INDEX IF NOT EXISTS idx_ptv2_created_at ON proxy_telemetry_v2(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_ptv2_version ON proxy_telemetry_v2(headroom_version);
+CREATE INDEX IF NOT EXISTS idx_ptv2_version ON proxy_telemetry_v2(copium_version);
 
 -- Enable Row Level Security
 ALTER TABLE proxy_telemetry_v2 ENABLE ROW LEVEL SECURITY;

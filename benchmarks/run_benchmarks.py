@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""CLI runner for Headroom benchmark suite.
+"""CLI runner for Copium benchmark suite.
 
 This script provides a convenient interface for running benchmarks and
-generating reports. It wraps pytest-benchmark with Headroom-specific
+generating reports. It wraps pytest-benchmark with Copium-specific
 options and markdown report generation.
 
 Usage:
@@ -173,7 +173,7 @@ def generate_markdown_report(
     lines = []
 
     # Header
-    lines.append("# Headroom SDK Benchmark Report")
+    lines.append("# Copium SDK Benchmark Report")
     lines.append("")
     lines.append(f"Generated: {datetime.now().isoformat()}")
     lines.append("")
@@ -277,7 +277,7 @@ def _format_time(microseconds: float) -> str:
 def main() -> int:
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="Run Headroom SDK benchmarks",
+        description="Run Copium SDK benchmarks",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )

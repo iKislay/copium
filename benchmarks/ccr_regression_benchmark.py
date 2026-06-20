@@ -33,15 +33,15 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any
 
-from headroom.cache.compression_feedback import (
+from copium.cache.compression_feedback import (
     get_compression_feedback,
     reset_compression_feedback,
 )
-from headroom.cache.compression_store import (
+from copium.cache.compression_store import (
     get_compression_store,
     reset_compression_store,
 )
-from headroom.transforms.smart_crusher import (
+from copium.transforms.smart_crusher import (
     SmartCrusherConfig,
     smart_crush_tool_output,
 )
@@ -409,7 +409,7 @@ def test_feedback_learning() -> RegressionResult:
         feedback.record_compression(tool_name, 1000, 20)
 
     # Simulate 6 retrievals (60% rate - HIGH)
-    from headroom.cache.compression_store import RetrievalEvent
+    from copium.cache.compression_store import RetrievalEvent
 
     for i in range(6):
         event = RetrievalEvent(

@@ -53,7 +53,7 @@ class TestStreamingMetrics:
 
     def test_create_metrics(self):
         """Create metrics with all fields."""
-        from headroom.integrations.langchain.streaming import StreamingMetrics
+        from copium.integrations.langchain.streaming import StreamingMetrics
 
         start = datetime.now()
         end = datetime.now()
@@ -76,7 +76,7 @@ class TestStreamingMetrics:
 
     def test_to_dict(self):
         """Convert metrics to dictionary."""
-        from headroom.integrations.langchain.streaming import StreamingMetrics
+        from copium.integrations.langchain.streaming import StreamingMetrics
 
         start = datetime(2025, 1, 1, 12, 0, 0)
         end = datetime(2025, 1, 1, 12, 0, 1)
@@ -101,7 +101,7 @@ class TestStreamingMetrics:
 
     def test_to_dict_with_none_end_time(self):
         """Convert metrics with None end_time."""
-        from headroom.integrations.langchain.streaming import StreamingMetrics
+        from copium.integrations.langchain.streaming import StreamingMetrics
 
         metrics = StreamingMetrics(
             output_tokens=50,
@@ -123,9 +123,9 @@ class TestStreamingMetricsTrackerInit:
 
     def test_init_defaults(self):
         """Initialize with default settings."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
-        with patch("headroom.integrations.langchain.streaming.OpenAIProvider"):
+        with patch("copium.integrations.langchain.streaming.OpenAIProvider"):
             tracker = StreamingMetricsTracker()
 
             assert tracker._model == "gpt-4o"
@@ -136,7 +136,7 @@ class TestStreamingMetricsTrackerInit:
 
     def test_init_custom_settings(self, mock_provider):
         """Initialize with custom settings."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(
             model="claude-3-5-sonnet-20241022",
@@ -152,7 +152,7 @@ class TestStreamingMetricsTrackerAddChunk:
 
     def test_add_chunk_sets_start_time(self, mock_provider):
         """First chunk sets start time."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(provider=mock_provider)
 
@@ -165,7 +165,7 @@ class TestStreamingMetricsTrackerAddChunk:
 
     def test_add_chunk_increments_count(self, mock_provider, sample_chunks):
         """Each chunk increments chunk count."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(provider=mock_provider)
 
@@ -176,7 +176,7 @@ class TestStreamingMetricsTrackerAddChunk:
 
     def test_add_chunk_accumulates_content(self, mock_provider, sample_chunks):
         """Chunks accumulate content."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(provider=mock_provider)
 
@@ -187,7 +187,7 @@ class TestStreamingMetricsTrackerAddChunk:
 
     def test_add_chunk_extracts_ai_message_chunk(self, mock_provider):
         """Extract content from AIMessageChunk."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(provider=mock_provider)
 
@@ -198,7 +198,7 @@ class TestStreamingMetricsTrackerAddChunk:
 
     def test_add_chunk_extracts_chat_generation_chunk(self, mock_provider):
         """Extract content from ChatGenerationChunk."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(provider=mock_provider)
 
@@ -209,7 +209,7 @@ class TestStreamingMetricsTrackerAddChunk:
 
     def test_add_chunk_extracts_dict(self, mock_provider):
         """Extract content from dict."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(provider=mock_provider)
 
@@ -220,7 +220,7 @@ class TestStreamingMetricsTrackerAddChunk:
 
     def test_add_chunk_extracts_string(self, mock_provider):
         """Extract content from string."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(provider=mock_provider)
 
@@ -230,7 +230,7 @@ class TestStreamingMetricsTrackerAddChunk:
 
     def test_add_chunk_handles_empty_content(self, mock_provider):
         """Handle chunk with empty content."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(provider=mock_provider)
 
@@ -242,7 +242,7 @@ class TestStreamingMetricsTrackerAddChunk:
 
     def test_add_chunk_handles_none_content(self, mock_provider):
         """Handle chunk with None content attribute."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(provider=mock_provider)
 
@@ -259,7 +259,7 @@ class TestStreamingMetricsTrackerFinish:
 
     def test_finish_sets_end_time(self, mock_provider, sample_chunks):
         """finish() sets end time."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(provider=mock_provider)
 
@@ -273,7 +273,7 @@ class TestStreamingMetricsTrackerFinish:
 
     def test_finish_calculates_duration(self, mock_provider, sample_chunks):
         """finish() calculates duration."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(provider=mock_provider)
 
@@ -287,7 +287,7 @@ class TestStreamingMetricsTrackerFinish:
 
     def test_finish_returns_metrics(self, mock_provider, sample_chunks):
         """finish() returns StreamingMetrics."""
-        from headroom.integrations.langchain.streaming import (
+        from copium.integrations.langchain.streaming import (
             StreamingMetrics,
             StreamingMetricsTracker,
         )
@@ -305,7 +305,7 @@ class TestStreamingMetricsTrackerFinish:
 
     def test_finish_with_no_chunks(self, mock_provider):
         """finish() without chunks uses current time for both."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(provider=mock_provider)
 
@@ -321,7 +321,7 @@ class TestStreamingMetricsTrackerProperties:
 
     def test_content_property(self, mock_provider, sample_chunks):
         """content property returns accumulated content."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(provider=mock_provider)
 
@@ -332,7 +332,7 @@ class TestStreamingMetricsTrackerProperties:
 
     def test_output_tokens_property_empty(self, mock_provider):
         """output_tokens returns 0 when no content."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(provider=mock_provider)
 
@@ -340,7 +340,7 @@ class TestStreamingMetricsTrackerProperties:
 
     def test_output_tokens_property_with_content(self, mock_provider, sample_chunks):
         """output_tokens uses provider's token counter."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(
             model="gpt-4o",
@@ -358,7 +358,7 @@ class TestStreamingMetricsTrackerProperties:
 
     def test_chunk_count_property(self, mock_provider, sample_chunks):
         """chunk_count property returns number of chunks."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(provider=mock_provider)
 
@@ -369,7 +369,7 @@ class TestStreamingMetricsTrackerProperties:
 
     def test_duration_ms_before_finish(self, mock_provider, sample_chunks):
         """duration_ms returns None before finish()."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(provider=mock_provider)
 
@@ -380,7 +380,7 @@ class TestStreamingMetricsTrackerProperties:
 
     def test_duration_ms_after_finish(self, mock_provider, sample_chunks):
         """duration_ms returns value after finish()."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(provider=mock_provider)
 
@@ -398,7 +398,7 @@ class TestStreamingMetricsTrackerReset:
 
     def test_reset_clears_state(self, mock_provider, sample_chunks):
         """reset() clears all state."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(provider=mock_provider)
 
@@ -419,7 +419,7 @@ class TestStreamingMetricsCallback:
 
     def test_init(self, mock_provider):
         """Initialize callback."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsCallback
+        from copium.integrations.langchain.streaming import StreamingMetricsCallback
 
         callback = StreamingMetricsCallback(model="gpt-4o", provider=mock_provider)
 
@@ -428,7 +428,7 @@ class TestStreamingMetricsCallback:
 
     def test_context_manager_enter(self, mock_provider):
         """Context manager enter returns tracker."""
-        from headroom.integrations.langchain.streaming import (
+        from copium.integrations.langchain.streaming import (
             StreamingMetricsCallback,
             StreamingMetricsTracker,
         )
@@ -440,7 +440,7 @@ class TestStreamingMetricsCallback:
 
     def test_context_manager_exit_finishes_tracker(self, mock_provider, sample_chunks):
         """Context manager exit finishes tracker."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsCallback
+        from copium.integrations.langchain.streaming import StreamingMetricsCallback
 
         callback = StreamingMetricsCallback(provider=mock_provider)
 
@@ -453,7 +453,7 @@ class TestStreamingMetricsCallback:
 
     def test_tracker_property(self, mock_provider):
         """tracker property returns the tracker."""
-        from headroom.integrations.langchain.streaming import (
+        from copium.integrations.langchain.streaming import (
             StreamingMetricsCallback,
             StreamingMetricsTracker,
         )
@@ -464,7 +464,7 @@ class TestStreamingMetricsCallback:
 
     def test_metrics_property_before_exit(self, mock_provider):
         """metrics property returns None before context exit."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsCallback
+        from copium.integrations.langchain.streaming import StreamingMetricsCallback
 
         callback = StreamingMetricsCallback(provider=mock_provider)
 
@@ -472,7 +472,7 @@ class TestStreamingMetricsCallback:
 
     def test_metrics_property_after_exit(self, mock_provider, sample_chunks):
         """metrics property returns StreamingMetrics after context exit."""
-        from headroom.integrations.langchain.streaming import (
+        from copium.integrations.langchain.streaming import (
             StreamingMetrics,
             StreamingMetricsCallback,
         )
@@ -491,7 +491,7 @@ class TestTrackStreamingResponse:
 
     def test_consumes_stream(self, mock_provider, sample_chunks):
         """Function consumes entire stream."""
-        from headroom.integrations.langchain.streaming import track_streaming_response
+        from copium.integrations.langchain.streaming import track_streaming_response
 
         stream = iter(sample_chunks)
 
@@ -501,7 +501,7 @@ class TestTrackStreamingResponse:
 
     def test_returns_content_and_metrics(self, mock_provider, sample_chunks):
         """Function returns content and metrics tuple."""
-        from headroom.integrations.langchain.streaming import (
+        from copium.integrations.langchain.streaming import (
             StreamingMetrics,
             track_streaming_response,
         )
@@ -515,7 +515,7 @@ class TestTrackStreamingResponse:
 
     def test_with_custom_model(self, mock_provider, sample_chunks):
         """Function uses custom model for token counting."""
-        from headroom.integrations.langchain.streaming import track_streaming_response
+        from copium.integrations.langchain.streaming import track_streaming_response
 
         stream = iter(sample_chunks)
 
@@ -529,7 +529,7 @@ class TestTrackStreamingResponse:
 
     def test_empty_stream(self, mock_provider):
         """Function handles empty stream."""
-        from headroom.integrations.langchain.streaming import track_streaming_response
+        from copium.integrations.langchain.streaming import track_streaming_response
 
         stream = iter([])
 
@@ -545,7 +545,7 @@ class TestTrackAsyncStreamingResponse:
     @pytest.mark.asyncio
     async def test_consumes_async_stream(self, mock_provider, sample_chunks):
         """Function consumes entire async stream."""
-        from headroom.integrations.langchain.streaming import (
+        from copium.integrations.langchain.streaming import (
             track_async_streaming_response,
         )
 
@@ -562,7 +562,7 @@ class TestTrackAsyncStreamingResponse:
     @pytest.mark.asyncio
     async def test_returns_content_and_metrics(self, mock_provider, sample_chunks):
         """Function returns content and metrics tuple."""
-        from headroom.integrations.langchain.streaming import (
+        from copium.integrations.langchain.streaming import (
             StreamingMetrics,
             track_async_streaming_response,
         )
@@ -581,7 +581,7 @@ class TestTrackAsyncStreamingResponse:
     @pytest.mark.asyncio
     async def test_with_custom_model(self, mock_provider, sample_chunks):
         """Function uses custom model for token counting."""
-        from headroom.integrations.langchain.streaming import (
+        from copium.integrations.langchain.streaming import (
             track_async_streaming_response,
         )
 
@@ -600,7 +600,7 @@ class TestTrackAsyncStreamingResponse:
     @pytest.mark.asyncio
     async def test_empty_async_stream(self, mock_provider):
         """Function handles empty async stream."""
-        from headroom.integrations.langchain.streaming import (
+        from copium.integrations.langchain.streaming import (
             track_async_streaming_response,
         )
 
@@ -621,7 +621,7 @@ class TestLangChainNotAvailable:
 
     def test_check_raises_import_error(self):
         """_check_langchain_available raises ImportError when not available."""
-        from headroom.integrations.langchain.streaming import _check_langchain_available
+        from copium.integrations.langchain.streaming import _check_langchain_available
 
         # When LangChain IS available, should not raise
         try:

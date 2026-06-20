@@ -23,7 +23,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from headroom.proxy.handlers.streaming import StreamingMixin
+from copium.proxy.handlers.streaming import StreamingMixin
 
 
 class _Parser(StreamingMixin):

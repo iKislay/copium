@@ -7,16 +7,16 @@ from types import SimpleNamespace
 
 import pytest
 
-import headroom.subscription.tracker as tracker_module
-from headroom.subscription.models import (
-    HeadroomContribution,
+import copium.subscription.tracker as tracker_module
+from copium.subscription.models import (
+    CopiumContribution,
     RateLimitWindow,
     SubscriptionSnapshot,
     WindowDiscrepancy,
     WindowTokens,
     _utc_now,
 )
-from headroom.subscription.tracker import SubscriptionTracker
+from copium.subscription.tracker import SubscriptionTracker
 
 
 def _make_snapshot(
@@ -105,7 +105,7 @@ async def test_tracker_start_stop_and_rollover_reset(
         _make_snapshot(reset_offset_hours=5),
         _make_snapshot(reset_offset_hours=6),
     ]
-    tracker._state.contribution = HeadroomContribution(tokens_submitted=99)
+    tracker._state.contribution = CopiumContribution(tokens_submitted=99)
     tracker._maybe_reset_contribution(tracker._state.history[-1])
     assert tracker._state.contribution.tokens_submitted == 0
 
@@ -117,12 +117,12 @@ async def test_maybe_poll_handles_inactive_and_none_snapshot(
     monkeypatch.setattr(SubscriptionTracker, "_load_persisted_state", lambda self: None)
     tracker = SubscriptionTracker()
 
-    monkeypatch.setattr("headroom.subscription.client.read_cached_oauth_token", lambda: None)
+    monkeypatch.setattr("copium.subscription.client.read_cached_oauth_token", lambda: None)
     await tracker._maybe_poll()
     assert tracker._state.poll_count == 0
 
     monkeypatch.setattr(
-        "headroom.subscription.client.read_cached_oauth_token", lambda: "cached-token"
+        "copium.subscription.client.read_cached_oauth_token", lambda: "cached-token"
     )
 
     async def fetch_none(token: str | None):
@@ -160,7 +160,7 @@ async def test_maybe_poll_success_updates_state_and_metrics(
     )
     monkeypatch.setitem(
         sys.modules,
-        "headroom.observability.metrics",
+        "copium.observability.metrics",
         SimpleNamespace(
             get_otel_metrics=lambda: SimpleNamespace(
                 record_subscription_window=lambda state: metrics_calls.append(state)

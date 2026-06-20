@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from headroom.transforms.search_compressor import (
+from copium.transforms.search_compressor import (
     FileMatches,
     SearchCompressionResult,
     SearchCompressor,
@@ -44,7 +44,7 @@ def test_parse_score_select_and_format_search_results(monkeypatch: pytest.Monkey
 
     monkeypatch.setitem(
         __import__("sys").modules,
-        "headroom.transforms.adaptive_sizer",
+        "copium.transforms.adaptive_sizer",
         SimpleNamespace(compute_optimal_k=lambda items, **kwargs: 4),
     )
     selected = compressor._select_matches(parsed, bias=1.2)
@@ -107,7 +107,7 @@ def test_search_compressor_persist_to_python_ccr(monkeypatch: pytest.MonkeyPatch
     seen: dict[str, tuple[str, str, str | None]] = {}
     monkeypatch.setitem(
         __import__("sys").modules,
-        "headroom.cache.compression_store",
+        "copium.cache.compression_store",
         SimpleNamespace(
             get_compression_store=lambda: SimpleNamespace(
                 store=lambda original, compressed, original_item_count=0, explicit_hash=None: (
@@ -128,7 +128,7 @@ def test_search_compressor_persist_to_python_ccr(monkeypatch: pytest.MonkeyPatch
 
     monkeypatch.setitem(
         __import__("sys").modules,
-        "headroom.cache.compression_store",
+        "copium.cache.compression_store",
         SimpleNamespace(get_compression_store=broken_store),
     )
     compressor._persist_to_python_ccr("orig", "comp", "abc123")  # must not raise

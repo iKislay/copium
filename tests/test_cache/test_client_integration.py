@@ -1,4 +1,4 @@
-"""Tests for HeadroomClient cache optimizer integration."""
+"""Tests for CopiumClient cache optimizer integration."""
 
 import os
 import tempfile
@@ -7,11 +7,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from headroom import (
+from copium import (
     AnthropicCacheOptimizer,
-    HeadroomClient,
+    CopiumClient,
 )
-from headroom.cache.base import CacheMetrics, CacheResult
+from copium.cache.base import CacheMetrics, CacheResult
 
 
 @pytest.fixture
@@ -113,15 +113,15 @@ class MockAnthropicResponse:
             self.usage = MockUsage()
 
 
-class TestHeadroomClientCacheIntegration:
-    """Test HeadroomClient cache optimizer integration."""
+class TestCopiumClientCacheIntegration:
+    """Test CopiumClient cache optimizer integration."""
 
     def test_auto_detect_anthropic_optimizer(self, temp_db):
         """Test that Anthropic optimizer is auto-detected."""
         mock_client = MagicMock()
         provider = MockAnthropicProvider()
 
-        client = HeadroomClient(
+        client = CopiumClient(
             original_client=mock_client,
             provider=provider,
             store_url=temp_db,
@@ -136,7 +136,7 @@ class TestHeadroomClientCacheIntegration:
         mock_client = MagicMock()
         provider = MockOpenAIProvider()
 
-        client = HeadroomClient(
+        client = CopiumClient(
             original_client=mock_client,
             provider=provider,
             store_url=temp_db,
@@ -152,7 +152,7 @@ class TestHeadroomClientCacheIntegration:
         provider = MockAnthropicProvider()
         custom_optimizer = AnthropicCacheOptimizer()
 
-        client = HeadroomClient(
+        client = CopiumClient(
             original_client=mock_client,
             provider=provider,
             store_url=temp_db,
@@ -166,7 +166,7 @@ class TestHeadroomClientCacheIntegration:
         mock_client = MagicMock()
         provider = MockAnthropicProvider()
 
-        client = HeadroomClient(
+        client = CopiumClient(
             original_client=mock_client,
             provider=provider,
             store_url=temp_db,
@@ -180,7 +180,7 @@ class TestHeadroomClientCacheIntegration:
         mock_client = MagicMock()
         provider = MockAnthropicProvider()
 
-        client = HeadroomClient(
+        client = CopiumClient(
             original_client=mock_client,
             provider=provider,
             store_url=temp_db,
@@ -196,7 +196,7 @@ class TestHeadroomClientCacheIntegration:
         mock_client = MagicMock()
         provider = MockAnthropicProvider()
 
-        client = HeadroomClient(
+        client = CopiumClient(
             original_client=mock_client,
             provider=provider,
             store_url=temp_db,
@@ -215,7 +215,7 @@ class TestHeadroomClientCacheIntegration:
         mock_client = MagicMock()
         provider = MockAnthropicProvider()
 
-        client = HeadroomClient(
+        client = CopiumClient(
             original_client=mock_client,
             provider=provider,
             store_url=temp_db,
@@ -237,7 +237,7 @@ class TestHeadroomClientCacheIntegration:
         mock_client = MagicMock()
         provider = MockAnthropicProvider()
 
-        client = HeadroomClient(
+        client = CopiumClient(
             original_client=mock_client,
             provider=provider,
             store_url=temp_db,
@@ -257,7 +257,7 @@ class TestHeadroomClientCacheIntegration:
         mock_client = MagicMock()
         provider = MockAnthropicProvider()
 
-        client = HeadroomClient(
+        client = CopiumClient(
             original_client=mock_client,
             provider=provider,
             store_url=temp_db,
@@ -276,14 +276,14 @@ class TestCacheOptimizerInvocation:
     in the production code path.
     """
 
-    @patch("headroom.storage.sqlite.SQLiteStorage.save")
+    @patch("copium.storage.sqlite.SQLiteStorage.save")
     def test_optimizer_optimize_is_called_during_chat(self, mock_save, temp_db):
         """CRITICAL: Verify optimizer.optimize() is called during chat completion.
 
         This test catches the gap where tests verify assignment but not invocation.
         Note: Cache optimizer is only invoked in OPTIMIZE mode, not AUDIT mode (the default).
         """
-        from headroom import HeadroomMode
+        from copium import CopiumMode
 
         # Use module-level mock classes to avoid sqlite issues with MagicMock
         mock_client = MagicMock()
@@ -307,7 +307,7 @@ class TestCacheOptimizerInvocation:
         )
         real_optimizer.optimize = spy_optimize
 
-        client = HeadroomClient(
+        client = CopiumClient(
             original_client=mock_client,
             provider=provider,
             store_url=temp_db,
@@ -323,7 +323,7 @@ class TestCacheOptimizerInvocation:
             model="claude-sonnet-4-20250514",
             messages=messages,
             max_tokens=100,
-            headroom_mode=HeadroomMode.OPTIMIZE,
+            copium_mode=CopiumMode.OPTIMIZE,
         )
 
         # CRITICAL: Verify optimizer.optimize() was actually called
@@ -338,10 +338,10 @@ class TestCacheOptimizerInvocation:
         optimized_messages, context = call_args[0]
         assert len(optimized_messages) >= 1, "Should pass messages to optimizer"
 
-    @patch("headroom.storage.sqlite.SQLiteStorage.save")
+    @patch("copium.storage.sqlite.SQLiteStorage.save")
     def test_optimizer_transforms_applied_in_response(self, mock_save, temp_db):
         """Verify optimizer transforms are reported in the response metadata."""
-        from headroom import HeadroomMode
+        from copium import CopiumMode
 
         # Use module-level mock classes to avoid sqlite issues with MagicMock
         mock_client = MagicMock()
@@ -364,7 +364,7 @@ class TestCacheOptimizerInvocation:
             )
         )
 
-        client = HeadroomClient(
+        client = CopiumClient(
             original_client=mock_client,
             provider=provider,
             store_url=temp_db,
@@ -380,22 +380,22 @@ class TestCacheOptimizerInvocation:
             model="claude-sonnet-4-20250514",
             messages=messages,
             max_tokens=100,
-            headroom_mode=HeadroomMode.OPTIMIZE,
+            copium_mode=CopiumMode.OPTIMIZE,
         )
 
         # Verify the response includes cache optimizer info
-        assert hasattr(result, "headroom"), "Response should have headroom metadata"
-        headroom_meta = result.headroom
+        assert hasattr(result, "copium"), "Response should have copium metadata"
+        copium_meta = result.copium
 
         # Check that cache optimizer was reported
-        assert headroom_meta.cache_optimizer_used is not None or any(
-            "cache_optimizer" in t for t in (headroom_meta.transforms_applied or [])
+        assert copium_meta.cache_optimizer_used is not None or any(
+            "cache_optimizer" in t for t in (copium_meta.transforms_applied or [])
         ), "Cache optimizer usage should be reported in metadata"
 
-    @patch("headroom.storage.sqlite.SQLiteStorage.save")
+    @patch("copium.storage.sqlite.SQLiteStorage.save")
     def test_optimizer_not_called_in_audit_mode(self, mock_save, temp_db):
         """Verify optimizer is NOT called in AUDIT mode (observe only)."""
-        from headroom import HeadroomMode
+        from copium import CopiumMode
 
         # Use module-level mock classes to avoid sqlite issues with MagicMock
         mock_client = MagicMock()
@@ -412,7 +412,7 @@ class TestCacheOptimizerInvocation:
         real_optimizer = AnthropicCacheOptimizer()
         real_optimizer.optimize = spy_optimize
 
-        client = HeadroomClient(
+        client = CopiumClient(
             original_client=mock_client,
             provider=provider,
             store_url=temp_db,
@@ -426,7 +426,7 @@ class TestCacheOptimizerInvocation:
             model="claude-sonnet-4-20250514",
             messages=messages,
             max_tokens=100,
-            headroom_mode=HeadroomMode.AUDIT,
+            copium_mode=CopiumMode.AUDIT,
         )
 
         # Optimizer should NOT be called in AUDIT mode
@@ -434,21 +434,21 @@ class TestCacheOptimizerInvocation:
 
 
 class TestSemanticCacheIntegration:
-    """Test semantic cache integration with HeadroomClient.
+    """Test semantic cache integration with CopiumClient.
 
     These tests verify the full production code path for semantic caching,
     including that cache hits actually return cached responses without calling
     the underlying API.
     """
 
-    @patch("headroom.storage.sqlite.SQLiteStorage.save")
+    @patch("copium.storage.sqlite.SQLiteStorage.save")
     def test_semantic_cache_hit_returns_cached_response_without_api_call(self, mock_save, temp_db):
         """CRITICAL: Verify semantic cache hit returns cached response without API call.
 
         This test catches the gap where semantic cache is enabled but cached
         responses are never actually returned (API is always called).
         """
-        from headroom import HeadroomMode
+        from copium import CopiumMode
 
         # Mock OpenAI-style response (chat.completions.create uses OpenAI API style)
         mock_client = MagicMock()
@@ -463,7 +463,7 @@ class TestSemanticCacheIntegration:
 
         provider = MockAnthropicProvider()
 
-        client = HeadroomClient(
+        client = CopiumClient(
             original_client=mock_client,
             provider=provider,
             store_url=temp_db,
@@ -481,7 +481,7 @@ class TestSemanticCacheIntegration:
             model="claude-sonnet-4-20250514",
             messages=messages,
             max_tokens=100,
-            headroom_mode=HeadroomMode.OPTIMIZE,
+            copium_mode=CopiumMode.OPTIMIZE,
         )
 
         first_call_count = mock_client.chat.completions.create.call_count
@@ -489,7 +489,7 @@ class TestSemanticCacheIntegration:
 
         # Manually store response in semantic cache for test
         if client._semantic_cache_layer is not None:
-            from headroom.cache import OptimizationContext
+            from copium.cache import OptimizationContext
 
             context = OptimizationContext(
                 provider="anthropic",
@@ -507,7 +507,7 @@ class TestSemanticCacheIntegration:
             model="claude-sonnet-4-20250514",
             messages=messages,
             max_tokens=100,
-            headroom_mode=HeadroomMode.OPTIMIZE,
+            copium_mode=CopiumMode.OPTIMIZE,
         )
 
         second_call_count = mock_client.chat.completions.create.call_count
@@ -521,23 +521,23 @@ class TestSemanticCacheIntegration:
 
 
 class TestSessionStatsTracking:
-    """Test session statistics tracking in HeadroomClient.
+    """Test session statistics tracking in CopiumClient.
 
     These tests verify that session stats are actually updated during
     chat completion calls.
     """
 
-    @patch("headroom.storage.sqlite.SQLiteStorage.save")
+    @patch("copium.storage.sqlite.SQLiteStorage.save")
     def test_session_stats_incremented_after_request(self, mock_save, temp_db):
         """CRITICAL: Verify session stats are incremented after requests."""
-        from headroom import HeadroomMode
+        from copium import CopiumMode
 
         mock_client = MagicMock()
         mock_client.messages.create.return_value = MockAnthropicResponse()
 
         provider = MockAnthropicProvider()
 
-        client = HeadroomClient(
+        client = CopiumClient(
             original_client=mock_client,
             provider=provider,
             store_url=temp_db,
@@ -553,7 +553,7 @@ class TestSessionStatsTracking:
             model="claude-sonnet-4-20250514",
             messages=messages,
             max_tokens=100,
-            headroom_mode=HeadroomMode.AUDIT,
+            copium_mode=CopiumMode.AUDIT,
         )
 
         # Verify stats were updated
@@ -567,17 +567,17 @@ class TestSessionStatsTracking:
             "requests_audit should be at least 1 after AUDIT mode request"
         )
 
-    @patch("headroom.storage.sqlite.SQLiteStorage.save")
+    @patch("copium.storage.sqlite.SQLiteStorage.save")
     def test_session_stats_tracks_optimize_mode(self, mock_save, temp_db):
         """Verify session stats track OPTIMIZE mode requests separately."""
-        from headroom import HeadroomMode
+        from copium import CopiumMode
 
         mock_client = MagicMock()
         mock_client.messages.create.return_value = MockAnthropicResponse()
 
         provider = MockAnthropicProvider()
 
-        client = HeadroomClient(
+        client = CopiumClient(
             original_client=mock_client,
             provider=provider,
             store_url=temp_db,
@@ -590,7 +590,7 @@ class TestSessionStatsTracking:
             model="claude-sonnet-4-20250514",
             messages=messages,
             max_tokens=100,
-            headroom_mode=HeadroomMode.OPTIMIZE,
+            copium_mode=CopiumMode.OPTIMIZE,
         )
 
         stats = client.get_stats()
@@ -599,17 +599,17 @@ class TestSessionStatsTracking:
             "requests_optimized should be at least 1 after OPTIMIZE mode request"
         )
 
-    @patch("headroom.storage.sqlite.SQLiteStorage.save")
+    @patch("copium.storage.sqlite.SQLiteStorage.save")
     def test_session_stats_tracks_tokens_saved(self, mock_save, temp_db):
         """Verify session stats track tokens saved."""
-        from headroom import HeadroomMode
+        from copium import CopiumMode
 
         mock_client = MagicMock()
         mock_client.messages.create.return_value = MockAnthropicResponse()
 
         provider = MockAnthropicProvider()
 
-        client = HeadroomClient(
+        client = CopiumClient(
             original_client=mock_client,
             provider=provider,
             store_url=temp_db,
@@ -625,7 +625,7 @@ class TestSessionStatsTracking:
             model="claude-sonnet-4-20250514",
             messages=messages,
             max_tokens=100,
-            headroom_mode=HeadroomMode.OPTIMIZE,
+            copium_mode=CopiumMode.OPTIMIZE,
         )
 
         stats = client.get_stats()

@@ -3,7 +3,7 @@
 Counterpart to ``test_kompress_preload_deferral.py`` (which covers the startup
 path). A first deep-path request used to resolve the 274MB ONNX artifact via an
 inline ``hf_hub_download`` on the request thread, where it raced the proxy's
-``HEADROOM_COMPRESSION_TIMEOUT_SECONDS`` budget (GH #946 / #1146): the fetch was
+``COPIUM_COMPRESSION_TIMEOUT_SECONDS`` budget (GH #946 / #1146): the fetch was
 cancelled mid-transfer, nothing cached, and every request re-hung and failed
 open. The request path now resolves the model cache-only and pulls it down once
 in a background daemon thread instead.
@@ -11,9 +11,9 @@ in a background daemon thread instead.
 
 from __future__ import annotations
 
-from headroom.transforms import kompress_compressor as kc
-from headroom.transforms.content_router import ContentRouter, ContentRouterConfig
-from headroom.transforms.kompress_compressor import KompressCompressor
+from copium.transforms import kompress_compressor as kc
+from copium.transforms.content_router import ContentRouter, ContentRouterConfig
+from copium.transforms.kompress_compressor import KompressCompressor
 
 
 def test_compress_cache_only_passes_through_without_network(monkeypatch):

@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
-from headroom.config import RequestMetrics
-from headroom.storage import JSONLStorage, SQLiteStorage, Storage, create_storage
+from copium.config import RequestMetrics
+from copium.storage import JSONLStorage, SQLiteStorage, Storage, create_storage
 
 
 def _metrics(
@@ -106,7 +106,7 @@ def test_create_storage_builtin_entrypoint_and_fallback(monkeypatch, tmp_path: P
 
     monkeypatch.setattr(
         "importlib.metadata.entry_points",
-        lambda group: [FakeEntryPoint()] if group == "headroom.storage_backend" else [],
+        lambda group: [FakeEntryPoint()] if group == "copium.storage_backend" else [],
     )
     assert create_storage("custom://memory") is created
 
@@ -122,7 +122,7 @@ def test_create_storage_builtin_entrypoint_and_fallback(monkeypatch, tmp_path: P
         def close(self) -> None:
             return None
 
-    monkeypatch.setattr("headroom.storage.SQLiteStorage", FakeSQLiteStorage)
+    monkeypatch.setattr("copium.storage.SQLiteStorage", FakeSQLiteStorage)
     fallback = create_storage("custom://fallback.db")
     assert isinstance(fallback, FakeSQLiteStorage)
     assert created_fallback == ["custom://fallback.db"]

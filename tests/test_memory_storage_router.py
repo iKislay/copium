@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from headroom.memory.backends.local import LocalBackendConfig
-from headroom.memory.storage_router import (
+from copium.memory.backends.local import LocalBackendConfig
+from copium.memory.storage_router import (
     BackendRouter,
     BackendRouterConfig,
     MemoryStorageMode,
@@ -41,7 +41,7 @@ def test_resolver_tier1_explicit_project_id_wins() -> None:
     # An explicit project id beats everything else.
     out = r.resolve(
         _ctx(
-            headers={"x-headroom-project-id": "billing-svc"},
+            headers={"x-copium-project-id": "billing-svc"},
             system_prompt="Primary working directory: /Users/foo/code/other\n",
             project_root_override="/also/ignored",
         )
@@ -54,7 +54,7 @@ def test_resolver_tier1_explicit_project_id_wins() -> None:
 
 def test_resolver_tier2_explicit_cwd_header() -> None:
     r = ProjectResolver()
-    out = r.resolve(_ctx(headers={"x-headroom-cwd": "/Users/foo/code/project-b"}))
+    out = r.resolve(_ctx(headers={"x-copium-cwd": "/Users/foo/code/project-b"}))
     assert out is not None
     key, display = out
     assert display == "project-b"
@@ -74,13 +74,13 @@ def test_resolver_tier4_env_block_primary_working_directory() -> None:
     r = ProjectResolver()
     prompt = (
         "You have been invoked in the following environment:\n"
-        " - Primary working directory: /Users/foo/code/headroom\n"
+        " - Primary working directory: /Users/foo/code/copium\n"
         " - Is a git repo: yes\n"
     )
     out = r.resolve(_ctx(system_prompt=prompt))
     assert out is not None
     _, display = out
-    assert display == "headroom"
+    assert display == "copium"
 
 
 def test_resolver_tier4_env_block_older_working_directory_format() -> None:
@@ -109,21 +109,21 @@ def test_resolver_returns_none_when_nothing_resolves() -> None:
 
 def test_resolver_same_cwd_yields_stable_key_across_calls() -> None:
     r = ProjectResolver()
-    k1, _ = r.resolve(_ctx(headers={"x-headroom-cwd": "/Users/foo/code/x"}))  # type: ignore[misc]
-    k2, _ = r.resolve(_ctx(headers={"x-headroom-cwd": "/Users/foo/code/x"}))  # type: ignore[misc]
+    k1, _ = r.resolve(_ctx(headers={"x-copium-cwd": "/Users/foo/code/x"}))  # type: ignore[misc]
+    k2, _ = r.resolve(_ctx(headers={"x-copium-cwd": "/Users/foo/code/x"}))  # type: ignore[misc]
     assert k1 == k2
 
 
 def test_resolver_distinct_cwds_yield_distinct_keys() -> None:
     r = ProjectResolver()
-    k1, _ = r.resolve(_ctx(headers={"x-headroom-cwd": "/Users/foo/code/a"}))  # type: ignore[misc]
-    k2, _ = r.resolve(_ctx(headers={"x-headroom-cwd": "/Users/foo/code/b"}))  # type: ignore[misc]
+    k1, _ = r.resolve(_ctx(headers={"x-copium-cwd": "/Users/foo/code/a"}))  # type: ignore[misc]
+    k2, _ = r.resolve(_ctx(headers={"x-copium-cwd": "/Users/foo/code/b"}))  # type: ignore[misc]
     assert k1 != k2
 
 
 def test_resolver_sanitises_unsafe_basename_chars() -> None:
     r = ProjectResolver()
-    out = r.resolve(_ctx(headers={"x-headroom-project-id": "../etc/passwd; rm -rf /"}))
+    out = r.resolve(_ctx(headers={"x-copium-project-id": "../etc/passwd; rm -rf /"}))
     assert out is not None
     key, _ = out
     # Path-separators and shell-metas must be neutralised.
@@ -176,7 +176,7 @@ def _make_router(
     # Patch out the real LocalBackend constructor so the router test
     # doesn't try to load embedders or open SQLite files.
     monkeypatch.setattr(
-        "headroom.memory.storage_router.LocalBackend",
+        "copium.memory.storage_router.LocalBackend",
         _FakeBackend,
     )
     cfg = BackendRouterConfig(
@@ -194,8 +194,8 @@ def test_router_project_mode_two_cwds_two_paths(
 ) -> None:
     router = _make_router(tmp_path, MemoryStorageMode.PROJECT, monkeypatch)
 
-    ctx_a = _ctx(headers={"x-headroom-cwd": "/code/a"})
-    ctx_b = _ctx(headers={"x-headroom-cwd": "/code/b"})
+    ctx_a = _ctx(headers={"x-copium-cwd": "/code/a"})
+    ctx_b = _ctx(headers={"x-copium-cwd": "/code/b"})
 
     _, scope_a = router.backend_for(ctx_a)
     _, scope_b = router.backend_for(ctx_b)
@@ -236,7 +236,7 @@ def test_router_project_mode_unresolved_global_fallback_when_opted_in(
 ) -> None:
     """Legacy GLOBAL pooling is reachable via opt-in config."""
     monkeypatch.setattr(
-        "headroom.memory.storage_router.LocalBackend",
+        "copium.memory.storage_router.LocalBackend",
         _FakeBackend,
     )
     cfg = BackendRouterConfig(
@@ -260,7 +260,7 @@ def test_router_invalid_unresolved_fallback_raises(
 ) -> None:
     """Unknown values of `unresolved_project_fallback` fail loud, not silently."""
     monkeypatch.setattr(
-        "headroom.memory.storage_router.LocalBackend",
+        "copium.memory.storage_router.LocalBackend",
         _FakeBackend,
     )
     cfg = BackendRouterConfig(
@@ -297,7 +297,7 @@ def test_router_global_mode_reuses_legacy_path(
 ) -> None:
     router = _make_router(tmp_path, MemoryStorageMode.GLOBAL, monkeypatch)
 
-    _, scope = router.backend_for(_ctx(headers={"x-headroom-cwd": "/code/anything"}))
+    _, scope = router.backend_for(_ctx(headers={"x-copium-cwd": "/code/anything"}))
     assert scope.mode is MemoryStorageMode.GLOBAL
     # GLOBAL mode hits the legacy DB regardless of cwd signals.
     assert scope.db_path == tmp_path / "memory.db"
@@ -308,7 +308,7 @@ def test_router_backend_cache_returns_same_instance(
 ) -> None:
     router = _make_router(tmp_path, MemoryStorageMode.PROJECT, monkeypatch)
 
-    ctx = _ctx(headers={"x-headroom-cwd": "/code/sticky"})
+    ctx = _ctx(headers={"x-copium-cwd": "/code/sticky"})
     b1, _ = router.backend_for(ctx)
     b2, _ = router.backend_for(ctx)
     assert b1 is b2
@@ -319,5 +319,5 @@ def test_router_lru_eviction_drops_oldest(tmp_path: Path, monkeypatch: pytest.Mo
     # should evict the first.
     router = _make_router(tmp_path, MemoryStorageMode.PROJECT, monkeypatch)
     for i in range(5):
-        router.backend_for(_ctx(headers={"x-headroom-cwd": f"/code/p{i}"}))
+        router.backend_for(_ctx(headers={"x-copium-cwd": f"/code/p{i}"}))
     assert len(router.open_backends()) == 4

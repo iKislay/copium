@@ -22,7 +22,7 @@ def test_stats_endpoint_exposes_per_strategy_counters() -> None:
     pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
 
-    from headroom.proxy.server import ProxyConfig, create_app
+    from copium.proxy.server import ProxyConfig, create_app
 
     app = create_app(
         ProxyConfig(
@@ -55,7 +55,7 @@ def test_stats_endpoint_exposes_per_strategy_counters() -> None:
 
 
 def test_beacon_nests_strategies_under_pipeline_timing() -> None:
-    from headroom.telemetry.beacon import _build_pipeline_timing
+    from copium.telemetry.beacon import _build_pipeline_timing
 
     stats = {
         "pipeline_timing": {
@@ -77,7 +77,7 @@ def test_beacon_nests_strategies_under_pipeline_timing() -> None:
 
 
 def test_beacon_omits_strategies_subkey_when_counters_empty() -> None:
-    from headroom.telemetry.beacon import _build_pipeline_timing
+    from copium.telemetry.beacon import _build_pipeline_timing
 
     stats = {
         "pipeline_timing": {"router": {"average_ms": 1.2}},

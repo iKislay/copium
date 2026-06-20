@@ -154,7 +154,7 @@ async def main_async() -> int:
     log_fp = open("/tmp/e2e_ws_proxy.log", "w")
     proc = subprocess.Popen(
         [
-            str(REPO_ROOT / ".venv/bin/headroom"),
+            str(REPO_ROOT / ".venv/bin/copium"),
             "proxy",
             "--port",
             str(proxy_port),
@@ -170,7 +170,7 @@ async def main_async() -> int:
             # the fake upstream ignores it.
             "OPENAI_API_KEY": os.environ.get("OPENAI_API_KEY", "sk-fake-for-test"),
             "ANTHROPIC_API_KEY": os.environ.get("ANTHROPIC_API_KEY", "sk-ant-fake"),
-            "HEADROOM_REQUIRE_RUST_CORE": "true",
+            "COPIUM_REQUIRE_RUST_CORE": "true",
         },
         stdout=log_fp,
         stderr=subprocess.STDOUT,
@@ -237,7 +237,7 @@ async def main_async() -> int:
 
         # ── Scrape proxy log for compression evidence ────────────
         await asyncio.sleep(1.0)
-        canonical = Path.home() / ".headroom" / "logs" / "proxy.log"
+        canonical = Path.home() / ".copium" / "logs" / "proxy.log"
         log_lines = canonical.read_text(errors="replace").splitlines()[-1000:]
         ws_compressed = [
             line for line in log_lines if "WS /v1/responses" in line and "compressed" in line

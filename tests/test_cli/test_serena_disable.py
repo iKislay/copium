@@ -1,8 +1,8 @@
 """`--no-serena` must actively disable Serena, not merely skip adding it.
 
-Serena is installed by default, so a prior `headroom wrap` persists a
+Serena is installed by default, so a prior `copium wrap` persists a
 `serena` MCP entry and the agent keeps launching it (dashboard popup and
-all). These tests pin that a later `--no-serena` removes the entry Headroom
+all). These tests pin that a later `--no-serena` removes the entry Copium
 installed, leaves a user-managed entry alone, and that Codex unwrap also
 removes Serena.
 """
@@ -15,11 +15,11 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 
-from headroom.cli import wrap as wrap_cli
-from headroom.cli.main import main
-from headroom.mcp_registry import build_serena_spec
-from headroom.mcp_registry.base import ServerSpec
-from headroom.mcp_registry.ledger import record_install
+from copium.cli import wrap as wrap_cli
+from copium.cli.main import main
+from copium.mcp_registry import build_serena_spec
+from copium.mcp_registry.base import ServerSpec
+from copium.mcp_registry.ledger import record_install
 
 
 @pytest.fixture
@@ -49,12 +49,12 @@ class _FakeRegistrar:
         return True
 
 
-def test_disable_removes_headroom_installed_serena(
+def test_disable_removes_copium_installed_serena(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    monkeypatch.setenv("HEADROOM_WORKSPACE_DIR", str(tmp_path / ".headroom"))
+    monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path / ".copium"))
     spec = build_serena_spec("claude-code")
-    record_install("claude", spec)  # ledger now proves Headroom owns it
+    record_install("claude", spec)  # ledger now proves Copium owns it
     registrar = _FakeRegistrar("claude", server=spec)
 
     wrap_cli._disable_serena_mcp(registrar, verbose=True)
@@ -66,8 +66,8 @@ def test_disable_removes_headroom_installed_serena(
 def test_disable_preserves_user_managed_serena(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    monkeypatch.setenv("HEADROOM_WORKSPACE_DIR", str(tmp_path / ".headroom"))
-    # Present in the agent config but NOT in Headroom's ledger → user-owned.
+    monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path / ".copium"))
+    # Present in the agent config but NOT in Copium's ledger → user-owned.
     user_spec = ServerSpec(name="serena", command="/usr/local/bin/custom-serena")
     registrar = _FakeRegistrar("claude", server=user_spec)
 
@@ -80,7 +80,7 @@ def test_disable_preserves_user_managed_serena(
 def test_disable_noop_when_serena_absent(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    monkeypatch.setenv("HEADROOM_WORKSPACE_DIR", str(tmp_path / ".headroom"))
+    monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path / ".copium"))
     registrar = _FakeRegistrar("claude", server=None)
 
     wrap_cli._disable_serena_mcp(registrar, verbose=True)
@@ -92,7 +92,7 @@ def test_disable_noop_when_serena_absent(
 def test_disable_noop_when_agent_not_detected(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    monkeypatch.setenv("HEADROOM_WORKSPACE_DIR", str(tmp_path / ".headroom"))
+    monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path / ".copium"))
     spec = build_serena_spec("claude-code")
     record_install("claude", spec)
     registrar = _FakeRegistrar("claude", detected=False, server=spec)
@@ -102,24 +102,24 @@ def test_disable_noop_when_agent_not_detected(
     assert registrar.unregistered == []  # not detected → leave everything alone
 
 
-def test_unwrap_codex_removes_headroom_installed_serena(
+def test_unwrap_codex_removes_copium_installed_serena(
     runner: CliRunner, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    monkeypatch.setenv("HEADROOM_WORKSPACE_DIR", str(tmp_path / ".headroom"))
+    monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path / ".copium"))
     spec = build_serena_spec("codex")
     record_install("codex", spec)
     registrar = _FakeRegistrar("codex", server=spec)
 
     with (
-        patch("headroom.mcp_registry.CodexRegistrar", return_value=registrar),
+        patch("copium.mcp_registry.CodexRegistrar", return_value=registrar),
         patch(
-            "headroom.cli.wrap._restore_codex_provider_config",
+            "copium.cli.wrap._restore_codex_provider_config",
             return_value=("noop", tmp_path / "config.toml"),
         ),
-        patch("headroom.cli.wrap._stop_local_proxy_for_unwrap"),
+        patch("copium.cli.wrap._stop_local_proxy_for_unwrap"),
     ):
         result = runner.invoke(main, ["unwrap", "codex"])
 
     assert result.exit_code == 0, result.output
     assert registrar.unregistered == ["serena"]
-    assert "Removed Headroom-installed Serena MCP server from Codex" in result.output
+    assert "Removed Copium-installed Serena MCP server from Codex" in result.output

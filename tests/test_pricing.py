@@ -5,10 +5,10 @@ from datetime import date, timedelta
 
 import pytest
 
-import headroom.pricing as pricing
-from headroom.pricing.anthropic_prices import ANTHROPIC_PRICES, get_anthropic_registry
-from headroom.pricing.openai_prices import OPENAI_PRICES, get_openai_registry
-from headroom.pricing.registry import ModelPricing, PricingRegistry
+import copium.pricing as pricing
+from copium.pricing.anthropic_prices import ANTHROPIC_PRICES, get_anthropic_registry
+from copium.pricing.openai_prices import OPENAI_PRICES, get_openai_registry
+from copium.pricing.registry import ModelPricing, PricingRegistry
 
 
 def test_pricing_public_exports_and_provider_registries() -> None:

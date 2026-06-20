@@ -1,6 +1,6 @@
 # Quickstart Guide
 
-Get Headroom running in 5 minutes with these copy-paste examples.
+Get Copium running in 5 minutes with these copy-paste examples.
 
 ---
 
@@ -10,36 +10,36 @@ Get Headroom running in 5 minutes with these copy-paste examples.
 
 ```bash
 # Core only (minimal dependencies)
-pip install headroom-ai
+pip install copium-ai
 
 # With proxy server
-pip install "headroom-ai[proxy]"
+pip install "copium-ai[proxy]"
 
 # Everything
-pip install "headroom-ai[all]"
+pip install "copium-ai[all]"
 ```
 
 **TypeScript / Node.js:**
 
 ```bash
-npm install headroom-ai
+npm install copium-ai
 ```
 
 **Docker-native:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chopratejas/headroom/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/iKislay/copium/main/scripts/install.sh | bash
 ```
 
-See [Docker-native install](docker-install.md) if you want Docker to provide the Headroom runtime while your agent CLIs stay on the host.
+See [Docker-native install](docker-install.md) if you want Docker to provide the Copium runtime while your agent CLIs stay on the host.
 
 **Persistent background runtime:**
 
 ```bash
-headroom install apply --preset persistent-service --providers auto
+copium install apply --preset persistent-service --providers auto
 ```
 
-See [Persistent Installs](persistent-installs.md) if you want Headroom to stay up in the background and be reused by `wrap`.
+See [Persistent Installs](persistent-installs.md) if you want Copium to stay up in the background and be reused by `wrap`.
 
 ---
 
@@ -50,7 +50,7 @@ The fastest way to start saving tokens. Works with any OpenAI-compatible client.
 ### Step 1: Start the Proxy
 
 ```bash
-headroom proxy --port 8787
+copium proxy --port 8787
 ```
 
 ### Step 2: Verify It's Running
@@ -67,7 +67,7 @@ curl http://localhost:8787/health
 ANTHROPIC_BASE_URL=http://localhost:8787 claude
 
 # GitHub Copilot CLI (default Anthropic-style proxy route)
-headroom wrap copilot -- --model claude-sonnet-4-20250514
+copium wrap copilot -- --model claude-sonnet-4-20250514
 
 # Cursor / Continue / any OpenAI client
 OPENAI_BASE_URL=http://localhost:8787/v1 your-app
@@ -93,11 +93,11 @@ Wrap your existing client for fine-grained control.
 ### Basic Example
 
 ```python
-from headroom import HeadroomClient, OpenAIProvider
+from copium import CopiumClient, OpenAIProvider
 from openai import OpenAI
 
 # Create wrapped client
-client = HeadroomClient(
+client = CopiumClient(
     original_client=OpenAI(),
     provider=OpenAIProvider(),
     default_mode="optimize",
@@ -122,11 +122,11 @@ print(f"Tokens saved: {stats['session']['tokens_saved_total']}")
 ### With Tool Outputs (Where Savings Happen)
 
 ```python
-from headroom import HeadroomClient, OpenAIProvider
+from copium import CopiumClient, OpenAIProvider
 from openai import OpenAI
 import json
 
-client = HeadroomClient(
+client = CopiumClient(
     original_client=OpenAI(),
     provider=OpenAIProvider(),
     default_mode="optimize",
@@ -148,7 +148,7 @@ messages = [
     {
         "role": "tool",
         "tool_call_id": "call_1",
-        # This is where Headroom shines - compressing large outputs
+        # This is where Copium shines - compressing large outputs
         "content": json.dumps({
             "results": [{"title": f"Result {i}", "score": 100-i} for i in range(500)]
         }),
@@ -156,7 +156,7 @@ messages = [
     {"role": "user", "content": "What are the top 3 results?"},
 ]
 
-# Headroom compresses the 500 results to ~20, keeping the most relevant
+# Copium compresses the 500 results to ~20, keeping the most relevant
 response = client.chat.completions.create(
     model="gpt-4o",
     messages=messages,
@@ -188,10 +188,10 @@ print(f"Estimated savings: {plan.estimated_savings}")
 ## Option 3: Anthropic SDK
 
 ```python
-from headroom import HeadroomClient, AnthropicProvider
+from copium import CopiumClient, AnthropicProvider
 from anthropic import Anthropic
 
-client = HeadroomClient(
+client = CopiumClient(
     original_client=Anthropic(),
     provider=AnthropicProvider(),
     default_mode="optimize",
@@ -220,8 +220,8 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 # Now you'll see:
-# INFO:headroom.transforms.pipeline:Pipeline complete: 45000 -> 4500 tokens (saved 40500, 90.0% reduction)
-# INFO:headroom.transforms.smart_crusher:SmartCrusher: keeping 15 of 500 items
+# INFO:copium.transforms.pipeline:Pipeline complete: 45000 -> 4500 tokens (saved 40500, 90.0% reduction)
+# INFO:copium.transforms.smart_crusher:SmartCrusher: keeping 15 of 500 items
 ```
 
 ### Method 2: Check Session Stats
@@ -255,9 +255,9 @@ else:
 ### Adjust Compression
 
 ```python
-from headroom import HeadroomClient, OpenAIProvider, HeadroomConfig
+from copium import CopiumClient, OpenAIProvider, CopiumConfig
 
-config = HeadroomConfig()
+config = CopiumConfig()
 
 # Keep more items after compression (default: 15)
 config.smart_crusher.max_items_after_crush = 30
@@ -265,7 +265,7 @@ config.smart_crusher.max_items_after_crush = 30
 # Only compress if tool output has > 500 tokens (default: 200)
 config.smart_crusher.min_tokens_to_crush = 500
 
-client = HeadroomClient(
+client = CopiumClient(
     original_client=OpenAI(),
     provider=OpenAIProvider(),
     config=config,  # Pass custom config
@@ -279,7 +279,7 @@ client = HeadroomClient(
 response = client.chat.completions.create(
     model="gpt-4o",
     messages=messages,
-    headroom_tool_profiles={
+    copium_tool_profiles={
         "database_query": {"skip_compression": True},  # Never compress
         "search": {"max_items": 50},  # Keep more items
     },
@@ -290,7 +290,7 @@ response = client.chat.completions.create(
 
 ```python
 # Start in audit mode - see what WOULD be optimized
-client = HeadroomClient(
+client = CopiumClient(
     original_client=OpenAI(),
     provider=OpenAIProvider(),
     default_mode="audit",  # No modifications, just logging
@@ -300,7 +300,7 @@ client = HeadroomClient(
 response = client.chat.completions.create(
     model="gpt-4o",
     messages=messages,
-    headroom_mode="optimize",  # Enable for this request only
+    copium_mode="optimize",  # Enable for this request only
 )
 ```
 
@@ -308,7 +308,7 @@ response = client.chat.completions.create(
 
 ## What Gets Optimized?
 
-| Content Type | What Headroom Does | Typical Savings |
+| Content Type | What Copium Does | Typical Savings |
 |--------------|-------------------|-----------------|
 | **Tool outputs with lists** | Keeps errors, anomalies, high-score items | 70-90% |
 | **Repeated search results** | Deduplicates and samples | 60-80% |

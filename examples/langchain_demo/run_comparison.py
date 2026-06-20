@@ -1,6 +1,6 @@
-"""Real-world LangChain Agent: Before/After Headroom Comparison.
+"""Real-world LangChain Agent: Before/After Copium Comparison.
 
-This script demonstrates the impact of Headroom optimization on a realistic
+This script demonstrates the impact of Copium optimization on a realistic
 LangChain agent that uses tools returning large outputs.
 
 Scenario: A support agent that:
@@ -76,7 +76,7 @@ class AgentRun:
     """Results from a single agent run."""
 
     scenario: str
-    mode: str  # "baseline" or "headroom"
+    mode: str  # "baseline" or "copium"
     total_input_tokens: int
     total_output_tokens: int
     tool_calls: int
@@ -152,7 +152,7 @@ SCENARIOS = [
 
 
 def run_agent_baseline(scenario: dict, api_key: str) -> AgentRun:
-    """Run agent WITHOUT Headroom (baseline)."""
+    """Run agent WITHOUT Copium (baseline)."""
 
     tools = create_langchain_tools()
 
@@ -238,12 +238,12 @@ def run_agent_baseline(scenario: dict, api_key: str) -> AgentRun:
     )
 
 
-def run_agent_headroom(scenario: dict, api_key: str) -> AgentRun:
-    """Run agent WITH Headroom optimization."""
+def run_agent_copium(scenario: dict, api_key: str) -> AgentRun:
+    """Run agent WITH Copium optimization."""
 
-    # Import Headroom integration
-    from headroom import HeadroomConfig
-    from headroom.integrations import HeadroomChatModel
+    # Import Copium integration
+    from copium import CopiumConfig
+    from copium.integrations import CopiumChatModel
 
     tools = create_langchain_tools()
 
@@ -254,17 +254,17 @@ def run_agent_headroom(scenario: dict, api_key: str) -> AgentRun:
         temperature=0,
     )
 
-    # Wrap with Headroom
-    config = HeadroomConfig(
+    # Wrap with Copium
+    config = CopiumConfig(
         smart_crusher_threshold=500,  # Compress tool outputs > 500 tokens
         smart_crusher_max_items=20,  # Keep max 20 items
         cache_alignment=True,
         rolling_window=True,
     )
 
-    headroom_model = HeadroomChatModel(
+    copium_model = CopiumChatModel(
         wrapped_model=base_model,
-        headroom_config=config,
+        copium_config=config,
     ).bind_tools(tools)
 
     # Build conversation
@@ -286,8 +286,8 @@ def run_agent_headroom(scenario: dict, api_key: str) -> AgentRun:
         input_tokens = count_message_tokens([{"content": m.content} for m in messages])
         total_input_tokens += input_tokens
 
-        # Call model (Headroom optimizes internally)
-        response = headroom_model.invoke(messages)
+        # Call model (Copium optimizes internally)
+        response = copium_model.invoke(messages)
         messages.append(response)
 
         # Count output tokens
@@ -326,12 +326,12 @@ def run_agent_headroom(scenario: dict, api_key: str) -> AgentRun:
 
     duration_ms = (time.time() - start_time) * 1000
 
-    # Get Headroom metrics
-    tokens_saved = headroom_model.get_total_tokens_saved()
+    # Get Copium metrics
+    tokens_saved = copium_model.get_total_tokens_saved()
 
     return AgentRun(
         scenario=scenario["name"],
-        mode="headroom",
+        mode="copium",
         total_input_tokens=total_input_tokens - tokens_saved,  # Actual tokens sent
         total_output_tokens=total_output_tokens,
         tool_calls=tool_calls_count,
@@ -342,34 +342,34 @@ def run_agent_headroom(scenario: dict, api_key: str) -> AgentRun:
     )
 
 
-def print_comparison(baseline: AgentRun, headroom: AgentRun):
-    """Print comparison between baseline and headroom runs."""
+def print_comparison(baseline: AgentRun, copium: AgentRun):
+    """Print comparison between baseline and copium runs."""
 
     print(f"\n{'=' * 70}")
     print(f"SCENARIO: {baseline.scenario}")
     print(f"{'=' * 70}")
 
     # Token comparison
-    input_saved = baseline.total_input_tokens - headroom.total_input_tokens
+    input_saved = baseline.total_input_tokens - copium.total_input_tokens
     input_pct = (
         (input_saved / baseline.total_input_tokens * 100) if baseline.total_input_tokens > 0 else 0
     )
 
-    print(f"\n{'METRIC':<30} {'BASELINE':>15} {'HEADROOM':>15} {'SAVINGS':>15}")
+    print(f"\n{'METRIC':<30} {'BASELINE':>15} {'COPIUM':>15} {'SAVINGS':>15}")
     print("-" * 75)
     print(
-        f"{'Input Tokens':<30} {baseline.total_input_tokens:>15,} {headroom.total_input_tokens:>15,} {input_saved:>14,} ({input_pct:.1f}%)"
+        f"{'Input Tokens':<30} {baseline.total_input_tokens:>15,} {copium.total_input_tokens:>15,} {input_saved:>14,} ({input_pct:.1f}%)"
     )
     print(
-        f"{'Output Tokens':<30} {baseline.total_output_tokens:>15,} {headroom.total_output_tokens:>15,} {'N/A':>15}"
+        f"{'Output Tokens':<30} {baseline.total_output_tokens:>15,} {copium.total_output_tokens:>15,} {'N/A':>15}"
     )
     print(
-        f"{'Tool Output Tokens':<30} {baseline.tool_output_tokens:>15,} {headroom.tool_output_tokens:>15,} {'(raw)':>15}"
+        f"{'Tool Output Tokens':<30} {baseline.tool_output_tokens:>15,} {copium.tool_output_tokens:>15,} {'(raw)':>15}"
     )
-    print(f"{'Tool Calls':<30} {baseline.tool_calls:>15} {headroom.tool_calls:>15} {'':>15}")
-    print(f"{'Messages':<30} {baseline.messages_count:>15} {headroom.messages_count:>15} {'':>15}")
+    print(f"{'Tool Calls':<30} {baseline.tool_calls:>15} {copium.tool_calls:>15} {'':>15}")
+    print(f"{'Messages':<30} {baseline.messages_count:>15} {copium.messages_count:>15} {'':>15}")
     print(
-        f"{'Duration (ms)':<30} {baseline.duration_ms:>15.0f} {headroom.duration_ms:>15.0f} {'':>15}"
+        f"{'Duration (ms)':<30} {baseline.duration_ms:>15.0f} {copium.duration_ms:>15.0f} {'':>15}"
     )
 
     # Cost estimation (gpt-4o-mini pricing)
@@ -380,15 +380,15 @@ def print_comparison(baseline: AgentRun, headroom: AgentRun):
         baseline.total_input_tokens * input_cost_per_1m
         + baseline.total_output_tokens * output_cost_per_1m
     ) / 1_000_000
-    headroom_cost = (
-        headroom.total_input_tokens * input_cost_per_1m
-        + headroom.total_output_tokens * output_cost_per_1m
+    copium_cost = (
+        copium.total_input_tokens * input_cost_per_1m
+        + copium.total_output_tokens * output_cost_per_1m
     ) / 1_000_000
-    cost_saved = baseline_cost - headroom_cost
+    cost_saved = baseline_cost - copium_cost
     cost_pct = (cost_saved / baseline_cost * 100) if baseline_cost > 0 else 0
 
     print(
-        f"\n{'Estimated Cost (USD)':<30} ${baseline_cost:>14.6f} ${headroom_cost:>14.6f} ${cost_saved:>13.6f} ({cost_pct:.1f}%)"
+        f"\n{'Estimated Cost (USD)':<30} ${baseline_cost:>14.6f} ${copium_cost:>14.6f} ${cost_saved:>13.6f} ({cost_pct:.1f}%)"
     )
 
 
@@ -396,7 +396,7 @@ def main():
     """Run the before/after comparison."""
 
     print("\n" + "=" * 70)
-    print("LANGCHAIN AGENT: BEFORE/AFTER HEADROOM COMPARISON")
+    print("LANGCHAIN AGENT: BEFORE/AFTER COPIUM COMPARISON")
     print("=" * 70)
 
     # Check for API key
@@ -412,7 +412,7 @@ def main():
     print("This will make actual OpenAI API calls and incur costs.\n")
 
     all_baseline = []
-    all_headroom = []
+    all_copium = []
 
     for scenario in SCENARIOS:
         print(f"\nRunning scenario: {scenario['name']}...")
@@ -422,16 +422,16 @@ def main():
         baseline = run_agent_baseline(scenario, api_key)
         all_baseline.append(baseline)
 
-        # Run with Headroom
-        print("  - Running with Headroom optimization...")
-        headroom = run_agent_headroom(scenario, api_key)
-        all_headroom.append(headroom)
+        # Run with Copium
+        print("  - Running with Copium optimization...")
+        copium = run_agent_copium(scenario, api_key)
+        all_copium.append(copium)
 
         # Print comparison
-        print_comparison(baseline, headroom)
+        print_comparison(baseline, copium)
 
     # Print summary
-    print_summary(all_baseline, all_headroom)
+    print_summary(all_baseline, all_copium)
 
 
 def run_simulation():
@@ -456,13 +456,13 @@ def run_simulation():
 
         print(f"\n  Total tool output: {total_tool_tokens:,} tokens")
         print(f"  With 3 iterations, baseline input would be: ~{total_tool_tokens * 2:,} tokens")
-        print(f"  With Headroom (20 items max), estimated: ~{total_tool_tokens // 5:,} tokens")
+        print(f"  With Copium (20 items max), estimated: ~{total_tool_tokens // 5:,} tokens")
         print(
             f"  Estimated savings: ~{total_tool_tokens * 2 - total_tool_tokens // 5:,} tokens (~80%)"
         )
 
 
-def print_summary(baseline_runs: list[AgentRun], headroom_runs: list[AgentRun]):
+def print_summary(baseline_runs: list[AgentRun], copium_runs: list[AgentRun]):
     """Print overall summary."""
 
     print("\n" + "=" * 70)
@@ -470,32 +470,32 @@ def print_summary(baseline_runs: list[AgentRun], headroom_runs: list[AgentRun]):
     print("=" * 70)
 
     total_baseline_input = sum(r.total_input_tokens for r in baseline_runs)
-    total_headroom_input = sum(r.total_input_tokens for r in headroom_runs)
-    total_saved = total_baseline_input - total_headroom_input
+    total_copium_input = sum(r.total_input_tokens for r in copium_runs)
+    total_saved = total_baseline_input - total_copium_input
     pct_saved = (total_saved / total_baseline_input * 100) if total_baseline_input > 0 else 0
 
-    print(f"\n{'Metric':<30} {'Baseline':>15} {'Headroom':>15} {'Savings':>15}")
+    print(f"\n{'Metric':<30} {'Baseline':>15} {'Copium':>15} {'Savings':>15}")
     print("-" * 75)
     print(
-        f"{'Total Input Tokens':<30} {total_baseline_input:>15,} {total_headroom_input:>15,} {total_saved:>14,}"
+        f"{'Total Input Tokens':<30} {total_baseline_input:>15,} {total_copium_input:>15,} {total_saved:>14,}"
     )
     print(f"{'Percentage Saved':<30} {'':>15} {'':>15} {pct_saved:>14.1f}%")
 
     # Cost
     input_cost = 0.15 / 1_000_000
     baseline_cost = total_baseline_input * input_cost
-    headroom_cost = total_headroom_input * input_cost
-    cost_saved = baseline_cost - headroom_cost
+    copium_cost = total_copium_input * input_cost
+    cost_saved = baseline_cost - copium_cost
 
     print(
-        f"\n{'Est. Input Cost (USD)':<30} ${baseline_cost:>14.4f} ${headroom_cost:>14.4f} ${cost_saved:>13.4f}"
+        f"\n{'Est. Input Cost (USD)':<30} ${baseline_cost:>14.4f} ${copium_cost:>14.4f} ${cost_saved:>13.4f}"
     )
 
     print("\n" + "=" * 70)
     print("CONCLUSION")
     print("=" * 70)
     print(f"""
-Headroom reduced input tokens by {pct_saved:.1f}% across all scenarios.
+Copium reduced input tokens by {pct_saved:.1f}% across all scenarios.
 
 Key optimizations applied:
 - SmartCrusher: Compressed tool outputs from 50-200 items to ~20 relevant items

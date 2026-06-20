@@ -1,6 +1,6 @@
 """Phase G PR-G3 (P4-45) — request-logger image base64 redaction.
 
-The Headroom proxy logs LLM request/response payloads to a JSONL feed
+The Copium proxy logs LLM request/response payloads to a JSONL feed
 when ``log_full_messages=True``. Vision-shape requests (Anthropic
 ``image`` blocks; OpenAI ``image_url`` data URLs) carry base64-encoded
 binary payloads that can be multiple megabytes each. Phase G PR-G3
@@ -22,8 +22,8 @@ import tempfile
 
 import pytest
 
-from headroom.proxy.models import RequestLog
-from headroom.proxy.request_logger import (
+from copium.proxy.models import RequestLog
+from copium.proxy.request_logger import (
     IMAGE_BASE64_REDACT_THRESHOLD_BYTES,
     IMAGE_BASE64_REPLACEMENT_TEMPLATE,
     RequestLogger,

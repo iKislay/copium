@@ -1,9 +1,9 @@
 """Tests for CLI proxy env variable handling and backend validation.
 
 Verifies that:
-1. Provider target URL env vars are read by `headroom proxy`
+1. Provider target URL env vars are read by `copium proxy`
 2. litellm-* backends are accepted by both CLI and argparse paths
-3. HEADROOM_WRAP_PROXY_TIMEOUT controls `headroom wrap` proxy readiness waits
+3. COPIUM_WRAP_PROXY_TIMEOUT controls `copium wrap` proxy readiness waits
 """
 
 import os
@@ -16,8 +16,8 @@ pytest.importorskip("fastapi")
 
 from click.testing import CliRunner  # noqa: E402
 
-from headroom.cli import wrap as wrap_mod  # noqa: E402
-from headroom.cli.main import main  # noqa: E402
+from copium.cli import wrap as wrap_mod  # noqa: E402
+from copium.cli.main import main  # noqa: E402
 
 
 @pytest.fixture
@@ -150,72 +150,72 @@ class TestCLIWrapProxyTimeout:
 class TestCLIProxyEnvVars:
     """Test that the CLI proxy command reads API URL env vars."""
 
-    def test_headroom_host_from_env(self, runner):
-        """HEADROOM_HOST env var should be passed to ProxyConfig."""
+    def test_copium_host_from_env(self, runner):
+        """COPIUM_HOST env var should be passed to ProxyConfig."""
         captured_config = {}
 
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy"],
-                env={"HEADROOM_HOST": "0.0.0.0"},
+                env={"COPIUM_HOST": "0.0.0.0"},
                 catch_exceptions=False,
             )
 
         assert result.exit_code == 0, result.output
         assert captured_config["config"].host == "0.0.0.0"
 
-    def test_headroom_port_from_env(self, runner):
-        """HEADROOM_PORT env var should be passed to ProxyConfig."""
+    def test_copium_port_from_env(self, runner):
+        """COPIUM_PORT env var should be passed to ProxyConfig."""
         captured_config = {}
 
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy"],
-                env={"HEADROOM_PORT": "9797"},
+                env={"COPIUM_PORT": "9797"},
                 catch_exceptions=False,
             )
 
         assert result.exit_code == 0, result.output
         assert captured_config["config"].port == 9797
 
-    def test_headroom_min_tokens_from_env(self, runner):
-        """HEADROOM_MIN_TOKENS env var should be passed to ProxyConfig."""
+    def test_copium_min_tokens_from_env(self, runner):
+        """COPIUM_MIN_TOKENS env var should be passed to ProxyConfig."""
         captured_config = {}
 
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy"],
-                env={"HEADROOM_MIN_TOKENS": "120"},
+                env={"COPIUM_MIN_TOKENS": "120"},
                 catch_exceptions=False,
             )
 
         assert result.exit_code == 0, result.output
         assert captured_config["config"].min_tokens_to_crush == 120
 
-    def test_headroom_budget_from_env(self, runner):
-        """HEADROOM_BUDGET env var should be passed to ProxyConfig."""
+    def test_copium_budget_from_env(self, runner):
+        """COPIUM_BUDGET env var should be passed to ProxyConfig."""
         captured_config = {}
 
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy"],
-                env={"HEADROOM_BUDGET": "100.5"},
+                env={"COPIUM_BUDGET": "100.5"},
                 catch_exceptions=False,
             )
 
@@ -223,13 +223,13 @@ class TestCLIProxyEnvVars:
         assert captured_config["config"].budget_limit_usd == 100.5
 
     def test_budget_period_flag_and_env(self, runner):
-        """--budget-period and HEADROOM_BUDGET_PERIOD should reach ProxyConfig."""
+        """--budget-period and COPIUM_BUDGET_PERIOD should reach ProxyConfig."""
         captured_config = {}
 
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy", "--budget", "50", "--budget-period", "monthly"],
@@ -239,11 +239,11 @@ class TestCLIProxyEnvVars:
         assert result.exit_code == 0, result.output
         assert captured_config["config"].budget_period == "monthly"
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy"],
-                env={"HEADROOM_BUDGET_PERIOD": "hourly"},
+                env={"COPIUM_BUDGET_PERIOD": "hourly"},
                 catch_exceptions=False,
             )
 
@@ -251,17 +251,17 @@ class TestCLIProxyEnvVars:
         assert captured_config["config"].budget_period == "hourly"
 
     def test_code_aware_enabled_from_env(self, runner):
-        """HEADROOM_CODE_AWARE_ENABLED env var should be passed to ProxyConfig."""
+        """COPIUM_CODE_AWARE_ENABLED env var should be passed to ProxyConfig."""
         captured_config = {}
 
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy"],
-                env={"HEADROOM_CODE_AWARE_ENABLED": "true"},
+                env={"COPIUM_CODE_AWARE_ENABLED": "true"},
                 catch_exceptions=False,
             )
 
@@ -269,16 +269,16 @@ class TestCLIProxyEnvVars:
         assert captured_config["config"].code_aware_enabled is True
 
     def test_code_aware_enabled_defaults_false(self, runner):
-        """Without HEADROOM_CODE_AWARE_ENABLED, code-aware stays disabled in the wrapper."""
+        """Without COPIUM_CODE_AWARE_ENABLED, code-aware stays disabled in the wrapper."""
         captured_config = {}
 
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        env = {k: v for k, v in os.environ.items() if k != "HEADROOM_CODE_AWARE_ENABLED"}
+        env = {k: v for k, v in os.environ.items() if k != "COPIUM_CODE_AWARE_ENABLED"}
 
         with (
-            patch("headroom.proxy.server.run_server", mock_run_server),
+            patch("copium.proxy.server.run_server", mock_run_server),
             patch.dict(os.environ, env, clear=True),
         ):
             result = runner.invoke(
@@ -297,24 +297,24 @@ class TestCLIProxyEnvVars:
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(main, ["proxy", "--code-aware"], catch_exceptions=False)
 
         assert result.exit_code == 0, result.output
         assert captured_config["config"].code_aware_enabled is True
 
     def test_disable_kompress_from_env(self, runner):
-        """HEADROOM_DISABLE_KOMPRESS should be passed to ProxyConfig."""
+        """COPIUM_DISABLE_KOMPRESS should be passed to ProxyConfig."""
         captured_config = {}
 
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy"],
-                env={"HEADROOM_DISABLE_KOMPRESS": "1"},
+                env={"COPIUM_DISABLE_KOMPRESS": "1"},
                 catch_exceptions=False,
             )
 
@@ -328,7 +328,7 @@ class TestCLIProxyEnvVars:
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy", "--disable-kompress"],
@@ -339,17 +339,17 @@ class TestCLIProxyEnvVars:
         assert captured_config["config"].disable_kompress is True
 
     def test_code_aware_flag_overrides_env_var(self, runner):
-        """--code-aware should win over HEADROOM_CODE_AWARE_ENABLED=false."""
+        """--code-aware should win over COPIUM_CODE_AWARE_ENABLED=false."""
         captured_config = {}
 
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy", "--code-aware"],
-                env={"HEADROOM_CODE_AWARE_ENABLED": "false"},
+                env={"COPIUM_CODE_AWARE_ENABLED": "false"},
                 catch_exceptions=False,
             )
 
@@ -363,7 +363,7 @@ class TestCLIProxyEnvVars:
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy"],
@@ -381,7 +381,7 @@ class TestCLIProxyEnvVars:
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy"],
@@ -399,7 +399,7 @@ class TestCLIProxyEnvVars:
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy"],
@@ -420,7 +420,7 @@ class TestCLIProxyEnvVars:
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy", "--openai-api-url", "http://from-cli:4000"],
@@ -437,7 +437,7 @@ class TestCLIProxyEnvVars:
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy", "--vertex-api-url", "https://us-east5-aiplatform.googleapis.com"],
@@ -456,7 +456,7 @@ class TestCLIProxyEnvVars:
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy", "--openai-api-url", "http://from-cli:4000"],
@@ -478,7 +478,7 @@ class TestCLIProxyEnvVars:
         env = {k: v for k, v in os.environ.items() if k != "OPENAI_TARGET_API_URL"}
 
         with (
-            patch("headroom.proxy.server.run_server", mock_run_server),
+            patch("copium.proxy.server.run_server", mock_run_server),
             patch.dict(os.environ, env, clear=True),
         ):
             result = runner.invoke(
@@ -497,7 +497,7 @@ class TestCLIProxyEnvVars:
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy"],
@@ -519,7 +519,7 @@ class TestCLIProxyEnvVars:
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 [
@@ -543,15 +543,15 @@ class TestCLIProxyEnvVars:
             captured["config"] = config
             captured["kwargs"] = kwargs
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy"],
                 env={
-                    "HEADROOM_WORKERS": "4",
-                    "HEADROOM_LIMIT_CONCURRENCY": "250",
-                    "HEADROOM_MAX_CONNECTIONS": "200",
-                    "HEADROOM_MAX_KEEPALIVE": "50",
+                    "COPIUM_WORKERS": "4",
+                    "COPIUM_LIMIT_CONCURRENCY": "250",
+                    "COPIUM_MAX_CONNECTIONS": "200",
+                    "COPIUM_MAX_KEEPALIVE": "50",
                 },
                 catch_exceptions=False,
             )
@@ -573,7 +573,7 @@ class TestCLIProxyEnvVars:
             captured["config"] = config
             captured["kwargs"] = kwargs
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 [
@@ -588,10 +588,10 @@ class TestCLIProxyEnvVars:
                     "25",
                 ],
                 env={
-                    "HEADROOM_WORKERS": "4",
-                    "HEADROOM_LIMIT_CONCURRENCY": "250",
-                    "HEADROOM_MAX_CONNECTIONS": "200",
-                    "HEADROOM_MAX_KEEPALIVE": "50",
+                    "COPIUM_WORKERS": "4",
+                    "COPIUM_LIMIT_CONCURRENCY": "250",
+                    "COPIUM_MAX_CONNECTIONS": "200",
+                    "COPIUM_MAX_KEEPALIVE": "50",
                 },
                 catch_exceptions=False,
             )
@@ -616,7 +616,7 @@ class TestCLIProxyBackend:
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy", "--backend", "litellm-hosted_vllm"],
@@ -633,7 +633,7 @@ class TestCLIProxyBackend:
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy", "--backend", "litellm-vertex"],
@@ -650,7 +650,7 @@ class TestCLIProxyBackend:
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 [
@@ -669,20 +669,20 @@ class TestCLIProxyBackend:
 
 
 class TestCLIAnyllmProviderEnv:
-    """Test that HEADROOM_ANYLLM_PROVIDER env var is read by the CLI."""
+    """Test that COPIUM_ANYLLM_PROVIDER env var is read by the CLI."""
 
     def test_anyllm_provider_from_env(self, runner):
-        """HEADROOM_ANYLLM_PROVIDER env var should override the default."""
+        """COPIUM_ANYLLM_PROVIDER env var should override the default."""
         captured_config = {}
 
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy", "--backend", "anyllm"],
-                env={"HEADROOM_ANYLLM_PROVIDER": "llamacpp"},
+                env={"COPIUM_ANYLLM_PROVIDER": "llamacpp"},
                 catch_exceptions=False,
             )
 
@@ -696,7 +696,7 @@ class TestCLIAnyllmProviderEnv:
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy", "--backend", "anyllm", "--anyllm-provider", "groq"],
@@ -711,7 +711,7 @@ class TestCLICompressionOnlyFlags:
     """The CCR opt-out flags must flip the corresponding ProxyConfig fields.
 
     These enable a compression-only deployment for streaming / non-MCP clients
-    that can't resolve the injected headroom_retrieve tool (issue #645).
+    that can't resolve the injected copium_retrieve tool (issue #645).
     """
 
     def test_ccr_defaults_on(self, runner):
@@ -721,7 +721,7 @@ class TestCLICompressionOnlyFlags:
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(main, ["proxy"], catch_exceptions=False)
 
         assert result.exit_code == 0, result.output
@@ -737,7 +737,7 @@ class TestCLICompressionOnlyFlags:
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(main, ["proxy", "--no-ccr-inject-tool"], catch_exceptions=False)
 
         assert result.exit_code == 0, result.output
@@ -754,7 +754,7 @@ class TestCLICompressionOnlyFlags:
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 [
@@ -773,17 +773,17 @@ class TestCLICompressionOnlyFlags:
         assert cfg.ccr_proactive_expansion is False
 
     def test_no_ccr_marker_from_env(self, runner):
-        """HEADROOM_NO_CCR_MARKER env var disables marker injection."""
+        """COPIUM_NO_CCR_MARKER env var disables marker injection."""
         captured_config = {}
 
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy"],
-                env={"HEADROOM_NO_CCR_MARKER": "1"},
+                env={"COPIUM_NO_CCR_MARKER": "1"},
                 catch_exceptions=False,
             )
 
@@ -792,7 +792,7 @@ class TestCLICompressionOnlyFlags:
 
 
 class TestArgparseBackendValidation:
-    """Test that the argparse path (python -m headroom.proxy.server) accepts litellm-* backends."""
+    """Test that the argparse path (python -m copium.proxy.server) accepts litellm-* backends."""
 
     def test_argparse_accepts_litellm_backend(self):
         """The argparse --backend should accept litellm-hosted_vllm (no choices restriction)."""
@@ -806,36 +806,36 @@ class TestArgparseBackendValidation:
         assert args.backend == "litellm-hosted_vllm"
 
     def test_proxy_config_from_env_reads_disable_kompress(self):
-        """The direct server env path should honor HEADROOM_DISABLE_KOMPRESS."""
-        from headroom.proxy.server import _proxy_config_from_env
+        """The direct server env path should honor COPIUM_DISABLE_KOMPRESS."""
+        from copium.proxy.server import _proxy_config_from_env
 
-        with patch.dict(os.environ, {"HEADROOM_DISABLE_KOMPRESS": "1"}):
+        with patch.dict(os.environ, {"COPIUM_DISABLE_KOMPRESS": "1"}):
             config = _proxy_config_from_env()
 
         assert config.disable_kompress is True
 
 
 class TestCLIProxyExcludeToolsEnvVar:
-    """HEADROOM_EXCLUDE_TOOLS and HEADROOM_TOOL_PROFILES must reach ProxyConfig via the Click path.
+    """COPIUM_EXCLUDE_TOOLS and COPIUM_TOOL_PROFILES must reach ProxyConfig via the Click path.
 
-    Regression coverage for issue #825: the Click entrypoint (headroom/cli/proxy.py)
+    Regression coverage for issue #825: the Click entrypoint (copium/cli/proxy.py)
     previously built ProxyConfig without calling _parse_exclude_tools or
     _parse_tool_profiles, so those env vars were silently ignored for all
-    shared/deployed services that launch via `headroom proxy`.
+    shared/deployed services that launch via `copium proxy`.
     """
 
     def test_exclude_tools_single_name_from_env(self, runner):
-        """HEADROOM_EXCLUDE_TOOLS=WebSearch propagates to ProxyConfig.exclude_tools."""
+        """COPIUM_EXCLUDE_TOOLS=WebSearch propagates to ProxyConfig.exclude_tools."""
         captured_config = {}
 
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy"],
-                env={"HEADROOM_EXCLUDE_TOOLS": "WebSearch"},
+                env={"COPIUM_EXCLUDE_TOOLS": "WebSearch"},
                 catch_exceptions=False,
             )
 
@@ -845,17 +845,17 @@ class TestCLIProxyExcludeToolsEnvVar:
         assert "WebSearch" in cfg.exclude_tools
 
     def test_exclude_tools_multi_name_from_env(self, runner):
-        """HEADROOM_EXCLUDE_TOOLS=WebSearch,WebFetch yields both names (and lowercased) in result."""
+        """COPIUM_EXCLUDE_TOOLS=WebSearch,WebFetch yields both names (and lowercased) in result."""
         captured_config = {}
 
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy"],
-                env={"HEADROOM_EXCLUDE_TOOLS": "WebSearch,WebFetch"},
+                env={"COPIUM_EXCLUDE_TOOLS": "WebSearch,WebFetch"},
                 catch_exceptions=False,
             )
 
@@ -868,16 +868,16 @@ class TestCLIProxyExcludeToolsEnvVar:
         assert "webfetch" in cfg.exclude_tools
 
     def test_exclude_tools_unset_leaves_none(self, runner):
-        """Without HEADROOM_EXCLUDE_TOOLS, exclude_tools stays None (DEFAULT_EXCLUDE_TOOLS used)."""
+        """Without COPIUM_EXCLUDE_TOOLS, exclude_tools stays None (DEFAULT_EXCLUDE_TOOLS used)."""
         captured_config = {}
 
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        env = {k: v for k, v in os.environ.items() if k != "HEADROOM_EXCLUDE_TOOLS"}
+        env = {k: v for k, v in os.environ.items() if k != "COPIUM_EXCLUDE_TOOLS"}
 
         with (
-            patch("headroom.proxy.server.run_server", mock_run_server),
+            patch("copium.proxy.server.run_server", mock_run_server),
             patch.dict(os.environ, env, clear=True),
         ):
             result = runner.invoke(
@@ -890,17 +890,17 @@ class TestCLIProxyExcludeToolsEnvVar:
         assert captured_config["config"].exclude_tools is None
 
     def test_tool_profiles_from_env(self, runner):
-        """HEADROOM_TOOL_PROFILES=Grep:conservative propagates to ProxyConfig.tool_profiles."""
+        """COPIUM_TOOL_PROFILES=Grep:conservative propagates to ProxyConfig.tool_profiles."""
         captured_config = {}
 
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        with patch("headroom.proxy.server.run_server", mock_run_server):
+        with patch("copium.proxy.server.run_server", mock_run_server):
             result = runner.invoke(
                 main,
                 ["proxy"],
-                env={"HEADROOM_TOOL_PROFILES": "Grep:conservative"},
+                env={"COPIUM_TOOL_PROFILES": "Grep:conservative"},
                 catch_exceptions=False,
             )
 
@@ -910,16 +910,16 @@ class TestCLIProxyExcludeToolsEnvVar:
         assert "Grep" in cfg.tool_profiles
 
     def test_tool_profiles_unset_leaves_none(self, runner):
-        """Without HEADROOM_TOOL_PROFILES, tool_profiles stays None."""
+        """Without COPIUM_TOOL_PROFILES, tool_profiles stays None."""
         captured_config = {}
 
         def mock_run_server(config, **kwargs):
             captured_config["config"] = config
 
-        env = {k: v for k, v in os.environ.items() if k != "HEADROOM_TOOL_PROFILES"}
+        env = {k: v for k, v in os.environ.items() if k != "COPIUM_TOOL_PROFILES"}
 
         with (
-            patch("headroom.proxy.server.run_server", mock_run_server),
+            patch("copium.proxy.server.run_server", mock_run_server),
             patch.dict(os.environ, env, clear=True),
         ):
             result = runner.invoke(

@@ -1,10 +1,10 @@
 """Tests for the config module.
 
 Tests all configuration dataclasses, enums, and utility classes:
-- HeadroomMode enum
+- CopiumMode enum
 - CacheAlignerConfig
 - RelevanceScorerConfig, SmartCrusherConfig
-- HeadroomConfig (main config)
+- CopiumConfig (main config)
 - Block, WasteSignals, CachePrefixMetrics
 - TransformResult, RequestMetrics
 """
@@ -12,12 +12,12 @@ Tests all configuration dataclasses, enums, and utility classes:
 from dataclasses import fields
 from datetime import datetime
 
-from headroom.config import (
+from copium.config import (
     Block,
     CacheAlignerConfig,
     CachePrefixMetrics,
-    HeadroomConfig,
-    HeadroomMode,
+    CopiumConfig,
+    CopiumMode,
     RelevanceScorerConfig,
     RequestMetrics,
     SmartCrusherConfig,
@@ -26,27 +26,27 @@ from headroom.config import (
 )
 
 
-class TestHeadroomMode:
-    """Tests for HeadroomMode enum."""
+class TestCopiumMode:
+    """Tests for CopiumMode enum."""
 
     def test_enum_values(self):
         """All expected enum values exist with correct string values."""
-        assert HeadroomMode.AUDIT.value == "audit"
-        assert HeadroomMode.OPTIMIZE.value == "optimize"
-        assert HeadroomMode.SIMULATE.value == "simulate"
+        assert CopiumMode.AUDIT.value == "audit"
+        assert CopiumMode.OPTIMIZE.value == "optimize"
+        assert CopiumMode.SIMULATE.value == "simulate"
 
     def test_string_conversion(self):
-        """HeadroomMode inherits from str for string compatibility."""
+        """CopiumMode inherits from str for string compatibility."""
         # Enum value access works as string
-        assert HeadroomMode.AUDIT.value == "audit"
-        assert HeadroomMode.OPTIMIZE.value == "optimize"
-        assert HeadroomMode.SIMULATE.value == "simulate"
+        assert CopiumMode.AUDIT.value == "audit"
+        assert CopiumMode.OPTIMIZE.value == "optimize"
+        assert CopiumMode.SIMULATE.value == "simulate"
         # Can compare directly with strings since it inherits from str
-        assert HeadroomMode.AUDIT == "audit"
-        assert HeadroomMode.OPTIMIZE == "optimize"
-        assert HeadroomMode.SIMULATE == "simulate"
+        assert CopiumMode.AUDIT == "audit"
+        assert CopiumMode.OPTIMIZE == "optimize"
+        assert CopiumMode.SIMULATE == "simulate"
         # isinstance check confirms str inheritance
-        assert isinstance(HeadroomMode.AUDIT, str)
+        assert isinstance(CopiumMode.AUDIT, str)
 
 
 class TestCacheAlignerConfig:
@@ -145,14 +145,14 @@ class TestSmartCrusherConfig:
         assert config2.relevance.tier == "hybrid"
 
 
-class TestHeadroomConfig:
-    """Tests for HeadroomConfig main configuration class."""
+class TestCopiumConfig:
+    """Tests for CopiumConfig main configuration class."""
 
     def test_default_values(self):
         """Default values are correctly set."""
-        config = HeadroomConfig()
-        assert config.store_url == "sqlite:///headroom.db"
-        assert config.default_mode == HeadroomMode.AUDIT
+        config = CopiumConfig()
+        assert config.store_url == "sqlite:///copium.db"
+        assert config.default_mode == CopiumMode.AUDIT
         assert config.generate_diff_artifact is False
         # Nested configs exist
         assert isinstance(config.smart_crusher, SmartCrusherConfig)
@@ -160,13 +160,13 @@ class TestHeadroomConfig:
 
     def test_get_context_limit_direct_match(self):
         """get_context_limit returns limit for exact model match."""
-        config = HeadroomConfig(model_context_limits={"gpt-4o": 128000, "claude-3-opus": 200000})
+        config = CopiumConfig(model_context_limits={"gpt-4o": 128000, "claude-3-opus": 200000})
         assert config.get_context_limit("gpt-4o") == 128000
         assert config.get_context_limit("claude-3-opus") == 200000
 
     def test_get_context_limit_prefix_match(self):
         """get_context_limit returns limit for prefix match."""
-        config = HeadroomConfig(model_context_limits={"gpt-4": 128000, "claude-3": 200000})
+        config = CopiumConfig(model_context_limits={"gpt-4": 128000, "claude-3": 200000})
         # Prefix matches
         assert config.get_context_limit("gpt-4-turbo") == 128000
         assert config.get_context_limit("gpt-4o") == 128000
@@ -175,14 +175,14 @@ class TestHeadroomConfig:
 
     def test_get_context_limit_not_found(self):
         """get_context_limit returns None for unknown model."""
-        config = HeadroomConfig(model_context_limits={"gpt-4": 128000})
+        config = CopiumConfig(model_context_limits={"gpt-4": 128000})
         assert config.get_context_limit("unknown-model") is None
         assert config.get_context_limit("llama-2") is None
 
     def test_model_context_limits_isolation(self):
         """Each instance gets its own model_context_limits dict."""
-        config1 = HeadroomConfig()
-        config2 = HeadroomConfig()
+        config1 = CopiumConfig()
+        config2 = CopiumConfig()
         config1.model_context_limits["custom-model"] = 50000
         assert "custom-model" not in config2.model_context_limits
 

@@ -4,8 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from headroom.backends import anyllm
-from headroom.backends.base import BackendResponse, StreamEvent
+from copium.backends import anyllm
+from copium.backends.base import BackendResponse, StreamEvent
 
 
 class FakeAsyncStream:

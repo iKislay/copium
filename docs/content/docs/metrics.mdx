@@ -1,9 +1,9 @@
 ---
 title: Metrics & Monitoring
-description: Monitor compression performance, cost savings, and system health with Headroom's built-in metrics, Prometheus endpoint, and SDK APIs.
+description: Monitor compression performance, cost savings, and system health with Copium's built-in metrics, Prometheus endpoint, and SDK APIs.
 ---
 
-Headroom provides comprehensive metrics for monitoring compression performance, cost savings, and system health through both the proxy server and the SDK.
+Copium provides comprehensive metrics for monitoring compression performance, cost savings, and system health through both the proxy server and the SDK.
 
 ## Proxy Endpoints
 
@@ -44,7 +44,7 @@ curl http://localhost:8787/stats
 }
 ```
 
-Persistent savings are stored at `~/.headroom/proxy_savings.json` and survive proxy restarts. Override the path with `HEADROOM_SAVINGS_PATH`.
+Persistent savings are stored at `~/.copium/proxy_savings.json` and survive proxy restarts. Override the path with `COPIUM_SAVINGS_PATH`.
 
 ### Historical Savings
 
@@ -66,23 +66,23 @@ curl http://localhost:8787/metrics
 ```
 
 ```
-# HELP headroom_requests_total Total requests processed
-headroom_requests_total{mode="optimize"} 1234
+# HELP copium_requests_total Total requests processed
+copium_requests_total{mode="optimize"} 1234
 
-# HELP headroom_tokens_saved_total Total tokens saved
-headroom_tokens_saved_total 5678900
+# HELP copium_tokens_saved_total Total tokens saved
+copium_tokens_saved_total 5678900
 
-# HELP headroom_compression_ratio Compression ratio histogram
-headroom_compression_ratio_bucket{le="0.5"} 890
-headroom_compression_ratio_bucket{le="0.7"} 1100
-headroom_compression_ratio_bucket{le="0.9"} 1200
+# HELP copium_compression_ratio Compression ratio histogram
+copium_compression_ratio_bucket{le="0.5"} 890
+copium_compression_ratio_bucket{le="0.7"} 1100
+copium_compression_ratio_bucket{le="0.9"} 1200
 
-# HELP headroom_latency_seconds Request latency histogram
-headroom_latency_seconds_bucket{le="0.01"} 800
-headroom_latency_seconds_bucket{le="0.1"} 1150
+# HELP copium_latency_seconds Request latency histogram
+copium_latency_seconds_bucket{le="0.01"} 800
+copium_latency_seconds_bucket{le="0.1"} 1150
 
-# HELP headroom_cache_hits_total Cache hit counter
-headroom_cache_hits_total 456
+# HELP copium_cache_hits_total Cache hit counter
+copium_cache_hits_total 456
 ```
 
 ### Health Check
@@ -109,9 +109,9 @@ curl http://localhost:8787/health
 The TypeScript SDK queries the proxy for stats:
 
 ```ts twoslash
-import { HeadroomClient } from 'headroom-ai';
+import { CopiumClient } from 'copium-ai';
 
-const client = new HeadroomClient();
+const client = new CopiumClient();
 
 // Get proxy stats
 const stats = await client.proxyStats();
@@ -124,7 +124,7 @@ console.log(`Savings: ${stats.tokens.savings_percent}%`);
 Every `compress()` call returns metrics:
 
 ```ts twoslash
-import { compress } from 'headroom-ai';
+import { compress } from 'copium-ai';
 
 const result = await compress(messages, { model: 'gpt-4o' });
 console.log(`Tokens: ${result.tokensBefore} -> ${result.tokensAfter}`);
@@ -221,18 +221,18 @@ logging.basicConfig(level=logging.DEBUG)
 Example output:
 
 ```
-INFO:headroom.transforms.pipeline:Pipeline complete: 45000 -> 4500 tokens (saved 40500, 90.0% reduction)
-INFO:headroom.transforms.smart_crusher:SmartCrusher applied top_n strategy: kept 15 of 1000 items
-DEBUG:headroom.transforms.smart_crusher:Kept items: [0,1,2,42,77,97,98,99] (errors at 42, warnings at 77)
+INFO:copium.transforms.pipeline:Pipeline complete: 45000 -> 4500 tokens (saved 40500, 90.0% reduction)
+INFO:copium.transforms.smart_crusher:SmartCrusher applied top_n strategy: kept 15 of 1000 items
+DEBUG:copium.transforms.smart_crusher:Kept items: [0,1,2,42,77,97,98,99] (errors at 42, warnings at 77)
 ```
 </Tab>
 <Tab value="Proxy">
 ```bash
 # Log to file
-headroom proxy --log-file headroom.jsonl
+copium proxy --log-file copium.jsonl
 
 # Increase verbosity
-headroom proxy --log-level debug
+copium proxy --log-level debug
 ```
 </Tab>
 </Tabs>
@@ -244,7 +244,7 @@ headroom proxy --log-level debug
 Set a budget limit in the proxy:
 
 ```bash
-headroom proxy --budget 10.00
+copium proxy --budget 10.00
 ```
 
 When the budget is exceeded, requests return a budget exceeded error, the `/stats` endpoint shows budget status, and logs indicate the budget state.
@@ -265,7 +265,7 @@ Example Prometheus queries for a Grafana dashboard:
 
 | Panel | PromQL |
 |-------|--------|
-| Tokens Saved | `headroom_tokens_saved_total` |
-| Compression Ratio (median) | `histogram_quantile(0.5, headroom_compression_ratio_bucket)` |
-| Request Latency (p99) | `histogram_quantile(0.99, headroom_latency_seconds_bucket)` |
-| Cache Hit Rate | `headroom_cache_hits_total / (headroom_cache_hits_total + headroom_cache_misses_total)` |
+| Tokens Saved | `copium_tokens_saved_total` |
+| Compression Ratio (median) | `histogram_quantile(0.5, copium_compression_ratio_bucket)` |
+| Request Latency (p99) | `histogram_quantile(0.99, copium_latency_seconds_bucket)` |
+| Cache Hit Rate | `copium_cache_hits_total / (copium_cache_hits_total + copium_cache_misses_total)` |

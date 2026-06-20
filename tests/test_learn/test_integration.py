@@ -1,4 +1,4 @@
-"""Integration tests for headroom learn — using real session data.
+"""Integration tests for copium learn — using real session data.
 
 These tests run against actual conversation data on the machine.
 They verify the full pipeline: scan → analyze → recommend → write.
@@ -20,14 +20,14 @@ from unittest.mock import patch
 
 import pytest
 
-from headroom.learn.analyzer import SessionAnalyzer
-from headroom.learn.models import (
+from copium.learn.analyzer import SessionAnalyzer
+from copium.learn.models import (
     ProjectInfo,
     Recommendation,
     RecommendationTarget,
 )
-from headroom.learn.scanner import _greedy_path_decode
-from headroom.learn.writer import ClaudeCodeWriter, CodexWriter
+from copium.learn.scanner import _greedy_path_decode
+from copium.learn.writer import ClaudeCodeWriter, CodexWriter
 
 # =============================================================================
 # Writer Tests (no LLM needed)
@@ -99,14 +99,14 @@ class TestFalsePositiveFiltering:
 
     def test_sed_output_not_error(self):
         """sed printing file content with 'Error:' in it isn't a real error."""
-        from headroom.learn.scanner import is_error_content
+        from copium.learn.scanner import is_error_content
 
         # Normal code output that happens to contain "error" in identifiers
         assert not is_error_content("def handle_error(e):\n    print('ok')")
 
     def test_real_error_detected(self):
         """Actual errors should be detected."""
-        from headroom.learn.scanner import is_error_content
+        from copium.learn.scanner import is_error_content
 
         assert is_error_content("ModuleNotFoundError: No module named 'flask'")
         assert is_error_content(
@@ -133,7 +133,7 @@ class TestClaudeCodeIntegration:
     """Integration tests against real Claude Code session data."""
 
     def test_scanner_discovers_projects(self):
-        from headroom.learn.scanner import ClaudeCodeScanner
+        from copium.learn.scanner import ClaudeCodeScanner
 
         scanner = ClaudeCodeScanner()
         projects = scanner.discover_projects()
@@ -146,7 +146,7 @@ class TestClaudeCodeIntegration:
 
     def test_scanner_extracts_events(self):
         """Scanner should extract events including user messages."""
-        from headroom.learn.scanner import ClaudeCodeScanner
+        from copium.learn.scanner import ClaudeCodeScanner
 
         scanner = ClaudeCodeScanner()
         projects = scanner.discover_projects()
@@ -165,7 +165,7 @@ class TestClaudeCodeIntegration:
     @pytest.mark.skipif(not HAS_API_KEY, reason="No ANTHROPIC_API_KEY")
     def test_full_pipeline_produces_output(self):
         """Scan → analyze on real data produces valid output."""
-        from headroom.learn.scanner import ClaudeCodeScanner
+        from copium.learn.scanner import ClaudeCodeScanner
 
         scanner = ClaudeCodeScanner()
         projects = scanner.discover_projects()
@@ -186,7 +186,7 @@ class TestClaudeCodeIntegration:
 
     def test_dry_run_writes_nothing(self):
         """Dry run should never create files."""
-        from headroom.learn.scanner import ClaudeCodeScanner
+        from copium.learn.scanner import ClaudeCodeScanner
 
         scanner = ClaudeCodeScanner()
         projects = scanner.discover_projects()
@@ -206,7 +206,7 @@ class TestClaudeCodeIntegration:
             ],
             "memory_file_rules": [],
         }
-        with patch("headroom.learn.analyzer._call_llm", return_value=mock_response):
+        with patch("copium.learn.analyzer._call_llm", return_value=mock_response):
             sessions = scanner.scan_project(best)
             result = SessionAnalyzer(model="gpt-4o").analyze(best, sessions)
             recs = result.recommendations
@@ -260,7 +260,7 @@ class TestCodexIntegration:
     """Integration tests against real Codex session data."""
 
     def test_scanner_discovers_sessions(self):
-        from headroom.learn.scanner import CodexScanner
+        from copium.learn.scanner import CodexScanner
 
         scanner = CodexScanner()
         projects = scanner.discover_projects()
@@ -270,7 +270,7 @@ class TestCodexIntegration:
 
     def test_full_pipeline(self):
         """Full pipeline on real Codex data."""
-        from headroom.learn.scanner import CodexScanner
+        from copium.learn.scanner import CodexScanner
 
         scanner = CodexScanner()
         projects = scanner.discover_projects()

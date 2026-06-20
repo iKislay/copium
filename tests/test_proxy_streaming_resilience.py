@@ -24,16 +24,16 @@ class TestModelResolutionCaching:
 
     def setup_method(self):
         """Clear the cache before each test."""
-        import headroom.pricing.litellm_pricing as lp
+        import copium.pricing.litellm_pricing as lp
 
         lp._resolved_model_cache.clear()
 
     def test_cache_returns_same_result_on_second_call(self):
         """First call resolves, second call returns cached value without calling litellm."""
-        import headroom.pricing.litellm_pricing as lp
+        import copium.pricing.litellm_pricing as lp
 
         with patch(
-            "headroom.pricing.litellm_pricing._resolve_litellm_model_uncached",
+            "copium.pricing.litellm_pricing._resolve_litellm_model_uncached",
             return_value="anthropic/claude-opus-4-6",
         ) as mock_uncached:
             # First call — should invoke uncached resolution
@@ -48,10 +48,10 @@ class TestModelResolutionCaching:
 
     def test_cache_is_per_model_name(self):
         """Different model names get separate cache entries."""
-        import headroom.pricing.litellm_pricing as lp
+        import copium.pricing.litellm_pricing as lp
 
         with patch(
-            "headroom.pricing.litellm_pricing._resolve_litellm_model_uncached",
+            "copium.pricing.litellm_pricing._resolve_litellm_model_uncached",
             side_effect=lambda m: f"resolved/{m}",
         ) as mock_uncached:
             result1 = lp.resolve_litellm_model("gpt-4o")
@@ -65,7 +65,7 @@ class TestModelResolutionCaching:
 
     def test_cached_call_is_fast(self):
         """Cached resolution should be sub-millisecond (dict lookup)."""
-        import headroom.pricing.litellm_pricing as lp
+        import copium.pricing.litellm_pricing as lp
 
         # Pre-populate cache
         lp._resolved_model_cache["test-model"] = "resolved/test-model"
@@ -80,11 +80,11 @@ class TestModelResolutionCaching:
 
     def test_uncached_adds_provider_prefix_for_claude(self):
         """_resolve_litellm_model_uncached tries provider prefix for claude- models."""
-        import headroom.pricing.litellm_pricing as lp
+        import copium.pricing.litellm_pricing as lp
 
         with (
-            patch("headroom.pricing.litellm_pricing.LITELLM_AVAILABLE", True),
-            patch("headroom.pricing.litellm_pricing.litellm") as mock_litellm,
+            patch("copium.pricing.litellm_pricing.LITELLM_AVAILABLE", True),
+            patch("copium.pricing.litellm_pricing.litellm") as mock_litellm,
         ):
             # First call (bare name) fails, second call (prefixed) succeeds
             mock_litellm.cost_per_token.side_effect = [
@@ -97,11 +97,11 @@ class TestModelResolutionCaching:
 
     def test_uncached_adds_provider_prefix_for_gpt(self):
         """_resolve_litellm_model_uncached tries provider prefix for gpt- models."""
-        import headroom.pricing.litellm_pricing as lp
+        import copium.pricing.litellm_pricing as lp
 
         with (
-            patch("headroom.pricing.litellm_pricing.LITELLM_AVAILABLE", True),
-            patch("headroom.pricing.litellm_pricing.litellm") as mock_litellm,
+            patch("copium.pricing.litellm_pricing.LITELLM_AVAILABLE", True),
+            patch("copium.pricing.litellm_pricing.litellm") as mock_litellm,
         ):
             mock_litellm.cost_per_token.side_effect = [
                 Exception("Unknown model"),
@@ -113,11 +113,11 @@ class TestModelResolutionCaching:
 
     def test_uncached_adds_provider_prefix_for_gemini(self):
         """_resolve_litellm_model_uncached tries provider prefix for gemini- models."""
-        import headroom.pricing.litellm_pricing as lp
+        import copium.pricing.litellm_pricing as lp
 
         with (
-            patch("headroom.pricing.litellm_pricing.LITELLM_AVAILABLE", True),
-            patch("headroom.pricing.litellm_pricing.litellm") as mock_litellm,
+            patch("copium.pricing.litellm_pricing.LITELLM_AVAILABLE", True),
+            patch("copium.pricing.litellm_pricing.litellm") as mock_litellm,
         ):
             mock_litellm.cost_per_token.side_effect = [
                 Exception("Unknown model"),
@@ -129,11 +129,11 @@ class TestModelResolutionCaching:
 
     def test_uncached_returns_original_when_both_fail(self):
         """If both bare and prefixed lookups fail, return original model name."""
-        import headroom.pricing.litellm_pricing as lp
+        import copium.pricing.litellm_pricing as lp
 
         with (
-            patch("headroom.pricing.litellm_pricing.LITELLM_AVAILABLE", True),
-            patch("headroom.pricing.litellm_pricing.litellm") as mock_litellm,
+            patch("copium.pricing.litellm_pricing.LITELLM_AVAILABLE", True),
+            patch("copium.pricing.litellm_pricing.litellm") as mock_litellm,
         ):
             mock_litellm.cost_per_token.side_effect = Exception("Unknown model")
 
@@ -142,19 +142,19 @@ class TestModelResolutionCaching:
 
     def test_uncached_returns_original_when_litellm_unavailable(self):
         """When litellm is not available, return model as-is."""
-        import headroom.pricing.litellm_pricing as lp
+        import copium.pricing.litellm_pricing as lp
 
-        with patch("headroom.pricing.litellm_pricing.LITELLM_AVAILABLE", False):
+        with patch("copium.pricing.litellm_pricing.LITELLM_AVAILABLE", False):
             result = lp._resolve_litellm_model_uncached("claude-opus-4-6")
             assert result == "claude-opus-4-6"
 
     def test_uncached_returns_bare_when_it_works(self):
         """If bare model name works, don't add prefix."""
-        import headroom.pricing.litellm_pricing as lp
+        import copium.pricing.litellm_pricing as lp
 
         with (
-            patch("headroom.pricing.litellm_pricing.LITELLM_AVAILABLE", True),
-            patch("headroom.pricing.litellm_pricing.litellm") as mock_litellm,
+            patch("copium.pricing.litellm_pricing.LITELLM_AVAILABLE", True),
+            patch("copium.pricing.litellm_pricing.litellm") as mock_litellm,
         ):
             mock_litellm.cost_per_token.return_value = (0.001, 0.002)
 
@@ -163,10 +163,10 @@ class TestModelResolutionCaching:
 
     def test_cache_is_class_level_shared_across_instances(self):
         """Cache is shared across CostTracker instances (class variable)."""
-        import headroom.pricing.litellm_pricing as lp
+        import copium.pricing.litellm_pricing as lp
 
         with patch(
-            "headroom.pricing.litellm_pricing._resolve_litellm_model_uncached",
+            "copium.pricing.litellm_pricing._resolve_litellm_model_uncached",
             return_value="resolved/model-a",
         ) as mock_uncached:
             # Resolve
@@ -324,10 +324,10 @@ class TestStreamingErrorHandling:
     # --- Helpers ---
 
     def _create_mock_proxy(self):
-        """Create a HeadroomProxy-like object with mocked internals for testing generate()."""
-        from headroom.proxy.server import HeadroomProxy
+        """Create a CopiumProxy-like object with mocked internals for testing generate()."""
+        from copium.proxy.server import CopiumProxy
 
-        proxy = object.__new__(HeadroomProxy)
+        proxy = object.__new__(CopiumProxy)
         proxy.http_client = MagicMock(spec=httpx.AsyncClient)
         proxy.cost_tracker = MagicMock()
         proxy.cost_tracker.estimate_cost.return_value = 0.001
@@ -401,14 +401,14 @@ class TestConcurrentSessionSafety:
     """Test that multiple concurrent sessions don't interfere with each other."""
 
     def setup_method(self):
-        import headroom.pricing.litellm_pricing as lp
+        import copium.pricing.litellm_pricing as lp
 
         lp._resolved_model_cache.clear()
 
     @pytest.mark.asyncio
     async def test_concurrent_model_resolution_is_safe(self):
         """Multiple concurrent tasks resolving the same model should all get correct result."""
-        import headroom.pricing.litellm_pricing as lp
+        import copium.pricing.litellm_pricing as lp
 
         call_count = 0
 
@@ -419,7 +419,7 @@ class TestConcurrentSessionSafety:
             return f"resolved/{model}"
 
         with patch(
-            "headroom.pricing.litellm_pricing._resolve_litellm_model_uncached",
+            "copium.pricing.litellm_pricing._resolve_litellm_model_uncached",
             side_effect=slow_uncached,
         ):
             # Launch 50 concurrent resolution tasks for the same model
@@ -436,12 +436,12 @@ class TestConcurrentSessionSafety:
     @pytest.mark.asyncio
     async def test_concurrent_resolution_different_models(self):
         """Concurrent resolution of different models should each resolve independently."""
-        import headroom.pricing.litellm_pricing as lp
+        import copium.pricing.litellm_pricing as lp
 
         models = ["gpt-4o", "claude-opus-4-6", "gemini-1.5-pro", "gpt-4o-mini"]
 
         with patch(
-            "headroom.pricing.litellm_pricing._resolve_litellm_model_uncached",
+            "copium.pricing.litellm_pricing._resolve_litellm_model_uncached",
             side_effect=lambda m: f"resolved/{m}",
         ):
             tasks = [
@@ -505,8 +505,8 @@ class TestConcurrentSessionSafety:
     @pytest.mark.asyncio
     async def test_estimate_cost_concurrent_with_caching(self):
         """Multiple concurrent estimate_cost calls should not block each other."""
-        import headroom.pricing.litellm_pricing as lp
-        from headroom.proxy.server import CostTracker
+        import copium.pricing.litellm_pricing as lp
+        from copium.proxy.server import CostTracker
 
         tracker = CostTracker()
 
@@ -514,9 +514,9 @@ class TestConcurrentSessionSafety:
         lp._resolved_model_cache["gpt-4o"] = "openai/gpt-4o"
 
         with (
-            patch("headroom.proxy.cost.LITELLM_AVAILABLE", True),
-            patch("headroom.pricing.litellm_pricing.litellm") as mock_litellm,
-            patch("headroom.proxy.cost.litellm") as mock_cost_litellm,
+            patch("copium.proxy.cost.LITELLM_AVAILABLE", True),
+            patch("copium.pricing.litellm_pricing.litellm") as mock_litellm,
+            patch("copium.proxy.cost.litellm") as mock_cost_litellm,
         ):
             mock_litellm.cost_per_token.return_value = (0.001, 0.002)
             mock_litellm.get_model_info.return_value = {}
@@ -545,19 +545,19 @@ class TestCostTrackingAccuracy:
     """Test that cost calculations don't double-count cache tokens."""
 
     def setup_method(self):
-        import headroom.pricing.litellm_pricing as lp
+        import copium.pricing.litellm_pricing as lp
 
         lp._resolved_model_cache.clear()
 
     def test_estimate_cost_separates_input_and_cache(self):
         """Input tokens and cache tokens should be billed separately, not double-counted."""
-        from headroom.proxy.server import CostTracker
+        from copium.proxy.server import CostTracker
 
         tracker = CostTracker()
 
         with (
-            patch("headroom.proxy.cost.LITELLM_AVAILABLE", True),
-            patch("headroom.proxy.cost.litellm") as mock_litellm,
+            patch("copium.proxy.cost.LITELLM_AVAILABLE", True),
+            patch("copium.proxy.cost.litellm") as mock_litellm,
         ):
             # Setup: $10/M input, $30/M output
             def mock_cost(model, prompt_tokens, completion_tokens, **kwargs):
@@ -597,13 +597,13 @@ class TestCostTrackingAccuracy:
 
     def test_estimate_cost_without_cache_tokens(self):
         """Cost without cache tokens should just be input + output."""
-        from headroom.proxy.server import CostTracker
+        from copium.proxy.server import CostTracker
 
         tracker = CostTracker()
 
         with (
-            patch("headroom.proxy.cost.LITELLM_AVAILABLE", True),
-            patch("headroom.proxy.cost.litellm") as mock_litellm,
+            patch("copium.proxy.cost.LITELLM_AVAILABLE", True),
+            patch("copium.proxy.cost.litellm") as mock_litellm,
         ):
             mock_litellm.cost_per_token.side_effect = (
                 lambda model, prompt_tokens, completion_tokens, **kwargs: (
@@ -620,10 +620,10 @@ class TestCostTrackingAccuracy:
 
     def test_estimate_cost_returns_none_without_litellm(self):
         """When litellm is unavailable, estimate_cost should return None."""
-        from headroom.proxy.server import CostTracker
+        from copium.proxy.server import CostTracker
 
         tracker = CostTracker()
 
-        with patch("headroom.proxy.cost.LITELLM_AVAILABLE", False):
+        with patch("copium.proxy.cost.LITELLM_AVAILABLE", False):
             cost = tracker.estimate_cost("gpt-4o", input_tokens=1000, output_tokens=100)
             assert cost is None

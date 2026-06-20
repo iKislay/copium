@@ -13,9 +13,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 from click.testing import CliRunner
 
-from headroom.cli.main import main
-from headroom.cli.mcp import (
-    get_headroom_command,
+from copium.cli.main import main
+from copium.cli.mcp import (
+    get_copium_command,
     load_mcp_config,
     save_mcp_config,
 )
@@ -55,9 +55,9 @@ def mock_claude_config_path(temp_claude_dir):
             return None
         return _real_which(cmd)
 
-    with patch("headroom.cli.mcp.MCP_CONFIG_PATH", config_path):
-        with patch("headroom.cli.mcp.CLAUDE_CONFIG_DIR", temp_claude_dir):
-            with patch("headroom.cli.mcp.shutil.which", side_effect=which_no_claude):
+    with patch("copium.cli.mcp.MCP_CONFIG_PATH", config_path):
+        with patch("copium.cli.mcp.CLAUDE_CONFIG_DIR", temp_claude_dir):
+            with patch("copium.cli.mcp.shutil.which", side_effect=which_no_claude):
                 yield config_path
 
 
@@ -72,9 +72,9 @@ def mock_mcp_available():
 class TestMCPConfigFunctions:
     """Test config file handling functions."""
 
-    def test_get_headroom_command_returns_list(self):
+    def test_get_copium_command_returns_list(self):
         """Command should be a list suitable for subprocess."""
-        cmd = get_headroom_command()
+        cmd = get_copium_command()
         assert isinstance(cmd, list)
         assert len(cmd) >= 1
         # Should end with mcp serve args
@@ -89,8 +89,8 @@ class TestMCPConfigFunctions:
         """Config can be saved and loaded back."""
         test_config = {
             "mcpServers": {
-                "headroom": {
-                    "command": "headroom",
+                "copium": {
+                    "command": "copium",
                     "args": ["mcp", "serve"],
                 }
             }
@@ -109,8 +109,8 @@ class TestMCPConfigFunctions:
         claude_dir = tmp_path / "new_dir" / ".claude"
         config_path = claude_dir / "mcp.json"
 
-        with patch("headroom.cli.mcp.MCP_CONFIG_PATH", config_path):
-            with patch("headroom.cli.mcp.CLAUDE_CONFIG_DIR", claude_dir):
+        with patch("copium.cli.mcp.MCP_CONFIG_PATH", config_path):
+            with patch("copium.cli.mcp.CLAUDE_CONFIG_DIR", claude_dir):
                 save_mcp_config({"mcpServers": {}})
 
         assert config_path.exists()
@@ -144,17 +144,17 @@ class TestMCPConfigFunctions:
 
 
 class TestMCPUninstallCommand:
-    """Test 'headroom mcp uninstall' command."""
+    """Test 'copium mcp uninstall' command."""
 
-    def test_uninstall_removes_headroom(self, mock_claude_config_path, mock_mcp_available):
-        """Uninstall removes headroom from the legacy config file."""
+    def test_uninstall_removes_copium(self, mock_claude_config_path, mock_mcp_available):
+        """Uninstall removes copium from the legacy config file."""
         # Pre-populate the config directly rather than depending on
         # `mcp install` plumbing — keeps the test focused on uninstall.
         mock_claude_config_path.write_text(
             json.dumps(
                 {
                     "mcpServers": {
-                        "headroom": {"command": "headroom", "args": ["mcp", "serve"]},
+                        "copium": {"command": "copium", "args": ["mcp", "serve"]},
                     }
                 }
             )
@@ -167,14 +167,14 @@ class TestMCPUninstallCommand:
         assert "removed" in result.output.lower()
 
         config = json.loads(mock_claude_config_path.read_text())
-        assert "headroom" not in config["mcpServers"]
+        assert "copium" not in config["mcpServers"]
 
     def test_uninstall_preserves_other_servers(self, mock_claude_config_path):
         """Uninstall preserves other MCP servers."""
-        # Create config with headroom and another server
+        # Create config with copium and another server
         config = {
             "mcpServers": {
-                "headroom": {"command": "headroom", "args": ["mcp", "serve"]},
+                "copium": {"command": "copium", "args": ["mcp", "serve"]},
                 "github": {"command": "github-mcp", "args": []},
             }
         }
@@ -186,7 +186,7 @@ class TestMCPUninstallCommand:
         assert result.exit_code == 0
 
         config = json.loads(mock_claude_config_path.read_text())
-        assert "headroom" not in config["mcpServers"]
+        assert "copium" not in config["mcpServers"]
         assert "github" in config["mcpServers"]
 
     def test_uninstall_no_config_file(self, mock_claude_config_path):
@@ -198,8 +198,8 @@ class TestMCPUninstallCommand:
         assert "nothing to uninstall" in result.output.lower()
 
     def test_uninstall_not_configured(self, mock_claude_config_path):
-        """Uninstall when headroom not in config exits cleanly."""
-        # Create config without headroom
+        """Uninstall when copium not in config exits cleanly."""
+        # Create config without copium
         config = {"mcpServers": {"other": {"command": "other"}}}
         mock_claude_config_path.write_text(json.dumps(config))
 
@@ -211,7 +211,7 @@ class TestMCPUninstallCommand:
 
 
 class TestMCPStatusCommand:
-    """Test 'headroom mcp status' command."""
+    """Test 'copium mcp status' command."""
 
     def test_status_not_configured(self, mock_claude_config_path):
         """Status shows not configured when no config."""
@@ -228,14 +228,14 @@ class TestMCPStatusCommand:
         )
 
     def test_status_configured(self, mock_claude_config_path, mock_mcp_available):
-        """Status reports configured when the legacy config has headroom."""
+        """Status reports configured when the legacy config has copium."""
         # Pre-populate the legacy mcp.json directly. mcp_status() reads
         # from MCP_CONFIG_PATH, which the fixture redirects here.
         mock_claude_config_path.write_text(
             json.dumps(
                 {
                     "mcpServers": {
-                        "headroom": {"command": "headroom", "args": ["mcp", "serve"]},
+                        "copium": {"command": "copium", "args": ["mcp", "serve"]},
                     }
                 }
             )
@@ -249,7 +249,7 @@ class TestMCPStatusCommand:
 
 
 class TestMCPServeCommand:
-    """Test 'headroom mcp serve' command."""
+    """Test 'copium mcp serve' command."""
 
     def test_serve_help(self):
         """Serve command shows help."""
@@ -270,7 +270,7 @@ class TestMCPServerInitialization:
 
     def test_mcp_server_can_be_created(self):
         """MCP server can be instantiated."""
-        from headroom.ccr.mcp_server import create_ccr_mcp_server
+        from copium.ccr.mcp_server import create_ccr_mcp_server
 
         server = create_ccr_mcp_server()
         assert server is not None
@@ -278,23 +278,23 @@ class TestMCPServerInitialization:
 
     def test_mcp_server_with_custom_url(self):
         """MCP server accepts custom proxy URL."""
-        from headroom.ccr.mcp_server import create_ccr_mcp_server
+        from copium.ccr.mcp_server import create_ccr_mcp_server
 
         server = create_ccr_mcp_server(proxy_url="http://custom:9000")
         assert server.proxy_url == "http://custom:9000"
 
     def test_mcp_server_has_correct_tool_name(self):
-        """MCP server is configured for headroom_retrieve tool."""
-        from headroom.ccr.mcp_server import create_ccr_mcp_server
-        from headroom.ccr.tool_injection import CCR_TOOL_NAME
+        """MCP server is configured for copium_retrieve tool."""
+        from copium.ccr.mcp_server import create_ccr_mcp_server
+        from copium.ccr.tool_injection import CCR_TOOL_NAME
 
         server = create_ccr_mcp_server()
 
         # Verify the server was created with correct configuration
         assert server.server is not None
-        assert server.server.name == "headroom"
-        # The tool name should be headroom_retrieve
-        assert CCR_TOOL_NAME == "headroom_retrieve"
+        assert server.server.name == "copium"
+        # The tool name should be copium_retrieve
+        assert CCR_TOOL_NAME == "copium_retrieve"
 
 
 #
@@ -309,7 +309,7 @@ class TestMCPUninstallWithClaudeCLI:
     """Test mcp_uninstall when the claude CLI is available."""
 
     def test_uninstall_calls_claude_mcp_remove(self):
-        """Uninstall calls claude mcp remove when headroom is registered."""
+        """Uninstall calls claude mcp remove when copium is registered."""
         calls = []
 
         def capturing_run(cmd, **kwargs):
@@ -317,8 +317,8 @@ class TestMCPUninstallWithClaudeCLI:
             return MagicMock(returncode=0, stderr="")
 
         runner = CliRunner()
-        with patch("headroom.cli.mcp.shutil.which", return_value="/usr/bin/claude"):
-            with patch("headroom.cli.mcp.subprocess.run", side_effect=capturing_run):
+        with patch("copium.cli.mcp.shutil.which", return_value="/usr/bin/claude"):
+            with patch("copium.cli.mcp.subprocess.run", side_effect=capturing_run):
                 result = runner.invoke(main, ["mcp", "uninstall"])
 
         assert result.exit_code == 0
@@ -327,7 +327,7 @@ class TestMCPUninstallWithClaudeCLI:
         assert "remove" in subcommands
 
     def test_uninstall_skips_remove_when_not_registered(self):
-        """Uninstall does not call remove when headroom is not registered via claude CLI."""
+        """Uninstall does not call remove when copium is not registered via claude CLI."""
         calls = []
 
         def capturing_run(cmd, **kwargs):
@@ -338,8 +338,8 @@ class TestMCPUninstallWithClaudeCLI:
             return MagicMock(returncode=0, stderr="")
 
         runner = CliRunner()
-        with patch("headroom.cli.mcp.shutil.which", return_value="/usr/bin/claude"):
-            with patch("headroom.cli.mcp.subprocess.run", side_effect=capturing_run):
+        with patch("copium.cli.mcp.shutil.which", return_value="/usr/bin/claude"):
+            with patch("copium.cli.mcp.subprocess.run", side_effect=capturing_run):
                 result = runner.invoke(main, ["mcp", "uninstall"])
 
         assert result.exit_code == 0

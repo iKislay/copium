@@ -9,7 +9,7 @@ from urllib import error as urllib_error
 
 import pytest
 
-from headroom import copilot_auth
+from copium import copilot_auth
 
 
 @pytest.fixture(autouse=True)
@@ -36,7 +36,7 @@ def _isolated_copilot_auth(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> N
     ):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setattr(copilot_auth, "_provider", None)
-    monkeypatch.setenv("HEADROOM_COPILOT_AUTH_FILE", str(tmp_path / "copilot_auth.json"))
+    monkeypatch.setenv("COPIUM_COPILOT_AUTH_FILE", str(tmp_path / "copilot_auth.json"))
     monkeypatch.setattr(copilot_auth, "read_macos_keychain_token", lambda *, host: None)
     monkeypatch.setattr(copilot_auth, "read_linux_secret_token", lambda *, host: None)
 
@@ -46,13 +46,13 @@ def test_read_cached_oauth_token_prefers_env(monkeypatch: pytest.MonkeyPatch) ->
     assert copilot_auth.read_cached_oauth_token() == "gho-env"
 
 
-def test_read_cached_oauth_token_prefers_headroom_login(
+def test_read_cached_oauth_token_prefers_copium_login(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("GITHUB_COPILOT_TOKEN", "gho-env")
-    copilot_auth.save_headroom_copilot_oauth_token("gho-headroom")
+    copilot_auth.save_copium_copilot_oauth_token("gho-copium")
 
-    assert copilot_auth.read_cached_oauth_token() == "gho-headroom"
+    assert copilot_auth.read_cached_oauth_token() == "gho-copium"
 
 
 def test_read_cached_oauth_token_prefers_copilot_cli_before_generic_github_token(
@@ -173,7 +173,7 @@ def test_resolve_subscription_bearer_token_details_exchanges_oauth_candidate(
         lambda: [
             copilot_auth.CopilotTokenCandidate(
                 token="gho-oauth",
-                source="headroom-copilot-auth:/tmp/copilot_auth.json",
+                source="copium-copilot-auth:/tmp/copilot_auth.json",
                 confidence="copilot-oauth",
             ),
         ],
@@ -198,7 +198,7 @@ def test_resolve_subscription_bearer_token_details_exchanges_oauth_candidate(
 
     assert resolution is not None
     assert resolution.token == "copilot-api"
-    assert resolution.source == "headroom-copilot-auth:/tmp/copilot_auth.json:token-exchange"
+    assert resolution.source == "copium-copilot-auth:/tmp/copilot_auth.json:token-exchange"
     assert resolution.confidence == "copilot-token-exchange"
     assert resolution.api_url == "https://api.business.githubcopilot.com"
     assert resolution.token_fingerprint == copilot_auth.token_fingerprint("copilot-api")

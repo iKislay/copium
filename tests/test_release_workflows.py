@@ -93,7 +93,7 @@ def test_no_openssl_sys_in_wheel_build_tree() -> None:
     fastembed exposes `hf-hub-rustls-tls` and
     `ort-download-binaries-rustls-tls` features that replace its
     default `native-tls` path. With `default-features = false` plus
-    those rustls features enabled in headroom-core, our entire build
+    those rustls features enabled in copium-core, our entire build
     tree uses rustls and no crate pulls openssl-sys.
 
     This test runs `cargo tree` (so it actually exercises the
@@ -104,7 +104,7 @@ def test_no_openssl_sys_in_wheel_build_tree() -> None:
     """
     import subprocess
 
-    for crate in ("headroom-py", "headroom-proxy", "headroom-core"):
+    for crate in ("copium-py", "copium-proxy", "copium-core"):
         try:
             result = subprocess.run(
                 [
@@ -156,7 +156,7 @@ def test_no_native_tls_in_wheel_build_tree() -> None:
     """
     import subprocess
 
-    for crate in ("headroom-py", "headroom-proxy", "headroom-core"):
+    for crate in ("copium-py", "copium-proxy", "copium-core"):
         result = subprocess.run(
             [
                 "cargo",
@@ -183,13 +183,13 @@ def test_no_native_tls_in_wheel_build_tree() -> None:
 
 def test_fastembed_uses_rustls_features() -> None:
     """The mechanism that keeps openssl-sys out of the build is
-    fastembed's explicit rustls feature selection in headroom-core.
+    fastembed's explicit rustls feature selection in copium-core.
     fastembed's default features include `hf-hub-native-tls` and
     `ort-download-binaries-native-tls` — both pull openssl-sys.
     Disabling defaults and enabling the rustls equivalents removes
     the OpenSSL surface entirely.
     """
-    cargo = (ROOT / "crates" / "headroom-core" / "Cargo.toml").read_text(encoding="utf-8")
+    cargo = (ROOT / "crates" / "copium-core" / "Cargo.toml").read_text(encoding="utf-8")
 
     assert "default-features = false" in cargo
     assert '"hf-hub-rustls-tls"' in cargo
@@ -207,7 +207,7 @@ def test_fastembed_uses_dynamic_ort_on_windows() -> None:
     Windows target must use ORT dynamic loading instead.
     """
 
-    cargo = (ROOT / "crates" / "headroom-core" / "Cargo.toml").read_text(encoding="utf-8")
+    cargo = (ROOT / "crates" / "copium-core" / "Cargo.toml").read_text(encoding="utf-8")
     assert "[target.'cfg(windows)'.dependencies]" in cargo
     windows_section = cargo.split("[target.'cfg(windows)'.dependencies]", 1)[1].split(
         "\n[",
@@ -602,11 +602,11 @@ def test_pypi_publish_failure_blocks_github_release() -> None:
     assert "(vars.PYPI_SKIP == 'true' || needs.publish-pypi.result == 'success')" in content
 
 
-def test_glibc_compat_shim_present_in_headroom_py() -> None:
-    """STRUCTURAL INVARIANT: the headroom-py crate ships a glibc-2.38
+def test_glibc_compat_shim_present_in_copium_py() -> None:
+    """STRUCTURAL INVARIANT: the copium-py crate ships a glibc-2.38
     compatibility shim that defines weak `__isoc23_*` aliases.
 
-    Issue #355 (https://github.com/chopratejas/headroom/issues/355) —
+    Issue #355 (https://github.com/iKislay/copium/issues/355) —
     the published wheel's `_core.so` references `__isoc23_strtoll`
     (glibc 2.38+) because we statically link prebuilt ONNX Runtime
     artifacts compiled with gcc 14. Users with libc < 2.38 (Ubuntu
@@ -614,7 +614,7 @@ def test_glibc_compat_shim_present_in_headroom_py() -> None:
 
         ImportError: undefined symbol: __isoc23_strtoll
 
-    The fix is `crates/headroom-py/glibc_compat.c` which provides
+    The fix is `crates/copium-py/glibc_compat.c` which provides
     weak-alias definitions for the four `__isoc23_*` symbols,
     delegating to the older `strtol*` family. `build.rs` compiles
     the shim into `_core.so` on Linux/glibc only.
@@ -625,11 +625,11 @@ def test_glibc_compat_shim_present_in_headroom_py() -> None:
     pieces (the .c file, the build.rs trigger, the [build-dependencies]
     cc dep).
     """
-    headroom_py_dir = ROOT / "crates" / "headroom-py"
+    copium_py_dir = ROOT / "crates" / "copium-py"
 
-    shim = headroom_py_dir / "glibc_compat.c"
+    shim = copium_py_dir / "glibc_compat.c"
     assert shim.exists(), (
-        "crates/headroom-py/glibc_compat.c is missing — without it, "
+        "crates/copium-py/glibc_compat.c is missing — without it, "
         "`_core.so` fails to import on every glibc < 2.38 host. See "
         "issue #355 for the full bug class. NEVER delete this file "
         "without confirming via `scripts/audit_wheel_glibc_symbols.py` "
@@ -639,22 +639,22 @@ def test_glibc_compat_shim_present_in_headroom_py() -> None:
     for sym in ("__isoc23_strtol", "__isoc23_strtoll", "__isoc23_strtoul", "__isoc23_strtoull"):
         assert sym in shim_content, f"shim missing alias for {sym}"
 
-    build_rs = headroom_py_dir / "build.rs"
-    assert build_rs.exists(), "crates/headroom-py/build.rs is missing"
+    build_rs = copium_py_dir / "build.rs"
+    assert build_rs.exists(), "crates/copium-py/build.rs is missing"
     build_rs_content = build_rs.read_text(encoding="utf-8")
     assert "glibc_compat.c" in build_rs_content, (
         "build.rs must reference glibc_compat.c — otherwise Cargo "
         "skips the shim and the wheel's `_core.so` ships without it."
     )
 
-    cargo_toml = (headroom_py_dir / "Cargo.toml").read_text(encoding="utf-8")
+    cargo_toml = (copium_py_dir / "Cargo.toml").read_text(encoding="utf-8")
     assert 'build = "build.rs"' in cargo_toml, (
-        'headroom-py/Cargo.toml must declare `build = "build.rs"` — '
+        'copium-py/Cargo.toml must declare `build = "build.rs"` — '
         "Cargo only auto-detects build.rs when this is set; without "
         "it, the shim never compiles."
     )
     assert "[build-dependencies]" in cargo_toml and 'cc = "1"' in cargo_toml, (
-        'headroom-py/Cargo.toml must declare `cc = "1"` in '
+        'copium-py/Cargo.toml must declare `cc = "1"` in '
         "[build-dependencies] for build.rs to compile the C shim."
     )
 
@@ -663,7 +663,7 @@ def test_release_workflow_audits_wheel_glibc_symbols() -> None:
     """STRUCTURAL INVARIANT: the release workflow audits each Linux
     wheel for symbol references that exceed its manylinux glibc floor.
 
-    Companion to `test_glibc_compat_shim_present_in_headroom_py` —
+    Companion to `test_glibc_compat_shim_present_in_copium_py` —
     the shim is the FIX, this audit is the GATE. Without the audit,
     a future toolchain bump in the prebuilt ORT artifacts (or any
     other statically-linked C/C++ dep) could re-introduce a
@@ -684,7 +684,7 @@ def test_release_workflow_audits_wheel_glibc_symbols() -> None:
 
 def test_release_workflow_has_smoke_import_wheel_gate() -> None:
     """STRUCTURAL INVARIANT: release.yml runs the just-built wheels
-    through `import headroom._core` on a matrix of representative
+    through `import copium._core` on a matrix of representative
     customer environments BEFORE publishing to PyPI / pushing to
     GHCR / cutting a GitHub Release.
 
@@ -778,15 +778,15 @@ def test_release_workflow_has_smoke_import_wheel_gate() -> None:
         "smoke gate failed."
     )
 
-    # The actual import command must hit `from headroom._core import hello`
+    # The actual import command must hit `from copium._core import hello`
     # — this is the same call the proxy's `_check_rust_core` makes on
-    # startup (per `headroom/proxy/server.py` and the issue #355 backtrace).
-    # Anything else (e.g. just `import headroom`) fails to exercise the
+    # startup (per `copium/proxy/server.py` and the issue #355 backtrace).
+    # Anything else (e.g. just `import copium`) fails to exercise the
     # Rust _core.so binary.
-    assert "from headroom._core import hello" in content, (
-        "smoke-import command must call `from headroom._core import hello` "
+    assert "from copium._core import hello" in content, (
+        "smoke-import command must call `from copium._core import hello` "
         "— that's what the proxy does at startup. A weaker check (e.g. "
-        "`import headroom`) wouldn't exercise the .so and wouldn't catch "
+        "`import copium`) wouldn't exercise the .so and wouldn't catch "
         "the bugs the gate exists for."
     )
 
@@ -836,9 +836,9 @@ def test_release_workflow_runs_dry_run_on_pull_request() -> None:
     Required:
     1. `pull_request:` trigger present.
     2. Path filter is narrow enough to skip source-only PRs to
-       `crates/headroom-core` / `crates/headroom-proxy` (where wheel
+       `crates/copium-core` / `crates/copium-proxy` (where wheel
        layout doesn't change), but wide enough to cover release.yml,
-       docker.yml, headroom-py crate, pyproject.toml, root Cargo.
+       docker.yml, copium-py crate, pyproject.toml, root Cargo.
     3. publish-pypi / publish-npm / publish-github-packages /
        publish-docker / create-release ALL gate on
        `github.event_name != 'pull_request'` so a PR run never
@@ -871,7 +871,7 @@ def test_release_workflow_runs_dry_run_on_pull_request() -> None:
     required_paths = [
         ".github/workflows/release.yml",
         ".github/workflows/docker.yml",
-        "crates/headroom-py/**",
+        "crates/copium-py/**",
         "pyproject.toml",
         "Cargo.toml",
         "Cargo.lock",
@@ -1047,7 +1047,7 @@ def test_release_please_config_and_manifest_are_present_and_consistent() -> None
 
     # tomllib is stdlib on 3.11+; tomli is the backport for 3.10 (which
     # the project still supports per pyproject.toml `requires-python`).
-    # Matches the same fallback pattern in headroom/release_version.py.
+    # Matches the same fallback pattern in copium/release_version.py.
     try:
         import tomllib
     except ModuleNotFoundError:  # pragma: no cover - Python 3.10 only
@@ -1071,17 +1071,17 @@ def test_release_please_config_and_manifest_are_present_and_consistent() -> None
     # bot updates pyproject.toml.
     root_pkg = config["packages"]["."]
     assert root_pkg["release-type"] == "python"
-    assert root_pkg["package-name"] == "headroom-ai"
+    assert root_pkg["package-name"] == "copium-ai"
 
     # Tag format: existing tags in this repo are `vX.Y.Z`, NOT
-    # `headroom-ai-vX.Y.Z`. release-please's default for manifest
+    # `copium-ai-vX.Y.Z`. release-please's default for manifest
     # configs prepends the component name; that would produce
-    # `headroom-ai-v0.22.4` and the bot would never find the existing
+    # `copium-ai-v0.22.4` and the bot would never find the existing
     # `v0.22.3` baseline tag. include-component-in-tag MUST be false
     # to keep tag format consistent with the project's pre-bot tags.
     assert config.get("include-component-in-tag") is False, (
         "include-component-in-tag must be false — existing tags are "
-        "`vX.Y.Z`, not `headroom-ai-vX.Y.Z`. Reverting this setting "
+        "`vX.Y.Z`, not `copium-ai-vX.Y.Z`. Reverting this setting "
         "would orphan every prior tag and produce a months-long "
         "changelog because the bot can't find its baseline."
     )

@@ -94,7 +94,7 @@ describe("applyGatewayProviderBaseUrls", () => {
     });
   });
 
-  it("is a no-op when the provider already points at headroom", () => {
+  it("is a no-op when the provider already points at copium", () => {
     const cfg = {
       models: {
         providers: {

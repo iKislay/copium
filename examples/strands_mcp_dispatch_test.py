@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
-"""Verify Strands' MCP dispatcher can reach Headroom's MCP server.
+"""Verify Strands' MCP dispatcher can reach Copium's MCP server.
 
 This is the focused 15-min test that proves the MCP-everywhere
 architecture for Path B works end-to-end:
 
-  1. Headroom proxy is running (started separately, port 8787).
-  2. Build a Strands MCPClient that stdio-spawns `headroom mcp serve`.
-  3. List MCP tools — confirm `headroom_retrieve` is exposed.
+  1. Copium proxy is running (started separately, port 8787).
+  2. Build a Strands MCPClient that stdio-spawns `copium mcp serve`.
+  3. List MCP tools — confirm `copium_retrieve` is exposed.
   4. Round-trip: stash content via the proxy's /v1/compress endpoint
-     to get a hash, then call `headroom_retrieve(hash)` via MCP,
+     to get a hash, then call `copium_retrieve(hash)` via MCP,
      verify the original comes back.
   5. (Bonus) Show the same hash being resolved through both the
      proxy's REST /v1/retrieve endpoint AND the MCP path -- proves
      the CompressionStore is shared between proxy and MCP server.
 
 If steps 3+4 work, the MCP dispatch path is alive — meaning when a
-Strands Agent receives a model-emitted `headroom_retrieve` tool_call
+Strands Agent receives a model-emitted `copium_retrieve` tool_call
 (streaming OR non-streaming), it can dispatch it via this same MCP
 client and the chain closes.
 
@@ -48,7 +48,7 @@ def start_proxy() -> subprocess.Popen[bytes]:
     cmd = [
         sys.executable,
         "-m",
-        "headroom.cli",
+        "copium.cli",
         "proxy",
         "--backend",
         "bedrock",
@@ -57,9 +57,9 @@ def start_proxy() -> subprocess.Popen[bytes]:
         "--port",
         str(PROXY_PORT),
     ]
-    log = Path("/tmp/headroom_proxy_mcp_test.log").open("wb")
+    log = Path("/tmp/copium_proxy_mcp_test.log").open("wb")
     proc = subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT)  # noqa: S603
-    print(f"  proxy spawned (pid={proc.pid}); log → /tmp/headroom_proxy_mcp_test.log")
+    print(f"  proxy spawned (pid={proc.pid}); log → /tmp/copium_proxy_mcp_test.log")
     return proc
 
 
@@ -121,10 +121,10 @@ def stash_content_via_proxy(content: str) -> str | None:
 
 def main() -> int:
     print("=" * 72)
-    print(" Strands MCPClient → Headroom MCP server  end-to-end probe")
+    print(" Strands MCPClient → Copium MCP server  end-to-end probe")
     print("=" * 72)
 
-    print("\n[1/5] Starting Headroom proxy ...")
+    print("\n[1/5] Starting Copium proxy ...")
     proxy = start_proxy()
     try:
         wait_for_proxy()
@@ -145,9 +145,9 @@ def main() -> int:
         )
         print(f"[2/5] Test payload prepared: {len(big)} chars of JSON")
 
-        print("\n[3/5] Building Strands MCPClient pointed at `headroom mcp serve` ...")
+        print("\n[3/5] Building Strands MCPClient pointed at `copium mcp serve` ...")
         server_params = StdioServerParameters(
-            command="headroom",
+            command="copium",
             args=["mcp", "serve", "--proxy-url", PROXY_URL],
         )
         with MCPClient(lambda: stdio_client(server_params)) as mcp:
@@ -160,20 +160,20 @@ def main() -> int:
                 print(f"  ! list_tools_sync failed: {type(e).__name__}: {e}")
                 raise
             tool_names = [getattr(t, "tool_name", None) or getattr(t, "name", "?") for t in tools]
-            print(f"  tools advertised by Headroom MCP: {tool_names}")
-            if "headroom_retrieve" not in tool_names:
-                print("  ! headroom_retrieve NOT in tool list — abort.")
+            print(f"  tools advertised by Copium MCP: {tool_names}")
+            if "copium_retrieve" not in tool_names:
+                print("  ! copium_retrieve NOT in tool list — abort.")
                 return 4
 
             # Round-trip via MCP: compress to get a hash, then retrieve via MCP.
             # This is a pure MCP-only path through Strands' dispatcher — the
             # same dispatcher that would resolve a model-emitted
-            # `headroom_retrieve` tool_call in a real conversation.
-            print("\n[5a/5] Stashing content via MCP headroom_compress (same dispatcher) ...")
+            # `copium_retrieve` tool_call in a real conversation.
+            print("\n[5a/5] Stashing content via MCP copium_compress (same dispatcher) ...")
             try:
                 comp = mcp.call_tool_sync(
                     tool_use_id="probe-compress-1",
-                    name="headroom_compress",
+                    name="copium_compress",
                     arguments={"content": big},
                 )
                 print(f"  status={comp.get('status', '?')}")
@@ -191,7 +191,7 @@ def main() -> int:
                                 comp_payload = {"_raw_text": block["text"]}
                             break
                 print(f"  compress payload keys: {list((comp_payload or {}).keys())}")
-                # Find the hash. Headroom MCP compress is documented to emit
+                # Find the hash. Copium MCP compress is documented to emit
                 # markers in the compressed output ("hash=abc..."); also surface
                 # explicit hash field if present.
                 stashed_hash: str | None = None
@@ -227,11 +227,11 @@ def main() -> int:
                 print(f"  ! compress call failed: {type(e).__name__}: {e}")
                 return 5
 
-            print("\n[5b/5] Calling headroom_retrieve via Strands MCP dispatcher ...")
+            print("\n[5b/5] Calling copium_retrieve via Strands MCP dispatcher ...")
             try:
                 result = mcp.call_tool_sync(
                     tool_use_id="probe-retrieve-1",
-                    name="headroom_retrieve",
+                    name="copium_retrieve",
                     arguments={"hash": stashed_hash},
                 )
                 print(f"  retrieve status: {result.get('status', '?')}")
@@ -260,8 +260,8 @@ def main() -> int:
         print("\n" + "=" * 72)
         print(" MCP DISPATCH PROBE COMPLETE")
         print(" If steps 3+4+5 succeeded, the MCP-everywhere Path B is live:")
-        print(" Strands receives a headroom_retrieve tool_call → MCP dispatcher")
-        print(" → Headroom MCP server → CompressionStore → original content back.")
+        print(" Strands receives a copium_retrieve tool_call → MCP dispatcher")
+        print(" → Copium MCP server → CompressionStore → original content back.")
         print("=" * 72)
         return 0
     finally:

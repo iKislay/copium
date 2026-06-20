@@ -1,6 +1,6 @@
 """Header-isolation tests for PR-A5 (P5-49 fix).
 
-`x-headroom-*` request headers are internal control flags consumed by the
+`x-copium-*` request headers are internal control flags consumed by the
 proxy itself (bypass gating, mode selection, user-id, stack/base-url
 fingerprints). Forwarding them upstream:
 
@@ -10,10 +10,10 @@ fingerprints). Forwarding them upstream:
 
 PR-A5 wraps every handler-entry capture of the request headers with
 `_strip_internal_headers`. Inbound read paths (`request.headers.get(...)`
-for bypass gating, `_extract_tags` reading `x-headroom-*`) keep working
+for bypass gating, `_extract_tags` reading `x-copium-*`) keep working
 because they never depended on the local outbound-bound dict.
 
-Operator opt-in `HEADROOM_STRIP_INTERNAL_HEADERS=disabled` keeps the
+Operator opt-in `COPIUM_STRIP_INTERNAL_HEADERS=disabled` keeps the
 internal headers in the upstream-bound dict for diagnostic shadow tracing.
 That mode is loud and explicit per realignment build constraint #4 — NOT
 a silent fallback.
@@ -31,11 +31,11 @@ pytest.importorskip("fastapi")
 
 from fastapi.testclient import TestClient
 
-from headroom.proxy.helpers import (
+from copium.proxy.helpers import (
     _strip_internal_headers,
     get_strip_internal_headers_mode,
 )
-from headroom.proxy.server import ProxyConfig, create_app
+from copium.proxy.server import ProxyConfig, create_app
 
 # ---------------------------------------------------------------------------
 # Pure helper unit tests
@@ -46,58 +46,58 @@ def test_strip_returns_new_dict_does_not_mutate_caller() -> None:
     """`_strip_internal_headers` is pure — caller's dict is untouched."""
     original = {
         "authorization": "Bearer x",
-        "x-headroom-bypass": "true",
+        "x-copium-bypass": "true",
     }
     out = _strip_internal_headers(original)
     assert out is not original
-    assert "x-headroom-bypass" in original
-    assert "x-headroom-bypass" not in out
+    assert "x-copium-bypass" in original
+    assert "x-copium-bypass" not in out
     assert out["authorization"] == "Bearer x"
 
 
-def test_strip_x_headroom_bypass_removed() -> None:
-    out = _strip_internal_headers({"x-headroom-bypass": "true", "k": "v"})
-    assert "x-headroom-bypass" not in out
+def test_strip_x_copium_bypass_removed() -> None:
+    out = _strip_internal_headers({"x-copium-bypass": "true", "k": "v"})
+    assert "x-copium-bypass" not in out
     assert out["k"] == "v"
 
 
-def test_strip_x_headroom_mode_removed() -> None:
-    out = _strip_internal_headers({"x-headroom-mode": "passthrough", "k": "v"})
-    assert "x-headroom-mode" not in out
+def test_strip_x_copium_mode_removed() -> None:
+    out = _strip_internal_headers({"x-copium-mode": "passthrough", "k": "v"})
+    assert "x-copium-mode" not in out
     assert out["k"] == "v"
 
 
-def test_strip_x_headroom_user_id_removed() -> None:
-    out = _strip_internal_headers({"x-headroom-user-id": "u1", "k": "v"})
-    assert "x-headroom-user-id" not in out
+def test_strip_x_copium_user_id_removed() -> None:
+    out = _strip_internal_headers({"x-copium-user-id": "u1", "k": "v"})
+    assert "x-copium-user-id" not in out
     assert out["k"] == "v"
 
 
-def test_strip_x_headroom_stack_removed() -> None:
-    out = _strip_internal_headers({"x-headroom-stack": "engineer", "k": "v"})
-    assert "x-headroom-stack" not in out
+def test_strip_x_copium_stack_removed() -> None:
+    out = _strip_internal_headers({"x-copium-stack": "engineer", "k": "v"})
+    assert "x-copium-stack" not in out
     assert out["k"] == "v"
 
 
-def test_strip_x_headroom_base_url_removed() -> None:
-    out = _strip_internal_headers({"x-headroom-base-url": "http://x", "k": "v"})
-    assert "x-headroom-base-url" not in out
+def test_strip_x_copium_base_url_removed() -> None:
+    out = _strip_internal_headers({"x-copium-base-url": "http://x", "k": "v"})
+    assert "x-copium-base-url" not in out
     assert out["k"] == "v"
 
 
 def test_strip_case_insensitive_prefix_match() -> None:
-    """Mixed-case `X-Headroom-Foo`, `x-Headroom-Bar`, `X-HEADROOM-BAZ` all stripped."""
+    """Mixed-case `X-Copium-Foo`, `x-Copium-Bar`, `X-COPIUM-BAZ` all stripped."""
     out = _strip_internal_headers(
         {
-            "X-Headroom-Foo": "1",
-            "x-Headroom-Bar": "2",
-            "X-HEADROOM-BAZ": "3",
+            "X-Copium-Foo": "1",
+            "x-Copium-Bar": "2",
+            "X-COPIUM-BAZ": "3",
             "Authorization": "Bearer x",
         }
     )
-    assert "X-Headroom-Foo" not in out
-    assert "x-Headroom-Bar" not in out
-    assert "X-HEADROOM-BAZ" not in out
+    assert "X-Copium-Foo" not in out
+    assert "x-Copium-Bar" not in out
+    assert "X-COPIUM-BAZ" not in out
     assert out["Authorization"] == "Bearer x"
 
 
@@ -126,10 +126,10 @@ def test_strip_legitimate_headers_passthrough() -> None:
 def test_strip_disabled_mode_passes_internal_headers_through(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """`HEADROOM_STRIP_INTERNAL_HEADERS=disabled` is operator opt-in for diag."""
-    monkeypatch.setenv("HEADROOM_STRIP_INTERNAL_HEADERS", "disabled")
-    out = _strip_internal_headers({"x-headroom-bypass": "true", "authorization": "Bearer x"})
-    assert out["x-headroom-bypass"] == "true"
+    """`COPIUM_STRIP_INTERNAL_HEADERS=disabled` is operator opt-in for diag."""
+    monkeypatch.setenv("COPIUM_STRIP_INTERNAL_HEADERS", "disabled")
+    out = _strip_internal_headers({"x-copium-bypass": "true", "authorization": "Bearer x"})
+    assert out["x-copium-bypass"] == "true"
     assert out["authorization"] == "Bearer x"
 
 
@@ -137,20 +137,20 @@ def test_strip_disabled_mode_returns_copy_not_alias(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Even in disabled mode the helper returns a NEW dict, never an alias."""
-    monkeypatch.setenv("HEADROOM_STRIP_INTERNAL_HEADERS", "disabled")
-    src = {"x-headroom-bypass": "true"}
+    monkeypatch.setenv("COPIUM_STRIP_INTERNAL_HEADERS", "disabled")
+    src = {"x-copium-bypass": "true"}
     out = _strip_internal_headers(src)
     assert out is not src
 
 
 def test_strip_mode_default_is_enabled(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv("HEADROOM_STRIP_INTERNAL_HEADERS", raising=False)
+    monkeypatch.delenv("COPIUM_STRIP_INTERNAL_HEADERS", raising=False)
     assert get_strip_internal_headers_mode() == "enabled"
 
 
 def test_strip_mode_invalid_raises(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("HEADROOM_STRIP_INTERNAL_HEADERS", "garbage")
-    with pytest.raises(ValueError, match="HEADROOM_STRIP_INTERNAL_HEADERS"):
+    monkeypatch.setenv("COPIUM_STRIP_INTERNAL_HEADERS", "garbage")
+    with pytest.raises(ValueError, match="COPIUM_STRIP_INTERNAL_HEADERS"):
         get_strip_internal_headers_mode()
 
 
@@ -171,7 +171,7 @@ def test_strip_preserves_value_semantics() -> None:
 
 
 # ---------------------------------------------------------------------------
-# End-to-end: x-headroom-* never reaches the upstream
+# End-to-end: x-copium-* never reaches the upstream
 # ---------------------------------------------------------------------------
 
 
@@ -249,7 +249,7 @@ def _make_anthropic_app() -> tuple[TestClient, _CapturingTransport]:
     return TestClient(app), transport
 
 
-def test_x_headroom_bypass_not_forwarded() -> None:
+def test_x_copium_bypass_not_forwarded() -> None:
     client, transport = _make_anthropic_app()
     resp = client.post(
         "/v1/messages",
@@ -257,7 +257,7 @@ def test_x_headroom_bypass_not_forwarded() -> None:
             "x-api-key": "test-key",
             "anthropic-version": "2023-06-01",
             "content-type": "application/json",
-            "x-headroom-bypass": "true",
+            "x-copium-bypass": "true",
         },
         json={
             "model": "claude-sonnet-4-6",
@@ -268,13 +268,13 @@ def test_x_headroom_bypass_not_forwarded() -> None:
     assert resp.status_code == 200, resp.text
     assert transport.captured_headers is not None
     upstream = {k.lower(): v for k, v in transport.captured_headers.items()}
-    assert "x-headroom-bypass" not in upstream
+    assert "x-copium-bypass" not in upstream
     # Legitimate headers must reach upstream.
     assert upstream.get("x-api-key") == "test-key"
     assert upstream.get("anthropic-version") == "2023-06-01"
 
 
-def test_x_headroom_mode_not_forwarded() -> None:
+def test_x_copium_mode_not_forwarded() -> None:
     client, transport = _make_anthropic_app()
     resp = client.post(
         "/v1/messages",
@@ -282,7 +282,7 @@ def test_x_headroom_mode_not_forwarded() -> None:
             "x-api-key": "test-key",
             "anthropic-version": "2023-06-01",
             "content-type": "application/json",
-            "x-headroom-mode": "passthrough",
+            "x-copium-mode": "passthrough",
         },
         json={
             "model": "claude-sonnet-4-6",
@@ -293,10 +293,10 @@ def test_x_headroom_mode_not_forwarded() -> None:
     assert resp.status_code == 200, resp.text
     assert transport.captured_headers is not None
     upstream = {k.lower(): v for k, v in transport.captured_headers.items()}
-    assert "x-headroom-mode" not in upstream
+    assert "x-copium-mode" not in upstream
 
 
-def test_x_headroom_user_id_not_forwarded() -> None:
+def test_x_copium_user_id_not_forwarded() -> None:
     client, transport = _make_anthropic_app()
     resp = client.post(
         "/v1/messages",
@@ -304,7 +304,7 @@ def test_x_headroom_user_id_not_forwarded() -> None:
             "x-api-key": "test-key",
             "anthropic-version": "2023-06-01",
             "content-type": "application/json",
-            "x-headroom-user-id": "alice",
+            "x-copium-user-id": "alice",
         },
         json={
             "model": "claude-sonnet-4-6",
@@ -315,10 +315,10 @@ def test_x_headroom_user_id_not_forwarded() -> None:
     assert resp.status_code == 200, resp.text
     assert transport.captured_headers is not None
     upstream = {k.lower(): v for k, v in transport.captured_headers.items()}
-    assert "x-headroom-user-id" not in upstream
+    assert "x-copium-user-id" not in upstream
 
 
-def test_x_headroom_stack_not_forwarded() -> None:
+def test_x_copium_stack_not_forwarded() -> None:
     client, transport = _make_anthropic_app()
     resp = client.post(
         "/v1/messages",
@@ -326,7 +326,7 @@ def test_x_headroom_stack_not_forwarded() -> None:
             "x-api-key": "test-key",
             "anthropic-version": "2023-06-01",
             "content-type": "application/json",
-            "x-headroom-stack": "engineer",
+            "x-copium-stack": "engineer",
         },
         json={
             "model": "claude-sonnet-4-6",
@@ -337,10 +337,10 @@ def test_x_headroom_stack_not_forwarded() -> None:
     assert resp.status_code == 200, resp.text
     assert transport.captured_headers is not None
     upstream = {k.lower(): v for k, v in transport.captured_headers.items()}
-    assert "x-headroom-stack" not in upstream
+    assert "x-copium-stack" not in upstream
 
 
-def test_x_headroom_base_url_not_forwarded() -> None:
+def test_x_copium_base_url_not_forwarded() -> None:
     client, transport = _make_anthropic_app()
     resp = client.post(
         "/v1/messages",
@@ -348,7 +348,7 @@ def test_x_headroom_base_url_not_forwarded() -> None:
             "x-api-key": "test-key",
             "anthropic-version": "2023-06-01",
             "content-type": "application/json",
-            "x-headroom-base-url": "https://override.example",
+            "x-copium-base-url": "https://override.example",
         },
         json={
             "model": "claude-sonnet-4-6",
@@ -359,7 +359,7 @@ def test_x_headroom_base_url_not_forwarded() -> None:
     assert resp.status_code == 200, resp.text
     assert transport.captured_headers is not None
     upstream = {k.lower(): v for k, v in transport.captured_headers.items()}
-    assert "x-headroom-base-url" not in upstream
+    assert "x-copium-base-url" not in upstream
 
 
 def test_case_insensitive_prefix_match_e2e() -> None:
@@ -371,9 +371,9 @@ def test_case_insensitive_prefix_match_e2e() -> None:
             "x-api-key": "test-key",
             "anthropic-version": "2023-06-01",
             "content-type": "application/json",
-            "X-Headroom-Foo": "1",
-            "x-Headroom-Bar": "2",
-            "X-HEADROOM-BAZ": "3",
+            "X-Copium-Foo": "1",
+            "x-Copium-Bar": "2",
+            "X-COPIUM-BAZ": "3",
         },
         json={
             "model": "claude-sonnet-4-6",
@@ -384,9 +384,9 @@ def test_case_insensitive_prefix_match_e2e() -> None:
     assert resp.status_code == 200, resp.text
     assert transport.captured_headers is not None
     upstream_lower = {k.lower(): v for k, v in transport.captured_headers.items()}
-    assert "x-headroom-foo" not in upstream_lower
-    assert "x-headroom-bar" not in upstream_lower
-    assert "x-headroom-baz" not in upstream_lower
+    assert "x-copium-foo" not in upstream_lower
+    assert "x-copium-bar" not in upstream_lower
+    assert "x-copium-baz" not in upstream_lower
 
 
 def test_legitimate_headers_passthrough_e2e() -> None:
@@ -419,10 +419,10 @@ def test_legitimate_headers_passthrough_e2e() -> None:
     assert upstream.get("authorization") == "Bearer sk-ant-test"
 
 
-def test_inbound_read_path_still_reads_x_headroom_bypass() -> None:
+def test_inbound_read_path_still_reads_x_copium_bypass() -> None:
     """Bypass header still gates compression even though it's stripped from upstream.
 
-    The handler reads `request.headers.get('x-headroom-bypass')` directly.
+    The handler reads `request.headers.get('x-copium-bypass')` directly.
     Stripping the local outbound-bound `headers` dict does NOT affect that
     inbound read path.
     """
@@ -453,14 +453,14 @@ def test_inbound_read_path_still_reads_x_headroom_bypass() -> None:
     # if the inbound read worked; we can't easily intercept the log, so we
     # primarily assert that:
     #   1. The request still succeeds.
-    #   2. The upstream did NOT receive the `x-headroom-bypass` header.
+    #   2. The upstream did NOT receive the `x-copium-bypass` header.
     resp = client.post(
         "/v1/messages",
         headers={
             "x-api-key": "test-key",
             "anthropic-version": "2023-06-01",
             "content-type": "application/json",
-            "x-headroom-bypass": "true",
+            "x-copium-bypass": "true",
         },
         json={
             "model": "claude-sonnet-4-6",
@@ -470,14 +470,14 @@ def test_inbound_read_path_still_reads_x_headroom_bypass() -> None:
     )
     assert resp.status_code == 200
     upstream = {k.lower(): v for k, v in (transport.captured_headers or {}).items()}
-    assert "x-headroom-bypass" not in upstream
+    assert "x-copium-bypass" not in upstream
 
 
 def test_disabled_mode_passes_through_e2e(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """`HEADROOM_STRIP_INTERNAL_HEADERS=disabled` lets internal headers through."""
-    monkeypatch.setenv("HEADROOM_STRIP_INTERNAL_HEADERS", "disabled")
+    """`COPIUM_STRIP_INTERNAL_HEADERS=disabled` lets internal headers through."""
+    monkeypatch.setenv("COPIUM_STRIP_INTERNAL_HEADERS", "disabled")
     client, transport = _make_anthropic_app()
     resp = client.post(
         "/v1/messages",
@@ -485,7 +485,7 @@ def test_disabled_mode_passes_through_e2e(
             "x-api-key": "test-key",
             "anthropic-version": "2023-06-01",
             "content-type": "application/json",
-            "x-headroom-mode": "passthrough",
+            "x-copium-mode": "passthrough",
         },
         json={
             "model": "claude-sonnet-4-6",
@@ -497,7 +497,7 @@ def test_disabled_mode_passes_through_e2e(
     assert transport.captured_headers is not None
     upstream = {k.lower(): v for k, v in transport.captured_headers.items()}
     # Operator opt-in: internal header IS forwarded (diagnostic mode).
-    assert upstream.get("x-headroom-mode") == "passthrough"
+    assert upstream.get("x-copium-mode") == "passthrough"
 
 
 # ---------------------------------------------------------------------------
@@ -505,8 +505,8 @@ def test_disabled_mode_passes_through_e2e(
 # ---------------------------------------------------------------------------
 
 
-def test_openai_chat_x_headroom_bypass_not_forwarded() -> None:
-    """OpenAI handler also strips x-headroom-* before upstream call."""
+def test_openai_chat_x_copium_bypass_not_forwarded() -> None:
+    """OpenAI handler also strips x-copium-* before upstream call."""
     config = ProxyConfig(
         optimize=False,
         cache_enabled=False,
@@ -554,8 +554,8 @@ def test_openai_chat_x_headroom_bypass_not_forwarded() -> None:
         "/v1/chat/completions",
         headers={
             "authorization": "Bearer sk-test",
-            "x-headroom-bypass": "true",
-            "x-headroom-user-id": "u1",
+            "x-copium-bypass": "true",
+            "x-copium-user-id": "u1",
         },
         json={
             "model": "gpt-4o",
@@ -566,6 +566,6 @@ def test_openai_chat_x_headroom_bypass_not_forwarded() -> None:
     sent_headers_raw = captured.get("headers")
     assert isinstance(sent_headers_raw, dict)
     sent_headers = {k.lower(): v for k, v in sent_headers_raw.items()}
-    assert "x-headroom-bypass" not in sent_headers
-    assert "x-headroom-user-id" not in sent_headers
+    assert "x-copium-bypass" not in sent_headers
+    assert "x-copium-user-id" not in sent_headers
     assert sent_headers.get("authorization") == "Bearer sk-test"

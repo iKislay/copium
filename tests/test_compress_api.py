@@ -4,8 +4,8 @@ import json
 
 import pytest
 
-from headroom.compress import CompressResult, compress
-from headroom.hooks import CompressionHooks
+from copium.compress import CompressResult, compress
+from copium.hooks import CompressionHooks
 
 try:
     from starlette.applications import Starlette
@@ -14,7 +14,7 @@ try:
     from starlette.routing import Route
     from starlette.testclient import TestClient
 
-    from headroom.integrations.asgi import CompressionMiddleware
+    from copium.integrations.asgi import CompressionMiddleware
 
     HAS_STARLETTE = True
 except ImportError:
@@ -236,18 +236,18 @@ class TestASGIMiddleware:
 class TestLiteLLMCallback:
     def test_callback_imports(self):
         """Verify the callback can be imported."""
-        from headroom.integrations.litellm_callback import HeadroomCallback
+        from copium.integrations.litellm_callback import CopiumCallback
 
-        callback = HeadroomCallback()
+        callback = CopiumCallback()
         assert callback.total_tokens_saved == 0
 
     def test_callback_compresses_messages(self):
         """Callback compresses messages in pre_call_hook."""
         import asyncio
 
-        from headroom.integrations.litellm_callback import HeadroomCallback
+        from copium.integrations.litellm_callback import CopiumCallback
 
-        callback = HeadroomCallback()
+        callback = CopiumCallback()
 
         big_data = json.dumps([{"id": i, "status": "active"} for i in range(200)])
         data = {
@@ -265,9 +265,9 @@ class TestLiteLLMCallback:
         """Non-completion calls are passed through."""
         import asyncio
 
-        from headroom.integrations.litellm_callback import HeadroomCallback
+        from copium.integrations.litellm_callback import CopiumCallback
 
-        callback = HeadroomCallback()
+        callback = CopiumCallback()
         data = {"messages": [{"role": "user", "content": "hi"}]}
 
         result = asyncio.run(callback.async_pre_call_hook("key", data, "embedding"))

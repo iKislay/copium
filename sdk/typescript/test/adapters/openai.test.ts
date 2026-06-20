@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { withHeadroom } from "../../src/adapters/openai.js";
+import { withCopium } from "../../src/adapters/openai.js";
 
 const mockFetch = vi.fn();
 vi.stubGlobal("fetch", mockFetch);
@@ -21,7 +21,7 @@ function mockCompressSuccess(
   );
 }
 
-describe("withHeadroom (OpenAI)", () => {
+describe("withCopium (OpenAI)", () => {
   beforeEach(() => {
     mockFetch.mockReset();
   });
@@ -38,7 +38,7 @@ describe("withHeadroom (OpenAI)", () => {
       embeddings: { create: vi.fn() },
     };
 
-    const wrapped = withHeadroom(fakeClient as any, {
+    const wrapped = withCopium(fakeClient as any, {
       baseUrl: "http://localhost:8787",
     });
 
@@ -69,7 +69,7 @@ describe("withHeadroom (OpenAI)", () => {
       images: { generate: vi.fn() },
     };
 
-    const wrapped = withHeadroom(fakeClient as any, {
+    const wrapped = withCopium(fakeClient as any, {
       baseUrl: "http://localhost:8787",
     });
 
@@ -96,7 +96,7 @@ describe("withHeadroom (OpenAI)", () => {
       chat: { completions: { create: mockCreate } },
     };
 
-    const wrapped = withHeadroom(fakeClient as any, {
+    const wrapped = withCopium(fakeClient as any, {
       baseUrl: "http://localhost:8787",
     });
 
@@ -115,7 +115,7 @@ describe("withHeadroom (OpenAI)", () => {
       chat: { completions: { create: vi.fn().mockResolvedValue({}) } },
     };
 
-    const wrapped = withHeadroom(fakeClient as any, {
+    const wrapped = withCopium(fakeClient as any, {
       baseUrl: "http://localhost:8787",
     });
 
@@ -135,7 +135,7 @@ describe("withHeadroom (OpenAI)", () => {
       chat: { completions: { create: vi.fn().mockResolvedValue({}) } },
     };
 
-    const wrapped = withHeadroom(fakeClient as any, {
+    const wrapped = withCopium(fakeClient as any, {
       baseUrl: "http://localhost:8787",
       model: "gpt-4o",
     });
@@ -157,7 +157,7 @@ describe("withHeadroom (OpenAI)", () => {
       chat: { completions: { create: mockCreate } },
     };
 
-    const wrapped = withHeadroom(fakeClient as any, {
+    const wrapped = withCopium(fakeClient as any, {
       baseUrl: "http://localhost:8787",
       model: "gpt-4o", // compression model
     });

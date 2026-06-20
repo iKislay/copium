@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-import headroom.transforms as transforms
+import copium.transforms as transforms
 
 
 def test_transforms_getattr_and_dir(monkeypatch: pytest.MonkeyPatch) -> None:

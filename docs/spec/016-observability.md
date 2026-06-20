@@ -6,25 +6,25 @@
 
 ### Metrics
 
-Headroom exposes Prometheus metrics at `/metrics`.
+Copium exposes Prometheus metrics at `/metrics`.
 
 **Key Metrics:**
 
 | Metric | Type | Description |
 |--------|------|-------------|
-| `headroom_requests_total` | Counter | Total requests |
-| `headroom_tokens_original` | Counter | Original token count |
-| `headroom_tokens_compressed` | Counter | Compressed token count |
-| `headroom_savings_percent` | Histogram | Savings distribution |
-| `headroom_cache_hits_total` | Counter | Cache hits |
-| `headroom_cache_misses_total` | Counter | Cache misses |
-| `headroom_compression_duration_seconds` | Histogram | Compression latency |
-| `headroom_request_duration_seconds` | Histogram | Total request latency |
+| `copium_requests_total` | Counter | Total requests |
+| `copium_tokens_original` | Counter | Original token count |
+| `copium_tokens_compressed` | Counter | Compressed token count |
+| `copium_savings_percent` | Histogram | Savings distribution |
+| `copium_cache_hits_total` | Counter | Cache hits |
+| `copium_cache_misses_total` | Counter | Cache misses |
+| `copium_compression_duration_seconds` | Histogram | Compression latency |
+| `copium_request_duration_seconds` | Histogram | Total request latency |
 
 **Prometheus scrape config:**
 ```yaml
 scrape_configs:
-  - job_name: 'headroom'
+  - job_name: 'copium'
     static_configs:
       - targets: ['localhost:8787']
     metrics_path: '/metrics'
@@ -40,19 +40,19 @@ OpenTelemetry tracing support.
 ```bash
 LANGFUSE_PUBLIC_KEY=pk-lf-...
 LANGFUSE_SECRET_KEY=sk-lf-...
-HEADROOM_LANGFUSE_ENABLED=1
+COPIUM_LANGFUSE_ENABLED=1
 # Optional: override endpoint and service name
 # LANGFUSE_BASE_URL=https://cloud.langfuse.com
-# HEADROOM_LANGFUSE_SERVICE_NAME=headroom
+# COPIUM_LANGFUSE_SERVICE_NAME=copium
 ```
 
 **Spans:**
 | Span | Description |
 |------|-------------|
-| `headroom.proxy.request` | Full request lifecycle |
-| `headroom.compression` | Compression operation |
-| `headroom.cache.lookup` | Cache check |
-| `headroom.provider.call` | Provider API call |
+| `copium.proxy.request` | Full request lifecycle |
+| `copium.compression` | Compression operation |
+| `copium.cache.lookup` | Cache check |
+| `copium.provider.call` | Provider API call |
 
 ---
 
@@ -81,8 +81,8 @@ HEADROOM_LANGFUSE_ENABLED=1
 
 **Configuration:**
 ```bash
-# Logging level is controlled via the --log-level CLI flag (headroom proxy --log-level debug)
-# or RUST_LOG env var for the Rust proxy. No HEADROOM_LOG_LEVEL env var exists.
+# Logging level is controlled via the --log-level CLI flag (copium proxy --log-level debug)
+# or RUST_LOG env var for the Rust proxy. No COPIUM_LOG_LEVEL env var exists.
 ```
 
 Or in config:
@@ -123,15 +123,15 @@ logging:
 **Alert rule example (Prometheus):**
 ```yaml
 groups:
-  - name: headroom
+  - name: copium
     rules:
       - alert: HighErrorRate
-        expr: rate(headroom_errors_total[5m]) / rate(headroom_requests_total[5m]) > 0.05
+        expr: rate(copium_errors_total[5m]) / rate(copium_requests_total[5m]) > 0.05
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: "High error rate in Headroom"
+          summary: "High error rate in Copium"
 ```
 
 ---

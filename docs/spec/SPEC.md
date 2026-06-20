@@ -1,4 +1,4 @@
-# Headroom Living Specification
+# Copium Living Specification
 
 **Version:** 1.0.0-draft
 **Date:** 2026-04-16
@@ -9,9 +9,9 @@
 
 ## Constitution
 
-This specification is the **canonical source of truth** for how Headroom is designed to behave. It serves:
+This specification is the **canonical source of truth** for how Copium is designed to behave. It serves:
 
-1. **New contributors** — One place to understand how Headroom works
+1. **New contributors** — One place to understand how Copium works
 2. **Enterprises evaluating adoption** — Clear guarantees about behavior, privacy, security
 3. **Operators running managed deployments** — Operational guidance for all surfaces
 4. **Plugin authors** — Clear contracts for extension points
@@ -31,7 +31,7 @@ This specification is the **canonical source of truth** for how Headroom is desi
 
 | # | Section | Status | Description |
 |---|---------|:------:|-------------|
-| 001 | [Vision](001-vision.md) | done | What Headroom is, what it is not |
+| 001 | [Vision](001-vision.md) | done | What Copium is, what it is not |
 | 002 | [Architecture](002-architecture.md) | done | Component diagram + descriptions |
 | 003 | [ADRs](003-adrs.md) | done | Architecture Decision Records |
 | 004 | [Domain Model](004-domain-model.md) | done | Core entities |
@@ -57,15 +57,15 @@ This specification is the **canonical source of truth** for how Headroom is desi
 
 ## Quick Reference
 
-### What Headroom Is
+### What Copium Is
 
 - A **context compression proxy** for AI provider APIs
-- A **Python package** (`headroom-ai`) with proxy, SDK, and CLI
-- A **TypeScript SDK** (`@headroom/sdk`) for Node.js
+- A **Python package** (`copium-ai`) with proxy, SDK, and CLI
+- A **TypeScript SDK** (`@copium/sdk`) for Node.js
 - A **dashboard** for visualizing savings
 - A **learn system** with per-agent plugins
 
-### What Headroom Is Not
+### What Copium Is Not
 
 - A model provider
 - A data store for prompts (by default)

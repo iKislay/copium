@@ -1,6 +1,6 @@
 # Benchmarks
 
-Headroom's core promise: **compress context without losing accuracy**. This page shows accuracy benchmarks, compression performance, and real-world production telemetry from 250+ active proxy instances.
+Copium's core promise: **compress context without losing accuracy**. This page shows accuracy benchmarks, compression performance, and real-world production telemetry from 250+ active proxy instances.
 
 !!! success "Key Results"
     **98.2% recall** on article extraction with **94.9% compression**.
@@ -10,7 +10,7 @@ Headroom's core promise: **compress context without losing accuracy**. This page
 
 ## Compression Performance
 
-Tested on Apple M-series (CPU), headroom v0.5.18. Each test runs `compress()` on realistic tool outputs.
+Tested on Apple M-series (CPU), copium v0.5.18. Each test runs `compress()` on realistic tool outputs.
 
 | Content Type | Original | Compressed | Saved | Ratio | Latency |
 |---|---|---|---|---|---|
@@ -31,7 +31,7 @@ Tested on Apple M-series (CPU), headroom v0.5.18. Each test runs `compress()` on
 
 ## Production Telemetry
 
-Real-world data from **50,000+ proxy sessions** across 250+ unique instances (March 30 – April 2, 2026). Collected via anonymous telemetry beacon (opt-out: `HEADROOM_TELEMETRY=off`).
+Real-world data from **50,000+ proxy sessions** across 250+ unique instances (March 30 – April 2, 2026). Collected via anonymous telemetry beacon (opt-out: `COPIUM_TELEMETRY=off`).
 
 ### Proxy Overhead
 
@@ -100,7 +100,7 @@ For LLM applications, **recall is critical** — 98.2% means nearly all article 
 
 ```bash
 # Run it yourself
-pip install "headroom-ai[html]" datasets
+pip install "copium-ai[html]" datasets
 pytest tests/test_evals/test_html_oss_benchmarks.py::TestExtractionBenchmark -v -s
 ```
 
@@ -109,7 +109,7 @@ pytest tests/test_evals/test_html_oss_benchmarks.py::TestExtractionBenchmark -v 
 **Test**: 100 production log entries with critical error at position 67
 **Task**: Find the error, error code, resolution, and affected count
 
-| Metric | Baseline | Headroom |
+| Metric | Baseline | Copium |
 |---|---|---|
 | Input tokens | 10,144 | 1,260 |
 | Correct answers | 4/4 | **4/4** |
@@ -131,7 +131,7 @@ SmartCrusher preserves first N items (schema), last N items (recency), all anoma
 
 ## Limitations
 
-### What Headroom Does NOT Compress
+### What Copium Does NOT Compress
 
 - **Short messages** (< 300 tokens) — overhead exceeds savings
 - **Source code** — passes through unchanged to preserve correctness (unless tree-sitter AST compression is enabled)
@@ -146,14 +146,14 @@ SmartCrusher preserves first N items (schema), last N items (recency), all anoma
 - **Kompress ONNX** (P90: 576ms) — ML inference on CPU for text compression
 - **Content detection** (Magika) — ML classification of content type
 
-### When Headroom Adds the Most Value
+### When Copium Adds the Most Value
 
 - **Long agent sessions** with accumulated tool outputs (40-80% compression)
 - **JSON-heavy workflows** (API responses, database queries) — 83-94% compression
 - **Build/test output** — 85-94% compression
 - **Multi-tool agents** — 60-76% compression across tool results
 
-### When Headroom Adds Little Value
+### When Copium Adds Little Value
 
 - **Short conversational exchanges** — median 4.8% compression
 - **Code-only sessions** (reading/writing files) — code passes through
@@ -184,7 +184,7 @@ A 94.9% compression means the output is 5.1% of the original size.
 - Collected via anonymous beacon (no prompts, no content, no PII)
 - Image-inflated instances excluded (base64 counted as text tokens — fixed in v0.5.18)
 - Multi-worker beacon spam excluded (per-instance MAX, not SUM)
-- Opt-out: `HEADROOM_TELEMETRY=off`
+- Opt-out: `COPIUM_TELEMETRY=off`
 
 ---
 
@@ -192,8 +192,8 @@ A 94.9% compression means the output is 5.1% of the original size.
 
 ```bash
 # Clone the repo
-git clone https://github.com/chopratejas/headroom.git
-cd headroom
+git clone https://github.com/iKislay/copium.git
+cd copium
 
 # Install with eval dependencies
 pip install -e ".[evals,html]"
@@ -202,7 +202,7 @@ pip install -e ".[evals,html]"
 pytest tests/test_evals/ -v -s
 
 # Run compression benchmark
-python -c "from headroom import compress; print(compress([{'role':'user','content':'test'}]))"
+python -c "from copium import compress; print(compress([{'role':'user','content':'test'}]))"
 
 # Run local proxy mode benchmark (no API calls)
 python benchmarks/proxy_mode_benchmark.py --turns 12 --show-real-harness

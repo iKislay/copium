@@ -1,6 +1,6 @@
 """Tests for Compression Hooks interface."""
 
-from headroom.hooks import CompressContext, CompressEvent, CompressionHooks
+from copium.hooks import CompressContext, CompressEvent, CompressionHooks
 
 
 class TestCompressionHooksDefaults:

@@ -50,13 +50,13 @@ jobs:
             pytest ruff mypy
 
       - name: Lint capture code
-        run: ruff check headroom/capture headroom/cli/capture.py tests/test_network_diff_capture.py
+        run: ruff check copium/capture copium/cli/capture.py tests/test_network_diff_capture.py
 
       - name: Format check capture code
-        run: ruff format --check headroom/capture headroom/cli/capture.py tests/test_network_diff_capture.py
+        run: ruff format --check copium/capture copium/cli/capture.py tests/test_network_diff_capture.py
 
       - name: Type-check capture code
-        run: mypy headroom/capture/network_diff.py headroom/cli/capture.py
+        run: mypy copium/capture/network_diff.py copium/cli/capture.py
 
       - name: Run capture tests
         run: python -m pytest tests/test_network_diff_capture.py
@@ -72,7 +72,7 @@ jobs:
         run: docker compose -f docker/differential-network-capture/docker-compose.yml --profile run build claude-direct
 
       - name: Smoke Claude Code runner image
-        run: docker run --rm -e CLAUDE_COMMAND="claude --version" headroom-network-diff-claude-direct:latest
+        run: docker run --rm -e CLAUDE_COMMAND="claude --version" copium-network-diff-claude-direct:latest
 
   live-anthropic:
     runs-on: ubuntu-latest
@@ -118,22 +118,22 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p captures
-          docker compose up -d --build mitm-direct mitm-headroom-upstream headroom-proxy mitm-headroom-client
+          docker compose up -d --build mitm-direct mitm-copium-upstream copium-proxy mitm-copium-client
           trap 'docker compose --profile run down -v' EXIT
 
           for i in $(seq 1 90); do
-            if docker compose exec -T headroom-proxy curl --fail --silent http://127.0.0.1:8787/readyz >/dev/null; then
+            if docker compose exec -T copium-proxy curl --fail --silent http://127.0.0.1:8787/readyz >/dev/null; then
               break
             fi
             if [ "$i" -eq 90 ]; then
-              docker compose logs headroom-proxy
+              docker compose logs copium-proxy
               exit 1
             fi
             sleep 2
           done
 
           docker compose --profile run run --rm claude-direct
-          docker compose --profile run run --rm claude-headroom
+          docker compose --profile run run --rm claude-copium
 
       - name: Report skipped live capture
         if: env.ANTHROPIC_API_KEY == ''
@@ -149,9 +149,9 @@ jobs:
       - name: Generate network diff report
         if: env.ANTHROPIC_API_KEY != ''
         run: |
-          python -m headroom.cli capture network-diff \
+          python -m copium.cli capture network-diff \
             --direct docker/differential-network-capture/captures/direct.jsonl \
-            --headroom docker/differential-network-capture/captures/headroom-client.jsonl \
+            --copium docker/differential-network-capture/captures/copium-client.jsonl \
             --output docker/differential-network-capture/captures/report.md \
             --json-output docker/differential-network-capture/captures/report.json
 

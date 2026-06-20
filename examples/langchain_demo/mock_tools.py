@@ -1,6 +1,6 @@
 """Mock tools that generate realistic large outputs.
 
-These simulate real-world API responses that benefit from Headroom compression:
+These simulate real-world API responses that benefit from Copium compression:
 - Database queries returning many rows
 - Search APIs returning many results
 - Log analysis tools returning many entries

@@ -1,30 +1,30 @@
 /**
- * Headroom OpenClaw Plugin — register ContextEngine + CCR retrieval tool.
+ * Copium OpenClaw Plugin — register ContextEngine + CCR retrieval tool.
  *
  * Usage:
- *   openclaw plugins install headroom-ai/openclaw
+ *   openclaw plugins install copium-ai/openclaw
  *
  * Configuration (in ~/.openclaw/config.json or ~/.clawdbot/clawdbot.json):
  *   {
  *     "plugins": {
- *       "slots": { "contextEngine": "headroom" },
- *       "entries": { "headroom": { "enabled": true } }
+ *       "slots": { "contextEngine": "copium" },
+ *       "entries": { "copium": { "enabled": true } }
  *     }
  *   }
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { HeadroomContextEngine } from "../engine.js";
+import { CopiumContextEngine } from "../engine.js";
 import {
   applyGatewayProviderBaseUrlsInPlace,
   resolveGatewayProviderIds,
 } from "../gateway-config.js";
 import { normalizeAndValidateProxyUrl } from "../proxy-manager.js";
-import { createHeadroomRetrieveTool } from "../tools/headroom-retrieve.js";
+import { createCopiumRetrieveTool } from "../tools/copium-retrieve.js";
 
-export default function headroomPlugin(api: any) {
-  const config = api.config?.plugins?.entries?.headroom?.config ?? {};
+export default function copiumPlugin(api: any) {
+  const config = api.config?.plugins?.entries?.copium?.config ?? {};
   const logger = api.logger ?? console;
   const rawProxyUrl = config.proxyUrl;
   const proxyUrl =
@@ -32,7 +32,7 @@ export default function headroomPlugin(api: any) {
       ? normalizeAndValidateProxyUrl(rawProxyUrl)
       : undefined;
 
-  const engine = new HeadroomContextEngine({ ...config, proxyUrl }, {
+  const engine = new CopiumContextEngine({ ...config, proxyUrl }, {
     info: (m: string) => logger.info(m),
     warn: (m: string) => logger.warn(m),
     error: (m: string) => logger.error(m),
@@ -50,22 +50,22 @@ export default function headroomPlugin(api: any) {
 
       if (changed) {
         logger.info(
-          `[headroom] Routed ${gatewayProviderIds.join(", ")} through Headroom proxy in memory at ${activeProxyUrl}`,
+          `[copium] Routed ${gatewayProviderIds.join(", ")} through Copium proxy in memory at ${activeProxyUrl}`,
         );
       } else {
         logger.info(
-          `[headroom] Upstream gateway already routed in memory for ${gatewayProviderIds.join(", ")} at ${activeProxyUrl}`,
+          `[copium] Upstream gateway already routed in memory for ${gatewayProviderIds.join(", ")} at ${activeProxyUrl}`,
         );
       }
     } catch (error) {
-      logger.warn(`[headroom] Failed to configure upstream gateway routing: ${error}`);
+      logger.warn(`[copium] Failed to configure upstream gateway routing: ${error}`);
     }
   };
 
   const ensureGatewayRouting = async () => {
     const activeProxyUrl = engine.getProxyUrl();
     if (!activeProxyUrl) {
-      logger.debug?.("[headroom] Deferring upstream gateway routing until proxy is available");
+      logger.debug?.("[copium] Deferring upstream gateway routing until proxy is available");
       engine.ensureProxyStarted();
       return;
     }
@@ -77,13 +77,13 @@ export default function headroomPlugin(api: any) {
   });
 
   // Register as context engine
-  api.registerContextEngine("headroom", () => engine);
+  api.registerContextEngine("copium", () => engine);
 
   // Register CCR retrieval tool (active once proxy is running)
   api.registerTool((ctx: any) => {
     const activeProxyUrl = engine.getProxyUrl() ?? proxyUrl;
     if (!activeProxyUrl) return null;
-    return createHeadroomRetrieveTool({ proxyUrl: activeProxyUrl });
+    return createCopiumRetrieveTool({ proxyUrl: activeProxyUrl });
   });
 
   api.on("gateway_start", async () => {
@@ -92,5 +92,5 @@ export default function headroomPlugin(api: any) {
 
   void ensureGatewayRouting();
 
-  logger.info("[headroom] Plugin registered");
+  logger.info("[copium] Plugin registered");
 }

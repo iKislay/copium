@@ -4,9 +4,9 @@ from types import SimpleNamespace
 
 import pytest
 
-import headroom.transforms.content_router as content_router_module
-from headroom.transforms.content_detector import ContentType, DetectionResult
-from headroom.transforms.content_router import (
+import copium.transforms.content_router as content_router_module
+from copium.transforms.content_detector import ContentType, DetectionResult
+from copium.transforms.content_router import (
     CompressionCache,
     CompressionStrategy,
     ContentRouter,
@@ -102,7 +102,7 @@ def test_router_result_helpers_and_summary() -> None:
 
 def test_content_signature_and_detection_helpers(monkeypatch: pytest.MonkeyPatch) -> None:
     """Stage-3d (PR5) wired `_detect_content` through the Rust chain
-    (`headroom._core.detect_content_type` → magika → unidiff →
+    (`copium._core.detect_content_type` → magika → unidiff →
     PlainText). The pre-PR5 Python-side `_get_magika_detector`
     fallback path is gone.
 
@@ -118,12 +118,12 @@ def test_content_signature_and_detection_helpers(monkeypatch: pytest.MonkeyPatch
     # Monkeypatch the Rust binding to return a deterministic fake
     # result; verify _detect_content propagates the content_type
     # tag back as the Python ContentType enum.
-    import headroom._core as _core
+    import copium._core as _core
 
     # Pin the Rust backend so this test exercises the native delegation
     # path on every platform (Windows now defaults to the pure-Python
     # detector — see content_router._resolve_detect_backend).
-    monkeypatch.setenv("HEADROOM_DETECT_BACKEND", "rust")
+    monkeypatch.setenv("COPIUM_DETECT_BACKEND", "rust")
 
     fake_rust_result = SimpleNamespace(
         content_type="source_code",
@@ -655,10 +655,10 @@ def test_pinning_skips_already_compressed(monkeypatch: pytest.MonkeyPatch) -> No
 def test_detect_backend_env_python_forces_python_path(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """HEADROOM_DETECT_BACKEND=python forces the pure-Python regex path."""
-    import headroom._core as _core
+    """COPIUM_DETECT_BACKEND=python forces the pure-Python regex path."""
+    import copium._core as _core
 
-    monkeypatch.setenv("HEADROOM_DETECT_BACKEND", "python")
+    monkeypatch.setenv("COPIUM_DETECT_BACKEND", "python")
 
     called = []
 
@@ -675,17 +675,17 @@ def test_detect_backend_env_python_forces_python_path(
 
 
 def test_detect_backend_env_override(monkeypatch: pytest.MonkeyPatch) -> None:
-    """HEADROOM_DETECT_BACKEND pins the detector on any platform."""
+    """COPIUM_DETECT_BACKEND pins the detector on any platform."""
     resolve = content_router_module._resolve_detect_backend
 
-    monkeypatch.setenv("HEADROOM_DETECT_BACKEND", "python")
+    monkeypatch.setenv("COPIUM_DETECT_BACKEND", "python")
     assert resolve() == "python"
 
-    monkeypatch.setenv("HEADROOM_DETECT_BACKEND", "RUST")  # case-insensitive
+    monkeypatch.setenv("COPIUM_DETECT_BACKEND", "RUST")  # case-insensitive
     assert resolve() == "rust"
 
     # Unrecognized values fall back to the platform default.
-    monkeypatch.setenv("HEADROOM_DETECT_BACKEND", "bogus")
+    monkeypatch.setenv("COPIUM_DETECT_BACKEND", "bogus")
     monkeypatch.setattr(content_router_module.sys, "platform", "linux")
     assert resolve() == "rust"
 
@@ -694,7 +694,7 @@ def test_detect_backend_defaults_to_python_on_windows(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Windows defaults to the pure-Python detector (native ONNX hang, #845)."""
-    monkeypatch.delenv("HEADROOM_DETECT_BACKEND", raising=False)
+    monkeypatch.delenv("COPIUM_DETECT_BACKEND", raising=False)
 
     monkeypatch.setattr(content_router_module.sys, "platform", "win32")
     assert content_router_module._resolve_detect_backend() == "python"
@@ -707,9 +707,9 @@ def test_detect_content_python_backend_skips_native(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """The python backend must not touch the native detector at all."""
-    import headroom._core as _core
+    import copium._core as _core
 
-    monkeypatch.setenv("HEADROOM_DETECT_BACKEND", "python")
+    monkeypatch.setenv("COPIUM_DETECT_BACKEND", "python")
 
     def _boom(_content: str) -> None:
         raise AssertionError("native detector must not be called")

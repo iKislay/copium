@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from headroom.compression.handlers.json_handler import (
+from copium.compression.handlers.json_handler import (
     JSONStructureHandler,
     JSONTokenType,
     extract_json_schema,

@@ -27,4 +27,4 @@ repos:
         args: [--ignore-missing-imports]
         exclude: ^experiments/
         pass_filenames: false
-        entry: mypy headroom
+        entry: mypy copium

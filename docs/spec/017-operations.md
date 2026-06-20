@@ -60,19 +60,19 @@ curl http://localhost:8787/readyz
 
 | Installation | Location |
 |-------------|----------|
-| Docker | `docker logs headroom` |
-| Native | `~/.headroom/logs/` |
-| Systemd | `journalctl -u headroom` |
+| Docker | `docker logs copium` |
+| Native | `~/.copium/logs/` |
+| Systemd | `journalctl -u copium` |
 
 ### Log Levels
 
 Set via CLI flag or `RUST_LOG` env var for the Rust proxy:
 ```bash
 # Python proxy
-headroom proxy --log-level debug
+copium proxy --log-level debug
 
 # Rust proxy
-RUST_LOG=debug headroom-proxy --upstream http://...
+RUST_LOG=debug copium-proxy --upstream http://...
 ```
 
 ---
@@ -84,7 +84,7 @@ RUST_LOG=debug headroom-proxy --upstream http://...
 **Scrape Config:**
 ```yaml
 scrape_configs:
-  - job_name: 'headroom'
+  - job_name: 'copium'
     static_configs:
       - targets: ['localhost:8787']
     metrics_path: '/metrics'
@@ -97,7 +97,7 @@ scrape_configs:
 ### Docker
 
 ```bash
-docker pull headroom-ai/headroom:latest
+docker pull copium-ai/copium:latest
 docker-compose down
 docker-compose up -d
 ```
@@ -105,14 +105,14 @@ docker-compose up -d
 ### Native
 
 ```bash
-pip install --upgrade headroom-ai
-# Restart headroom service
+pip install --upgrade copium-ai
+# Restart copium service
 ```
 
 ### Embedded
 
 ```bash
-pip install --upgrade headroom-ai
+pip install --upgrade copium-ai
 # Restart application
 ```
 
@@ -124,7 +124,7 @@ pip install --upgrade headroom-ai
 
 ```bash
 docker-compose down
-docker tag headroom-ai/headroom:latest headroom-ai/headroom:rollback
+docker tag copium-ai/copium:latest copium-ai/copium:rollback
 # Edit docker-compose.yml to use rollback tag
 docker-compose up -d
 ```
@@ -144,16 +144,16 @@ docker-compose up -d
 **Prometheus queries:**
 ```promql
 # Request rate
-rate(headroom_requests_total[5m])
+rate(copium_requests_total[5m])
 
 # Error rate
-rate(headroom_errors_total[5m]) / rate(headroom_requests_total[5m])
+rate(copium_errors_total[5m]) / rate(copium_requests_total[5m])
 
 # Average savings
-rate(headroom_tokens_original[5m] - headroom_tokens_compressed[5m]) / rate(headroom_tokens_original[5m])
+rate(copium_tokens_original[5m] - copium_tokens_compressed[5m]) / rate(copium_tokens_original[5m])
 
 # Cache hit rate
-rate(headroom_cache_hits_total[5m]) / (rate(headroom_cache_hits_total[5m]) + rate(headroom_cache_misses_total[5m]))
+rate(copium_cache_hits_total[5m]) / (rate(copium_cache_hits_total[5m]) + rate(copium_cache_misses_total[5m]))
 ```
 
 ---
@@ -162,7 +162,7 @@ rate(headroom_cache_hits_total[5m]) / (rate(headroom_cache_hits_total[5m]) + rat
 
 | Symptom | Cause | Solution |
 |---------|-------|----------|
-| "Connection refused" | Proxy not running | Start it with `headroom proxy` |
+| "Connection refused" | Proxy not running | Start it with `copium proxy` |
 | "Cache miss on every request" | Cache disabled | Start without `--no-cache` |
 | "No savings shown" | Database locked | Check file permissions |
 | "Provider timeout" | Network issue | Check firewall/proxy |

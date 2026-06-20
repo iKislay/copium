@@ -20,8 +20,8 @@ from typing import Any
 
 import pytest
 
-from headroom.memory import storage_router as sr_mod
-from headroom.proxy.memory_handler import (
+from copium.memory import storage_router as sr_mod
+from copium.proxy.memory_handler import (
     MemoryConfig,
     MemoryHandler,
     MemoryMode,
@@ -75,7 +75,7 @@ def patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     # The handler's _init_backend_locked imports LocalBackend locally;
     # patch the same target there too. The route below is the canonical
     # import path used by the handler.
-    import headroom.memory.backends.local as _local_mod
+    import copium.memory.backends.local as _local_mod
 
     monkeypatch.setattr(_local_mod, "LocalBackend", _FakeBackend)
 
@@ -95,7 +95,7 @@ def handler(tmp_path: Path) -> MemoryHandler:
 
 def _ctx_for_cwd(cwd: str, user_id: str = "alice") -> Any:
     return sr_mod.RequestContext(
-        headers={"x-headroom-cwd": cwd},
+        headers={"x-copium-cwd": cwd},
         system_prompt="",
         base_user_id=user_id,
     )
@@ -259,7 +259,7 @@ def test_user_mode_partitions_by_user_id(tmp_path: Path) -> None:
 #
 # When `mode=PROJECT` and `unresolved_project_fallback="empty"` (the new
 # default), an inbound request with no project-resolution signal
-# (x-headroom-project-id / x-headroom-cwd / system-prompt cwd:) must
+# (x-copium-project-id / x-copium-cwd / system-prompt cwd:) must
 # return None from search_and_format_context — NOT silently pool the
 # request's memory into the GLOBAL bucket. The old GLOBAL fallback was
 # what surfaced a memory from a prior unrelated TAM-550 session into
@@ -287,7 +287,7 @@ def test_unresolved_project_returns_no_context(tmp_path: Path) -> None:
         # Request with NO project-resolution signal: no header, no cwd,
         # no parseable system-prompt cwd: line.
         ctx_unresolved = sr_mod.RequestContext(
-            headers={},  # No x-headroom-* headers.
+            headers={},  # No x-copium-* headers.
             system_prompt="You are helpful.",  # No env block.
             base_user_id="alice",
         )

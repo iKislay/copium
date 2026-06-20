@@ -12,15 +12,15 @@ pytest.importorskip("fastapi")
 
 from fastapi.testclient import TestClient
 
-from headroom.hooks import CompressionHooks
-from headroom.proxy.savings_tracker import HEADROOM_SAVINGS_PATH_ENV_VAR
-from headroom.proxy.server import ProxyConfig, create_app
+from copium.hooks import CompressionHooks
+from copium.proxy.savings_tracker import COPIUM_SAVINGS_PATH_ENV_VAR
+from copium.proxy.server import ProxyConfig, create_app
 
 
 def test_anthropic_hooks_do_not_break_extract_user_query_lookup(tmp_path, monkeypatch):
     """Hooks-enabled Anthropic requests should still reach the compression pipeline."""
     monkeypatch.setenv(
-        HEADROOM_SAVINGS_PATH_ENV_VAR,
+        COPIUM_SAVINGS_PATH_ENV_VAR,
         str(tmp_path / "proxy_savings.json"),
     )
 
@@ -86,18 +86,18 @@ def test_anthropic_hooks_do_not_break_extract_user_query_lookup(tmp_path, monkey
         assert response.status_code == 200
         assert proxy.anthropic_pipeline.apply.called
 
-        # `x-headroom-tokens-after` reflects the proxy-side recount of the
+        # `x-copium-tokens-after` reflects the proxy-side recount of the
         # pipeline's returned messages (NOT the mock's `tokens_after=40`).
         # See issue #327 Bug 3: prior behavior trusted pipeline tokens_after
         # which used a different tokenizer than `original_tokens`, breaking
         # the inflation guard.
-        from headroom.tokenizers.registry import get_tokenizer
+        from copium.tokenizers.registry import get_tokenizer
 
         expected_after = get_tokenizer("claude-sonnet-4-6").count_messages(compressed_messages)
-        assert response.headers["x-headroom-tokens-after"] == str(expected_after)
-        tokens_before = int(response.headers["x-headroom-tokens-before"])
-        tokens_after = int(response.headers["x-headroom-tokens-after"])
+        assert response.headers["x-copium-tokens-after"] == str(expected_after)
+        tokens_before = int(response.headers["x-copium-tokens-before"])
+        tokens_after = int(response.headers["x-copium-tokens-after"])
         assert tokens_before > tokens_after, (
             f"compression should reduce tokens: before={tokens_before} after={tokens_after}"
         )
-        assert int(response.headers["x-headroom-tokens-saved"]) > 0
+        assert int(response.headers["x-copium-tokens-saved"]) > 0

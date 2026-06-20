@@ -7,15 +7,15 @@ from pathlib import Path
 import click
 import pytest
 
-from headroom.install.models import DeploymentManifest, ManagedMutation
-from headroom.install.providers import _apply_windows_env_scope, _remove_windows_env_scope
-from headroom.providers.claude.install import apply_provider_scope as apply_claude_provider_scope
-from headroom.providers.claude.install import build_install_env as build_claude_install_env
-from headroom.providers.claude.install import revert_provider_scope as revert_claude_provider_scope
-from headroom.providers.codex.install import apply_provider_scope as apply_codex_provider_scope
-from headroom.providers.codex.install import build_install_env as build_codex_install_env
-from headroom.providers.codex.install import revert_provider_scope as revert_codex_provider_scope
-from headroom.providers.copilot.install import build_install_env as build_copilot_install_env
+from copium.install.models import DeploymentManifest, ManagedMutation
+from copium.install.providers import _apply_windows_env_scope, _remove_windows_env_scope
+from copium.providers.claude.install import apply_provider_scope as apply_claude_provider_scope
+from copium.providers.claude.install import build_install_env as build_claude_install_env
+from copium.providers.claude.install import revert_provider_scope as revert_claude_provider_scope
+from copium.providers.codex.install import apply_provider_scope as apply_codex_provider_scope
+from copium.providers.codex.install import build_install_env as build_codex_install_env
+from copium.providers.codex.install import revert_provider_scope as revert_codex_provider_scope
+from copium.providers.copilot.install import build_install_env as build_copilot_install_env
 
 
 def _manifest(tmp_path: Path) -> DeploymentManifest:
@@ -44,7 +44,7 @@ def test_apply_and_revert_claude_provider_scope(monkeypatch, tmp_path: Path) -> 
         json.dumps({"env": {"ANTHROPIC_API_KEY": "keep", "ANTHROPIC_BASE_URL": "https://old"}})
     )
     monkeypatch.setattr(
-        "headroom.providers.claude.install.claude_settings_path", lambda: settings_path
+        "copium.providers.claude.install.claude_settings_path", lambda: settings_path
     )
     manifest = _manifest(tmp_path)
 
@@ -63,12 +63,12 @@ def test_apply_and_revert_claude_provider_scope(monkeypatch, tmp_path: Path) -> 
 def test_apply_and_revert_codex_provider_scope(monkeypatch, tmp_path: Path) -> None:
     config_path = tmp_path / "config.toml"
     config_path.write_text('model = "gpt-4o"\n')
-    monkeypatch.setattr("headroom.providers.codex.install.codex_config_path", lambda: config_path)
+    monkeypatch.setattr("copium.providers.codex.install.codex_config_path", lambda: config_path)
     manifest = _manifest(tmp_path)
 
     mutation = apply_codex_provider_scope(manifest)
     content = config_path.read_text()
-    assert 'model_provider = "headroom"' in content
+    assert 'model_provider = "copium"' in content
     assert 'base_url = "http://127.0.0.1:8787/v1"' in content
     assert 'env_key = "OPENAI_API_KEY"' not in content
     assert "requires_openai_auth" not in content
@@ -76,7 +76,7 @@ def test_apply_and_revert_codex_provider_scope(monkeypatch, tmp_path: Path) -> N
     assert mutation is not None
     revert_codex_provider_scope(mutation, manifest)
     reverted = config_path.read_text()
-    assert 'model_provider = "headroom"' not in reverted
+    assert 'model_provider = "copium"' not in reverted
     assert reverted.strip() == 'model = "gpt-4o"'
 
 
@@ -85,7 +85,7 @@ def test_apply_codex_provider_scope_emits_flag_for_chatgpt_auth(
 ) -> None:
     config_path = tmp_path / "config.toml"
     (tmp_path / "auth.json").write_text('{"auth_mode": "chatgpt"}')
-    monkeypatch.setattr("headroom.providers.codex.install.codex_config_path", lambda: config_path)
+    monkeypatch.setattr("copium.providers.codex.install.codex_config_path", lambda: config_path)
     manifest = _manifest(tmp_path)
 
     apply_codex_provider_scope(manifest)
@@ -101,7 +101,7 @@ def test_codex_build_install_env_returns_proxy_base_url() -> None:
 
 def test_apply_codex_provider_scope_skips_non_provider_scope(monkeypatch, tmp_path: Path) -> None:
     config_path = tmp_path / "config.toml"
-    monkeypatch.setattr("headroom.providers.codex.install.codex_config_path", lambda: config_path)
+    monkeypatch.setattr("copium.providers.codex.install.codex_config_path", lambda: config_path)
     manifest = _manifest(tmp_path)
     manifest.scope = "user"
 
@@ -117,23 +117,23 @@ def test_apply_codex_provider_scope_replaces_existing_managed_block(
     config_path = tmp_path / "config.toml"
     config_path.write_text(
         'model = "gpt-4o"\n\n'
-        "# --- Headroom persistent provider ---\n"
-        'model_provider = "headroom"\n\n'
-        "[model_providers.headroom]\n"
-        'name = "Headroom persistent proxy"\n'
+        "# --- Copium persistent provider ---\n"
+        'model_provider = "copium"\n\n'
+        "[model_providers.copium]\n"
+        'name = "Copium persistent proxy"\n'
         'base_url = "http://127.0.0.1:1111/v1"\n'
         "requires_openai_auth = true\n"
         "supports_websockets = true\n"
-        "# --- end Headroom persistent provider ---\n"
+        "# --- end Copium persistent provider ---\n"
     )
-    monkeypatch.setattr("headroom.providers.codex.install.codex_config_path", lambda: config_path)
+    monkeypatch.setattr("copium.providers.codex.install.codex_config_path", lambda: config_path)
     manifest = _manifest(tmp_path)
     manifest.port = 9999
 
     apply_codex_provider_scope(manifest)
 
     content = config_path.read_text()
-    assert content.count("# --- Headroom persistent provider ---") == 1
+    assert content.count("# --- Copium persistent provider ---") == 1
     assert 'base_url = "http://127.0.0.1:9999/v1"' in content
     assert 'base_url = "http://127.0.0.1:1111/v1"' not in content
     # Bug 3 (#406): the replacement block must NOT carry requires_openai_auth.
@@ -144,7 +144,7 @@ def test_apply_codex_provider_scope_creates_new_config_when_missing(
     monkeypatch, tmp_path: Path
 ) -> None:
     config_path = tmp_path / "nested" / "config.toml"
-    monkeypatch.setattr("headroom.providers.codex.install.codex_config_path", lambda: config_path)
+    monkeypatch.setattr("copium.providers.codex.install.codex_config_path", lambda: config_path)
     manifest = _manifest(tmp_path)
 
     mutation = apply_codex_provider_scope(manifest)
@@ -175,7 +175,7 @@ def test_revert_codex_provider_scope_ignores_files_without_managed_block(
 ) -> None:
     config_path = tmp_path / "config.toml"
     config_path.write_text('model = "gpt-4o"\n')
-    monkeypatch.setattr("headroom.providers.codex.install.codex_config_path", lambda: config_path)
+    monkeypatch.setattr("copium.providers.codex.install.codex_config_path", lambda: config_path)
     manifest = _manifest(tmp_path)
     mutation = ManagedMutation(target="codex", kind="toml-block", path=str(config_path))
 
@@ -186,38 +186,38 @@ def test_revert_codex_provider_scope_ignores_files_without_managed_block(
 
 def test_apply_openclaw_provider_scope_uses_manifest_port(monkeypatch, tmp_path: Path) -> None:
     recorded: list[list[str]] = []
-    monkeypatch.setattr("headroom.providers.openclaw.install.shutil_which", lambda name: "openclaw")
+    monkeypatch.setattr("copium.providers.openclaw.install.shutil_which", lambda name: "openclaw")
     monkeypatch.setattr(
-        "headroom.providers.openclaw.install.resolve_headroom_command",
-        lambda: ["headroom"],
+        "copium.providers.openclaw.install.resolve_copium_command",
+        lambda: ["copium"],
     )
     monkeypatch.setattr(
-        "headroom.providers.openclaw.install._invoke_openclaw",
+        "copium.providers.openclaw.install._invoke_openclaw",
         lambda command: recorded.append(command),
     )
     monkeypatch.setattr(
-        "headroom.providers.openclaw.install.openclaw_config_path",
+        "copium.providers.openclaw.install.openclaw_config_path",
         lambda: tmp_path / "openclaw.json",
     )
     manifest = _manifest(tmp_path)
     manifest.port = 9999
 
-    from headroom.providers.openclaw.install import (
+    from copium.providers.openclaw.install import (
         apply_provider_scope as apply_openclaw_provider_scope,
     )
 
     apply_openclaw_provider_scope(manifest)
 
-    assert recorded == [["headroom", "wrap", "openclaw", "--no-auto-start", "--proxy-port", "9999"]]
+    assert recorded == [["copium", "wrap", "openclaw", "--no-auto-start", "--proxy-port", "9999"]]
 
 
 def test_openclaw_apply_provider_scope_requires_installed_binary(
     tmp_path: Path, monkeypatch
 ) -> None:
-    monkeypatch.setattr("headroom.providers.openclaw.install.shutil_which", lambda name: None)
+    monkeypatch.setattr("copium.providers.openclaw.install.shutil_which", lambda name: None)
 
     with pytest.raises(click.ClickException, match="openclaw not found"):
-        from headroom.providers.openclaw.install import (
+        from copium.providers.openclaw.install import (
             apply_provider_scope as apply_openclaw_provider_scope,
         )
 
@@ -233,25 +233,25 @@ def test_openclaw_helper_wrappers_delegate_to_stdlib(monkeypatch) -> None:
 
     monkeypatch.setattr("subprocess.run", fake_run)
 
-    from headroom.providers.openclaw.install import _invoke_openclaw, shutil_which
+    from copium.providers.openclaw.install import _invoke_openclaw, shutil_which
 
     assert shutil_which("openclaw") == "/fake/openclaw"
-    _invoke_openclaw(["headroom", "wrap", "openclaw"])
+    _invoke_openclaw(["copium", "wrap", "openclaw"])
 
-    assert recorded == [(["headroom", "wrap", "openclaw"], True)]
+    assert recorded == [(["copium", "wrap", "openclaw"], True)]
 
 
 def test_openclaw_revert_provider_scope_skips_without_binary(monkeypatch, tmp_path: Path) -> None:
-    monkeypatch.setattr("headroom.providers.openclaw.install.shutil_which", lambda name: None)
+    monkeypatch.setattr("copium.providers.openclaw.install.shutil_which", lambda name: None)
     called = False
 
     def fail_if_called(command: list[str]) -> None:
         nonlocal called
         called = True
 
-    monkeypatch.setattr("headroom.providers.openclaw.install._invoke_openclaw", fail_if_called)
+    monkeypatch.setattr("copium.providers.openclaw.install._invoke_openclaw", fail_if_called)
 
-    from headroom.providers.openclaw.install import (
+    from copium.providers.openclaw.install import (
         revert_provider_scope as revert_openclaw_provider_scope,
     )
 
@@ -265,17 +265,17 @@ def test_openclaw_revert_provider_scope_skips_without_binary(monkeypatch, tmp_pa
 
 def test_openclaw_revert_provider_scope_invokes_unwrap(monkeypatch, tmp_path: Path) -> None:
     recorded: list[list[str]] = []
-    monkeypatch.setattr("headroom.providers.openclaw.install.shutil_which", lambda name: "openclaw")
+    monkeypatch.setattr("copium.providers.openclaw.install.shutil_which", lambda name: "openclaw")
     monkeypatch.setattr(
-        "headroom.providers.openclaw.install.resolve_headroom_command",
-        lambda: ["headroom"],
+        "copium.providers.openclaw.install.resolve_copium_command",
+        lambda: ["copium"],
     )
     monkeypatch.setattr(
-        "headroom.providers.openclaw.install._invoke_openclaw",
+        "copium.providers.openclaw.install._invoke_openclaw",
         lambda command: recorded.append(command),
     )
 
-    from headroom.providers.openclaw.install import (
+    from copium.providers.openclaw.install import (
         revert_provider_scope as revert_openclaw_provider_scope,
     )
 
@@ -284,19 +284,19 @@ def test_openclaw_revert_provider_scope_invokes_unwrap(monkeypatch, tmp_path: Pa
         _manifest(tmp_path),
     )
 
-    assert recorded == [["headroom", "unwrap", "openclaw"]]
+    assert recorded == [["copium", "unwrap", "openclaw"]]
 
 
 def test_windows_env_scope_restores_previous_values(monkeypatch, tmp_path: Path) -> None:
     manifest = _manifest(tmp_path)
     manifest.scope = "user"
     manifest.targets = ["claude"]
-    manifest.base_env = {"HEADROOM_PORT": "8787"}
+    manifest.base_env = {"COPIUM_PORT": "8787"}
     manifest.tool_envs = {"claude": {"ANTHROPIC_BASE_URL": "http://127.0.0.1:8787"}}
 
     calls: list[list[str]] = []
     previous_values = {
-        "HEADROOM_PORT": "7777",
+        "COPIUM_PORT": "7777",
         "ANTHROPIC_BASE_URL": "https://old",
     }
 
@@ -309,20 +309,20 @@ def test_windows_env_scope_restores_previous_values(monkeypatch, tmp_path: Path)
         script = command[-1]
         if "GetEnvironmentVariable" in script:
             name = script.split("GetEnvironmentVariable('", 1)[1].split("'", 1)[0]
-            value = previous_values.get(name, "__HEADROOM_UNSET__")
+            value = previous_values.get(name, "__COPIUM_UNSET__")
             return Result(stdout=value)
         return Result()
 
-    monkeypatch.setattr("headroom.install.providers.subprocess.run", fake_run)
+    monkeypatch.setattr("copium.install.providers.subprocess.run", fake_run)
 
     mutations = _apply_windows_env_scope(manifest)
     _remove_windows_env_scope(mutations)
 
     previous_by_name = {mutation.data["name"]: mutation.data["previous"] for mutation in mutations}
-    assert previous_by_name["HEADROOM_PORT"] == "7777"
+    assert previous_by_name["COPIUM_PORT"] == "7777"
     assert previous_by_name["ANTHROPIC_BASE_URL"] == "https://old"
     assert any(
-        "[Environment]::SetEnvironmentVariable('HEADROOM_PORT','7777','User')" in command[-1]
+        "[Environment]::SetEnvironmentVariable('COPIUM_PORT','7777','User')" in command[-1]
         for command in calls
     )
     assert any(
@@ -354,23 +354,23 @@ def test_apply_mutations_runs_openclaw_for_user_scope(monkeypatch, tmp_path: Pat
     manifest = _manifest(tmp_path)
     manifest.scope = "user"
     manifest.targets = ["openclaw"]
-    manifest.base_env = {"HEADROOM_PORT": "8787"}
+    manifest.base_env = {"COPIUM_PORT": "8787"}
     manifest.tool_envs = {}
 
     if os.name == "nt":
         monkeypatch.setattr(
-            "headroom.install.providers._apply_windows_env_scope", lambda deployment: []
+            "copium.install.providers._apply_windows_env_scope", lambda deployment: []
         )
     else:
         monkeypatch.setattr(
-            "headroom.install.providers._apply_unix_env_scope", lambda deployment: []
+            "copium.install.providers._apply_unix_env_scope", lambda deployment: []
         )
     monkeypatch.setattr(
-        "headroom.install.providers.apply_provider_scope_mutations",
+        "copium.install.providers.apply_provider_scope_mutations",
         lambda deployment: [ManagedMutation(target="openclaw", kind="openclaw-wrap")],
     )
 
-    from headroom.install.providers import apply_mutations
+    from copium.install.providers import apply_mutations
 
     mutations = apply_mutations(manifest)
 
@@ -407,7 +407,7 @@ def test_apply_claude_provider_scope_skips_non_provider_scope(monkeypatch, tmp_p
     # Arrange
     settings_path = tmp_path / "settings.json"
     monkeypatch.setattr(
-        "headroom.providers.claude.install.claude_settings_path", lambda: settings_path
+        "copium.providers.claude.install.claude_settings_path", lambda: settings_path
     )
     manifest = _manifest(tmp_path)
     manifest.scope = "user"
@@ -427,7 +427,7 @@ def test_revert_claude_provider_scope_removes_new_values_from_non_mapping_env(
     settings_path = tmp_path / "settings.json"
     settings_path.write_text(json.dumps({"env": ["not-a-map"]}))
     monkeypatch.setattr(
-        "headroom.providers.claude.install.claude_settings_path", lambda: settings_path
+        "copium.providers.claude.install.claude_settings_path", lambda: settings_path
     )
     manifest = _manifest(tmp_path)
 
@@ -450,7 +450,7 @@ def test_apply_claude_provider_scope_creates_settings_when_missing(
     # Arrange
     settings_path = tmp_path / "nested" / "settings.json"
     monkeypatch.setattr(
-        "headroom.providers.claude.install.claude_settings_path", lambda: settings_path
+        "copium.providers.claude.install.claude_settings_path", lambda: settings_path
     )
     manifest = _manifest(tmp_path)
 
@@ -489,23 +489,23 @@ def test_revert_claude_provider_scope_ignores_missing_settings_file(tmp_path: Pa
 
 # ---------------------------------------------------------------------------
 # Bug 3 regression tests (#406): requires_openai_auth and openai_base_url
-# must never appear in the headroom provider block.
+# must never appear in the copium provider block.
 # ---------------------------------------------------------------------------
 
 
-def test_headroom_provider_block_never_sets_requires_openai_auth(
+def test_copium_provider_block_never_sets_requires_openai_auth(
     monkeypatch, tmp_path: Path
 ) -> None:
-    """apply_provider_scope must NOT emit requires_openai_auth in the headroom block.
+    """apply_provider_scope must NOT emit requires_openai_auth in the copium block.
 
-    Bug 3 (#406): requires_openai_auth = true on a custom [model_providers.headroom]
-    block forces codex to demand OpenAI OAuth login for headroom-routed traffic.
-    Headroom is a local proxy — it must not require OpenAI auth.
+    Bug 3 (#406): requires_openai_auth = true on a custom [model_providers.copium]
+    block forces codex to demand OpenAI OAuth login for copium-routed traffic.
+    Copium is a local proxy — it must not require OpenAI auth.
     """
     for port in (8787, 9999):
         config_path = tmp_path / f"config_{port}.toml"
         monkeypatch.setattr(
-            "headroom.providers.codex.install.codex_config_path",
+            "copium.providers.codex.install.codex_config_path",
             lambda _p=config_path: _p,
         )
         manifest = _manifest(tmp_path)
@@ -514,15 +514,15 @@ def test_headroom_provider_block_never_sets_requires_openai_auth(
         apply_codex_provider_scope(manifest)
 
         content = config_path.read_text()
-        # The rendered TOML for the headroom provider block must not contain this
+        # The rendered TOML for the copium provider block must not contain this
         # field.  If it does, codex will prompt for OpenAI OAuth on every startup.
         assert "requires_openai_auth" not in content, (
-            f"requires_openai_auth must be absent from the headroom provider block "
+            f"requires_openai_auth must be absent from the copium provider block "
             f"(port={port}); got:\n{content}"
         )
         # Sanity: the block itself is present and points at the right port.
         assert f'base_url = "http://127.0.0.1:{port}/v1"' in content
-        assert "[model_providers.headroom]" in content
+        assert "[model_providers.copium]" in content
 
 
 def test_inject_codex_provider_config_writes_openai_base_url(
@@ -531,16 +531,16 @@ def test_inject_codex_provider_config_writes_openai_base_url(
     """_inject_codex_provider_config MUST write a top-level openai_base_url key.
 
     Bug 3 (#406) has two halves:
-    1. Strip ``requires_openai_auth`` from the headroom provider block (done in 3ca48d3).
+    1. Strip ``requires_openai_auth`` from the copium provider block (done in 3ca48d3).
     2. Inject ``openai_base_url`` at the top level so subscription (ChatGPT plan)
-       users are also routed through headroom.
+       users are also routed through copium.
 
     Without the top-level ``openai_base_url`` override, Codex subscription mode
     uses the built-in ``openai`` provider with ``chatgpt.com/backend-api/codex``
     as the base URL, bypassing the proxy entirely.  This key is the only way to
     intercept subscription traffic.
     """
-    from headroom.cli import wrap as wrap_mod
+    from copium.cli import wrap as wrap_mod
 
     home = tmp_path
     monkeypatch.setenv("HOME", str(home))
@@ -557,11 +557,11 @@ def test_inject_codex_provider_config_writes_openai_base_url(
     # this test to fail.
     assert 'openai_base_url = "http://127.0.0.1:8787/v1"' in content, (
         "openai_base_url must appear at the top level of config.toml after injection "
-        "so that Codex subscription (ChatGPT plan) users are routed through headroom; "
+        "so that Codex subscription (ChatGPT plan) users are routed through copium; "
         f"got:\n{content}"
     )
     # Sanity: the provider block is actually there.
-    assert "[model_providers.headroom]" in content
+    assert "[model_providers.copium]" in content
     assert 'base_url = "http://127.0.0.1:8787/v1"' in content
     # requires_openai_auth must also be absent (bug 3 regression guard).
     assert "requires_openai_auth" not in content, (
@@ -590,7 +590,7 @@ def test_unwrap_removes_top_level_openai_base_url(
     ``openai_base_url`` key so orphaned entries don't accumulate between
     wrap/unwrap cycles.
     """
-    from headroom.cli import wrap as wrap_mod
+    from copium.cli import wrap as wrap_mod
 
     home = tmp_path
     monkeypatch.setenv("HOME", str(home))
@@ -608,16 +608,16 @@ def test_unwrap_removes_top_level_openai_base_url(
         assert "openai_base_url" not in content, (
             f"openai_base_url must not remain in config.toml after unwrap; got:\n{content}"
         )
-    # Also verify via _strip_codex_headroom_blocks directly — the orphan-cleanup
+    # Also verify via _strip_codex_copium_blocks directly — the orphan-cleanup
     # path is exercised when there is no backup file (crash-recovery path).
     orphan_content = (
         'model = "gpt-4o"\n'
         'openai_base_url = "http://127.0.0.1:8787/v1"\n'
-        'model_provider = "headroom"\n'
+        'model_provider = "copium"\n'
     )
-    stripped = wrap_mod._strip_codex_headroom_blocks(orphan_content)
+    stripped = wrap_mod._strip_codex_copium_blocks(orphan_content)
     assert "openai_base_url" not in stripped, (
-        f"_strip_codex_headroom_blocks must remove orphaned openai_base_url lines; got:\n{stripped}"
+        f"_strip_codex_copium_blocks must remove orphaned openai_base_url lines; got:\n{stripped}"
     )
     assert 'model = "gpt-4o"' in stripped
 
@@ -630,10 +630,10 @@ def test_unwrap_removes_top_level_openai_base_url(
 def test_apply_provider_scope_writes_openai_base_url(monkeypatch, tmp_path: Path) -> None:
     """apply_provider_scope must write openai_base_url at the top level (not inside
     a [model_providers.*] block) so subscription (ChatGPT plan) users are routed
-    through headroom regardless of which entry point they used."""
+    through copium regardless of which entry point they used."""
     config_path = tmp_path / "config.toml"
     config_path.write_text('model = "gpt-4o"\n')
-    monkeypatch.setattr("headroom.providers.codex.install.codex_config_path", lambda: config_path)
+    monkeypatch.setattr("copium.providers.codex.install.codex_config_path", lambda: config_path)
     manifest = _manifest(tmp_path)
     manifest.port = 8787
 
@@ -665,7 +665,7 @@ def test_persistent_install_strip_removes_openai_base_url(monkeypatch, tmp_path:
     must also clean up orphaned openai_base_url lines left by a crashed install."""
     config_path = tmp_path / "config.toml"
     config_path.write_text('model = "gpt-4o"\n')
-    monkeypatch.setattr("headroom.providers.codex.install.codex_config_path", lambda: config_path)
+    monkeypatch.setattr("copium.providers.codex.install.codex_config_path", lambda: config_path)
     manifest = _manifest(tmp_path)
     manifest.port = 8787
 
@@ -688,7 +688,7 @@ def test_persistent_install_strip_removes_openai_base_url(monkeypatch, tmp_path:
     config_path.write_text(
         'model = "gpt-4o"\n'
         'openai_base_url = "http://127.0.0.1:8787/v1"\n'
-        'model_provider = "headroom"\n'
+        'model_provider = "copium"\n'
     )
     revert_codex_provider_scope(
         ManagedMutation(target="codex", kind="toml-block", path=str(config_path)),

@@ -1,7 +1,7 @@
 ARG VARIANT=3.12-bookworm
 FROM mcr.microsoft.com/devcontainers/python:1-${VARIANT}
 
-# Single-wheel architecture (post-#355): `uv sync` builds `headroom-ai`
+# Single-wheel architecture (post-#355): `uv sync` builds `copium-ai`
 # from the local pyproject.toml using maturin (declared in build-system).
 # Maturin needs rust + cargo. The rustls-everywhere refactor (PR #371)
 # eliminated `openssl-sys` from our build tree, so this image no longer

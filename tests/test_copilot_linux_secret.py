@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from headroom import copilot_linux_secret
+from copium import copilot_linux_secret
 
 
 def test_read_copilot_oauth_token_uses_secret_tool(monkeypatch) -> None:

@@ -8,7 +8,7 @@ up carrying the bump as collateral).
 
 Sync now only runs when EITHER:
   * We're on the ``main`` branch, OR
-  * ``HEADROOM_SYNC_VERSIONS=1`` is set explicitly (release workflow)
+  * ``COPIUM_SYNC_VERSIONS=1`` is set explicitly (release workflow)
 
 Result: feature-branch PRs no longer carry manifest bumps; the
 release workflow still gets a canonical sync at publish time.
@@ -26,7 +26,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 try:
-    from headroom.release_version import (  # noqa: E402
+    from copium.release_version import (  # noqa: E402
         compute_release_version,
         determine_bump_level,
         find_latest_release_tag,
@@ -35,7 +35,7 @@ try:
         list_release_tags,
     )
 except ImportError:
-    print("skip: headroom deps not installed (run from a dev venv to enable)")
+    print("skip: copium deps not installed (run from a dev venv to enable)")
     sys.exit(0)
 
 
@@ -72,12 +72,12 @@ def _current_branch(root: Path) -> str | None:
 def _should_sync(root: Path) -> bool:
     """Decide whether to actually run the sync.
 
-    Release workflow opts in via ``HEADROOM_SYNC_VERSIONS=1``; otherwise
+    Release workflow opts in via ``COPIUM_SYNC_VERSIONS=1``; otherwise
     we only sync on ``main`` (where the next-release prediction
     legitimately lives). On feature branches we no-op — the prediction
     would just create PR-level noise.
     """
-    if os.environ.get("HEADROOM_SYNC_VERSIONS") == "1":
+    if os.environ.get("COPIUM_SYNC_VERSIONS") == "1":
         return True
     branch = _current_branch(root)
     if branch is None:
@@ -93,7 +93,7 @@ def main() -> None:
         # pre-commit users see the reason if they look.
         branch = _current_branch(root) or "<unknown>"
         print(
-            f"sync-plugin-versions: skipping on branch '{branch}' (set HEADROOM_SYNC_VERSIONS=1 to force)"
+            f"sync-plugin-versions: skipping on branch '{branch}' (set COPIUM_SYNC_VERSIONS=1 to force)"
         )
         return
     version = compute_repo_semver(root)

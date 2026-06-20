@@ -2,10 +2,10 @@
 
 Covers the plumbing added for issue #858:
 
-- ``headroom._core.SmartCrusher.with_compaction_format`` renders uniform
+- ``copium._core.SmartCrusher.with_compaction_format`` renders uniform
   arrays as Markdown-KV when the lossless gate passes.
 - The high-level ``SmartCrusher`` exposes the knob via the
-  ``compaction_format`` kwarg and the ``HEADROOM_COMPACTION_FORMAT`` env
+  ``compaction_format`` kwarg and the ``COPIUM_COMPACTION_FORMAT`` env
   var, defaulting to the unchanged ``csv-schema`` path.
 - Unknown format names fail loudly (``ValueError``) instead of silently
   falling back.
@@ -21,10 +21,10 @@ import json
 
 import pytest
 
-from headroom._core import SmartCrusher as RustSmartCrusher
-from headroom._core import SmartCrusherConfig as RustSmartCrusherConfig
-from headroom.transforms.smart_crusher import SmartCrusher
-from headroom.transforms.smart_crusher import SmartCrusherConfig as PySmartCrusherConfig
+from copium._core import SmartCrusher as RustSmartCrusher
+from copium._core import SmartCrusherConfig as RustSmartCrusherConfig
+from copium.transforms.smart_crusher import SmartCrusher
+from copium.transforms.smart_crusher import SmartCrusherConfig as PySmartCrusherConfig
 
 
 def _tabular_json(n: int = 50) -> str:
@@ -91,13 +91,13 @@ def test_kwarg_opts_into_markdown_kv() -> None:
 
 
 def test_env_var_opts_in(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("HEADROOM_COMPACTION_FORMAT", "markdown-kv")
+    monkeypatch.setenv("COPIUM_COMPACTION_FORMAT", "markdown-kv")
     crusher = SmartCrusher()
     assert crusher._compaction_format == "markdown-kv"
 
 
 def test_kwarg_overrides_env_var(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("HEADROOM_COMPACTION_FORMAT", "json")
+    monkeypatch.setenv("COPIUM_COMPACTION_FORMAT", "json")
     crusher = SmartCrusher(compaction_format="markdown-kv")
     assert crusher._compaction_format == "markdown-kv"
 

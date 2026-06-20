@@ -74,7 +74,7 @@
       "content": [
         {
           "type": "text",
-          "text": "The shared proxy on 127.0.0.1:8787 started acting like a zombie this morning after a restart. New /livez probes time out, new /v1/responses WebSocket handshakes hang for ~20 seconds before the client gives up, but the existing agent sessions that were already streaming when the restart happened keep working fine. Two of us were connected at the time so there was a reconnect burst of Anthropic /v1/messages?beta=true POSTs carrying multi-turn history (~30 KB each). I suspect the replay storm is interacting badly with cold-start ONNX/embedder loads. Start by reading headroom/proxy/handlers/anthropic.py:handle_anthropic_messages and headroom/proxy/server.py:startup — I want to know whether the Anthropic pre-upstream stages (deep_copy, first compression pass, memory-context lookup) run before or after the Kompress/Magika preload settles, and whether there is any concurrency limit in front of that path. Don't propose a fix yet; just map the stages and tell me where the event loop would plausibly starve."
+          "text": "The shared proxy on 127.0.0.1:8787 started acting like a zombie this morning after a restart. New /livez probes time out, new /v1/responses WebSocket handshakes hang for ~20 seconds before the client gives up, but the existing agent sessions that were already streaming when the restart happened keep working fine. Two of us were connected at the time so there was a reconnect burst of Anthropic /v1/messages?beta=true POSTs carrying multi-turn history (~30 KB each). I suspect the replay storm is interacting badly with cold-start ONNX/embedder loads. Start by reading copium/proxy/handlers/anthropic.py:handle_anthropic_messages and copium/proxy/server.py:startup — I want to know whether the Anthropic pre-upstream stages (deep_copy, first compression pass, memory-context lookup) run before or after the Kompress/Magika preload settles, and whether there is any concurrency limit in front of that path. Don't propose a fix yet; just map the stages and tell me where the event loop would plausibly starve."
         }
       ]
     },
@@ -105,7 +105,7 @@
           "name": "search_code",
           "input": {
             "pattern": "class PrometheusMetrics",
-            "glob": "headroom/proxy/**/*.py"
+            "glob": "copium/proxy/**/*.py"
           }
         }
       ]
@@ -116,7 +116,7 @@
         {
           "type": "tool_result",
           "tool_use_id": "toolu_anthropic_replay_01",
-          "content": "headroom/proxy/prometheus_metrics.py:41:class PrometheusMetrics:\n  Holds in-process counters/gauges/histograms plus async record_* helpers. Backend-agnostic; OTLP export is deferred. Pattern: register each histogram once in __init__, update via record_request / record_stage_timings."
+          "content": "copium/proxy/prometheus_metrics.py:41:class PrometheusMetrics:\n  Holds in-process counters/gauges/histograms plus async record_* helpers. Backend-agnostic; OTLP export is deferred. Pattern: register each histogram once in __init__, update via record_request / record_stage_timings."
         }
       ]
     },
@@ -125,7 +125,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Plan: create headroom/proxy/stage_timer.py with a StageTimer context manager exposing .measure(stage_name) as both a sync and async context manager, accumulating into a dict[str, float] keyed by stage with millisecond values. Extend PrometheusMetrics with one histogram per stage, keyed by path ('anthropic' | 'codex_ws'). Extend request_logger with a stage_timings field. Then plumb stage_timer through handle_anthropic_messages and handle_openai_responses_ws without changing any existing control flow — the timer is a pure observer. I'll land the util + unit tests first, then thread it through the two handlers in separate commits so the diff stays reviewable."
+          "text": "Plan: create copium/proxy/stage_timer.py with a StageTimer context manager exposing .measure(stage_name) as both a sync and async context manager, accumulating into a dict[str, float] keyed by stage with millisecond values. Extend PrometheusMetrics with one histogram per stage, keyed by path ('anthropic' | 'codex_ws'). Extend request_logger with a stage_timings field. Then plumb stage_timer through handle_anthropic_messages and handle_openai_responses_ws without changing any existing control flow — the timer is a pure observer. I'll land the util + unit tests first, then thread it through the two handlers in separate commits so the diff stays reviewable."
         }
       ]
     }

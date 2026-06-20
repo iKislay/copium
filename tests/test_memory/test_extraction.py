@@ -6,7 +6,7 @@ used for inline fact/entity/relationship extraction.
 
 from __future__ import annotations
 
-from headroom.memory.extraction import (
+from copium.memory.extraction import (
     CONVERSATION_EXTRACTION_PROMPT_BASIC,
     ENTITY_EXTRACTION_PROMPT,
     EXTRACTION_SYSTEM_PROMPT,

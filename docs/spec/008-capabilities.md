@@ -28,8 +28,8 @@
 
 **Configuration:**
 ```bash
-headroom proxy          # cache enabled by default
-headroom proxy --no-cache
+copium proxy          # cache enabled by default
+copium proxy --no-cache
 ```
 
 **Behavior:**
@@ -58,7 +58,7 @@ class CCRConfig:
 
 **Configuration:**
 ```bash
-# Note: HEADROOM_SUMMARY_* env vars are not yet implemented.
+# Note: COPIUM_SUMMARY_* env vars are not yet implemented.
 # Summary compression is currently configured programmatically only.
 ```
 
@@ -216,7 +216,7 @@ class AnchorConfig:
 ### Claude
 
 - Session branch comparison
-- Token headroom mode
+- Token copium mode
 - Tool use tracking
 - Multi-modal support (images)
 

@@ -6,14 +6,14 @@ from __future__ import annotations
 
 import pytest
 
-from headroom.proxy import runtime_env as rt
+from copium.proxy import runtime_env as rt
 
 pytest.importorskip("fastapi")
 pytest.importorskip("httpx")
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from headroom.proxy.server import ProxyConfig, create_app  # noqa: E402
+from copium.proxy.server import ProxyConfig, create_app  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -32,60 +32,60 @@ def _clean_runtime_env(monkeypatch):
 
 
 def test_getenv_falls_back_to_environment(monkeypatch):
-    monkeypatch.setenv("HEADROOM_OUTPUT_SHAPER", "1")
-    assert rt.getenv("HEADROOM_OUTPUT_SHAPER") == "1"
-    assert rt.getenv("HEADROOM_VERBOSITY_LEVEL", "2") == "2"  # unset -> default
-    assert rt.getenv("HEADROOM_VERBOSITY_LEVEL") is None
+    monkeypatch.setenv("COPIUM_OUTPUT_SHAPER", "1")
+    assert rt.getenv("COPIUM_OUTPUT_SHAPER") == "1"
+    assert rt.getenv("COPIUM_VERBOSITY_LEVEL", "2") == "2"  # unset -> default
+    assert rt.getenv("COPIUM_VERBOSITY_LEVEL") is None
 
 
 def test_getenv_override_wins_over_environment(monkeypatch):
-    monkeypatch.setenv("HEADROOM_OUTPUT_SHAPER", "0")
-    rt.set_overrides({"HEADROOM_OUTPUT_SHAPER": "1"})
-    assert rt.getenv("HEADROOM_OUTPUT_SHAPER") == "1"
+    monkeypatch.setenv("COPIUM_OUTPUT_SHAPER", "0")
+    rt.set_overrides({"COPIUM_OUTPUT_SHAPER": "1"})
+    assert rt.getenv("COPIUM_OUTPUT_SHAPER") == "1"
 
 
 def test_set_overrides_ignores_unknown_keys_and_non_strings():
     applied = rt.set_overrides(
         {
-            "HEADROOM_OUTPUT_SHAPER": "1",
+            "COPIUM_OUTPUT_SHAPER": "1",
             "NOT_A_KNOB": "x",
-            "HEADROOM_VERBOSITY_LEVEL": 3,  # non-string ignored
+            "COPIUM_VERBOSITY_LEVEL": 3,  # non-string ignored
         }
     )
-    assert applied == {"HEADROOM_OUTPUT_SHAPER": "1"}
+    assert applied == {"COPIUM_OUTPUT_SHAPER": "1"}
     assert rt.getenv("NOT_A_KNOB") is None
     # The rejected non-string did not become an override.
-    assert rt.getenv("HEADROOM_VERBOSITY_LEVEL") is None
+    assert rt.getenv("COPIUM_VERBOSITY_LEVEL") is None
 
 
 def test_explicit_env_returns_only_explicitly_set_knobs():
     environ = {
-        "HEADROOM_OUTPUT_SHAPER": "1",
-        "HEADROOM_MECHANICAL_EFFORT": "low",
-        "HEADROOM_VERBOSITY_LEVEL": "   ",  # blank -> not "explicitly set"
+        "COPIUM_OUTPUT_SHAPER": "1",
+        "COPIUM_MECHANICAL_EFFORT": "low",
+        "COPIUM_VERBOSITY_LEVEL": "   ",  # blank -> not "explicitly set"
         "PATH": "/usr/bin",  # not a knob
     }
     assert rt.explicit_env(environ) == {
-        "HEADROOM_OUTPUT_SHAPER": "1",
-        "HEADROOM_MECHANICAL_EFFORT": "low",
+        "COPIUM_OUTPUT_SHAPER": "1",
+        "COPIUM_MECHANICAL_EFFORT": "low",
     }
 
 
 def test_effective_runtime_env_reports_override_or_none(monkeypatch):
-    monkeypatch.setenv("HEADROOM_EFFORT_ROUTER", "0")
-    rt.set_overrides({"HEADROOM_OUTPUT_SHAPER": "1"})
+    monkeypatch.setenv("COPIUM_EFFORT_ROUTER", "0")
+    rt.set_overrides({"COPIUM_OUTPUT_SHAPER": "1"})
     eff = rt.effective_runtime_env()
-    assert eff["HEADROOM_OUTPUT_SHAPER"] == "1"  # from override
-    assert eff["HEADROOM_EFFORT_ROUTER"] == "0"  # from env
-    assert eff["HEADROOM_VERBOSITY_LEVEL"] is None  # unset
+    assert eff["COPIUM_OUTPUT_SHAPER"] == "1"  # from override
+    assert eff["COPIUM_EFFORT_ROUTER"] == "0"  # from env
+    assert eff["COPIUM_VERBOSITY_LEVEL"] is None  # unset
     # Every registered knob is reported.
     assert set(eff) == {knob.env for knob in rt.RUNTIME_ENV_KNOBS}
 
 
 def test_clear_overrides_resets(monkeypatch):
-    rt.set_overrides({"HEADROOM_OUTPUT_SHAPER": "1"})
+    rt.set_overrides({"COPIUM_OUTPUT_SHAPER": "1"})
     rt.clear_overrides()
-    assert rt.getenv("HEADROOM_OUTPUT_SHAPER") is None
+    assert rt.getenv("COPIUM_OUTPUT_SHAPER") is None
 
 
 # ---------------------------------------------------------------------------
@@ -94,23 +94,23 @@ def test_clear_overrides_resets(monkeypatch):
 
 
 def test_override_enables_output_shaper_without_env():
-    from headroom.proxy.output_shaper import OutputShaperSettings
+    from copium.proxy.output_shaper import OutputShaperSettings
 
     assert OutputShaperSettings.from_env().enabled is False
-    rt.set_overrides({"HEADROOM_OUTPUT_SHAPER": "1", "HEADROOM_VERBOSITY_LEVEL": "3"})
+    rt.set_overrides({"COPIUM_OUTPUT_SHAPER": "1", "COPIUM_VERBOSITY_LEVEL": "3"})
     settings = OutputShaperSettings.from_env()
     assert settings.enabled is True
     assert settings.verbosity_level == 3
 
 
 def test_override_changes_astgrep_threshold_without_env():
-    from headroom.proxy.interceptors import astgrep
+    from copium.proxy.interceptors import astgrep
 
     assert astgrep._min_chars_to_rewrite() == 500
-    rt.set_overrides({"HEADROOM_INTERCEPT_READ_MIN_CHARS": "999"})
+    rt.set_overrides({"COPIUM_INTERCEPT_READ_MIN_CHARS": "999"})
     assert astgrep._min_chars_to_rewrite() == 999
     # Bad value falls back to the documented default rather than raising.
-    rt.set_overrides({"HEADROOM_INTERCEPT_READ_MIN_CHARS": "not-an-int"})
+    rt.set_overrides({"COPIUM_INTERCEPT_READ_MIN_CHARS": "not-an-int"})
     assert astgrep._min_chars_to_rewrite() == 500
 
 
@@ -121,7 +121,7 @@ def test_override_changes_astgrep_threshold_without_env():
 
 @pytest.fixture
 def loopback_client(monkeypatch):
-    monkeypatch.setenv("HEADROOM_SKIP_UPSTREAM_CHECK", "1")
+    monkeypatch.setenv("COPIUM_SKIP_UPSTREAM_CHECK", "1")
     config = ProxyConfig(
         optimize=False,
         cache_enabled=False,
@@ -137,22 +137,22 @@ def test_health_exposes_runtime_env(loopback_client):
     config = loopback_client.get("/health").json()["config"]
     assert "runtime_env" in config
     assert set(config["runtime_env"]) == {knob.env for knob in rt.RUNTIME_ENV_KNOBS}
-    assert config["runtime_env"]["HEADROOM_OUTPUT_SHAPER"] is None
+    assert config["runtime_env"]["COPIUM_OUTPUT_SHAPER"] is None
 
 
 def test_admin_runtime_env_applies_and_reflects_in_health(loopback_client):
     resp = loopback_client.post(
         "/admin/runtime-env",
-        json={"HEADROOM_OUTPUT_SHAPER": "1", "HEADROOM_VERBOSITY_LEVEL": "3", "BOGUS": "x"},
+        json={"COPIUM_OUTPUT_SHAPER": "1", "COPIUM_VERBOSITY_LEVEL": "3", "BOGUS": "x"},
     )
     assert resp.status_code == 200
     body = resp.json()
-    assert body["applied"] == {"HEADROOM_OUTPUT_SHAPER": "1", "HEADROOM_VERBOSITY_LEVEL": "3"}
-    assert body["runtime_env"]["HEADROOM_OUTPUT_SHAPER"] == "1"
+    assert body["applied"] == {"COPIUM_OUTPUT_SHAPER": "1", "COPIUM_VERBOSITY_LEVEL": "3"}
+    assert body["runtime_env"]["COPIUM_OUTPUT_SHAPER"] == "1"
     # And it is observable on the live /health surface.
     health = loopback_client.get("/health").json()["config"]["runtime_env"]
-    assert health["HEADROOM_OUTPUT_SHAPER"] == "1"
-    assert health["HEADROOM_VERBOSITY_LEVEL"] == "3"
+    assert health["COPIUM_OUTPUT_SHAPER"] == "1"
+    assert health["COPIUM_VERBOSITY_LEVEL"] == "3"
 
 
 def test_admin_runtime_env_rejects_non_object(loopback_client):
@@ -169,9 +169,9 @@ def test_admin_runtime_env_is_loopback_only():
     )
     app = create_app(config)
     with TestClient(app, base_url="http://127.0.0.1", client=("10.0.0.1", 54321)) as external:
-        resp = external.post("/admin/runtime-env", json={"HEADROOM_OUTPUT_SHAPER": "1"})
+        resp = external.post("/admin/runtime-env", json={"COPIUM_OUTPUT_SHAPER": "1"})
     assert resp.status_code == 404  # invisible to non-loopback callers
-    assert rt.getenv("HEADROOM_OUTPUT_SHAPER") is None  # nothing applied
+    assert rt.getenv("COPIUM_OUTPUT_SHAPER") is None  # nothing applied
 
 
 # ---------------------------------------------------------------------------
@@ -182,10 +182,10 @@ def test_admin_runtime_env_is_loopback_only():
 def test_push_runtime_env_posts_explicit_env(monkeypatch):
     import urllib.request
 
-    from headroom.cli import wrap
+    from copium.cli import wrap
 
-    monkeypatch.setenv("HEADROOM_OUTPUT_SHAPER", "1")
-    monkeypatch.setenv("HEADROOM_VERBOSITY_LEVEL", "3")
+    monkeypatch.setenv("COPIUM_OUTPUT_SHAPER", "1")
+    monkeypatch.setenv("COPIUM_VERBOSITY_LEVEL", "3")
 
     captured = {}
 
@@ -211,15 +211,15 @@ def test_push_runtime_env_posts_explicit_env(monkeypatch):
     import json
 
     assert json.loads(captured["body"]) == {
-        "HEADROOM_OUTPUT_SHAPER": "1",
-        "HEADROOM_VERBOSITY_LEVEL": "3",
+        "COPIUM_OUTPUT_SHAPER": "1",
+        "COPIUM_VERBOSITY_LEVEL": "3",
     }
 
 
 def test_push_runtime_env_noop_when_nothing_set(monkeypatch):
     import urllib.request
 
-    from headroom.cli import wrap
+    from copium.cli import wrap
 
     def boom(*a, **k):  # must never be called
         raise AssertionError("should not POST when nothing is explicitly set")
@@ -231,9 +231,9 @@ def test_push_runtime_env_noop_when_nothing_set(monkeypatch):
 def test_push_runtime_env_noop_when_no_proxy(monkeypatch):
     import urllib.request
 
-    from headroom.cli import wrap
+    from copium.cli import wrap
 
-    monkeypatch.setenv("HEADROOM_OUTPUT_SHAPER", "1")
+    monkeypatch.setenv("COPIUM_OUTPUT_SHAPER", "1")
     monkeypatch.setattr(
         urllib.request, "urlopen", lambda *a, **k: (_ for _ in ()).throw(AssertionError("no POST"))
     )
@@ -243,9 +243,9 @@ def test_push_runtime_env_noop_when_no_proxy(monkeypatch):
 def test_push_runtime_env_swallows_unreachable_proxy(monkeypatch):
     import urllib.request
 
-    from headroom.cli import wrap
+    from copium.cli import wrap
 
-    monkeypatch.setenv("HEADROOM_OUTPUT_SHAPER", "1")
+    monkeypatch.setenv("COPIUM_OUTPUT_SHAPER", "1")
 
     def refused(*a, **k):
         raise OSError("connection refused")

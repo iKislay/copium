@@ -26,7 +26,7 @@ pytest.importorskip("fastapi")
 
 from fastapi.testclient import TestClient
 
-from headroom.proxy.server import ProxyConfig, create_app
+from copium.proxy.server import ProxyConfig, create_app
 
 
 def _make_proxy_client() -> TestClient:
@@ -110,11 +110,11 @@ def test_optimization_failure_logs_exception_type() -> None:
     an empty message because asyncio.TimeoutError has no str repr.
 
     We patch the handler module's ``logger.warning`` directly rather than
-    relying on logging propagation: the headroom logger sets
+    relying on logging propagation: the copium logger sets
     ``propagate=False`` (see proxy/helpers.py) and per-test mutations of
     handler chains have proven brittle in CI.
     """
-    from headroom.proxy.handlers import anthropic as anth_handler
+    from copium.proxy.handlers import anthropic as anth_handler
 
     with _make_proxy_client() as client:
         proxy = client.app.state.proxy

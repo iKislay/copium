@@ -1,7 +1,7 @@
-"""Tests for :class:`headroom.proxy.memory_ranker.MemoryRanker` +
+"""Tests for :class:`copium.proxy.memory_ranker.MemoryRanker` +
 :class:`RecencyBoostRanker`.
 
-Pre-this-PR Headroom ranked memory candidates by pure cosine
+Pre-this-PR Copium ranked memory candidates by pure cosine
 similarity. Every other memory system we surveyed (Letta, Mem0,
 Cognee, Supermemory) re-ranks beyond cosine — recency / source /
 access-count / decay are table-stakes. The pure-cosine baseline
@@ -24,7 +24,7 @@ from __future__ import annotations
 from dataclasses import FrozenInstanceError
 from datetime import datetime, timedelta, timezone
 
-from headroom.proxy.memory_ranker import (
+from copium.proxy.memory_ranker import (
     MemoryCandidate,
     RecencyBoostRanker,
 )

@@ -1,4 +1,4 @@
-"""Tests for the `headroom update` command + install-method detection."""
+"""Tests for the `copium update` command + install-method detection."""
 
 from __future__ import annotations
 
@@ -7,13 +7,13 @@ import sys
 import pytest
 from click.testing import CliRunner
 
-from headroom.cli import update as up
-from headroom.cli.main import main
+from copium.cli import update as up
+from copium.cli.main import main
 
 
 @pytest.fixture(autouse=True)
 def _clean_env(tmp_path, monkeypatch):
-    monkeypatch.setenv("HEADROOM_WORKSPACE_DIR", str(tmp_path))
+    monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path))
     monkeypatch.delenv("PIPX_HOME", raising=False)
     monkeypatch.delenv("UV_TOOL_DIR", raising=False)
     monkeypatch.delenv("CONDA_PREFIX", raising=False)
@@ -46,21 +46,21 @@ def test_detect_docker(monkeypatch):
 
 
 def test_detect_pipx_by_path(monkeypatch):
-    monkeypatch.setattr(up.sys, "prefix", "/home/u/.local/pipx/venvs/headroom-ai")
+    monkeypatch.setattr(up.sys, "prefix", "/home/u/.local/pipx/venvs/copium-ai")
     m = up.detect_install_method()
-    assert m.kind == "pipx" and m.argv == ["pipx", "upgrade", "headroom-ai"]
+    assert m.kind == "pipx" and m.argv == ["pipx", "upgrade", "copium-ai"]
 
 
 def test_detect_pipx_windows_path(monkeypatch):
-    monkeypatch.setattr(up.sys, "prefix", r"C:\\Users\\u\\pipx\\venvs\\headroom-ai")
+    monkeypatch.setattr(up.sys, "prefix", r"C:\\Users\\u\\pipx\\venvs\\copium-ai")
     m = up.detect_install_method()
     assert m.kind == "pipx"
 
 
 def test_detect_uv_tool(monkeypatch):
-    monkeypatch.setattr(up.sys, "prefix", "/home/u/.local/share/uv/tools/headroom-ai")
+    monkeypatch.setattr(up.sys, "prefix", "/home/u/.local/share/uv/tools/copium-ai")
     m = up.detect_install_method()
-    assert m.kind == "uv-tool" and m.argv == ["uv", "tool", "upgrade", "headroom-ai"]
+    assert m.kind == "uv-tool" and m.argv == ["uv", "tool", "upgrade", "copium-ai"]
 
 
 def test_detect_venv_uses_current_interpreter(monkeypatch):
@@ -68,13 +68,13 @@ def test_detect_venv_uses_current_interpreter(monkeypatch):
     m = up.detect_install_method()
     assert m.kind == "pip"
     assert m.argv[:4] == [sys.executable, "-m", "pip", "install"]
-    assert "-U" in m.argv and "headroom-ai" in m.argv
+    assert "-U" in m.argv and "copium-ai" in m.argv
 
 
 def test_detect_venv_with_extras(monkeypatch):
     monkeypatch.setattr(up, "_in_virtualenv", lambda: True)
     m = up.detect_install_method(extras="all")
-    assert "headroom-ai[all]" in m.argv
+    assert "copium-ai[all]" in m.argv
 
 
 def test_detect_user_site(monkeypatch):
@@ -95,7 +95,7 @@ def test_detect_externally_managed_refuses(monkeypatch):
 
 
 # --------------------------------------------------------------------------- #
-# `headroom update` command
+# `copium update` command
 # --------------------------------------------------------------------------- #
 def test_update_already_current(monkeypatch):
     monkeypatch.setattr(up, "installed_version", lambda: "0.26.0")

@@ -2,7 +2,7 @@
 
 Proves three things end-to-end:
 
-    1. `headroom.binaries.ensure_tools()` actually installs every tool.
+    1. `copium.binaries.ensure_tools()` actually installs every tool.
     2. Each tool reduces token count on a realistic payload (tiktoken-measured).
     3. A real LLM answers the same question correctly on the compressed
        payload (LLM-as-judge).
@@ -31,7 +31,7 @@ apply_dotenv = autouse_apply_env(_env_overrides)
 
 import tiktoken  # noqa: E402  (must follow .env-overrides setup)
 
-from headroom import binaries  # noqa: E402  (must follow .env-overrides setup)
+from copium import binaries  # noqa: E402  (must follow .env-overrides setup)
 
 # ---------- Fixtures ------------------------------------------------------ #
 

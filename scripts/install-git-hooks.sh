@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install git hooks for the Headroom repo:
+# Install git hooks for the Copium repo:
 #   1. pre-commit  — repo pre-commit checks (ruff, mypy, sync-plugin-versions)
 #   2. commit-msg  — conventional-commit enforcement via commitlint
 #   3. pre-push    — full ci-precheck (cargo fmt/clippy/test + python suite)
@@ -26,7 +26,7 @@ if [[ ! -d .git/hooks ]]; then
 fi
 
 if ! command -v npx &>/dev/null; then
-    echo "error: npx not found — install Node 18+ before installing Headroom's git hooks." >&2
+    echo "error: npx not found — install Node 18+ before installing Copium's git hooks." >&2
     exit 1
 fi
 
@@ -34,7 +34,7 @@ HOOK_PATH=".git/hooks/pre-push"
 
 cat > "$HOOK_PATH" <<'HOOK_EOF'
 #!/usr/bin/env bash
-# Headroom pre-push hook — runs `make ci-precheck` so CI never finds a
+# Copium pre-push hook — runs `make ci-precheck` so CI never finds a
 # bug a local check could have caught.
 #
 # Skip with: `git push --no-verify`. Use sparingly — every skip is a roll

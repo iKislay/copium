@@ -1,5 +1,5 @@
 """
-Real-World Agent Benchmark: MCP Tools + Headroom
+Real-World Agent Benchmark: MCP Tools + Copium
 
 This benchmark simulates real multi-agent workflows using actual MCP tool output formats:
 1. Filesystem MCP Server - directory trees, file searches, file contents
@@ -7,7 +7,7 @@ This benchmark simulates real multi-agent workflows using actual MCP tool output
 3. Database MCP Server - query results, schema info
 
 We measure:
-- Token usage with vs without Headroom
+- Token usage with vs without Copium
 - Cost savings
 - Answer quality (does compression hurt agent performance?)
 
@@ -30,13 +30,13 @@ try:
 except ImportError:
     OPENAI_AVAILABLE = False
 
-# Headroom
+# Copium
 try:
-    from headroom import HeadroomClient, OpenAIProvider
+    from copium import CopiumClient, OpenAIProvider
 
-    HEADROOM_AVAILABLE = True
+    COPIUM_AVAILABLE = True
 except ImportError:
-    HEADROOM_AVAILABLE = False
+    COPIUM_AVAILABLE = False
 
 
 # =============================================================================
@@ -491,7 +491,7 @@ class BenchmarkResult:
     """Result from running a scenario."""
 
     scenario_name: str
-    mode: str  # "baseline" or "headroom"
+    mode: str  # "baseline" or "copium"
     total_input_tokens: int
     total_output_tokens: int
     total_tokens: int
@@ -556,9 +556,9 @@ def run_agent_scenario(
     # Make API call
     start = time.time()
 
-    # Determine if using HeadroomClient
-    is_headroom = isinstance(client, HeadroomClient) if HEADROOM_AVAILABLE else False
-    mode = "headroom" if is_headroom else "baseline"
+    # Determine if using CopiumClient
+    is_copium = isinstance(client, CopiumClient) if COPIUM_AVAILABLE else False
+    mode = "copium" if is_copium else "baseline"
 
     try:
         response = client.chat.completions.create(
@@ -614,7 +614,7 @@ def run_agent_scenario(
 
 
 def run_full_benchmark(api_key: str = None) -> dict:
-    """Run complete benchmark comparing baseline vs Headroom."""
+    """Run complete benchmark comparing baseline vs Copium."""
 
     if api_key is None:
         api_key = os.environ.get("OPENAI_API_KEY")
@@ -622,8 +622,8 @@ def run_full_benchmark(api_key: str = None) -> dict:
     if not api_key:
         raise ValueError("OPENAI_API_KEY required")
 
-    if not HEADROOM_AVAILABLE:
-        raise RuntimeError("Headroom not available")
+    if not COPIUM_AVAILABLE:
+        raise RuntimeError("Copium not available")
 
     # Create clients
     import tempfile
@@ -632,9 +632,9 @@ def run_full_benchmark(api_key: str = None) -> dict:
 
     baseline_client = OpenAI(api_key=api_key)
 
-    # Headroom-wrapped client
-    db_path = os.path.join(tempfile.gettempdir(), "headroom_benchmark.db")
-    headroom_client = HeadroomClient(
+    # Copium-wrapped client
+    db_path = os.path.join(tempfile.gettempdir(), "copium_benchmark.db")
+    copium_client = CopiumClient(
         original_client=OpenAI(api_key=api_key),
         provider=OpenAIProvider(),
         store_url=f"sqlite:///{db_path}",
@@ -650,7 +650,7 @@ def run_full_benchmark(api_key: str = None) -> dict:
     results = []
 
     print("\n" + "=" * 70)
-    print("REAL-WORLD AGENT BENCHMARK: MCP Tools + Headroom")
+    print("REAL-WORLD AGENT BENCHMARK: MCP Tools + Copium")
     print("=" * 70)
 
     for scenario in scenarios:
@@ -673,22 +673,22 @@ def run_full_benchmark(api_key: str = None) -> dict:
         print(f"   Answer quality: {baseline_result.answer_quality:.1%}")
         results.append(baseline_result)
 
-        # Run with Headroom
-        print("\n[2/2] Running HEADROOM (optimized)...")
-        headroom_result = run_agent_scenario(headroom_client, scenario)
-        print(f"   Input tokens: {headroom_result.total_input_tokens:,}")
-        print(f"   Output tokens: {headroom_result.total_output_tokens:,}")
-        print(f"   Cost: ${headroom_result.cost_usd:.4f}")
-        print(f"   Answer quality: {headroom_result.answer_quality:.1%}")
-        results.append(headroom_result)
+        # Run with Copium
+        print("\n[2/2] Running COPIUM (optimized)...")
+        copium_result = run_agent_scenario(copium_client, scenario)
+        print(f"   Input tokens: {copium_result.total_input_tokens:,}")
+        print(f"   Output tokens: {copium_result.total_output_tokens:,}")
+        print(f"   Cost: ${copium_result.cost_usd:.4f}")
+        print(f"   Answer quality: {copium_result.answer_quality:.1%}")
+        results.append(copium_result)
 
         # Calculate savings
         if baseline_result.total_input_tokens > 0:
             token_savings = 1 - (
-                headroom_result.total_input_tokens / baseline_result.total_input_tokens
+                copium_result.total_input_tokens / baseline_result.total_input_tokens
             )
             cost_savings = (
-                1 - (headroom_result.cost_usd / baseline_result.cost_usd)
+                1 - (copium_result.cost_usd / baseline_result.cost_usd)
                 if baseline_result.cost_usd > 0
                 else 0
             )
@@ -696,7 +696,7 @@ def run_full_benchmark(api_key: str = None) -> dict:
             print(f"   Token reduction: {token_savings:.1%}")
             print(f"   Cost reduction: {cost_savings:.1%}")
             print(
-                f"   Quality preserved: {'✓' if headroom_result.answer_quality >= baseline_result.answer_quality * 0.9 else '✗'}"
+                f"   Quality preserved: {'✓' if copium_result.answer_quality >= baseline_result.answer_quality * 0.9 else '✗'}"
             )
 
     # Summary
@@ -705,26 +705,26 @@ def run_full_benchmark(api_key: str = None) -> dict:
     print("=" * 70)
 
     baseline_results = [r for r in results if r.mode == "baseline"]
-    headroom_results = [r for r in results if r.mode == "headroom"]
+    copium_results = [r for r in results if r.mode == "copium"]
 
     total_baseline_tokens = sum(r.total_input_tokens for r in baseline_results)
-    total_headroom_tokens = sum(r.total_input_tokens for r in headroom_results)
+    total_copium_tokens = sum(r.total_input_tokens for r in copium_results)
     total_baseline_cost = sum(r.cost_usd for r in baseline_results)
-    total_headroom_cost = sum(r.cost_usd for r in headroom_results)
+    total_copium_cost = sum(r.cost_usd for r in copium_results)
 
-    print(f"\n{'Metric':<25} {'Baseline':>15} {'Headroom':>15} {'Savings':>15}")
+    print(f"\n{'Metric':<25} {'Baseline':>15} {'Copium':>15} {'Savings':>15}")
     print("-" * 70)
 
     token_savings = (
-        (1 - total_headroom_tokens / total_baseline_tokens) if total_baseline_tokens > 0 else 0
+        (1 - total_copium_tokens / total_baseline_tokens) if total_baseline_tokens > 0 else 0
     )
-    cost_savings = (1 - total_headroom_cost / total_baseline_cost) if total_baseline_cost > 0 else 0
+    cost_savings = (1 - total_copium_cost / total_baseline_cost) if total_baseline_cost > 0 else 0
 
     print(
-        f"{'Total Input Tokens':<25} {total_baseline_tokens:>15,} {total_headroom_tokens:>15,} {token_savings:>14.1%}"
+        f"{'Total Input Tokens':<25} {total_baseline_tokens:>15,} {total_copium_tokens:>15,} {token_savings:>14.1%}"
     )
     print(
-        f"{'Total Cost':<25} ${total_baseline_cost:>14.4f} ${total_headroom_cost:>14.4f} {cost_savings:>14.1%}"
+        f"{'Total Cost':<25} ${total_baseline_cost:>14.4f} ${total_copium_cost:>14.4f} {cost_savings:>14.1%}"
     )
 
     avg_baseline_quality = (
@@ -732,24 +732,24 @@ def run_full_benchmark(api_key: str = None) -> dict:
         if baseline_results
         else 0
     )
-    avg_headroom_quality = (
-        sum(r.answer_quality for r in headroom_results) / len(headroom_results)
-        if headroom_results
+    avg_copium_quality = (
+        sum(r.answer_quality for r in copium_results) / len(copium_results)
+        if copium_results
         else 0
     )
     print(
-        f"{'Avg Answer Quality':<25} {avg_baseline_quality:>14.1%} {avg_headroom_quality:>14.1%} {'preserved' if avg_headroom_quality >= avg_baseline_quality * 0.9 else 'degraded':>15}"
+        f"{'Avg Answer Quality':<25} {avg_baseline_quality:>14.1%} {avg_copium_quality:>14.1%} {'preserved' if avg_copium_quality >= avg_baseline_quality * 0.9 else 'degraded':>15}"
     )
 
     return {
         "baseline": [r.__dict__ for r in baseline_results],
-        "headroom": [r.__dict__ for r in headroom_results],
+        "copium": [r.__dict__ for r in copium_results],
         "summary": {
             "total_baseline_tokens": total_baseline_tokens,
-            "total_headroom_tokens": total_headroom_tokens,
+            "total_copium_tokens": total_copium_tokens,
             "token_savings": token_savings,
             "total_baseline_cost": total_baseline_cost,
-            "total_headroom_cost": total_headroom_cost,
+            "total_copium_cost": total_copium_cost,
             "cost_savings": cost_savings,
         },
     }

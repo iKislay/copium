@@ -2,21 +2,21 @@
  * Python-TypeScript SDK parity tests.
  *
  * These tests verify that the TypeScript SDK produces identical behavior
- * to the Python SDK when both talk to the same Headroom proxy.
+ * to the Python SDK when both talk to the same Copium proxy.
  *
  * Requires:
- *   - HEADROOM_INTEGRATION=1 (env flag)
- *   - headroom proxy running on localhost:8787
+ *   - COPIUM_INTEGRATION=1 (env flag)
+ *   - copium proxy running on localhost:8787
  *   - OPENAI_API_KEY set in environment
  *
- * Run: HEADROOM_INTEGRATION=1 OPENAI_API_KEY=sk-... npx vitest run test/parity.test.ts
+ * Run: COPIUM_INTEGRATION=1 OPENAI_API_KEY=sk-... npx vitest run test/parity.test.ts
  */
 import { describe, it, expect, beforeAll } from "vitest";
-import { compress, HeadroomClient, SharedContext, CompressionHooks, simulate } from "../src/index.js";
+import { compress, CopiumClient, SharedContext, CompressionHooks, simulate } from "../src/index.js";
 import type { CompressResult, CompressEvent, CompressContext } from "../src/index.js";
 import { execSync } from "child_process";
 
-const INTEGRATION = process.env.HEADROOM_INTEGRATION === "1";
+const INTEGRATION = process.env.COPIUM_INTEGRATION === "1";
 
 // Sample data matching Python test fixtures
 const sampleMessages = [
@@ -66,7 +66,7 @@ describe.skipIf(!INTEGRATION)("Python-TypeScript Parity", () => {
     const pythonScript = `
 import json, sys
 sys.path.insert(0, "${process.cwd()}/../..")
-from headroom import compress
+from copium import compress
 
 messages = json.loads('''${JSON.stringify(messagesWithLargeToolOutput)}''')
 result = compress(messages, model="gpt-4o")
@@ -261,9 +261,9 @@ print(json.dumps({
     });
   });
 
-  describe("HeadroomClient proxy API parity", () => {
+  describe("CopiumClient proxy API parity", () => {
     it("health check works", async () => {
-      const client = new HeadroomClient();
+      const client = new CopiumClient();
       const health = await client.health();
 
       expect(health.status).toBe("healthy");
@@ -271,7 +271,7 @@ print(json.dumps({
     });
 
     it("proxy stats work", async () => {
-      const client = new HeadroomClient();
+      const client = new CopiumClient();
       const stats = await client.proxyStats();
 
       expect(stats.requests).toBeDefined();
@@ -279,7 +279,7 @@ print(json.dumps({
     });
 
     it("compress with config passthrough", async () => {
-      const client = new HeadroomClient({
+      const client = new CopiumClient({
         config: {
           smartCrusher: { enabled: true, maxItemsAfterCrush: 5 },
         },
@@ -298,7 +298,7 @@ print(json.dumps({
 
 describe.skipIf(!INTEGRATION)("End-to-End: OpenAI via Proxy", () => {
   it("chat.completions.create through proxy", async () => {
-    const client = new HeadroomClient({
+    const client = new CopiumClient({
       providerApiKey: process.env.OPENAI_API_KEY,
     });
 
@@ -316,7 +316,7 @@ describe.skipIf(!INTEGRATION)("End-to-End: OpenAI via Proxy", () => {
   });
 
   it("chat.completions.create compresses large context", async () => {
-    const client = new HeadroomClient({
+    const client = new CopiumClient({
       providerApiKey: process.env.OPENAI_API_KEY,
     });
 
@@ -326,7 +326,7 @@ describe.skipIf(!INTEGRATION)("End-to-End: OpenAI via Proxy", () => {
         ...messagesWithLargeToolOutput,
         { role: "user", content: "How many servers have errors? Answer with just the number." },
       ] as any[],
-      headroomMode: "optimize",
+      copiumMode: "optimize",
     });
 
     expect(response.choices).toBeDefined();

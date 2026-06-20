@@ -13,13 +13,13 @@ import time
 
 import pytest
 
-from headroom.cache.compression_store import (
+from copium.cache.compression_store import (
     CompressionStore,
     get_compression_store,
     reset_compression_store,
 )
-from headroom.config import CCRConfig
-from headroom.transforms.smart_crusher import (
+from copium.config import CCRConfig
+from copium.transforms.smart_crusher import (
     SmartCrusherConfig,
     smart_crush_tool_output,
 )

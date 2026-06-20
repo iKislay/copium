@@ -28,11 +28,11 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from headroom.memory.adapters.cache import LRUMemoryCache
-from headroom.memory.adapters.fts5 import FTS5TextIndex
-from headroom.memory.adapters.sqlite import SQLiteMemoryStore
-from headroom.memory.models import Memory, ScopeLevel
-from headroom.memory.ports import MemoryFilter, TextFilter, VectorFilter
+from copium.memory.adapters.cache import LRUMemoryCache
+from copium.memory.adapters.fts5 import FTS5TextIndex
+from copium.memory.adapters.sqlite import SQLiteMemoryStore
+from copium.memory.models import Memory, ScopeLevel
+from copium.memory.ports import MemoryFilter, TextFilter, VectorFilter
 
 # =============================================================================
 # Fixtures
@@ -495,7 +495,7 @@ class TestMemoryConfig:
 
     def test_default_config(self):
         """Test default configuration."""
-        from headroom.memory.config import MemoryConfig
+        from copium.memory.config import MemoryConfig
 
         config = MemoryConfig()
         assert config.vector_dimension == 384
@@ -504,14 +504,14 @@ class TestMemoryConfig:
 
     def test_invalid_dimension(self):
         """Test that invalid dimension raises error."""
-        from headroom.memory.config import MemoryConfig
+        from copium.memory.config import MemoryConfig
 
         with pytest.raises(ValueError):
             MemoryConfig(vector_dimension=0)
 
     def test_openai_requires_api_key(self):
         """Test that OpenAI backend requires API key."""
-        from headroom.memory.config import EmbedderBackend, MemoryConfig
+        from copium.memory.config import EmbedderBackend, MemoryConfig
 
         with pytest.raises(ValueError, match="openai_api_key"):
             MemoryConfig(embedder_backend=EmbedderBackend.OPENAI)
@@ -614,7 +614,7 @@ class TestIntegration:
 
 # Check if hnswlib is available (use lazy check to avoid SIGILL on incompatible CPUs)
 try:
-    from headroom.memory.adapters.hnsw import _check_hnswlib_available
+    from copium.memory.adapters.hnsw import _check_hnswlib_available
 
     HNSW_AVAILABLE = _check_hnswlib_available()
 except ImportError:
@@ -628,7 +628,7 @@ class TestHNSWVectorIndex:
     @pytest.fixture
     def vector_index(self, temp_db_path):
         """Create an HNSW vector index for testing."""
-        from headroom.memory.adapters.hnsw import HNSWVectorIndex
+        from copium.memory.adapters.hnsw import HNSWVectorIndex
 
         return HNSWVectorIndex(dimension=384, save_path=temp_db_path.with_suffix(".hnsw"))
 
@@ -713,7 +713,7 @@ class TestHNSWVectorIndex:
     @pytest.mark.asyncio
     async def test_persistence(self, temp_db_path):
         """Test that index persists to disk."""
-        from headroom.memory.adapters.hnsw import HNSWVectorIndex
+        from copium.memory.adapters.hnsw import HNSWVectorIndex
 
         save_path = temp_db_path.with_suffix(".hnsw")
         np.random.seed(42)
@@ -755,7 +755,7 @@ class TestLocalEmbedder:
     def embedder(self):
         """Create a local embedder for testing."""
         pytest.importorskip("sentence_transformers", reason="sentence-transformers not installed")
-        from headroom.memory.adapters.embedders import LocalEmbedder
+        from copium.memory.adapters.embedders import LocalEmbedder
 
         return LocalEmbedder()
 
@@ -817,7 +817,7 @@ class TestOnnxLocalEmbedder:
     @pytest.mark.asyncio
     async def test_embed_batch_uses_batched_onnx_inference(self):
         """Test that non-empty inputs share ONNX batch inference."""
-        from headroom.memory.adapters.embedders import OnnxLocalEmbedder
+        from copium.memory.adapters.embedders import OnnxLocalEmbedder
 
         class FakeEncoding:
             def __init__(self, ids: list[int], attention_mask: list[int]) -> None:

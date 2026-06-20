@@ -6,7 +6,7 @@ objects and calls ``run_cases(cases)``. The harness handles:
 * creating a scratch HOME and project directory per case
 * dropping the requested shims into a dedicated shim dir
 * building a clean PATH that only exposes the shim dir + minimal system dirs
-* invoking the ``headroom`` subprocess with the case's argv
+* invoking the ``copium`` subprocess with the case's argv
 * running the case's assertions against stdout / stderr / exit code / files
 * reporting pass/fail per case and a final summary
 
@@ -51,7 +51,7 @@ class Case:
 
     Attributes:
         name: Human-readable identifier, printed on success/failure.
-        argv: Arguments passed to ``headroom`` (e.g. ``["init", "-g", "claude"]``).
+        argv: Arguments passed to ``copium`` (e.g. ``["init", "-g", "claude"]``).
         shims: Mapping of shim name -> behavior to drop into the shim dir.
         env_extra: Extra env vars layered on top of the clean env.
         expected_exit: Required exit code (default 0).
@@ -84,12 +84,12 @@ def _resolve_placeholder(spec: str, *, home: Path, project: Path) -> Path:
     return Path(spec.format(home=str(home), project=str(project)))
 
 
-def _resolve_headroom_bin(name: str) -> str:
-    """Return the absolute path to the headroom binary before PATH is scrubbed.
+def _resolve_copium_bin(name: str) -> str:
+    """Return the absolute path to the copium binary before PATH is scrubbed.
 
     ``with_clean_path`` intentionally narrows PATH so agent shims dominate;
-    that would also hide the real ``headroom`` binary (typically at
-    ``/opt/*venv/bin/headroom`` or similar). Resolving up-front lets the
+    that would also hide the real ``copium`` binary (typically at
+    ``/opt/*venv/bin/copium`` or similar). Resolving up-front lets the
     subprocess launch even after PATH is cleaned.
     """
 
@@ -105,10 +105,10 @@ def _resolve_headroom_bin(name: str) -> str:
     return name
 
 
-def _run_single(case: Case, headroom_bin: str = "headroom") -> bool:
+def _run_single(case: Case, copium_bin: str = "copium") -> bool:
     """Execute one case. Return True on pass, False on fail."""
 
-    with tempfile.TemporaryDirectory(prefix=f"headroom-e2e-{case.name}-") as temp_raw:
+    with tempfile.TemporaryDirectory(prefix=f"copium-e2e-{case.name}-") as temp_raw:
         temp_root = Path(temp_raw)
         home = temp_root / "home"
         project = temp_root / "project"
@@ -120,14 +120,14 @@ def _run_single(case: Case, headroom_bin: str = "headroom") -> bool:
         for shim_name, behavior in case.shims.items():
             make_shim(shim_name, shim_dir, behavior=behavior)
 
-        # Resolve headroom to its absolute path BEFORE mutating PATH so the
-        # shim dir can dominate PATH without losing the headroom binary.
-        resolved_bin = _resolve_headroom_bin(headroom_bin)
+        # Resolve copium to its absolute path BEFORE mutating PATH so the
+        # shim dir can dominate PATH without losing the copium binary.
+        resolved_bin = _resolve_copium_bin(copium_bin)
 
         with with_clean_path([shim_dir]) as env:
             env["HOME"] = str(home)
             env["USERPROFILE"] = str(home)
-            env["HEADROOM_E2E_SHIM_LOG"] = str(shim_log)
+            env["COPIUM_E2E_SHIM_LOG"] = str(shim_log)
             env.update(case.env_extra)
 
             proc = subprocess.run(
@@ -183,7 +183,7 @@ def _run_in_scratch(
     project: Path,
     shim_dir: Path,
     shim_log: Path,
-    headroom_bin: str,
+    copium_bin: str,
 ) -> bool:
     """Execute one case inside a pre-existing scratch layout.
 
@@ -194,12 +194,12 @@ def _run_in_scratch(
     for shim_name, behavior in case.shims.items():
         make_shim(shim_name, shim_dir, behavior=behavior)
 
-    resolved_bin = _resolve_headroom_bin(headroom_bin)
+    resolved_bin = _resolve_copium_bin(copium_bin)
 
     with with_clean_path([shim_dir]) as env:
         env["HOME"] = str(home)
         env["USERPROFILE"] = str(home)
-        env["HEADROOM_E2E_SHIM_LOG"] = str(shim_log)
+        env["COPIUM_E2E_SHIM_LOG"] = str(shim_log)
         env.update(case.env_extra)
 
         proc = subprocess.run(
@@ -251,7 +251,7 @@ def _run_in_scratch(
 def run_cases(
     cases: list[Case],
     *,
-    headroom_bin: str = "headroom",
+    copium_bin: str = "copium",
     fail_fast: bool = False,
 ) -> int:
     """Run each case in its own scratch dir. Return exit code (0 = all pass)."""
@@ -259,7 +259,7 @@ def run_cases(
     passed = 0
     failed = 0
     for case in cases:
-        ok = _run_single(case, headroom_bin=headroom_bin)
+        ok = _run_single(case, copium_bin=copium_bin)
         if ok:
             passed += 1
         else:
@@ -274,20 +274,20 @@ def run_cases(
 def run_case_sequence(
     cases: list[Case],
     *,
-    headroom_bin: str = "headroom",
+    copium_bin: str = "copium",
     label: str = "sequence",
     fail_fast: bool = True,
 ) -> int:
     """Run cases sequentially inside a single shared scratch dir.
 
     Useful when later cases must observe state left by earlier ones (e.g.
-    ``headroom init`` accumulating targets in a shared manifest across
+    ``copium init`` accumulating targets in a shared manifest across
     successive calls).
     """
 
     passed = 0
     failed = 0
-    with tempfile.TemporaryDirectory(prefix=f"headroom-e2e-{label}-") as temp_raw:
+    with tempfile.TemporaryDirectory(prefix=f"copium-e2e-{label}-") as temp_raw:
         temp_root = Path(temp_raw)
         home = temp_root / "home"
         project = temp_root / "project"
@@ -303,7 +303,7 @@ def run_case_sequence(
                 project=project,
                 shim_dir=shim_dir,
                 shim_log=shim_log,
-                headroom_bin=headroom_bin,
+                copium_bin=copium_bin,
             )
             if ok:
                 passed += 1

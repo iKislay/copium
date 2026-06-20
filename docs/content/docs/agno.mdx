@@ -3,12 +3,12 @@ title: Agno
 description: Automatic context compression for Agno AI agents with model wrapping and observability hooks.
 ---
 
-Headroom integrates with [Agno](https://github.com/agno-agi/agno) (formerly Phidata) to compress context for AI agents. Wrap any Agno model for automatic optimization, and use hooks for observability.
+Copium integrates with [Agno](https://github.com/agno-agi/agno) (formerly Phidata) to compress context for AI agents. Wrap any Agno model for automatic optimization, and use hooks for observability.
 
 ## Installation
 
 ```bash
-pip install "headroom-ai[agno]" agno
+pip install "copium-ai[agno]" agno
 ```
 
 ## Quick start
@@ -16,9 +16,9 @@ pip install "headroom-ai[agno]" agno
 ```python
 from agno.agent import Agent
 from agno.models.openai import OpenAIChat
-from headroom.integrations.agno import HeadroomAgnoModel
+from copium.integrations.agno import CopiumAgnoModel
 
-model = HeadroomAgnoModel(OpenAIChat(id="gpt-4o"))
+model = CopiumAgnoModel(OpenAIChat(id="gpt-4o"))
 agent = Agent(model=model)
 
 response = agent.run("What's the capital of France?")
@@ -34,8 +34,8 @@ Works with any Agno provider:
 from agno.models.anthropic import Claude
 from agno.models.google import Gemini
 
-claude_model = HeadroomAgnoModel(Claude(id="claude-sonnet-4-20250514"))
-gemini_model = HeadroomAgnoModel(Gemini(id="gemini-2.0-flash"))
+claude_model = CopiumAgnoModel(Claude(id="claude-sonnet-4-20250514"))
+gemini_model = CopiumAgnoModel(Gemini(id="gemini-2.0-flash"))
 ```
 
 ## Observability hooks
@@ -43,16 +43,16 @@ gemini_model = HeadroomAgnoModel(Gemini(id="gemini-2.0-flash"))
 Use hooks for detailed tracking without modifying your model:
 
 ```python
-from headroom.integrations.agno import (
-    HeadroomAgnoModel,
-    HeadroomPreHook,
-    HeadroomPostHook,
+from copium.integrations.agno import (
+    CopiumAgnoModel,
+    CopiumPreHook,
+    CopiumPostHook,
 )
 
-model = HeadroomAgnoModel(OpenAIChat(id="gpt-4o"))
+model = CopiumAgnoModel(OpenAIChat(id="gpt-4o"))
 
-pre_hook = HeadroomPreHook()
-post_hook = HeadroomPostHook(token_alert_threshold=10000)
+pre_hook = CopiumPreHook()
+post_hook = CopiumPostHook(token_alert_threshold=10000)
 
 agent = Agent(
     model=model,
@@ -70,9 +70,9 @@ if post_hook.alerts:
 Or use the convenience factory:
 
 ```python
-from headroom.integrations.agno import create_headroom_hooks
+from copium.integrations.agno import create_copium_hooks
 
-pre_hook, post_hook = create_headroom_hooks(
+pre_hook, post_hook = create_copium_hooks(
     token_alert_threshold=5000,
     log_level="DEBUG",
 )
@@ -85,7 +85,7 @@ Tool outputs (JSON, logs, search results) see the biggest compression gains at 7
 ```python
 from agno.tools.duckduckgo import DuckDuckGoTools
 
-model = HeadroomAgnoModel(OpenAIChat(id="gpt-4o"))
+model = CopiumAgnoModel(OpenAIChat(id="gpt-4o"))
 
 agent = Agent(
     model=model,
@@ -103,7 +103,7 @@ print(f"Tokens saved: {model.total_tokens_saved}")
 import asyncio
 
 async def process():
-    model = HeadroomAgnoModel(OpenAIChat(id="gpt-4o"))
+    model = CopiumAgnoModel(OpenAIChat(id="gpt-4o"))
 
     response = await model.aresponse(messages)
 
@@ -118,7 +118,7 @@ asyncio.run(process())
 Optimize messages without wrapping a model:
 
 ```python
-from headroom.integrations.agno import optimize_messages
+from copium.integrations.agno import optimize_messages
 
 optimized, metrics = optimize_messages(messages, model="gpt-4o")
 print(f"Tokens saved: {metrics['tokens_saved']}")
@@ -129,7 +129,7 @@ print(f"Tokens saved: {metrics['tokens_saved']}")
 Reset metrics between sessions:
 
 ```python
-model = HeadroomAgnoModel(OpenAIChat(id="gpt-4o"))
+model = CopiumAgnoModel(OpenAIChat(id="gpt-4o"))
 
 # Session 1
 agent.run("First conversation...")

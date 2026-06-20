@@ -1,4 +1,4 @@
-# Contributing to Headroom
+# Contributing to Copium
 
 Thanks for contributing! Please skim this before opening a PR : the policies exist because we've been burned skipping them, not because we love paperwork.
 
@@ -89,8 +89,8 @@ A human maintainer reviews every dep change. PRs that add or bump a package must
 ## Development setup
 
 ```bash
-git clone https://github.com/chopratejas/headroom.git
-cd headroom
+git clone https://github.com/iKislay/copium.git
+cd copium
 python -m venv .venv && source .venv/bin/activate
 node --version  # Node 18+ required for commitlint hooks
 python -m pip install --upgrade pip
@@ -98,7 +98,7 @@ python -m pip install -e ".[dev,relevance,proxy]"
 python -m pytest
 ```
 
-Headroom uses a `pyproject.toml`/`maturin` build backend. Older `pip`
+Copium uses a `pyproject.toml`/`maturin` build backend. Older `pip`
 versions may fail editable installs by looking for `setup.py`; upgrade `pip`
 first or use `uv sync --extra dev`.
 

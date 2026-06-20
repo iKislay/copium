@@ -3,7 +3,7 @@ title: Image Compression
 description: ML-powered image compression that reduces vision model token usage by 40-90% while maintaining answer accuracy.
 ---
 
-Vision models charge by the token, and images are expensive. A single 1024x1024 image costs ~765 tokens on OpenAI. Headroom's image compression uses a trained ML router to analyze your query and automatically select the optimal compression technique, saving 40-90% of image tokens.
+Vision models charge by the token, and images are expensive. A single 1024x1024 image costs ~765 tokens on OpenAI. Copium's image compression uses a trained ML router to analyze your query and automatically select the optimal compression technique, saving 40-90% of image tokens.
 
 ## How It Works
 
@@ -39,22 +39,22 @@ The router is a fine-tuned MiniLM classifier (`chopratejas/technique-router` on 
 
 ## Quick Start
 
-### With Headroom Proxy (Zero Code Changes)
+### With Copium Proxy (Zero Code Changes)
 
 ```bash
 # Start the proxy
-headroom proxy --port 8787
+copium proxy --port 8787
 
 # Connect your client -- images are compressed automatically
 ANTHROPIC_BASE_URL=http://localhost:8787 claude
 ```
 
-### With HeadroomClient
+### With CopiumClient
 
 ```python
-from headroom import HeadroomClient
+from copium import CopiumClient
 
-client = HeadroomClient(provider="openai")
+client = CopiumClient(provider="openai")
 
 response = client.chat.completions.create(
     model="gpt-4o",
@@ -72,7 +72,7 @@ response = client.chat.completions.create(
 ### Direct API
 
 ```python
-from headroom.image import ImageCompressor
+from copium.image import ImageCompressor
 
 compressor = ImageCompressor()
 
@@ -118,7 +118,7 @@ The compressor adapts its strategy per provider:
 ## Configuration
 
 ```python
-from headroom.image import ImageCompressor
+from copium.image import ImageCompressor
 
 compressor = ImageCompressor(
     model_id="chopratejas/technique-router",  # HuggingFace model
@@ -133,7 +133,7 @@ compressor = ImageCompressor(
 # Image optimization is part of the ContentRouter path when the optional image
 # dependencies are installed. There are no public proxy CLI image toggles in
 # the current release.
-headroom proxy
+copium proxy
 ```
 
 ## Performance
@@ -148,5 +148,5 @@ headroom proxy
 | GPU memory (SigLIP) | ~400MB |
 
 <Callout type="info" title="Automatic with the proxy">
-  When using the Headroom proxy, image compression happens automatically on every request that contains images. No code changes needed.
+  When using the Copium proxy, image compression happens automatically on every request that contains images. No code changes needed.
 </Callout>

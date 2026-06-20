@@ -1,9 +1,9 @@
 ---
 title: How Compression Works
-description: Understand Headroom's three-stage compression pipeline, automatic content routing, and how different content types are compressed.
+description: Understand Copium's three-stage compression pipeline, automatic content routing, and how different content types are compressed.
 ---
 
-Headroom automatically detects what kind of content you're sending and routes it to the right compressor. You don't need to configure anything -- just call `compress()` and the pipeline handles the rest.
+Copium automatically detects what kind of content you're sending and routes it to the right compressor. You don't need to configure anything -- just call `compress()` and the pipeline handles the rest.
 
 ## The Three-Stage Pipeline
 
@@ -41,7 +41,7 @@ The router auto-detects content type by analyzing structure and patterns. No man
 <Tabs groupId="lang" items={['TypeScript', 'Python']}>
 <Tab value="TypeScript">
 ```ts twoslash
-import { compress } from "headroom-ai";
+import { compress } from "copium-ai";
 
 const messages = [
   { role: "system" as const, content: "You are a helpful assistant." },
@@ -56,7 +56,7 @@ console.log(`Compression ratio: ${result.compressionRatio}`);
 </Tab>
 <Tab value="Python">
 ```python
-from headroom import compress
+from copium import compress
 
 result = compress(content)
 print(result.compressed)
@@ -70,7 +70,7 @@ print(f"Saved {result.savings_percentage:.0f}% tokens")
 <Tabs groupId="lang" items={['TypeScript', 'Python']}>
 <Tab value="TypeScript">
 ```ts twoslash
-import { compress } from "headroom-ai";
+import { compress } from "copium-ai";
 
 const result = await compress(messages, {
   model: "gpt-4o",
@@ -84,8 +84,8 @@ console.log(`Transforms: ${result.transformsApplied.join(", ")}`);
 </Tab>
 <Tab value="Python">
 ```python
-# Advanced / Internal API -- prefer `from headroom import compress` for typical use
-from headroom.compression import UniversalCompressor, UniversalCompressorConfig
+# Advanced / Internal API -- prefer `from copium import compress` for typical use
+from copium.compression import UniversalCompressor, UniversalCompressorConfig
 
 config = UniversalCompressorConfig(
     compression_ratio_target=0.5,  # Keep 50% of content
@@ -106,7 +106,7 @@ print(f"Saved: {result.savings_percentage:.0f}%")
 
 ## Structure Preservation
 
-Headroom doesn't blindly truncate. It identifies what matters in each content type and preserves it:
+Copium doesn't blindly truncate. It identifies what matters in each content type and preserves it:
 
 | Content Type | What's Preserved | What's Compressed |
 |---|---|---|
@@ -130,8 +130,8 @@ Headroom doesn't blindly truncate. It identifies what matters in each content ty
 For multiple contents, batch compression is more efficient:
 
 ```python
-# Advanced / Internal API -- prefer `from headroom import compress` for typical use
-from headroom.compression import UniversalCompressor
+# Advanced / Internal API -- prefer `from copium import compress` for typical use
+from copium.compression import UniversalCompressor
 
 compressor = UniversalCompressor()
 

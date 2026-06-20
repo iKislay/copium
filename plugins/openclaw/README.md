@@ -1,4 +1,4 @@
-# @headroom-ai/openclaw
+# @copium-ai/openclaw
 
 Context compression plugin for [OpenClaw](https://github.com/openclaw/openclaw). Compresses tool outputs, code, logs, and structured data — 70-90% token savings with zero LLM calls.
 
@@ -7,17 +7,17 @@ Context compression plugin for [OpenClaw](https://github.com/openclaw/openclaw).
 Recommended one-command setup:
 
 ```bash
-headroom wrap openclaw
+copium wrap openclaw
 ```
 
 Manual install:
 
 ```bash
-pip install "headroom-ai[proxy]"
-openclaw plugins install --dangerously-force-unsafe-install headroom-ai/openclaw
+pip install "copium-ai[proxy]"
+openclaw plugins install --dangerously-force-unsafe-install copium-ai/openclaw
 ```
 
-This plugin can auto-start a local `headroom proxy` when needed. OpenClaw treats process-launching plugins as unsafe by default, so `--dangerously-force-unsafe-install` is required even if you plan to use a remote proxy (the capability is declared at install time).
+This plugin can auto-start a local `copium proxy` when needed. OpenClaw treats process-launching plugins as unsafe by default, so `--dangerously-force-unsafe-install` is required even if you plan to use a remote proxy (the capability is declared at install time).
 
 ## Local Development Install (Detection-Friendly)
 
@@ -46,20 +46,20 @@ openclaw plugins install --dangerously-force-unsafe-install --link .
 
 Why this matters:
 - The plugin checks launchers in this order: PATH -> local npm bin -> global npm -> python.
-- "local npm bin" means `plugins/openclaw/node_modules/.bin/headroom` relative to the source checkout.
+- "local npm bin" means `plugins/openclaw/node_modules/.bin/copium` relative to the source checkout.
 - Using `--link dist` (or `--link .` from `dist/`) still keeps runtime code adjacent to the checkout, and launcher detection falls back to PATH/global/python if a local npm bin is not present under the installed root.
 - `plugins/openclaw` also carries a no-op hook shim so OpenClaw's hook-pack fallback treats the path as valid instead of emitting a misleading `package.json missing openclaw.hooks` warning.
 - If you install from a `.tgz`, local npm bin may not exist in the installed extension and detection will fall back to PATH/global/python.
 
 ## Configure
 
-Install automatically selects the `contextEngine` slot for `headroom` on current OpenClaw releases. If you need to switch back manually, set `plugins.slots.contextEngine` to `"legacy"` or another engine id.
+Install automatically selects the `contextEngine` slot for `copium` on current OpenClaw releases. If you need to switch back manually, set `plugins.slots.contextEngine` to `"legacy"` or another engine id.
 
 ```json
 {
   "plugins": {
     "entries": {
-      "headroom": {
+      "copium": {
         "enabled": true,
         "config": {
           "proxyUrl": "http://127.0.0.1:8787"
@@ -67,7 +67,7 @@ Install automatically selects the `contextEngine` slot for `headroom` on current
       }
     },
     "slots": {
-      "contextEngine": "headroom"
+      "contextEngine": "copium"
     }
   }
 }
@@ -81,9 +81,9 @@ Default `proxyPort` is `8787`.
 
 ### Upstream gateway routing
 
-By default, the plugin also rewrites the built-in `openai-codex` provider base URL to the active Headroom proxy at runtime. That means Codex provider traffic flows through Headroom, so `/stats` can observe real upstream request and cache activity instead of only local context compression.
+By default, the plugin also rewrites the built-in `openai-codex` provider base URL to the active Copium proxy at runtime. That means Codex provider traffic flows through Copium, so `/stats` can observe real upstream request and cache activity instead of only local context compression.
 
-This does not replace Headroom's existing Codex routing rules. The proxy already decides between `api.openai.com` and `chatgpt.com/backend-api/codex/responses` based on ChatGPT auth. The plugin change only points OpenClaw's provider config at the active proxy in memory and preserves the rest of the provider config.
+This does not replace Copium's existing Codex routing rules. The proxy already decides between `api.openai.com` and `chatgpt.com/backend-api/codex/responses` based on ChatGPT auth. The plugin change only points OpenClaw's provider config at the active proxy in memory and preserves the rest of the provider config.
 
 You can also route additional provider ids such as `anthropic`, `github-copilot`, `google`, or `openrouter` through the same proxy:
 
@@ -91,7 +91,7 @@ You can also route additional provider ids such as `anthropic`, `github-copilot`
 {
   "plugins": {
     "entries": {
-      "headroom": {
+      "copium": {
         "enabled": true,
         "config": {
           "gatewayProviderIds": ["openai-codex", "anthropic", "github-copilot", "google", "openrouter"]
@@ -120,8 +120,8 @@ GitHub Copilot is a special case because OpenClaw can route it through either Op
 
 The routing is intentionally lightweight and reversible:
 - the plugin does not persist provider `baseUrl` changes back to `openclaw.json`
-- disabling the plugin, clearing `gatewayProviderIds`, or restarting without Headroom restores OpenClaw's normal provider resolution
-- if you want durable provider rewrites, use `headroom wrap openclaw` instead of relying on plugin install side effects
+- disabling the plugin, clearing `gatewayProviderIds`, or restarting without Copium restores OpenClaw's normal provider resolution
+- if you want durable provider rewrites, use `copium wrap openclaw` instead of relying on plugin install side effects
 
 If you need to disable that behavior:
 
@@ -129,7 +129,7 @@ If you need to disable that behavior:
 {
   "plugins": {
     "entries": {
-      "headroom": {
+      "copium": {
         "enabled": true,
         "config": {
           "routeCodexViaProxy": false
@@ -142,24 +142,24 @@ If you need to disable that behavior:
 
 ### Local proxy (auto-start)
 
-When `proxyUrl` points to localhost (or is omitted), the plugin will auto-start `headroom proxy` if no running proxy is detected. Launch order:
-1. `headroom` from `PATH`
-2. local npm bin (`node_modules/.bin/headroom`)
+When `proxyUrl` points to localhost (or is omitted), the plugin will auto-start `copium proxy` if no running proxy is detected. Launch order:
+1. `copium` from `PATH`
+2. local npm bin (`node_modules/.bin/copium`)
 3. global npm bin
-4. Python module (`python -m headroom.cli proxy ...`)
+4. Python module (`python -m copium.cli proxy ...`)
 
 If `pythonPath` is set, it is tried first in the Python fallback step.
 
-Docker-native Headroom installs intentionally leave `pythonPath` unset so this launcher order prefers the installed host `headroom` wrapper on `PATH`, which then runs Headroom in Docker.
+Docker-native Copium installs intentionally leave `pythonPath` unset so this launcher order prefers the installed host `copium` wrapper on `PATH`, which then runs Copium in Docker.
 
 ### Remote proxy (connect-only)
 
-Point `proxyUrl` to any reachable Headroom instance:
+Point `proxyUrl` to any reachable Copium instance:
 
 ```json
 {
   "config": {
-    "proxyUrl": "https://headroom.example.com:8787"
+    "proxyUrl": "https://copium.example.com:8787"
   }
 }
 ```
@@ -173,15 +173,15 @@ If you prefer to manage the proxy yourself (or are running a remote instance), s
 Python install:
 
 ```bash
-pip install "headroom-ai[proxy]"
-headroom proxy --host 127.0.0.1 --port 8787
+pip install "copium-ai[proxy]"
+copium proxy --host 127.0.0.1 --port 8787
 ```
 
 NPM install:
 
 ```bash
-npm install -g headroom-ai
-headroom proxy --host 127.0.0.1 --port 8787
+npm install -g copium-ai
+copium proxy --host 127.0.0.1 --port 8787
 ```
 
 ## How It Works
@@ -193,28 +193,28 @@ Every time OpenClaw assembles context for the model, the plugin compresses tool 
 - **Logs** — pattern deduplication, keeps errors and boundaries
 - **Text** — ML-based token compression
 
-Compression is lossless via CCR (Compress-Cache-Retrieve): originals are stored and the agent gets a `headroom_retrieve` tool to access full details when needed.
+Compression is lossless via CCR (Compress-Cache-Retrieve): originals are stored and the agent gets a `copium_retrieve` tool to access full details when needed.
 
 ## Configuration Options
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `proxyUrl` | auto-detected | Optional URL of a Headroom proxy. Local addresses (`http://127.0.0.1:<port>`, `http://localhost:<port>`) enable auto-start; remote URLs (`https://headroom.example.com`) are connect-only. |
+| `proxyUrl` | auto-detected | Optional URL of a Copium proxy. Local addresses (`http://127.0.0.1:<port>`, `http://localhost:<port>`) enable auto-start; remote URLs (`https://copium.example.com`) are connect-only. |
 | `proxyPort` | `8787` | Port used for default auto-detect/auto-start when `proxyUrl` is not set. |
 | `pythonPath` | auto-detected | Optional Python executable override for Python fallback launcher. |
-| `autoStart` | `true` | Auto-start a local `headroom proxy` if not already running (local URLs only; ignored for remote proxies) |
+| `autoStart` | `true` | Auto-start a local `copium proxy` if not already running (local URLs only; ignored for remote proxies) |
 | `startupTimeoutMs` | `20000` | Time to wait for auto-started proxy to become healthy |
-| `routeCodexViaProxy` | `true` | Rewrite OpenClaw's built-in `openai-codex` provider to use the active Headroom proxy in memory so upstream Codex requests pass through Headroom. |
-| `gatewayProviderIds` | `[]` | Optional explicit list of OpenClaw provider ids to route through the active Headroom proxy in memory. Friendly aliases `codex`, `claude`, `copilot`, and `gemini` are also accepted. When set, this overrides the default `openai-codex` routing list. |
+| `routeCodexViaProxy` | `true` | Rewrite OpenClaw's built-in `openai-codex` provider to use the active Copium proxy in memory so upstream Codex requests pass through Copium. |
+| `gatewayProviderIds` | `[]` | Optional explicit list of OpenClaw provider ids to route through the active Copium proxy in memory. Friendly aliases `codex`, `claude`, `copilot`, and `gemini` are also accepted. When set, this overrides the default `openai-codex` routing list. |
 
 ## Comparison with lossless-claw
 
-| | lossless-claw | headroom |
+| | lossless-claw | copium |
 |---|---|---|
 | Compaction method | LLM summarization (DAG) | Content-aware compression (zero LLM) |
 | Cost of compaction | Tokens (LLM calls) | Zero |
 | Best for | Long conversations | Tool-heavy agents with large outputs |
-| Retrieval | `lcm_grep`, `lcm_expand` | `headroom_retrieve` (instant) |
+| Retrieval | `lcm_grep`, `lcm_expand` | `copium_retrieve` (instant) |
 
 ## License
 

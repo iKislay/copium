@@ -11,7 +11,7 @@ import importlib.util
 
 import pytest
 
-from headroom.transforms.content_detector import (
+from copium.transforms.content_detector import (
     ContentType,
     DetectionResult,
     _is_md_separator,
@@ -20,12 +20,12 @@ from headroom.transforms.content_detector import (
     _try_detect_markdown_table,
     detect_content_type,
 )
-from headroom.transforms.content_router import (
+from copium.transforms.content_router import (
     CompressionStrategy,
     ContentRouter,
     ContentRouterConfig,
 )
-from headroom.transforms.tabular_ingest import (
+from copium.transforms.tabular_ingest import (
     TabularCompressionResult,
     TabularCompressor,
     parse_csv,
@@ -182,7 +182,7 @@ def test_parse_fixed_width_too_short_returns_empty() -> None:
 def test_parse_tabular_dispatches_fixed_width(monkeypatch) -> None:
     # The detector currently emits only csv/markdown, so drive the fixed_width
     # dispatch branch directly with a stubbed detection result.
-    import headroom.transforms.tabular_ingest as ti
+    import copium.transforms.tabular_ingest as ti
 
     monkeypatch.setattr(
         ti,
@@ -278,8 +278,8 @@ def test_router_respects_disable_flag() -> None:
 def test_load_and_compress_xlsx(tmp_path) -> None:
     import openpyxl
 
-    from headroom import compress_spreadsheet
-    from headroom.transforms.spreadsheet_ingest import load_spreadsheet
+    from copium import compress_spreadsheet
+    from copium.transforms.spreadsheet_ingest import load_spreadsheet
 
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -303,7 +303,7 @@ def test_load_and_compress_xlsx(tmp_path) -> None:
 def test_compress_spreadsheet_empty_workbook_returns_empty(tmp_path) -> None:
     import openpyxl
 
-    from headroom import compress_spreadsheet
+    from copium import compress_spreadsheet
 
     wb = openpyxl.Workbook()  # one empty sheet, no rows
     path = tmp_path / "empty.xlsx"
@@ -315,7 +315,7 @@ def test_compress_spreadsheet_empty_workbook_returns_empty(tmp_path) -> None:
 
 
 def test_load_spreadsheet_rejects_unknown_extension(tmp_path) -> None:
-    from headroom.transforms.spreadsheet_ingest import load_spreadsheet
+    from copium.transforms.spreadsheet_ingest import load_spreadsheet
 
     bad = tmp_path / "data.txt"
     bad.write_text("a,b\n1,2\n")
@@ -324,7 +324,7 @@ def test_load_spreadsheet_rejects_unknown_extension(tmp_path) -> None:
 
 
 def test_load_spreadsheet_missing_file(tmp_path) -> None:
-    from headroom.transforms.spreadsheet_ingest import load_spreadsheet
+    from copium.transforms.spreadsheet_ingest import load_spreadsheet
 
     with pytest.raises(FileNotFoundError):
         load_spreadsheet(tmp_path / "nope.xlsx")

@@ -3,14 +3,14 @@ title: SharedContext
 description: Compressed inter-agent context sharing. Reduce token usage by ~80% when agents hand off to each other.
 ---
 
-When agents hand off to each other, context gets replayed in full. SharedContext compresses what moves between agents using Headroom's compression pipeline, typically saving **~80% of tokens** on agent handoffs.
+When agents hand off to each other, context gets replayed in full. SharedContext compresses what moves between agents using Copium's compression pipeline, typically saving **~80% of tokens** on agent handoffs.
 
 ## Quick Start
 
 <Tabs groupId="lang" items={['TypeScript', 'Python']}>
 <Tab value="TypeScript">
 ```ts twoslash
-import { SharedContext } from "headroom";
+import { SharedContext } from "copium";
 
 const ctx = new SharedContext();
 
@@ -28,7 +28,7 @@ const full = ctx.get("research", { full: true });
 </Tab>
 <Tab value="Python">
 ```python
-from headroom import SharedContext
+from copium import SharedContext
 
 ctx = SharedContext()
 
@@ -48,12 +48,12 @@ full = ctx.get("research", full=True)
 
 ### `put(key, content, agent?)`
 
-Store content under a key. Compresses automatically using Headroom's full pipeline (SmartCrusher for JSON, CodeCompressor for code, Kompress for text).
+Store content under a key. Compresses automatically using Copium's full pipeline (SmartCrusher for JSON, CodeCompressor for code, Kompress for text).
 
 <Tabs groupId="lang" items={['TypeScript', 'Python']}>
 <Tab value="TypeScript">
 ```ts twoslash
-import { SharedContext } from "headroom";
+import { SharedContext } from "copium";
 const ctx = new SharedContext();
 // ---cut---
 const entry = await ctx.put("findings", bigJsonOutput, {
@@ -85,7 +85,7 @@ Retrieve content. Returns the compressed version by default, or the original wit
 <Tabs groupId="lang" items={['TypeScript', 'Python']}>
 <Tab value="TypeScript">
 ```ts twoslash
-import { SharedContext } from "headroom";
+import { SharedContext } from "copium";
 const ctx = new SharedContext();
 // ---cut---
 const compressed = ctx.get("findings");                  // 4K tokens
@@ -109,7 +109,7 @@ Aggregated statistics across all entries.
 <Tabs groupId="lang" items={['TypeScript', 'Python']}>
 <Tab value="TypeScript">
 ```ts twoslash
-import { SharedContext } from "headroom";
+import { SharedContext } from "copium";
 const ctx = new SharedContext();
 // ---cut---
 const stats = ctx.stats();
@@ -141,7 +141,7 @@ stats.savings_percent          # 80.0
 <Tabs groupId="lang" items={['TypeScript', 'Python']}>
 <Tab value="TypeScript">
 ```ts twoslash
-import { SharedContext } from "headroom";
+import { SharedContext } from "copium";
 // ---cut---
 const ctx = new SharedContext({
   model: "claude-sonnet-4-5-20250929",  // For token counting
@@ -170,7 +170,7 @@ SharedContext is framework-agnostic. It works anywhere context moves between age
 ### CrewAI
 
 ```python
-from headroom import SharedContext
+from copium import SharedContext
 
 ctx = SharedContext()
 
@@ -184,7 +184,7 @@ coder_context = ctx.get("findings")
 ### LangGraph
 
 ```python
-from headroom import SharedContext
+from copium import SharedContext
 
 ctx = SharedContext()
 
@@ -202,7 +202,7 @@ def coder_node(state):
 ### OpenAI Agents SDK
 
 ```python
-from headroom import SharedContext
+from copium import SharedContext
 
 ctx = SharedContext()
 
@@ -218,7 +218,7 @@ handoff(agent=coder, input_filter=compress_handoff)
 
 ## How It Works
 
-Under the hood, `put()` calls `headroom.compress()` -- the same pipeline used by the Headroom proxy -- and stores the original in memory. `get()` returns the compressed version. `get(full=True)` returns the original.
+Under the hood, `put()` calls `copium.compress()` -- the same pipeline used by the Copium proxy -- and stores the original in memory. `get()` returns the compressed version. `get(full=True)` returns the original.
 
 The compression pipeline routes content to the best compressor:
 

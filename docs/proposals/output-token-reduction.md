@@ -9,7 +9,7 @@ See **§7** for the counterfactual measurement methodology (how we honestly repo
 
 ## 1. The problem in one line
 
-Headroom's entire transform pipeline compresses what goes **into** the model.
+Copium's entire transform pipeline compresses what goes **into** the model.
 Nothing today touches what comes **out**. But output tokens are billed at
 5× input on Opus-class models ($25 vs $5 per MTok on `claude-opus-4-8`), and in
 agentic coding loops a large fraction of the bill is output: thinking tokens,
@@ -38,10 +38,10 @@ That gives three lever families plus a learning loop:
 
 ### 2.1 What it is
 
-`headroom/proxy/output_shaper.py` — a request-body rewriter invoked in
+`copium/proxy/output_shaper.py` — a request-body rewriter invoked in
 `handle_anthropic_messages` after every other body mutation (so the turn
 classifier sees the final message list) and gated behind the same
-`x-headroom-bypass` header as compression. Opt-in via `HEADROOM_OUTPUT_SHAPER=1`.
+`x-copium-bypass` header as compression. Opt-in via `COPIUM_OUTPUT_SHAPER=1`.
 
 ### 2.2 Lever A — verbosity steering
 
@@ -98,17 +98,17 @@ field is **never** toggled.
    cache tier (per the caching invalidation hierarchy).
 3. **Byte-stable, idempotent steering** — repeated requests keep an identical
    prefix; cache stays warm.
-4. **Respect `x-headroom-bypass`** — sub-agent calls that opt out of
+4. **Respect `x-copium-bypass`** — sub-agent calls that opt out of
    compression also opt out of shaping.
 
 ### 2.6 Configuration
 
 | Env var | Default | Meaning |
 |---|---|---|
-| `HEADROOM_OUTPUT_SHAPER` | off | master switch (`1`/`true`/`yes`) |
-| `HEADROOM_VERBOSITY_LEVEL` | `2` | 0–4 (clamped) |
-| `HEADROOM_EFFORT_ROUTER` | on | set `0` to disable effort routing |
-| `HEADROOM_MECHANICAL_EFFORT` | `low` | floor effort for mechanical turns |
+| `COPIUM_OUTPUT_SHAPER` | off | master switch (`1`/`true`/`yes`) |
+| `COPIUM_VERBOSITY_LEVEL` | `2` | 0–4 (clamped) |
+| `COPIUM_EFFORT_ROUTER` | on | set `0` to disable effort routing |
+| `COPIUM_MECHANICAL_EFFORT` | `low` | floor effort for mechanical turns |
 
 ### 2.7 Tests
 
@@ -169,9 +169,9 @@ user sits between those poles.
 
 ### 4.1 Why this is necessary
 
-The right verbosity is **per-user**, not global. A fixed `HEADROOM_VERBOSITY_LEVEL`
+The right verbosity is **per-user**, not global. A fixed `COPIUM_VERBOSITY_LEVEL`
 is a guess. We can do better: mine the user's own past sessions to infer what
-they actually tolerate — exactly the philosophy of `headroom learn`, which
+they actually tolerate — exactly the philosophy of `copium learn`, which
 already reads `~/.claude/projects/*.jsonl` and turns history into learned
 context.
 
@@ -198,9 +198,9 @@ already in the JSONL.
 For this user — 29 interrupts, 15% unread-long-output rate, zero "explain more"
 requests — the data reads as a clear **L2, arguably L3** user.
 
-### 4.3 Design — `headroom learn --verbosity`
+### 4.3 Design — `copium learn --verbosity`
 
-Slots into the existing `learn` architecture. `headroom/learn/plugins/claude.py`
+Slots into the existing `learn` architecture. `copium/learn/plugins/claude.py`
 already parses the JSONL; `analyzer.py` already does cheap-extraction → digest →
 LLM-returns-JSON. We add a verbosity analysis path:
 
@@ -235,7 +235,7 @@ The command produces three concrete artifacts:
 
 **(a) A human-readable report (stdout):**
 ```
-Verbosity analysis — /Users/tcms/demo/headroom (24 sessions, 210 turns)
+Verbosity analysis — /Users/tcms/demo/copium (24 sessions, 210 turns)
 
   Interrupts:        29  (1 per 7.2 turns)   ← strong "too much" signal
   Fast-skips:        15 / 100 long outputs   ← 15% of long answers unread
@@ -248,22 +248,22 @@ Verbosity analysis — /Users/tcms/demo/headroom (24 sessions, 210 turns)
   Estimated output-token reduction at L2: ~25–35%
 ```
 
-**(b) A persisted setting** written to `~/.headroom/` (alongside the existing
+**(b) A persisted setting** written to `~/.copium/` (alongside the existing
 savings tracker) — per-project verbosity level + confidence:
 ```json
-{"project": "/Users/tcms/demo/headroom",
+{"project": "/Users/tcms/demo/copium",
  "verbosity_level": 2, "confidence": "high",
  "signals": {"interrupt_rate": 0.138, "fast_skip_rate": 0.15},
  "learned_at": "2026-06-12T…"}
 ```
 
 **(c) The shaper reads it as its default.** `OutputShaperSettings.from_env()`
-gains a fallback: if `HEADROOM_VERBOSITY_LEVEL` is unset, load the learned
+gains a fallback: if `COPIUM_VERBOSITY_LEVEL` is unset, load the learned
 per-project level instead of the hardcoded `2`. So **the output of `--verbosity`
 directly becomes the live verbosity the proxy applies** — no manual tuning.
 
 **How it helps, concretely:**
-1. **Removes the guess.** Today you set `HEADROOM_VERBOSITY_LEVEL=2` by hand.
+1. **Removes the guess.** Today you set `COPIUM_VERBOSITY_LEVEL=2` by hand.
    After `learn --verbosity`, the level is derived from *your* behavior — a
    heavy-interrupter gets L3, a "read everything" user gets L1.
 2. **Per-project, not global.** Your exploratory side-project and your
@@ -291,13 +291,13 @@ The LLM judgment pass adjusts this — the table is the prior, not the verdict.
 
 | File | Status | Purpose |
 |---|---|---|
-| `headroom/proxy/output_shaper.py` | ✅ built | the shaper (steering + effort routing) |
-| `headroom/proxy/handlers/anthropic.py` | ✅ wired | invoke shaper after body mutations |
+| `copium/proxy/output_shaper.py` | ✅ built | the shaper (steering + effort routing) |
+| `copium/proxy/handlers/anthropic.py` | ✅ wired | invoke shaper after body mutations |
 | `tests/test_output_shaper.py` | ✅ 34 passing | unit coverage |
 | `scripts/eval_output_shaper.py` | ✅ built | live before/after eval |
 | `scripts/verbosity_scan.py` | 🔬 prototype | session-mining signal extraction |
-| `headroom/learn/plugins/claude.py` (+ analyzer) | 🔜 extend | `--verbosity` analysis path |
-| `~/.headroom/verbosity.json` | 🔜 | persisted per-project learned level |
+| `copium/learn/plugins/claude.py` (+ analyzer) | 🔜 extend | `--verbosity` analysis path |
+| `~/.copium/verbosity.json` | 🔜 | persisted per-project learned level |
 
 ---
 
@@ -321,7 +321,7 @@ This is the hard part, and it deserves its own section.
 
 ### 7.1 Why output savings are not directly measurable
 
-Input compression is a **pure function**: Headroom takes a request, shrinks it,
+Input compression is a **pure function**: Copium takes a request, shrinks it,
 and can count `tokens_before` and `tokens_after` — both are observable on the
 same request. Output is different. When the shaper makes a request terser, the
 model emits N output tokens. We **never observe** what it *would* have emitted
@@ -350,7 +350,7 @@ by chance, biasing the total upward. Over many requests the noise averages out;
 the systematic effect remains. Reported with a propagated 95% CI (see §7.5) and
 always labelled "estimated."
 
-**Tier 2 — Measured (A/B holdout).** Set `HEADROOM_OUTPUT_HOLDOUT=0.1` and 10%
+**Tier 2 — Measured (A/B holdout).** Set `COPIUM_OUTPUT_HOLDOUT=0.1` and 10%
 of conversations are deliberately left **unshaped** as a control arm. Within
 each stratum, `mean(control) − mean(treatment)` is an **unbiased causal
 estimate** of the per-request saving. This is the only number we call
@@ -422,7 +422,7 @@ learn --verbosity --apply
    ├─ writes verbosity.json         (the level the shaper applies)
    └─ seeds output_savings.json     (the per-stratum baseline = synthetic control)
 
-proxy request (HEADROOM_OUTPUT_SHAPER=1)
+proxy request (COPIUM_OUTPUT_SHAPER=1)
    ├─ assign_arm(conversation)      → treatment | control (holdout)
    ├─ stratum_key(request features)
    ├─ treatment: shape body; control: leave unshaped
@@ -431,7 +431,7 @@ proxy request (HEADROOM_OUTPUT_SHAPER=1)
 response completes → emit_request_outcome (one funnel, all paths)
    └─ recorder.record(arm, stratum, output_tokens)  → output_savings.json
 
-headroom output-savings   /   dashboard "Output Tokens Saved" card
+copium output-savings   /   dashboard "Output Tokens Saved" card
    └─ best_estimate(): measured if a holdout exists, else estimated; with CI
 ```
 
@@ -441,7 +441,7 @@ works for streaming, non-streaming, and backend paths with no change to
 
 ### 7.7 What the user sees
 
-- **CLI:** `headroom output-savings` →
+- **CLI:** `copium output-savings` →
   `Reduction: 31.7%  (95% CI 27.7% … 35.7%)  [MEASURED, 400 shaped requests]`
 - **Dashboard:** an "Output Tokens Saved" hero card next to input compression —
   token count, percent, a `measured`/`estimated` badge, and the CI band.
@@ -458,4 +458,4 @@ works for streaming, non-streaming, and backend paths with no change to
 - Runtime AIMD upward-ratcheting is gated off by default: we can reliably detect
   "too much output" (fast-skip timing, stream cancellation) but not yet "too
   little" at runtime without content heuristics, so auto-escalation stays
-  behind `HEADROOM_VERBOSITY_AUTOTUNE` until both directions are trustworthy.
+  behind `COPIUM_VERBOSITY_AUTOTUNE` until both directions are trustworthy.

@@ -8,18 +8,18 @@ from unittest.mock import patch
 
 import pytest
 
-from headroom.providers.anthropic import (
+from copium.providers.anthropic import (
     AnthropicProvider,
     _infer_model_tier,
 )
-from headroom.providers.anthropic import (
+from copium.providers.anthropic import (
     _load_custom_model_config as anthropic_load_config,
 )
-from headroom.providers.openai import (
+from copium.providers.openai import (
     OpenAIProvider,
     _infer_model_family,
 )
-from headroom.providers.openai import (
+from copium.providers.openai import (
     _load_custom_model_config as openai_load_config,
 )
 
@@ -143,7 +143,7 @@ class TestAnthropicConfigLoading:
         """Test loading config from JSON env var."""
         config = {"context_limits": {"test-model": 300000}}
 
-        with patch.dict(os.environ, {"HEADROOM_MODEL_LIMITS": json.dumps(config)}):
+        with patch.dict(os.environ, {"COPIUM_MODEL_LIMITS": json.dumps(config)}):
             loaded = anthropic_load_config()
             assert loaded["context_limits"]["test-model"] == 300000
 
@@ -155,12 +155,12 @@ class TestAnthropicConfigLoading:
             config_path = Path(tmpdir) / "model_limits.json"
             config_path.write_text(json.dumps(config))
 
-            with patch.dict(os.environ, {"HEADROOM_MODEL_LIMITS": str(config_path)}):
+            with patch.dict(os.environ, {"COPIUM_MODEL_LIMITS": str(config_path)}):
                 loaded = anthropic_load_config()
                 assert loaded["context_limits"]["file-model"] == 400000
 
     def test_load_from_config_file(self):
-        """Test loading from ~/.headroom/models.json."""
+        """Test loading from ~/.copium/models.json."""
         config = {
             "anthropic": {
                 "context_limits": {"config-model": 250000},
@@ -169,7 +169,7 @@ class TestAnthropicConfigLoading:
         }
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            config_dir = Path(tmpdir) / ".headroom"
+            config_dir = Path(tmpdir) / ".copium"
             config_dir.mkdir()
             config_file = config_dir / "models.json"
             config_file.write_text(json.dumps(config))
@@ -184,13 +184,13 @@ class TestAnthropicConfigLoading:
         file_config = {"anthropic": {"context_limits": {"test-model": 200000}}}
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            config_dir = Path(tmpdir) / ".headroom"
+            config_dir = Path(tmpdir) / ".copium"
             config_dir.mkdir()
             config_file = config_dir / "models.json"
             config_file.write_text(json.dumps(file_config))
 
             with patch.object(Path, "home", return_value=Path(tmpdir)):
-                with patch.dict(os.environ, {"HEADROOM_MODEL_LIMITS": json.dumps(env_config)}):
+                with patch.dict(os.environ, {"COPIUM_MODEL_LIMITS": json.dumps(env_config)}):
                     loaded = anthropic_load_config()
                     # Env var should win
                     assert loaded["context_limits"]["test-model"] == 100000
@@ -281,7 +281,7 @@ class TestOpenAIConfigLoading:
         """Test loading config from JSON env var."""
         config = {"openai": {"context_limits": {"test-model": 300000}}}
 
-        with patch.dict(os.environ, {"HEADROOM_MODEL_LIMITS": json.dumps(config)}):
+        with patch.dict(os.environ, {"COPIUM_MODEL_LIMITS": json.dumps(config)}):
             loaded = openai_load_config()
             assert loaded["context_limits"]["test-model"] == 300000
 
@@ -293,7 +293,7 @@ class TestOpenAIConfigLoading:
             config_path = Path(tmpdir) / "model_limits.json"
             config_path.write_text(json.dumps(config))
 
-            with patch.dict(os.environ, {"HEADROOM_MODEL_LIMITS": str(config_path)}):
+            with patch.dict(os.environ, {"COPIUM_MODEL_LIMITS": str(config_path)}):
                 loaded = openai_load_config()
                 assert loaded["pricing"]["test-model"] == [5.0, 15.0]
 
@@ -302,13 +302,13 @@ class TestCrossProviderConsistency:
     """Tests for consistency across providers."""
 
     def test_both_providers_use_same_env_var(self):
-        """Test that both providers use HEADROOM_MODEL_LIMITS."""
+        """Test that both providers use COPIUM_MODEL_LIMITS."""
         config = {
             "anthropic": {"context_limits": {"anthropic-model": 100000}},
             "openai": {"context_limits": {"openai-model": 200000}},
         }
 
-        with patch.dict(os.environ, {"HEADROOM_MODEL_LIMITS": json.dumps(config)}):
+        with patch.dict(os.environ, {"COPIUM_MODEL_LIMITS": json.dumps(config)}):
             anthropic = anthropic_load_config()
             openai = openai_load_config()
 
@@ -327,8 +327,8 @@ class TestCrossProviderConsistency:
     def test_both_providers_warn_for_unknown_models(self):
         """Test that both providers warn for unknown models."""
         # Clear warning caches
-        from headroom.providers import anthropic as anthropic_module
-        from headroom.providers import openai as openai_module
+        from copium.providers import anthropic as anthropic_module
+        from copium.providers import openai as openai_module
 
         anthropic_module._UNKNOWN_MODEL_WARNINGS.clear()
         openai_module._UNKNOWN_MODEL_WARNINGS.clear()

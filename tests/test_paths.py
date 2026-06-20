@@ -1,4 +1,4 @@
-"""Tests for ``headroom.paths`` -- canonical filesystem contract."""
+"""Tests for ``copium.paths`` -- canonical filesystem contract."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from headroom import paths
+from copium import paths
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -16,14 +16,14 @@ from headroom import paths
 
 @pytest.fixture
 def clean_env(monkeypatch: pytest.MonkeyPatch) -> pytest.MonkeyPatch:
-    """Ensure every HEADROOM_* env var this module touches is unset."""
+    """Ensure every COPIUM_* env var this module touches is unset."""
 
     for name in (
-        paths.HEADROOM_CONFIG_DIR_ENV,
-        paths.HEADROOM_WORKSPACE_DIR_ENV,
-        paths.HEADROOM_SAVINGS_PATH_ENV,
-        paths.HEADROOM_TOIN_PATH_ENV,
-        paths.HEADROOM_SUBSCRIPTION_STATE_PATH_ENV,
+        paths.COPIUM_CONFIG_DIR_ENV,
+        paths.COPIUM_WORKSPACE_DIR_ENV,
+        paths.COPIUM_SAVINGS_PATH_ENV,
+        paths.COPIUM_TOIN_PATH_ENV,
+        paths.COPIUM_SUBSCRIPTION_STATE_PATH_ENV,
     ):
         monkeypatch.delenv(name, raising=False)
     return monkeypatch
@@ -45,50 +45,50 @@ def fake_home(clean_env: pytest.MonkeyPatch, tmp_path: Path) -> Path:
 
 
 def test_workspace_dir_default(fake_home: Path) -> None:
-    assert paths.workspace_dir() == fake_home / ".headroom"
+    assert paths.workspace_dir() == fake_home / ".copium"
 
 
 def test_workspace_dir_env_override(
     fake_home: Path, clean_env: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     override = tmp_path / "alt_ws"
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, str(override))
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, str(override))
     assert paths.workspace_dir() == override
 
 
 def test_workspace_dir_tilde_expansion(fake_home: Path, clean_env: pytest.MonkeyPatch) -> None:
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, "~/custom")
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, "~/custom")
     assert paths.workspace_dir() == fake_home / "custom"
 
 
 def test_workspace_dir_blank_env_is_ignored(fake_home: Path, clean_env: pytest.MonkeyPatch) -> None:
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, "   ")
-    assert paths.workspace_dir() == fake_home / ".headroom"
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, "   ")
+    assert paths.workspace_dir() == fake_home / ".copium"
 
 
 def test_config_dir_default(fake_home: Path) -> None:
-    assert paths.config_dir() == fake_home / ".headroom" / "config"
+    assert paths.config_dir() == fake_home / ".copium" / "config"
 
 
 def test_config_dir_follows_workspace_when_only_workspace_set(
     fake_home: Path, clean_env: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     override = tmp_path / "alt_ws"
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, str(override))
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, str(override))
     assert paths.config_dir() == override / "config"
 
 
 def test_config_dir_explicit_env_overrides_workspace(
     fake_home: Path, clean_env: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, str(tmp_path / "ws"))
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, str(tmp_path / "ws"))
     config_override = tmp_path / "cfg"
-    clean_env.setenv(paths.HEADROOM_CONFIG_DIR_ENV, str(config_override))
+    clean_env.setenv(paths.COPIUM_CONFIG_DIR_ENV, str(config_override))
     assert paths.config_dir() == config_override
 
 
 def test_config_dir_tilde_expansion(fake_home: Path, clean_env: pytest.MonkeyPatch) -> None:
-    clean_env.setenv(paths.HEADROOM_CONFIG_DIR_ENV, "~/cfg")
+    clean_env.setenv(paths.COPIUM_CONFIG_DIR_ENV, "~/cfg")
     assert paths.config_dir() == fake_home / "cfg"
 
 
@@ -112,13 +112,13 @@ def test_config_dir_getter_no_mkdir(fake_home: Path) -> None:
 def test_ensure_workspace_dir_creates(fake_home: Path) -> None:
     result = paths.ensure_workspace_dir()
     assert result.is_dir()
-    assert result == fake_home / ".headroom"
+    assert result == fake_home / ".copium"
 
 
 def test_ensure_config_dir_creates(fake_home: Path) -> None:
     result = paths.ensure_config_dir()
     assert result.is_dir()
-    assert result == fake_home / ".headroom" / "config"
+    assert result == fake_home / ".copium" / "config"
 
 
 def test_per_resource_getters_no_mkdir(fake_home: Path) -> None:
@@ -142,7 +142,7 @@ def test_per_resource_getters_no_mkdir(fake_home: Path) -> None:
     paths.models_config_path()
     paths.plugin_config_dir("example")
     paths.plugin_workspace_dir("example")
-    assert not (fake_home / ".headroom").exists()
+    assert not (fake_home / ".copium").exists()
 
 
 # ---------------------------------------------------------------------------
@@ -153,19 +153,19 @@ def test_per_resource_getters_no_mkdir(fake_home: Path) -> None:
 RESOURCES_WITH_LEGACY_ENV = [
     pytest.param(
         "savings_path",
-        paths.HEADROOM_SAVINGS_PATH_ENV,
+        paths.COPIUM_SAVINGS_PATH_ENV,
         "proxy_savings.json",
         id="savings",
     ),
     pytest.param(
         "toin_path",
-        paths.HEADROOM_TOIN_PATH_ENV,
+        paths.COPIUM_TOIN_PATH_ENV,
         "toin.json",
         id="toin",
     ),
     pytest.param(
         "subscription_state_path",
-        paths.HEADROOM_SUBSCRIPTION_STATE_PATH_ENV,
+        paths.COPIUM_SUBSCRIPTION_STATE_PATH_ENV,
         "subscription_state.json",
         id="subscription",
     ),
@@ -177,7 +177,7 @@ def test_resource_default_under_home(
     fake_home: Path, fn_name: str, env_var: str, filename: str
 ) -> None:
     fn = getattr(paths, fn_name)
-    assert fn() == fake_home / ".headroom" / filename
+    assert fn() == fake_home / ".copium" / filename
 
 
 @pytest.mark.parametrize("fn_name,env_var,filename", RESOURCES_WITH_LEGACY_ENV)
@@ -190,7 +190,7 @@ def test_resource_derived_from_workspace_env(
     filename: str,
 ) -> None:
     ws = tmp_path / "state"
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, str(ws))
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, str(ws))
     fn = getattr(paths, fn_name)
     assert fn() == ws / filename
 
@@ -205,7 +205,7 @@ def test_resource_legacy_env_wins_over_workspace(
     filename: str,
 ) -> None:
     ws = tmp_path / "state"
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, str(ws))
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, str(ws))
     legacy = tmp_path / "legacy_custom.json"
     clean_env.setenv(env_var, str(legacy))
     fn = getattr(paths, fn_name)
@@ -223,7 +223,7 @@ def test_resource_explicit_arg_wins(
     filename: str,
 ) -> None:
     ws = tmp_path / "state"
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, str(ws))
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, str(ws))
     legacy = tmp_path / "legacy_custom.json"
     clean_env.setenv(env_var, str(legacy))
     explicit = tmp_path / "explicit.json"
@@ -253,7 +253,7 @@ def test_resource_explicit_none_falls_through(
     filename: str,
 ) -> None:
     fn = getattr(paths, fn_name)
-    assert fn(None) == fake_home / ".headroom" / filename
+    assert fn(None) == fake_home / ".copium" / filename
 
 
 @pytest.mark.parametrize("fn_name,env_var,filename", RESOURCES_WITH_LEGACY_ENV)
@@ -265,7 +265,7 @@ def test_resource_explicit_empty_string_falls_through(
     filename: str,
 ) -> None:
     fn = getattr(paths, fn_name)
-    assert fn("") == fake_home / ".headroom" / filename
+    assert fn("") == fake_home / ".copium" / filename
 
 
 # ---------------------------------------------------------------------------
@@ -274,50 +274,50 @@ def test_resource_explicit_empty_string_falls_through(
 
 
 def test_memory_db_path_default(fake_home: Path) -> None:
-    assert paths.memory_db_path() == fake_home / ".headroom" / "memory.db"
+    assert paths.memory_db_path() == fake_home / ".copium" / "memory.db"
 
 
 def test_memory_db_path_follows_workspace_env(
     fake_home: Path, clean_env: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, str(tmp_path / "ws"))
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, str(tmp_path / "ws"))
     assert paths.memory_db_path() == tmp_path / "ws" / "memory.db"
 
 
 def test_native_memory_dir_default(fake_home: Path) -> None:
-    assert paths.native_memory_dir() == fake_home / ".headroom" / "memories"
+    assert paths.native_memory_dir() == fake_home / ".copium" / "memories"
 
 
 def test_license_cache_path_default(fake_home: Path) -> None:
-    assert paths.license_cache_path() == fake_home / ".headroom" / "license_cache.json"
+    assert paths.license_cache_path() == fake_home / ".copium" / "license_cache.json"
 
 
 def test_session_stats_path_default(fake_home: Path) -> None:
-    assert paths.session_stats_path() == fake_home / ".headroom" / "session_stats.jsonl"
+    assert paths.session_stats_path() == fake_home / ".copium" / "session_stats.jsonl"
 
 
 def test_sync_state_path_default(fake_home: Path) -> None:
-    assert paths.sync_state_path() == fake_home / ".headroom" / "sync_state.json"
+    assert paths.sync_state_path() == fake_home / ".copium" / "sync_state.json"
 
 
 def test_bridge_state_path_default(fake_home: Path) -> None:
-    assert paths.bridge_state_path() == fake_home / ".headroom" / "bridge_state.json"
+    assert paths.bridge_state_path() == fake_home / ".copium" / "bridge_state.json"
 
 
 def test_log_dir_default(fake_home: Path) -> None:
-    assert paths.log_dir() == fake_home / ".headroom" / "logs"
+    assert paths.log_dir() == fake_home / ".copium" / "logs"
 
 
 def test_proxy_log_path_default(fake_home: Path) -> None:
-    assert paths.proxy_log_path() == fake_home / ".headroom" / "logs" / "proxy.log"
+    assert paths.proxy_log_path() == fake_home / ".copium" / "logs" / "proxy.log"
 
 
 def test_debug_400_dir_default(fake_home: Path) -> None:
-    assert paths.debug_400_dir() == fake_home / ".headroom" / "logs" / "debug_400"
+    assert paths.debug_400_dir() == fake_home / ".copium" / "logs" / "debug_400"
 
 
 def test_bin_dir_default(fake_home: Path) -> None:
-    assert paths.bin_dir() == fake_home / ".headroom" / "bin"
+    assert paths.bin_dir() == fake_home / ".copium" / "bin"
 
 
 def test_rtk_path_suffix(fake_home: Path) -> None:
@@ -333,14 +333,14 @@ def test_lean_ctx_path_suffix(fake_home: Path) -> None:
 
 
 def test_deploy_root_default(fake_home: Path) -> None:
-    assert paths.deploy_root() == fake_home / ".headroom" / "deploy"
+    assert paths.deploy_root() == fake_home / ".copium" / "deploy"
 
 
 def test_beacon_lock_path_includes_port(fake_home: Path) -> None:
-    assert paths.beacon_lock_path(8787) == fake_home / ".headroom" / ".beacon_lock_8787"
+    assert paths.beacon_lock_path(8787) == fake_home / ".copium" / ".beacon_lock_8787"
 
 
-# Every derived-only helper must also honor HEADROOM_WORKSPACE_DIR overrides so
+# Every derived-only helper must also honor COPIUM_WORKSPACE_DIR overrides so
 # that a single env var relocates the whole workspace bucket. One row per
 # helper, each asserting the override flows through end-to-end.
 DERIVED_WORKSPACE_HELPERS = [
@@ -365,7 +365,7 @@ def test_derived_helper_follows_workspace_env(
     rel: str,
 ) -> None:
     ws = tmp_path / "state"
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, str(ws))
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, str(ws))
     fn = getattr(paths, fn_name)
     expected = ws
     for part in rel.split("/"):
@@ -377,7 +377,7 @@ def test_proxy_log_path_follows_workspace_env(
     fake_home: Path, clean_env: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     ws = tmp_path / "state"
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, str(ws))
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, str(ws))
     assert paths.proxy_log_path() == ws / "logs" / "proxy.log"
 
 
@@ -385,7 +385,7 @@ def test_rtk_path_follows_workspace_env(
     fake_home: Path, clean_env: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     ws = tmp_path / "state"
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, str(ws))
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, str(ws))
     expected_name = "rtk.exe" if os.name == "nt" else "rtk"
     assert paths.rtk_path() == ws / "bin" / expected_name
 
@@ -394,7 +394,7 @@ def test_lean_ctx_path_follows_workspace_env(
     fake_home: Path, clean_env: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     ws = tmp_path / "state"
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, str(ws))
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, str(ws))
     expected_name = "lean-ctx.exe" if os.name == "nt" else "lean-ctx"
     assert paths.lean_ctx_path() == ws / "bin" / expected_name
 
@@ -403,7 +403,7 @@ def test_beacon_lock_path_follows_workspace_env(
     fake_home: Path, clean_env: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     ws = tmp_path / "state"
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, str(ws))
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, str(ws))
     assert paths.beacon_lock_path(9999) == ws / ".beacon_lock_9999"
 
 
@@ -411,7 +411,7 @@ def test_ensure_workspace_dir_follows_env(
     fake_home: Path, clean_env: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     ws = tmp_path / "ws"
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, str(ws))
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, str(ws))
     result = paths.ensure_workspace_dir()
     assert result == ws
     assert result.is_dir()
@@ -421,7 +421,7 @@ def test_ensure_config_dir_follows_env(
     fake_home: Path, clean_env: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     cfg = tmp_path / "cfg"
-    clean_env.setenv(paths.HEADROOM_CONFIG_DIR_ENV, str(cfg))
+    clean_env.setenv(paths.COPIUM_CONFIG_DIR_ENV, str(cfg))
     result = paths.ensure_config_dir()
     assert result == cfg
     assert result.is_dir()
@@ -433,20 +433,20 @@ def test_ensure_config_dir_follows_env(
 
 
 def test_models_config_path_default(fake_home: Path) -> None:
-    assert paths.models_config_path() == fake_home / ".headroom" / "config" / "models.json"
+    assert paths.models_config_path() == fake_home / ".copium" / "config" / "models.json"
 
 
 def test_models_config_path_follows_config_env(
     fake_home: Path, clean_env: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    clean_env.setenv(paths.HEADROOM_CONFIG_DIR_ENV, str(tmp_path / "cfg"))
+    clean_env.setenv(paths.COPIUM_CONFIG_DIR_ENV, str(tmp_path / "cfg"))
     assert paths.models_config_path() == tmp_path / "cfg" / "models.json"
 
 
 def test_models_config_path_follows_workspace_env(
     fake_home: Path, clean_env: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, str(tmp_path / "ws"))
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, str(tmp_path / "ws"))
     assert paths.models_config_path() == tmp_path / "ws" / "config" / "models.json"
 
 
@@ -459,16 +459,16 @@ def test_plugin_config_dir_namespaced(fake_home: Path) -> None:
     a = paths.plugin_config_dir("alpha")
     b = paths.plugin_config_dir("beta")
     assert a != b
-    assert a == fake_home / ".headroom" / "config" / "plugins" / "alpha"
-    assert b == fake_home / ".headroom" / "config" / "plugins" / "beta"
+    assert a == fake_home / ".copium" / "config" / "plugins" / "alpha"
+    assert b == fake_home / ".copium" / "config" / "plugins" / "beta"
 
 
 def test_plugin_workspace_dir_namespaced(fake_home: Path) -> None:
     a = paths.plugin_workspace_dir("alpha")
     b = paths.plugin_workspace_dir("beta")
     assert a != b
-    assert a == fake_home / ".headroom" / "plugins" / "alpha"
-    assert b == fake_home / ".headroom" / "plugins" / "beta"
+    assert a == fake_home / ".copium" / "plugins" / "alpha"
+    assert b == fake_home / ".copium" / "plugins" / "beta"
 
 
 @pytest.mark.parametrize("bad_name", ["", "foo/bar", "foo\\bar"])
@@ -482,14 +482,14 @@ def test_plugin_dirs_reject_bad_names(fake_home: Path, bad_name: str) -> None:
 def test_plugin_config_dir_follows_config_env(
     fake_home: Path, clean_env: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    clean_env.setenv(paths.HEADROOM_CONFIG_DIR_ENV, str(tmp_path / "cfg"))
+    clean_env.setenv(paths.COPIUM_CONFIG_DIR_ENV, str(tmp_path / "cfg"))
     assert paths.plugin_config_dir("alpha") == tmp_path / "cfg" / "plugins" / "alpha"
 
 
 def test_plugin_workspace_dir_follows_workspace_env(
     fake_home: Path, clean_env: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, str(tmp_path / "ws"))
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, str(tmp_path / "ws"))
     assert paths.plugin_workspace_dir("alpha") == tmp_path / "ws" / "plugins" / "alpha"
 
 

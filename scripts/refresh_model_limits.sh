@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Refresh the vendored LiteLLM model_prices_and_context_window.json
-# used by `crates/headroom-proxy/src/compression/model_limits.rs`.
+# used by `crates/copium-proxy/src/compression/model_limits.rs`.
 #
 # We vendor the snapshot rather than fetching at build/runtime so the
 # proxy binary ships with no network dependency at startup. Operators
@@ -16,7 +16,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DEST="$REPO_ROOT/crates/headroom-proxy/data/model_prices_and_context_window.json"
+DEST="$REPO_ROOT/crates/copium-proxy/data/model_prices_and_context_window.json"
 URL="https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json"
 
 echo "Fetching $URL"
@@ -45,4 +45,4 @@ mv "$TMP" "$DEST"
 trap - EXIT
 
 echo "Updated $DEST"
-echo "Run 'cargo test -p headroom-proxy --lib compression::model_limits' to verify."
+echo "Run 'cargo test -p copium-proxy --lib compression::model_limits' to verify."

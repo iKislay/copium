@@ -13,7 +13,7 @@ import json
 from dataclasses import dataclass, field
 from typing import Any
 
-from headroom.proxy.memory_handler import MEMORY_TOOL_NAMES
+from copium.proxy.memory_handler import MEMORY_TOOL_NAMES
 
 # ---------------------------------------------------------------------------
 # Minimal WS relay state machine (mirrors the logic in openai.py)

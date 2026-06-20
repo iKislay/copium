@@ -1,10 +1,10 @@
-"""Docker e2e cases for ``headroom init``.
+"""Docker e2e cases for ``copium init``.
 
 Every case is described declaratively with :class:`Case` from
 ``e2e/_lib/harness.py``. Three groups run in order:
 
 1. **existing sequence**: preserves the original scenario that exercised
-   ``headroom init claude`` (local) -> ``init -g copilot`` (global) ->
+   ``copium init claude`` (local) -> ``init -g copilot`` (global) ->
    ``init codex`` (local), sharing scratch state so manifest-merge is
    exercised end-to-end.
 2. **bare ``init -g`` detection**: verifies the UX regression from #245
@@ -42,7 +42,7 @@ from e2e._lib import (  # noqa: E402
     run_case_sequence,
     run_cases,
 )
-from headroom.cli import init as init_cli  # noqa: E402
+from copium.cli import init as init_cli  # noqa: E402
 
 # ----- helpers reused across cases --------------------------------------------
 
@@ -65,7 +65,7 @@ def _expect_hook_command(command: str, profile: str) -> None:
 
 
 def _read_manifest(home: Path, profile: str) -> dict[str, object]:
-    path = home / ".headroom" / "deploy" / profile / "manifest.json"
+    path = home / ".copium" / "deploy" / profile / "manifest.json"
     if not path.exists():
         raise AssertionError(f"Expected manifest at {path}")
     return json.loads(path.read_text(encoding="utf-8"))
@@ -106,24 +106,24 @@ def _verify_claude_local(ctx: CaseContext) -> None:
     claude_calls = [
         record["argv"] for record in _read_jsonl(ctx.shim_log) if record["tool"] == "claude"
     ]
-    # `init` auto-registers the headroom MCP server after the marketplace
+    # `init` auto-registers the copium MCP server after the marketplace
     # install (see d9d8972 — keeps `[Retrieve more: hash=…]` markers from
-    # being dead pointers for users who never ran `headroom mcp install`).
-    # The `-e HEADROOM_PROXY_URL=…` arg is only emitted when the proxy
+    # being dead pointers for users who never ran `copium mcp install`).
+    # The `-e COPIUM_PROXY_URL=…` arg is only emitted when the proxy
     # port differs from the 8787 default; this case uses --port 9011.
     expected = [
         ["plugin", "marketplace", "add", str(REPO_ROOT_IN_CONTAINER)],
-        ["plugin", "install", "headroom@headroom-marketplace", "--scope", "local"],
+        ["plugin", "install", "copium@copium-marketplace", "--scope", "local"],
         [
             "mcp",
             "add",
-            "headroom",
+            "copium",
             "-s",
             "user",
             "-e",
-            "HEADROOM_PROXY_URL=http://127.0.0.1:9011",
+            "COPIUM_PROXY_URL=http://127.0.0.1:9011",
             "--",
-            "headroom",
+            "copium",
             "mcp",
             "serve",
         ],
@@ -156,7 +156,7 @@ def _verify_copilot_global(ctx: CaseContext) -> None:
     ]
     expected = [
         ["plugin", "marketplace", "add", str(REPO_ROOT_IN_CONTAINER)],
-        ["plugin", "install", "headroom@headroom-marketplace"],
+        ["plugin", "install", "copium@copium-marketplace"],
     ]
     if copilot_calls != expected:
         raise AssertionError(f"Unexpected Copilot install commands: {copilot_calls}")
@@ -171,10 +171,10 @@ def _verify_codex_local(ctx: CaseContext) -> None:
         raise AssertionError("Codex config should point at the requested proxy port (9012)")
     if 'env_key = "OPENAI_API_KEY"' in config:
         raise AssertionError("Codex local init should preserve OAuth and never inject env_key")
-    # Bug 3 (#406): requires_openai_auth must be absent from headroom provider blocks.
+    # Bug 3 (#406): requires_openai_auth must be absent from copium provider blocks.
     if "requires_openai_auth" in config:
         raise AssertionError(
-            "Codex local init must NOT inject requires_openai_auth into the headroom provider block"
+            "Codex local init must NOT inject requires_openai_auth into the copium provider block"
         )
     if "supports_websockets = true" not in config:
         raise AssertionError("Codex local init missing 'supports_websockets = true'")
@@ -212,10 +212,10 @@ def _verify_codex_global(ctx: CaseContext) -> None:
         raise AssertionError("Codex user config should point at port 8787 by default")
     if 'env_key = "OPENAI_API_KEY"' in config:
         raise AssertionError("Codex global init should preserve OAuth and never inject env_key")
-    # Bug 3 (#406): requires_openai_auth must be absent from headroom provider blocks.
+    # Bug 3 (#406): requires_openai_auth must be absent from copium provider blocks.
     if "requires_openai_auth" in config:
         raise AssertionError(
-            "Codex global init must NOT inject requires_openai_auth into the headroom provider block"
+            "Codex global init must NOT inject requires_openai_auth into the copium provider block"
         )
     if "supports_websockets = true" not in config:
         raise AssertionError("Codex global init missing 'supports_websockets = true'")
@@ -262,7 +262,7 @@ def existing_sequence_cases() -> list[Case]:
 
 
 def bare_init_g_cases() -> list[Case]:
-    """Bare ``headroom init -g`` — the direct coverage of issue #245."""
+    """Bare ``copium init -g`` — the direct coverage of issue #245."""
 
     return [
         Case(
@@ -277,7 +277,7 @@ def bare_init_g_cases() -> list[Case]:
                 "copilot",
                 "openclaw",
                 # concrete escape hatch — exactly what the user should type next
-                "headroom init -g claude",
+                "copium init -g claude",
                 # confirm -g itself is still the right flag
                 "-g",
             ],
@@ -302,7 +302,7 @@ def bare_init_g_cases() -> list[Case]:
 
 
 def per_subcommand_cases() -> list[Case]:
-    """One case per ``headroom init -g <agent>`` with only that agent's shim."""
+    """One case per ``copium init -g <agent>`` with only that agent's shim."""
 
     return [
         Case(
@@ -334,7 +334,7 @@ def per_subcommand_cases() -> list[Case]:
             expected_stdout_contains=["Configured GitHub Copilot CLI (user scope)"],
             expected_files=["{home}/.copilot/config.json"],
         ),
-        # openclaw delegates to `headroom wrap openclaw` which has its own
+        # openclaw delegates to `copium wrap openclaw` which has its own
         # (more expensive) init path and isn't stubbable with a simple shim.
         # We assert it fails fast with a clear error when not installed, and
         # rely on the `bare_init_g_with_all_shims` case (which uses a noop

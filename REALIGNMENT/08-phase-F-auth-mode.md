@@ -6,14 +6,14 @@
 
 **Shape:** 4 PRs. F1 first; F2 + F3 + F4 parallel after.
 
-Reference: `~/.claude/projects/-Users-tchopra-claude-projects-headroom/memory/project_auth_mode_compression_nuances.md`.
+Reference: `~/.claude/projects/-Users-tchopra-claude-projects-copium/memory/project_auth_mode_compression_nuances.md`.
 
 ---
 
 ## PR-F1 — `classify_auth_mode` helper
 
 **Branch:** `realign-F1-classify-auth-mode`
-**Worktree:** `~/claude-projects/headroom-worktrees/realign-F1-classify-auth-mode`
+**Worktree:** `~/claude-projects/copium-worktrees/realign-F1-classify-auth-mode`
 **Risk:** **LOW**
 **LOC:** +500
 
@@ -23,7 +23,7 @@ Single helper called at request entry returning `AuthMode = Payg | OAuth | Subsc
 ### Files
 
 **Add:**
-- `crates/headroom-core/src/auth_mode.rs`:
+- `crates/copium-core/src/auth_mode.rs`:
   ```rust
   #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
   pub enum AuthMode { Payg, OAuth, Subscription }
@@ -68,22 +68,22 @@ Single helper called at request entry returning `AuthMode = Payg | OAuth | Subsc
   ```
 
 **Add (Python):**
-- `headroom/proxy/auth_mode.py` — Python port of the same logic. Used in Python paths until Phase H deletes them.
+- `copium/proxy/auth_mode.py` — Python port of the same logic. Used in Python paths until Phase H deletes them.
 
 **Modify:**
-- `crates/headroom-core/src/lib.rs` — `pub mod auth_mode;`.
-- `crates/headroom-proxy/src/proxy.rs` — call `classify` at request entry; store in request extensions for downstream handlers.
-- `headroom/proxy/handlers/anthropic.py` — call Python `classify_auth_mode(headers)` at request entry.
-- `headroom/proxy/handlers/openai.py` — same.
+- `crates/copium-core/src/lib.rs` — `pub mod auth_mode;`.
+- `crates/copium-proxy/src/proxy.rs` — call `classify` at request entry; store in request extensions for downstream handlers.
+- `copium/proxy/handlers/anthropic.py` — call Python `classify_auth_mode(headers)` at request entry.
+- `copium/proxy/handlers/openai.py` — same.
 
 **Tests added:**
-- `crates/headroom-core/tests/auth_mode.rs::api_key_classified_payg`
-- `crates/headroom-core/tests/auth_mode.rs::oauth_jwt_classified_oauth`
-- `crates/headroom-core/tests/auth_mode.rs::oauth_sk_ant_oat_classified_oauth`
-- `crates/headroom-core/tests/auth_mode.rs::claude_code_ua_classified_subscription`
-- `crates/headroom-core/tests/auth_mode.rs::cursor_ua_classified_subscription`
-- `crates/headroom-core/tests/auth_mode.rs::no_auth_no_user_agent_default_payg`
-- `crates/headroom-core/tests/auth_mode.rs::bedrock_no_auth_classified_oauth`
+- `crates/copium-core/tests/auth_mode.rs::api_key_classified_payg`
+- `crates/copium-core/tests/auth_mode.rs::oauth_jwt_classified_oauth`
+- `crates/copium-core/tests/auth_mode.rs::oauth_sk_ant_oat_classified_oauth`
+- `crates/copium-core/tests/auth_mode.rs::claude_code_ua_classified_subscription`
+- `crates/copium-core/tests/auth_mode.rs::cursor_ua_classified_subscription`
+- `crates/copium-core/tests/auth_mode.rs::no_auth_no_user_agent_default_payg`
+- `crates/copium-core/tests/auth_mode.rs::bedrock_no_auth_classified_oauth`
 - Python equivalents in `tests/test_auth_mode.py`.
 
 ### Acceptance criteria
@@ -109,32 +109,32 @@ PR-F2, PR-F3, PR-F4.
 ## PR-F2 — Per-mode compression policy gates
 
 **Branch:** `realign-F2-per-mode-policy`
-**Worktree:** `~/claude-projects/headroom-worktrees/realign-F2-per-mode-policy`
+**Worktree:** `~/claude-projects/copium-worktrees/realign-F2-per-mode-policy`
 **Risk:** **MEDIUM-HIGH** (changes compression behavior per request)
 **LOC:** +600
 
 ### Scope
-Wire `AuthMode` into every compression decision per the policy matrix in `02-architecture.md §2.4`. PAYG = aggressive (current default). OAuth = passthrough-prefer (no auto-`cache_control`, no auto-`prompt_cache_key`, no lossy compressors). Subscription = stealth (everything OAuth does + preserve `accept-encoding`, never strip; never inject `X-Headroom-*`; never mutate User-Agent).
+Wire `AuthMode` into every compression decision per the policy matrix in `02-architecture.md §2.4`. PAYG = aggressive (current default). OAuth = passthrough-prefer (no auto-`cache_control`, no auto-`prompt_cache_key`, no lossy compressors). Subscription = stealth (everything OAuth does + preserve `accept-encoding`, never strip; never inject `X-Copium-*`; never mutate User-Agent).
 
 ### Files
 
 **Modify:**
-- `crates/headroom-proxy/src/compression/live_zone_anthropic.rs` — gate `auto_place_breakpoints` on `auth_mode == Payg`.
-- `crates/headroom-proxy/src/compression/live_zone_openai.rs` — gate `inject_prompt_cache_key` on `auth_mode == Payg`.
-- `crates/headroom-proxy/src/compression/live_zone.rs` — gate lossy compressors (Kompress text) on `auth_mode == Payg`. OAuth and Subscription get lossless-only compression.
-- `crates/headroom-proxy/src/headers.rs:103-117` — `add_x_forwarded_headers` becomes `add_x_forwarded_headers_if(auth_mode)`. Skip on Subscription.
-- `crates/headroom-proxy/src/proxy.rs` — `accept-encoding` strip becomes conditional on `auth_mode != Subscription`.
-- `headroom/proxy/handlers/anthropic.py` — gate Python compression decisions identically.
-- `headroom/proxy/handlers/openai.py` — same.
+- `crates/copium-proxy/src/compression/live_zone_anthropic.rs` — gate `auto_place_breakpoints` on `auth_mode == Payg`.
+- `crates/copium-proxy/src/compression/live_zone_openai.rs` — gate `inject_prompt_cache_key` on `auth_mode == Payg`.
+- `crates/copium-proxy/src/compression/live_zone.rs` — gate lossy compressors (Kompress text) on `auth_mode == Payg`. OAuth and Subscription get lossless-only compression.
+- `crates/copium-proxy/src/headers.rs:103-117` — `add_x_forwarded_headers` becomes `add_x_forwarded_headers_if(auth_mode)`. Skip on Subscription.
+- `crates/copium-proxy/src/proxy.rs` — `accept-encoding` strip becomes conditional on `auth_mode != Subscription`.
+- `copium/proxy/handlers/anthropic.py` — gate Python compression decisions identically.
+- `copium/proxy/handlers/openai.py` — same.
 
 **Tests added:**
-- `crates/headroom-proxy/tests/integration_authmode_policy.rs::payg_aggressive_compression`
-- `crates/headroom-proxy/tests/integration_authmode_policy.rs::oauth_no_auto_cache_control`
-- `crates/headroom-proxy/tests/integration_authmode_policy.rs::oauth_no_auto_prompt_cache_key`
-- `crates/headroom-proxy/tests/integration_authmode_policy.rs::oauth_lossless_only`
-- `crates/headroom-proxy/tests/integration_authmode_policy.rs::subscription_no_x_forwarded`
-- `crates/headroom-proxy/tests/integration_authmode_policy.rs::subscription_preserves_accept_encoding`
-- `crates/headroom-proxy/tests/integration_authmode_policy.rs::subscription_lossless_only`
+- `crates/copium-proxy/tests/integration_authmode_policy.rs::payg_aggressive_compression`
+- `crates/copium-proxy/tests/integration_authmode_policy.rs::oauth_no_auto_cache_control`
+- `crates/copium-proxy/tests/integration_authmode_policy.rs::oauth_no_auto_prompt_cache_key`
+- `crates/copium-proxy/tests/integration_authmode_policy.rs::oauth_lossless_only`
+- `crates/copium-proxy/tests/integration_authmode_policy.rs::subscription_no_x_forwarded`
+- `crates/copium-proxy/tests/integration_authmode_policy.rs::subscription_preserves_accept_encoding`
+- `crates/copium-proxy/tests/integration_authmode_policy.rs::subscription_lossless_only`
 
 ### Acceptance criteria
 
@@ -158,7 +158,7 @@ None.
 ## PR-F3 — TOIN per-tenant aggregation key
 
 **Branch:** `realign-F3-toin-per-tenant`
-**Worktree:** `~/claude-projects/headroom-worktrees/realign-F3-toin-per-tenant`
+**Worktree:** `~/claude-projects/copium-worktrees/realign-F3-toin-per-tenant`
 **Risk:** **MEDIUM**
 **LOC:** -200 / +400
 
@@ -168,11 +168,11 @@ Eliminate P5-56. Extend TOIN's aggregation key from `structure_hash` to `(auth_m
 ### Files
 
 **Modify:**
-- `headroom/telemetry/toin.py:103` — `Pattern` adds `auth_mode: str = "unknown"`, `model_family: str = "unknown"`. (Already covered by Phase B PR-B5; this PR ensures the wiring lands.)
-- `headroom/telemetry/toin.py:477, 496, 727, 729, 1248, 1256` — change aggregation key to tuple.
-- `headroom/telemetry/toin.py` — migration helper that walks the legacy `structure_hash`-only store and copies entries under `("unknown", "unknown", structure_hash)` for graceful degrade.
-- `headroom/telemetry/toin.py` — bumping aggregation key invalidates earlier recommendations; re-publish via the deploy CLI.
-- `headroom/subscription/tracker.py:166` — replace `_current_token: str` (raw OAuth bearer storage) with `_current_token_id: str` (a one-way hash + last-4 chars for debugging). Polling code adapts to use the actual `Authorization` header per request rather than the stored copy.
+- `copium/telemetry/toin.py:103` — `Pattern` adds `auth_mode: str = "unknown"`, `model_family: str = "unknown"`. (Already covered by Phase B PR-B5; this PR ensures the wiring lands.)
+- `copium/telemetry/toin.py:477, 496, 727, 729, 1248, 1256` — change aggregation key to tuple.
+- `copium/telemetry/toin.py` — migration helper that walks the legacy `structure_hash`-only store and copies entries under `("unknown", "unknown", structure_hash)` for graceful degrade.
+- `copium/telemetry/toin.py` — bumping aggregation key invalidates earlier recommendations; re-publish via the deploy CLI.
+- `copium/subscription/tracker.py:166` — replace `_current_token: str` (raw OAuth bearer storage) with `_current_token_id: str` (a one-way hash + last-4 chars for debugging). Polling code adapts to use the actual `Authorization` header per request rather than the stored copy.
 
 **Tests added:**
 - `tests/test_toin_per_tenant.py::test_aggregation_key_includes_auth_mode_model`
@@ -203,7 +203,7 @@ None.
 ## PR-F4 — `X-Forwarded-*` conditional in Rust path
 
 **Branch:** `realign-F4-x-forwarded-conditional`
-**Worktree:** `~/claude-projects/headroom-worktrees/realign-F4-x-forwarded-conditional`
+**Worktree:** `~/claude-projects/copium-worktrees/realign-F4-x-forwarded-conditional`
 **Risk:** **LOW**
 **LOC:** +100
 
@@ -213,12 +213,12 @@ Eliminate P5-53. The Rust proxy currently always adds `X-Forwarded-For`, `X-Forw
 ### Files
 
 **Modify:**
-- `crates/headroom-proxy/src/headers.rs:103-117` — `add_x_forwarded_headers` takes an `AuthMode` parameter; no-ops on Subscription.
+- `crates/copium-proxy/src/headers.rs:103-117` — `add_x_forwarded_headers` takes an `AuthMode` parameter; no-ops on Subscription.
 
 **Tests added:**
-- `crates/headroom-proxy/tests/integration_x_forwarded_authmode.rs::payg_adds_xfwd`
-- `crates/headroom-proxy/tests/integration_x_forwarded_authmode.rs::oauth_adds_xfwd`
-- `crates/headroom-proxy/tests/integration_x_forwarded_authmode.rs::subscription_no_xfwd`
+- `crates/copium-proxy/tests/integration_x_forwarded_authmode.rs::payg_adds_xfwd`
+- `crates/copium-proxy/tests/integration_x_forwarded_authmode.rs::oauth_adds_xfwd`
+- `crates/copium-proxy/tests/integration_x_forwarded_authmode.rs::subscription_no_xfwd`
 
 ### Acceptance criteria
 

@@ -1,11 +1,11 @@
 # SharedContext — Compressed Inter-Agent Context Sharing
 
-When agents hand off to each other, context gets replayed in full. SharedContext compresses what moves between agents using Headroom's compression pipeline.
+When agents hand off to each other, context gets replayed in full. SharedContext compresses what moves between agents using Copium's compression pipeline.
 
 ## Quick Start
 
 ```python
-from headroom import SharedContext
+from copium import SharedContext
 
 ctx = SharedContext()
 
@@ -23,7 +23,7 @@ full = ctx.get("research", full=True)
 
 ### `put(key, content, *, agent=None)`
 
-Store content under a key. Compresses automatically using Headroom's full pipeline (SmartCrusher for JSON, CodeCompressor for code, Kompress for text).
+Store content under a key. Compresses automatically using Copium's full pipeline (SmartCrusher for JSON, CodeCompressor for code, Kompress for text).
 
 ```python
 entry = ctx.put("findings", big_json_output, agent="researcher")
@@ -95,7 +95,7 @@ ctx = SharedContext(
 ### CrewAI
 
 ```python
-from headroom import SharedContext
+from copium import SharedContext
 
 ctx = SharedContext()
 
@@ -109,7 +109,7 @@ coder_context = ctx.get("findings")
 ### LangGraph
 
 ```python
-from headroom import SharedContext
+from copium import SharedContext
 
 ctx = SharedContext()
 
@@ -127,7 +127,7 @@ def coder_node(state):
 ### OpenAI Agents SDK
 
 ```python
-from headroom import SharedContext
+from copium import SharedContext
 
 ctx = SharedContext()
 
@@ -147,7 +147,7 @@ SharedContext is framework-agnostic. It's just `put()` and `get()`. Use it where
 
 ## How It Works
 
-Under the hood, `put()` calls `headroom.compress()` (the same pipeline used by the proxy) and stores the original in memory. `get()` returns the compressed version. `get(full=True)` returns the original.
+Under the hood, `put()` calls `copium.compress()` (the same pipeline used by the proxy) and stores the original in memory. `get()` returns the compressed version. `get(full=True)` returns the original.
 
 - JSON arrays → SmartCrusher (70-95% compression)
 - Code → CodeCompressor (AST-aware, with `[code]` extra)

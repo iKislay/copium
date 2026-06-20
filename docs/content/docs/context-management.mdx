@@ -3,7 +3,7 @@ title: Context Management
 description: Intelligent importance-based context management that scores messages by learned patterns, with rolling window fallback and output buffer reservation.
 ---
 
-When conversations grow beyond a model's context window, Headroom decides which messages to keep and which to drop. Instead of naively removing the oldest messages, the pipeline scores every message by learned importance and drops the least valuable ones first.
+When conversations grow beyond a model's context window, Copium decides which messages to keep and which to drop. Instead of naively removing the oldest messages, the pipeline scores every message by learned importance and drops the least valuable ones first.
 
 ## How It Works
 
@@ -41,7 +41,7 @@ Weights are automatically normalized to sum to 1.0, so you can set relative valu
 
 ## Rolling window fallback
 
-If IntelligentContext is disabled or scoring data is unavailable, Headroom falls back to a **rolling window** strategy:
+If IntelligentContext is disabled or scoring data is unavailable, Copium falls back to a **rolling window** strategy:
 
 - Drop the oldest messages first
 - Always keep the system prompt
@@ -52,7 +52,7 @@ This provides a safe baseline that works without any learned data.
 
 ## Protection rules
 
-Headroom enforces several protections to ensure model output quality:
+Copium enforces several protections to ensure model output quality:
 
 ### Output buffer reservation
 
@@ -79,7 +79,7 @@ Context management is now automatic. Use per-request overrides to control behavi
 <Tabs groupId="lang" items={['TypeScript', 'Python']}>
 <Tab value="TypeScript">
 ```ts twoslash
-import { compress } from "headroom-ai";
+import { compress } from "copium-ai";
 
 const result = await compress(messages, {
   model: "gpt-4o",
@@ -91,10 +91,10 @@ console.log(`Compressed: ${result.tokensBefore} -> ${result.tokensAfter}`);
 </Tab>
 <Tab value="Python">
 ```python
-from headroom import HeadroomClient, OpenAIProvider
+from copium import CopiumClient, OpenAIProvider
 from openai import OpenAI
 
-client = HeadroomClient(
+client = CopiumClient(
     original_client=OpenAI(),
     provider=OpenAIProvider(),
     default_mode="optimize",
@@ -104,8 +104,8 @@ client = HeadroomClient(
 response = client.chat.completions.create(
     model="gpt-4o",
     messages=messages,
-    headroom_output_buffer_tokens=8000,  # More room for long responses
-    headroom_keep_turns=5,               # Protect last 5 turns
+    copium_output_buffer_tokens=8000,  # More room for long responses
+    copium_keep_turns=5,               # Protect last 5 turns
 )
 ```
 </Tab>

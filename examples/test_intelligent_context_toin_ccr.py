@@ -15,12 +15,12 @@ import os
 if not os.environ.get("OPENAI_API_KEY"):
     os.environ["OPENAI_API_KEY"] = os.environ.get("OPENAI_API_KEY", "")
 
-from headroom.cache.compression_store import get_compression_store
-from headroom.config import IntelligentContextConfig
-from headroom.telemetry import get_toin
-from headroom.tokenizer import Tokenizer
-from headroom.tokenizers import EstimatingTokenCounter
-from headroom.transforms.intelligent_context import IntelligentContextManager
+from copium.cache.compression_store import get_compression_store
+from copium.config import IntelligentContextConfig
+from copium.telemetry import get_toin
+from copium.tokenizer import Tokenizer
+from copium.tokenizers import EstimatingTokenCounter
+from copium.transforms.intelligent_context import IntelligentContextManager
 
 
 def create_large_conversation(num_turns: int = 50) -> list[dict]:

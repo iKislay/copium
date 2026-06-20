@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from click.testing import CliRunner
 
-from headroom.cli.main import main
+from copium.cli.main import main
 
 
 def test_root_help_short_alias() -> None:
@@ -38,12 +38,12 @@ def test_group_help_short_alias() -> None:
 
 def test_wrap_subcommand_help_short_alias_beats_passthrough() -> None:
     runner = CliRunner()
-    with patch("headroom.cli.wrap.shutil.which") as which_mock:
+    with patch("copium.cli.wrap.shutil.which") as which_mock:
         result = runner.invoke(main, ["wrap", "claude", "-?"])
 
     assert result.exit_code == 0, result.output
     assert "Usage:" in result.output
-    assert "Launch Claude Code through Headroom proxy." in result.output
+    assert "Launch Claude Code through Copium proxy." in result.output
     which_mock.assert_not_called()
 
 
@@ -51,11 +51,11 @@ def test_subcommand_verbose_flag_still_works() -> None:
     runner = CliRunner()
     completed = SimpleNamespace(returncode=0)
 
-    with patch("headroom.cli.wrap.shutil.which", return_value="claude"):
-        with patch("headroom.cli.wrap._ensure_proxy", return_value=None):
-            with patch("headroom.cli.wrap._setup_rtk", return_value=None):
-                with patch("headroom.cli.wrap.subprocess.run", return_value=completed):
+    with patch("copium.cli.wrap.shutil.which", return_value="claude"):
+        with patch("copium.cli.wrap._ensure_proxy", return_value=None):
+            with patch("copium.cli.wrap._setup_rtk", return_value=None):
+                with patch("copium.cli.wrap.subprocess.run", return_value=completed):
                     result = runner.invoke(main, ["wrap", "claude", "-v"])
 
     assert result.exit_code == 0, result.output
-    assert "HEADROOM WRAP: CLAUDE" in result.output
+    assert "COPIUM WRAP: CLAUDE" in result.output

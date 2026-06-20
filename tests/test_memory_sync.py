@@ -22,18 +22,18 @@ from typing import Any
 
 import pytest
 
-from headroom.memory.sync import (
+from copium.memory.sync import (
     sync,
     sync_export,
     sync_import,
 )
-from headroom.memory.sync_adapters.claude_code import (
+from copium.memory.sync_adapters.claude_code import (
     ClaudeCodeAdapter,
     _parse_frontmatter,
     encode_claude_project_path,
     get_claude_memory_dir,
 )
-from headroom.memory.sync_adapters.codex_agent import CodexAdapter
+from copium.memory.sync_adapters.codex_agent import CodexAdapter
 
 # ---------------------------------------------------------------------------
 # Fake backend for testing (no real DB/embeddings needed)
@@ -196,12 +196,12 @@ class TestSyncExport:
 
         assert exported == 1
         # Check file was created
-        md_files = list(claude_dir.glob("headroom_*.md"))
+        md_files = list(claude_dir.glob("copium_*.md"))
         assert len(md_files) == 1
 
         content = md_files[0].read_text()
         assert "Python 3.12" in content
-        assert "headroom_id: mem_0001" in content
+        assert "copium_id: mem_0001" in content
         assert "source_agent: codex" in content
 
     @pytest.mark.asyncio
@@ -237,7 +237,7 @@ class TestSyncExport:
         await sync_export(backend, adapter, "tcms")
 
         memory_md = (claude_dir / "MEMORY.md").read_text()
-        assert "Headroom Shared Memory" in memory_md
+        assert "Copium Shared Memory" in memory_md
         assert "New fact from codex" in memory_md
         assert "Some existing entry" in memory_md  # Preserved
 
@@ -285,7 +285,7 @@ class TestBidirectionalSync:
         assert "Secret name is TC" in contents
 
         # Verify Claude dir has the exported file
-        all_files = list(claude_dir.glob("headroom_*.md"))
+        all_files = list(claude_dir.glob("copium_*.md"))
         assert len(all_files) >= 1
         exported_content = " ".join(f.read_text() for f in all_files)
         assert "TC" in exported_content
@@ -355,16 +355,16 @@ class TestLineageAndGovernance:
         assert mems[0].metadata["source_agent"] == "claude"
 
     @pytest.mark.asyncio
-    async def test_exported_files_have_headroom_id(self, backend, claude_dir):
+    async def test_exported_files_have_copium_id(self, backend, claude_dir):
         backend.add_memory("From codex", metadata={"source_agent": "codex"})
 
         adapter = ClaudeCodeAdapter(claude_dir)
         await sync_export(backend, adapter, "tcms")
 
-        md_files = list(claude_dir.glob("headroom_*.md"))
+        md_files = list(claude_dir.glob("copium_*.md"))
         assert len(md_files) == 1
         content = md_files[0].read_text()
-        assert "headroom_id:" in content
+        assert "copium_id:" in content
 
     @pytest.mark.asyncio
     async def test_sync_state_records_timestamps(self, backend, claude_dir, tmp_path):
@@ -443,7 +443,7 @@ class TestClaudeCodeAdapter:
                 {
                     "content": "Project uses FastAPI",
                     "category": "architecture",
-                    "headroom_id": "mem_001",
+                    "copium_id": "mem_001",
                     "source_agent": "codex",
                     "content_hash": "abc123",
                 }
@@ -451,13 +451,13 @@ class TestClaudeCodeAdapter:
         )
 
         assert written == 1
-        files = list(memory_dir.glob("headroom_*.md"))
+        files = list(memory_dir.glob("copium_*.md"))
         assert len(files) == 1
 
         content = files[0].read_text()
         fm, body = _parse_frontmatter(content)
         assert fm["type"] == "architecture"
-        assert fm["headroom_id"] == "mem_001"
+        assert fm["copium_id"] == "mem_001"
         assert fm["source_agent"] == "codex"
         assert "FastAPI" in body
 
@@ -501,11 +501,11 @@ class TestCodexAdapter:
     async def test_read_from_agents_md(self, agents_md):
         agents_md.write_text(
             "# Instructions\n\n"
-            "<!-- headroom:memory:start -->\n"
-            "## Headroom Shared Memory\n\n"
+            "<!-- copium:memory:start -->\n"
+            "## Copium Shared Memory\n\n"
             "- Secret name is TC\n"
             "- Uses Python 3.12\n"
-            "<!-- headroom:memory:end -->\n"
+            "<!-- copium:memory:end -->\n"
         )
 
         adapter = CodexAdapter(agents_md)
@@ -529,7 +529,7 @@ class TestCodexAdapter:
 
         assert written == 2
         content = agents_md.read_text()
-        assert "headroom:memory:start" in content
+        assert "copium:memory:start" in content
         assert "Port 8787 is default" in content
         assert "Uses ruff for linting" in content
         assert "Existing instructions" in content  # Preserved
@@ -538,9 +538,9 @@ class TestCodexAdapter:
     async def test_write_replaces_existing_section(self, agents_md):
         agents_md.write_text(
             "# Instructions\n\n"
-            "<!-- headroom:memory:start -->\n"
+            "<!-- copium:memory:start -->\n"
             "## Old\n- old fact\n"
-            "<!-- headroom:memory:end -->\n"
+            "<!-- copium:memory:end -->\n"
         )
 
         adapter = CodexAdapter(agents_md)
@@ -554,9 +554,9 @@ class TestCodexAdapter:
     async def test_write_replaces_existing_section_with_literal_backslashes(self, agents_md):
         agents_md.write_text(
             "# Instructions\n\n"
-            "<!-- headroom:memory:start -->\n"
+            "<!-- copium:memory:start -->\n"
             "## Old\n- old fact\n"
-            "<!-- headroom:memory:end -->\n"
+            "<!-- copium:memory:end -->\n"
         )
 
         adapter = CodexAdapter(agents_md)
@@ -623,7 +623,7 @@ class TestCrossAgentInterop:
         assert result.exported == 1
 
         # Claude's memory dir should have the file
-        files = list(claude_dir.glob("headroom_*.md"))
+        files = list(claude_dir.glob("copium_*.md"))
         assert len(files) == 1
         assert "TC" in files[0].read_text()
 
@@ -669,7 +669,7 @@ class TestCrossAgentInterop:
         assert "Port is 8787" in contents
 
         # Claude files have Codex's memory
-        all_claude = " ".join(f.read_text() for f in claude_dir.glob("headroom_*.md"))
+        all_claude = " ".join(f.read_text() for f in claude_dir.glob("copium_*.md"))
         assert "8787" in all_claude
 
         # AGENTS.md has both (from DB)

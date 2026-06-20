@@ -3,7 +3,7 @@ from __future__ import annotations
 import click
 import pytest
 
-import headroom.cli.wrap as wrap_cli
+import copium.cli.wrap as wrap_cli
 
 
 @pytest.fixture(autouse=True)
@@ -11,7 +11,7 @@ def _no_attached_wrappers(monkeypatch: pytest.MonkeyPatch) -> None:
     """Default: no other wrap clients attached, so restart paths are hermetic.
 
     The ephemeral restart guards consult ``_live_proxy_clients``; without this, a
-    real ``headroom wrap`` session on the dev's machine could make these tests
+    real ``copium wrap`` session on the dev's machine could make these tests
     flaky. Individual tests override this to simulate attached wrappers.
     """
     monkeypatch.setattr(wrap_cli, "_live_proxy_clients", lambda *a, **kw: [])
@@ -29,13 +29,13 @@ def test_ensure_proxy_recovers_matching_persistent_deployment(monkeypatch) -> No
 
     monkeypatch.setattr(wrap_cli, "_check_proxy", lambda port: False)
     monkeypatch.setattr(wrap_cli, "_find_persistent_manifest", lambda port: _Manifest())
-    monkeypatch.setattr("headroom.install.health.probe_ready", lambda url: False)
+    monkeypatch.setattr("copium.install.health.probe_ready", lambda url: False)
     monkeypatch.setattr(
-        "headroom.install.supervisors.start_supervisor",
+        "copium.install.supervisors.start_supervisor",
         lambda manifest: calls.append(f"start:{manifest.profile}"),
     )
     monkeypatch.setattr(
-        "headroom.install.runtime.wait_ready", lambda manifest, timeout_seconds=45: True
+        "copium.install.runtime.wait_ready", lambda manifest, timeout_seconds=45: True
     )
     monkeypatch.setattr(
         wrap_cli,
@@ -56,13 +56,13 @@ def test_ensure_proxy_recovers_persistent_deployment_when_socket_is_bound(monkey
 
     monkeypatch.setattr(wrap_cli, "_check_proxy", lambda port: True)
     monkeypatch.setattr(wrap_cli, "_find_persistent_manifest", lambda port: _Manifest())
-    monkeypatch.setattr("headroom.install.health.probe_ready", lambda url: False)
+    monkeypatch.setattr("copium.install.health.probe_ready", lambda url: False)
     monkeypatch.setattr(
-        "headroom.install.supervisors.start_supervisor",
+        "copium.install.supervisors.start_supervisor",
         lambda manifest: calls.append(f"start:{manifest.profile}"),
     )
     monkeypatch.setattr(
-        "headroom.install.runtime.wait_ready", lambda manifest, timeout_seconds=45: True
+        "copium.install.runtime.wait_ready", lambda manifest, timeout_seconds=45: True
     )
 
     result = wrap_cli._ensure_proxy(8787, False)
@@ -74,7 +74,7 @@ def test_ensure_proxy_recovers_persistent_deployment_when_socket_is_bound(monkey
 def test_ensure_proxy_rejects_unhealthy_persistent_deployment(monkeypatch) -> None:
     monkeypatch.setattr(wrap_cli, "_check_proxy", lambda port: True)
     monkeypatch.setattr(wrap_cli, "_find_persistent_manifest", lambda port: _Manifest())
-    monkeypatch.setattr("headroom.install.health.probe_ready", lambda url: False)
+    monkeypatch.setattr("copium.install.health.probe_ready", lambda url: False)
     monkeypatch.setattr(wrap_cli, "_recover_persistent_proxy", lambda port: False)
 
     try:
@@ -90,7 +90,7 @@ def test_ensure_proxy_falls_back_when_persistent_manifest_is_stale(monkeypatch) 
 
     monkeypatch.setattr(wrap_cli, "_check_proxy", lambda port: False)
     monkeypatch.setattr(wrap_cli, "_find_persistent_manifest", lambda port: _Manifest())
-    monkeypatch.setattr("headroom.install.health.probe_ready", lambda url: False)
+    monkeypatch.setattr("copium.install.health.probe_ready", lambda url: False)
     monkeypatch.setattr(wrap_cli, "_recover_persistent_proxy", lambda port: False)
     monkeypatch.setattr(wrap_cli, "_port_bind_error", lambda port: None)
     monkeypatch.setattr(wrap_cli, "_start_proxy", lambda *args, **kwargs: calls.append("start"))
@@ -122,7 +122,7 @@ def test_ensure_proxy_reports_unbindable_port_before_starting_subprocess(monkeyp
 
     assert "Port 8787 is unavailable" in message
     assert "Windows" in message
-    assert "headroom wrap cursor --port 8788" in message
+    assert "copium wrap cursor --port 8788" in message
     assert calls == []
 
 
@@ -135,7 +135,7 @@ def test_ensure_proxy_restarts_idle_stale_persistent_deployment(monkeypatch) -> 
     }
 
     monkeypatch.setattr(wrap_cli, "_find_persistent_manifest", lambda port: _Manifest())
-    monkeypatch.setattr("headroom.install.health.probe_ready", lambda url: True)
+    monkeypatch.setattr("copium.install.health.probe_ready", lambda url: True)
     monkeypatch.setattr(wrap_cli, "_query_proxy_health", lambda port: health)
     monkeypatch.setattr(
         wrap_cli,
@@ -164,7 +164,7 @@ def test_ensure_proxy_leaves_active_stale_persistent_deployment_running(monkeypa
     }
 
     monkeypatch.setattr(wrap_cli, "_find_persistent_manifest", lambda port: _Manifest())
-    monkeypatch.setattr("headroom.install.health.probe_ready", lambda url: True)
+    monkeypatch.setattr("copium.install.health.probe_ready", lambda url: True)
     monkeypatch.setattr(wrap_cli, "_query_proxy_health", lambda port: health)
     monkeypatch.setattr(
         wrap_cli,
@@ -191,7 +191,7 @@ def test_ensure_proxy_defers_persistent_restart_when_http_wrapper_attached(
     }
 
     monkeypatch.setattr(wrap_cli, "_find_persistent_manifest", lambda port: _Manifest())
-    monkeypatch.setattr("headroom.install.health.probe_ready", lambda url: True)
+    monkeypatch.setattr("copium.install.health.probe_ready", lambda url: True)
     monkeypatch.setattr(wrap_cli, "_query_proxy_health", lambda port: health)
     monkeypatch.setattr(wrap_cli, "_live_proxy_clients", lambda *a, **kw: [999])
     monkeypatch.setattr(
@@ -224,7 +224,7 @@ def test_find_persistent_manifest_prefers_default_profile(monkeypatch) -> None:
         port = 8787
 
     monkeypatch.setattr(
-        "headroom.install.state.list_manifests",
+        "copium.install.state.list_manifests",
         lambda: [OtherManifest(), DefaultManifest()],
     )
 
@@ -235,7 +235,7 @@ def test_find_persistent_manifest_prefers_default_profile(monkeypatch) -> None:
 
 def test_recover_persistent_proxy_reuses_healthy_deployment(monkeypatch) -> None:
     monkeypatch.setattr(wrap_cli, "_find_persistent_manifest", lambda port: _Manifest())
-    monkeypatch.setattr("headroom.install.health.probe_ready", lambda url: True)
+    monkeypatch.setattr("copium.install.health.probe_ready", lambda url: True)
 
     assert wrap_cli._recover_persistent_proxy(8787) is True
 
@@ -245,7 +245,7 @@ def test_recover_persistent_proxy_warns_for_task_deployment(monkeypatch) -> None
         supervisor_kind = "task"
 
     monkeypatch.setattr(wrap_cli, "_find_persistent_manifest", lambda port: TaskManifest())
-    monkeypatch.setattr("headroom.install.health.probe_ready", lambda url: False)
+    monkeypatch.setattr("copium.install.health.probe_ready", lambda url: False)
 
     assert wrap_cli._recover_persistent_proxy(8787) is False
 
@@ -283,7 +283,7 @@ def test_ensure_proxy_restarts_idle_stale_ephemeral_proxy(monkeypatch) -> None:
 def test_ensure_proxy_restarts_ephemeral_proxy_for_openai_api_url_mismatch(monkeypatch) -> None:
     calls: list[object] = []
     health = {
-        "version": wrap_cli._HEADROOM_VERSION,
+        "version": wrap_cli._COPIUM_VERSION,
         "runtime": {"websocket_sessions": {"active_sessions": 0, "active_relay_tasks": 0}},
         "config": {
             "pid": "12345",
@@ -324,7 +324,7 @@ def test_ensure_proxy_restarts_ephemeral_proxy_for_openai_api_url_mismatch(monke
 def test_ensure_proxy_restarts_agent_proxy_without_savings_profile(monkeypatch) -> None:
     calls: list[object] = []
     health = {
-        "version": wrap_cli._HEADROOM_VERSION,
+        "version": wrap_cli._COPIUM_VERSION,
         "runtime": {"websocket_sessions": {"active_sessions": 0, "active_relay_tasks": 0}},
         "config": {"pid": "12345", "memory": False, "learn": False, "code_graph": False},
     }
@@ -353,7 +353,7 @@ def test_ensure_proxy_restarts_agent_proxy_without_savings_profile(monkeypatch) 
 
 def test_ensure_proxy_reuses_agent_proxy_with_savings_profile(monkeypatch) -> None:
     health = {
-        "version": wrap_cli._HEADROOM_VERSION,
+        "version": wrap_cli._COPIUM_VERSION,
         "runtime": {"websocket_sessions": {"active_sessions": 0, "active_relay_tasks": 0}},
         "config": {
             "pid": "12345",
@@ -465,7 +465,7 @@ def test_ensure_proxy_defers_flag_restart_when_other_wrapper_attached(monkeypatc
     """Requesting --memory must not restart the proxy out from under another
     attached wrapper; reuse the running proxy as-is instead."""
     health = {
-        "version": wrap_cli._HEADROOM_VERSION,  # same version → no version restart
+        "version": wrap_cli._COPIUM_VERSION,  # same version → no version restart
         "runtime": {"websocket_sessions": {"active_sessions": 0, "active_relay_tasks": 0}},
         # Running proxy lacks `memory`; this session asks for it.
         "config": {"pid": "12345", "memory": False, "learn": False, "code_graph": False},
@@ -500,7 +500,7 @@ def test_ensure_proxy_restarts_for_flags_when_no_other_wrapper(monkeypatch) -> N
     happens — the guard must not block the single-client upgrade path."""
     calls: list[object] = []
     health = {
-        "version": wrap_cli._HEADROOM_VERSION,
+        "version": wrap_cli._COPIUM_VERSION,
         "runtime": {"websocket_sessions": {"active_sessions": 0, "active_relay_tasks": 0}},
         "config": {"pid": "12345", "memory": False, "learn": False, "code_graph": False},
     }

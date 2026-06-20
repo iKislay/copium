@@ -23,7 +23,7 @@ pytest.importorskip("fastapi")
 
 from click.testing import CliRunner  # noqa: E402
 
-from headroom.cli.main import main  # noqa: E402
+from copium.cli.main import main  # noqa: E402
 
 
 @pytest.fixture
@@ -40,7 +40,7 @@ def mock_run_server():
         captured["config"] = config
         captured["kwargs"] = kwargs
 
-    with patch("headroom.proxy.server.run_server", _mock):
+    with patch("copium.proxy.server.run_server", _mock):
         yield captured
 
 
@@ -252,7 +252,7 @@ class TestMissingProxyDepsError:
     def test_import_error_exits_nonzero(self, runner: CliRunner) -> None:
         with patch.dict(
             "sys.modules",
-            {"headroom.proxy.server": None},
+            {"copium.proxy.server": None},
         ):
             result = runner.invoke(main, ["proxy"])
         # Click CliRunner may raise SystemExit or catch it; exit code must be non-zero
@@ -265,8 +265,8 @@ class TestMissingProxyDepsError:
         )
 
         def patched_import(name, *args, **kwargs):
-            if name == "headroom.proxy.server":
-                raise ImportError("No module named 'headroom.proxy.server'")
+            if name == "copium.proxy.server":
+                raise ImportError("No module named 'copium.proxy.server'")
             return original_import(name, *args, **kwargs)
 
         with patch("builtins.__import__", side_effect=patched_import):
@@ -284,7 +284,7 @@ class TestKeyboardInterruptExitCode:
         def _run_server_raises(*args, **kwargs):
             raise KeyboardInterrupt
 
-        with patch("headroom.proxy.server.run_server", _run_server_raises):
+        with patch("copium.proxy.server.run_server", _run_server_raises):
             result = runner.invoke(main, ["proxy"])
 
         assert result.exit_code == 130
@@ -293,68 +293,68 @@ class TestKeyboardInterruptExitCode:
 class TestNewEnvVarWiring:
     """Verify newly-added envvar= wiring works for options that lacked it."""
 
-    def test_headroom_memory_db_path_from_env(
+    def test_copium_memory_db_path_from_env(
         self, runner: CliRunner, mock_run_server: dict
     ) -> None:
         result = runner.invoke(
             main,
             ["proxy", "--memory"],
-            env={"HEADROOM_MEMORY_DB_PATH": "/tmp/test-memory.db"},
+            env={"COPIUM_MEMORY_DB_PATH": "/tmp/test-memory.db"},
             catch_exceptions=False,
         )
         assert result.exit_code == 0, result.output
         assert mock_run_server["config"].memory_db_path == "/tmp/test-memory.db"
 
-    def test_headroom_retry_max_attempts_from_env(
+    def test_copium_retry_max_attempts_from_env(
         self, runner: CliRunner, mock_run_server: dict
     ) -> None:
         result = runner.invoke(
             main,
             ["proxy"],
-            env={"HEADROOM_RETRY_MAX_ATTEMPTS": "5"},
+            env={"COPIUM_RETRY_MAX_ATTEMPTS": "5"},
             catch_exceptions=False,
         )
         assert result.exit_code == 0, result.output
         assert mock_run_server["config"].retry_max_attempts == 5
 
-    def test_headroom_connect_timeout_from_env(
+    def test_copium_connect_timeout_from_env(
         self, runner: CliRunner, mock_run_server: dict
     ) -> None:
         result = runner.invoke(
             main,
             ["proxy"],
-            env={"HEADROOM_CONNECT_TIMEOUT_SECONDS": "30"},
+            env={"COPIUM_CONNECT_TIMEOUT_SECONDS": "30"},
             catch_exceptions=False,
         )
         assert result.exit_code == 0, result.output
         assert mock_run_server["config"].connect_timeout_seconds == 30
 
-    def test_headroom_backend_from_env(self, runner: CliRunner, mock_run_server: dict) -> None:
+    def test_copium_backend_from_env(self, runner: CliRunner, mock_run_server: dict) -> None:
         result = runner.invoke(
             main,
             ["proxy"],
-            env={"HEADROOM_BACKEND": "bedrock"},
+            env={"COPIUM_BACKEND": "bedrock"},
             catch_exceptions=False,
         )
         assert result.exit_code == 0, result.output
         assert mock_run_server["config"].backend == "bedrock"
 
-    def test_headroom_region_from_env(self, runner: CliRunner, mock_run_server: dict) -> None:
+    def test_copium_region_from_env(self, runner: CliRunner, mock_run_server: dict) -> None:
         result = runner.invoke(
             main,
             ["proxy"],
-            env={"HEADROOM_REGION": "eu-west-1"},
+            env={"COPIUM_REGION": "eu-west-1"},
             catch_exceptions=False,
         )
         assert result.exit_code == 0, result.output
         # bedrock_region falls back to region
         assert mock_run_server["config"].bedrock_region == "eu-west-1"
 
-    def test_headroom_memory_top_k_from_env(self, runner: CliRunner, mock_run_server: dict) -> None:
+    def test_copium_memory_top_k_from_env(self, runner: CliRunner, mock_run_server: dict) -> None:
         result = runner.invoke(
             main,
             ["proxy", "--memory"],
-            env={"HEADROOM_MEMORY_TOP_K": "20"},
+            env={"COPIUM_MEMORY_TOP_K": "20"},
             catch_exceptions=False,
         )
         assert result.exit_code == 0, result.output

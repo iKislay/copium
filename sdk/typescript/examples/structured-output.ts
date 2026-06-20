@@ -6,7 +6,7 @@
  *
  * Run: npx tsx examples/09-structured-output.ts
  */
-import { withHeadroom } from "headroom-ai/vercel-ai";
+import { withCopium } from "copium-ai/vercel-ai";
 import { openai } from "@ai-sdk/openai";
 import { generateText, Output } from "ai";
 import { z } from "zod";
@@ -58,7 +58,7 @@ const IncidentReport = z.object({
 });
 
 async function main() {
-  const model = withHeadroom(openai("gpt-4o"));
+  const model = withCopium(openai("gpt-4o"));
 
   console.log(`Input: ${incidentLogs.length} log entries (${JSON.stringify(incidentLogs).length} chars)`);
 

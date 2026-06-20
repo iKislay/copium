@@ -13,9 +13,9 @@ import time
 
 import pytest
 
-from headroom.tokenizers import tiktoken_counter as tc
-from headroom.tokenizers.estimator import EstimatingTokenCounter
-from headroom.tokenizers.registry import TokenizerRegistry
+from copium.tokenizers import tiktoken_counter as tc
+from copium.tokenizers.estimator import EstimatingTokenCounter
+from copium.tokenizers.registry import TokenizerRegistry
 
 
 @pytest.fixture(autouse=True)
@@ -37,7 +37,7 @@ def test_load_encoding_is_bounded_on_stall(monkeypatch: pytest.MonkeyPatch) -> N
     import tiktoken
 
     monkeypatch.setattr(tiktoken, "get_encoding", _stalled_get_encoding)
-    monkeypatch.setenv("HEADROOM_TIKTOKEN_LOAD_TIMEOUT_SECONDS", "0.2")
+    monkeypatch.setenv("COPIUM_TIKTOKEN_LOAD_TIMEOUT_SECONDS", "0.2")
 
     start = time.perf_counter()
     with pytest.raises(tc.TiktokenLoadError):
@@ -50,7 +50,7 @@ def test_failed_encoding_short_circuits(monkeypatch: pytest.MonkeyPatch) -> None
     import tiktoken
 
     monkeypatch.setattr(tiktoken, "get_encoding", _stalled_get_encoding)
-    monkeypatch.setenv("HEADROOM_TIKTOKEN_LOAD_TIMEOUT_SECONDS", "0.2")
+    monkeypatch.setenv("COPIUM_TIKTOKEN_LOAD_TIMEOUT_SECONDS", "0.2")
 
     with pytest.raises(tc.TiktokenLoadError):
         tc.load_encoding("stall-enc-2")
@@ -75,7 +75,7 @@ def test_registry_falls_back_to_estimator_on_stall(monkeypatch: pytest.MonkeyPat
     import tiktoken
 
     monkeypatch.setattr(tiktoken, "get_encoding", _stalled_get_encoding)
-    monkeypatch.setenv("HEADROOM_TIKTOKEN_LOAD_TIMEOUT_SECONDS", "0.2")
+    monkeypatch.setenv("COPIUM_TIKTOKEN_LOAD_TIMEOUT_SECONDS", "0.2")
 
     counter = TokenizerRegistry()._create_tiktoken("gpt-4")
     assert isinstance(counter, EstimatingTokenCounter)

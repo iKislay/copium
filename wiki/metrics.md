@@ -1,6 +1,6 @@
 # Metrics & Monitoring
 
-Headroom provides comprehensive metrics for monitoring compression performance, cost savings, and system health.
+Copium provides comprehensive metrics for monitoring compression performance, cost savings, and system health.
 
 ## Proxy Metrics
 
@@ -51,10 +51,10 @@ curl http://localhost:8787/stats
 `/stats` keeps the existing live/session fields, including `savings_history`,
 for backward compatibility. The new `persistent_savings` block is durable local
 proxy compression history stored by default at
-`${HEADROOM_WORKSPACE_DIR}/proxy_savings.json` (i.e.
-`~/.headroom/proxy_savings.json` when `HEADROOM_WORKSPACE_DIR` is unset).
-Use `HEADROOM_SAVINGS_PATH` to override the file location directly, or
-set `HEADROOM_WORKSPACE_DIR` to relocate the entire state root. See the
+`${COPIUM_WORKSPACE_DIR}/proxy_savings.json` (i.e.
+`~/.copium/proxy_savings.json` when `COPIUM_WORKSPACE_DIR` is unset).
+Use `COPIUM_SAVINGS_PATH` to override the file location directly, or
+set `COPIUM_WORKSPACE_DIR` to relocate the entire state root. See the
 [Filesystem Contract](filesystem-contract.md) for details.
 
 For Anthropic-style providers that return cache-write TTL buckets, `/stats`
@@ -161,29 +161,29 @@ curl http://localhost:8787/metrics
 ```
 
 ```prometheus
-# HELP headroom_requests_total Total number of requests
-headroom_requests_total 1234
+# HELP copium_requests_total Total number of requests
+copium_requests_total 1234
 
-# HELP headroom_latency_ms_count Count of observed request latencies
-headroom_latency_ms_count 1234
+# HELP copium_latency_ms_count Count of observed request latencies
+copium_latency_ms_count 1234
 
-# HELP headroom_tokens_saved_total Tokens saved by optimization
-headroom_tokens_saved_total 5678900
+# HELP copium_tokens_saved_total Tokens saved by optimization
+copium_tokens_saved_total 5678900
 
-# HELP headroom_requests_by_provider Requests by provider
-headroom_requests_by_provider{provider="anthropic"} 800
-headroom_requests_by_provider{provider="openai"} 434
+# HELP copium_requests_by_provider Requests by provider
+copium_requests_by_provider{provider="anthropic"} 800
+copium_requests_by_provider{provider="openai"} 434
 
-# HELP headroom_requests_by_stack Requests by Headroom integration stack
-headroom_requests_by_stack{stack="wrap_claude"} 612
-headroom_requests_by_stack{stack="adapter_ts_openai"} 48
+# HELP copium_requests_by_stack Requests by Copium integration stack
+copium_requests_by_stack{stack="wrap_claude"} 612
+copium_requests_by_stack{stack="adapter_ts_openai"} 48
 
-# HELP headroom_transform_timing_ms_sum Sum of transform timing in milliseconds
-headroom_transform_timing_ms_sum{transform="router"} 5123.7
+# HELP copium_transform_timing_ms_sum Sum of transform timing in milliseconds
+copium_transform_timing_ms_sum{transform="router"} 5123.7
 
-# HELP headroom_cache_write_ttl_tokens_total Provider cache write tokens by observed TTL bucket
-headroom_cache_write_ttl_tokens_total{provider="anthropic",ttl="5m"} 20000
-headroom_cache_write_ttl_tokens_total{provider="anthropic",ttl="1h"} 50000
+# HELP copium_cache_write_ttl_tokens_total Provider cache write tokens by observed TTL bucket
+copium_cache_write_ttl_tokens_total{provider="anthropic",ttl="5m"} 20000
+copium_cache_write_ttl_tokens_total{provider="anthropic",ttl="1h"} 50000
 ```
 
 The built-in Prometheus endpoint exposes the proxy's in-memory operational state, including:
@@ -199,57 +199,57 @@ The built-in Prometheus endpoint exposes the proxy's in-memory operational state
 
 ### OTEL Metrics
 
-Headroom now emits the same operational events through a shared OTEL metrics facade.
+Copium now emits the same operational events through a shared OTEL metrics facade.
 
 There are two integration modes:
 
-1. **Ambient OTEL app setup** - if your application already configures a global OTEL meter provider, Headroom records into that provider automatically.
-2. **Headroom-managed export** - if you want the proxy to configure its own OTEL metrics exporter, install:
+1. **Ambient OTEL app setup** - if your application already configures a global OTEL meter provider, Copium records into that provider automatically.
+2. **Copium-managed export** - if you want the proxy to configure its own OTEL metrics exporter, install:
 
 ```bash
-pip install "headroom-ai[proxy,otel]"
+pip install "copium-ai[proxy,otel]"
 ```
 
 Then set:
 
 ```bash
-HEADROOM_OTEL_METRICS_ENABLED=1
-HEADROOM_OTEL_METRICS_EXPORTER=otlp_http
-HEADROOM_OTEL_METRICS_ENDPOINT=http://127.0.0.1:4318/v1/metrics
-HEADROOM_OTEL_SERVICE_NAME=headroom-proxy
-HEADROOM_OTEL_RESOURCE_ATTRIBUTES=deployment.environment=dev,service.namespace=headroom
+COPIUM_OTEL_METRICS_ENABLED=1
+COPIUM_OTEL_METRICS_EXPORTER=otlp_http
+COPIUM_OTEL_METRICS_ENDPOINT=http://127.0.0.1:4318/v1/metrics
+COPIUM_OTEL_SERVICE_NAME=copium-proxy
+COPIUM_OTEL_RESOURCE_ATTRIBUTES=deployment.environment=dev,service.namespace=copium
 ```
 
 For local validation without a collector:
 
 ```bash
-HEADROOM_OTEL_METRICS_ENABLED=1
-HEADROOM_OTEL_METRICS_EXPORTER=console
-headroom proxy
+COPIUM_OTEL_METRICS_ENABLED=1
+COPIUM_OTEL_METRICS_EXPORTER=console
+copium proxy
 ```
 
-The proxy's `/stats` response now includes an `otel` block that reports whether Headroom is managing an OTEL exporter for the current process.
+The proxy's `/stats` response now includes an `otel` block that reports whether Copium is managing an OTEL exporter for the current process.
 
-Headroom's managed OTEL exporters are intentionally scoped to Headroom's own instrumentation. If you already manage global OTEL providers in your app, keep using those and let Headroom record into the ambient providers instead of enabling `HEADROOM_OTEL_*`.
+Copium's managed OTEL exporters are intentionally scoped to Copium's own instrumentation. If you already manage global OTEL providers in your app, keep using those and let Copium record into the ambient providers instead of enabling `COPIUM_OTEL_*`.
 
 ### OTEL Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `HEADROOM_OTEL_METRICS_ENABLED` | `0` | Enables Headroom-managed OTEL metric export |
-| `HEADROOM_OTEL_METRICS_EXPORTER` | `otlp_http` | Exporter type: `otlp_http` or `console` |
-| `HEADROOM_OTEL_METRICS_ENDPOINT` | unset | OTLP HTTP metrics endpoint |
-| `HEADROOM_OTEL_METRICS_HEADERS` | unset | Comma-separated `key=value` headers for OTLP export |
-| `HEADROOM_OTEL_METRICS_EXPORT_INTERVAL_MS` | `10000` | Periodic export interval in milliseconds |
-| `HEADROOM_OTEL_SERVICE_NAME` | `headroom-proxy` in proxy mode | OTEL `service.name` |
-| `HEADROOM_OTEL_RESOURCE_ATTRIBUTES` | unset | Comma-separated resource attributes |
+| `COPIUM_OTEL_METRICS_ENABLED` | `0` | Enables Copium-managed OTEL metric export |
+| `COPIUM_OTEL_METRICS_EXPORTER` | `otlp_http` | Exporter type: `otlp_http` or `console` |
+| `COPIUM_OTEL_METRICS_ENDPOINT` | unset | OTLP HTTP metrics endpoint |
+| `COPIUM_OTEL_METRICS_HEADERS` | unset | Comma-separated `key=value` headers for OTLP export |
+| `COPIUM_OTEL_METRICS_EXPORT_INTERVAL_MS` | `10000` | Periodic export interval in milliseconds |
+| `COPIUM_OTEL_SERVICE_NAME` | `copium-proxy` in proxy mode | OTEL `service.name` |
+| `COPIUM_OTEL_RESOURCE_ATTRIBUTES` | unset | Comma-separated resource attributes |
 
 ### Anonymous Telemetry vs OTEL
 
-Headroom has two separate systems:
+Copium has two separate systems:
 
-- `HEADROOM_TELEMETRY` / `--no-telemetry` controls the privacy-preserving anonymous data-flywheel beacon and TOIN-related aggregate reporting.
-- `HEADROOM_OTEL_*` controls operational OTEL metric export.
+- `COPIUM_TELEMETRY` / `--no-telemetry` controls the privacy-preserving anonymous data-flywheel beacon and TOIN-related aggregate reporting.
+- `COPIUM_OTEL_*` controls operational OTEL metric export.
 
 They are independent by design so you can disable the anonymous beacon while keeping OTEL metrics enabled, or vice versa.
 
@@ -258,19 +258,19 @@ They are independent by design so you can disable the anonymous beacon while kee
 When the anonymous beacon is enabled, each report includes two identity fields
 so usage can be segmented by integration surface and deployment shape:
 
-- `headroom_stack` — how Headroom is invoked in this process. Values:
+- `copium_stack` — how Copium is invoked in this process. Values:
   `proxy`, `wrap_<agent>` (e.g. `wrap_claude`, `wrap_codex`),
   `adapter_<lang>_<provider>` (e.g. `adapter_ts_openai`), `mixed`
   (multi-stack proxy with no dominant caller), or `unknown`. Overridable via
-  `HEADROOM_STACK`; `headroom wrap <tool>` sets it automatically.
+  `COPIUM_STACK`; `copium wrap <tool>` sets it automatically.
 - `install_mode` — how the proxy is deployed. Values: `wrapped` (spawned by
-  `headroom wrap`), `persistent` (long-lived service on a fixed port),
+  `copium wrap`), `persistent` (long-lived service on a fixed port),
   `on_demand` (short-lived direct invocation), or `unknown`.
 - `requests_by_stack` — for proxies serving multiple integrations (e.g. a
   persistent proxy hit by both `wrap_claude` and a TS adapter), a per-stack
-  request count dict mirroring the `headroom_requests_by_stack` counter.
+  request count dict mirroring the `copium_requests_by_stack` counter.
 
-Clients tag requests with an `X-Headroom-Stack` header; the proxy's FastAPI
+Clients tag requests with an `X-Copium-Stack` header; the proxy's FastAPI
 middleware buckets these on `/v1/*`. Detection is best-effort — any failure
 falls back to `"unknown"` and never breaks the proxy.
 
@@ -278,14 +278,14 @@ falls back to `"unknown"` and never breaks the proxy.
 
 Langfuse fits next to this implementation as a **trace backend**, not as a metrics backend.
 
-- Headroom metrics continue to go to `/metrics` and/or your OTEL metrics exporter.
-- Langfuse receives OTLP traces for Headroom's compression pipeline.
-- Headroom's `/stats` response includes a `langfuse` block when Headroom is managing Langfuse trace export for the process.
+- Copium metrics continue to go to `/metrics` and/or your OTEL metrics exporter.
+- Langfuse receives OTLP traces for Copium's compression pipeline.
+- Copium's `/stats` response includes a `langfuse` block when Copium is managing Langfuse trace export for the process.
 
 Enable it with:
 
 ```bash
-HEADROOM_LANGFUSE_ENABLED=1
+COPIUM_LANGFUSE_ENABLED=1
 LANGFUSE_PUBLIC_KEY=pk-lf-...
 LANGFUSE_SECRET_KEY=sk-lf-...
 LANGFUSE_BASE_URL=https://cloud.langfuse.com
@@ -389,20 +389,20 @@ logging.basicConfig(level=logging.DEBUG)
 ### Log Output Examples
 
 ```
-INFO:headroom.transforms.pipeline:Pipeline complete: 45000 -> 4500 tokens (saved 40500, 90.0% reduction)
-INFO:headroom.transforms.smart_crusher:SmartCrusher applied top_n strategy: kept 15 of 1000 items
-INFO:headroom.cache.compression_store:CCR cache hit: hash=abc123, retrieved 1000 items
-DEBUG:headroom.transforms.smart_crusher:Kept items: [0,1,2,42,77,97,98,99] (errors at 42, warnings at 77)
+INFO:copium.transforms.pipeline:Pipeline complete: 45000 -> 4500 tokens (saved 40500, 90.0% reduction)
+INFO:copium.transforms.smart_crusher:SmartCrusher applied top_n strategy: kept 15 of 1000 items
+INFO:copium.cache.compression_store:CCR cache hit: hash=abc123, retrieved 1000 items
+DEBUG:copium.transforms.smart_crusher:Kept items: [0,1,2,42,77,97,98,99] (errors at 42, warnings at 77)
 ```
 
 ### Proxy Logging
 
 ```bash
 # Log to file
-headroom proxy --log-file headroom.jsonl
+copium proxy --log-file copium.jsonl
 
 # Increase verbosity
-headroom proxy --log-level debug
+copium proxy --log-level debug
 ```
 
 ## Grafana Dashboard
@@ -415,22 +415,22 @@ Example Grafana dashboard configuration for Prometheus metrics:
     {
       "title": "Tokens Saved",
       "type": "stat",
-      "targets": [{"expr": "headroom_tokens_saved_total"}]
+      "targets": [{"expr": "copium_tokens_saved_total"}]
     },
     {
       "title": "Average Request Latency (ms)",
       "type": "gauge",
-      "targets": [{"expr": "headroom_latency_ms_sum / clamp_min(headroom_latency_ms_count, 1)"}]
+      "targets": [{"expr": "copium_latency_ms_sum / clamp_min(copium_latency_ms_count, 1)"}]
     },
     {
       "title": "Max Request Latency (ms)",
       "type": "graph",
-      "targets": [{"expr": "headroom_latency_ms_max"}]
+      "targets": [{"expr": "copium_latency_ms_max"}]
     },
     {
       "title": "Provider Cache Hit Rate",
       "type": "gauge",
-      "targets": [{"expr": "headroom_provider_cache_hit_requests_total / clamp_min(headroom_provider_cache_requests_total, 1)"}]
+      "targets": [{"expr": "copium_provider_cache_hit_requests_total / clamp_min(copium_provider_cache_requests_total, 1)"}]
     }
   ]
 }
@@ -454,7 +454,7 @@ response = client.chat.completions.create(...)
 Set a budget limit in the proxy:
 
 ```bash
-headroom proxy --budget 10.00
+copium proxy --budget 10.00
 ```
 
 When the budget is exceeded:

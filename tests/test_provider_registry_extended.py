@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from headroom.providers.registry import (
+from copium.providers.registry import (
     ProviderApiTargets,
     ProxyProviderRuntime,
     call_client_transport,
@@ -87,7 +87,7 @@ def test_proxy_provider_runtime_selects_targets_and_providers() -> None:
     )
     assert (
         runtime.select_passthrough_base_url(
-            {"api-key": "azure-key", "x-headroom-base-url": "https://azure.example/openai/"}
+            {"api-key": "azure-key", "x-copium-base-url": "https://azure.example/openai/"}
         )
         == "https://azure.example/openai"
     )
@@ -178,7 +178,7 @@ def test_format_backend_status_uses_litellm_provider_metadata(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        "headroom.backends.litellm.get_provider_config",
+        "copium.backends.litellm.get_provider_config",
         lambda provider: SimpleNamespace(
             display_name=provider.upper(),
             uses_region=(provider == "bedrock"),

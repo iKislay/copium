@@ -13,9 +13,9 @@ from pathlib import Path
 
 import pytest
 
-from headroom.config import CCRConfig
-from headroom.telemetry.models import ToolSignature
-from headroom.telemetry.toin import (
+from copium.config import CCRConfig
+from copium.telemetry.models import ToolSignature
+from copium.telemetry.toin import (
     TOIN_PATH_ENV_VAR,
     TOINConfig,
     ToolIntelligenceNetwork,
@@ -23,7 +23,7 @@ from headroom.telemetry.toin import (
     get_toin,
     reset_toin,
 )
-from headroom.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
+from copium.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
 
 
 @pytest.fixture(autouse=True)
@@ -76,13 +76,13 @@ class TestTOINDefaultStoragePath:
         config = TOINConfig()
 
         print(f"\nDefault storage_path: {config.storage_path}")
-        print("Expected location: ~/.headroom/toin.json")
+        print("Expected location: ~/.copium/toin.json")
 
         # Verify it's not None/empty
         assert config.storage_path, "TOINConfig should have a default storage_path"
 
         # Verify it points to expected location
-        expected_suffix = ".headroom/toin.json"
+        expected_suffix = ".copium/toin.json"
         assert config.storage_path.endswith(expected_suffix), (
             f"Default path should end with {expected_suffix}, got: {config.storage_path}"
         )
@@ -94,10 +94,10 @@ class TestTOINDefaultStoragePath:
 
         print("\n[PASS] Default storage path is correctly configured")
 
-    def test_headroom_toin_path_env_var(self):
-        """Verify HEADROOM_TOIN_PATH env var overrides default."""
+    def test_copium_toin_path_env_var(self):
+        """Verify COPIUM_TOIN_PATH env var overrides default."""
         print("\n" + "=" * 60)
-        print("TEST: test_headroom_toin_path_env_var")
+        print("TEST: test_copium_toin_path_env_var")
         print("=" * 60)
 
         # Save original env value
@@ -123,7 +123,7 @@ class TestTOINDefaultStoragePath:
             print(f"get_default_toin_storage_path(): {default_path}")
             assert default_path == custom_path
 
-            print("\n[PASS] HEADROOM_TOIN_PATH env var works correctly")
+            print("\n[PASS] COPIUM_TOIN_PATH env var works correctly")
 
         finally:
             # Restore original env
@@ -133,7 +133,7 @@ class TestTOINDefaultStoragePath:
                 os.environ[TOIN_PATH_ENV_VAR] = original_value
 
     def test_empty_env_var_uses_default(self):
-        """Verify empty HEADROOM_TOIN_PATH falls back to default."""
+        """Verify empty COPIUM_TOIN_PATH falls back to default."""
         print("\n" + "=" * 60)
         print("TEST: test_empty_env_var_uses_default")
         print("=" * 60)
@@ -148,8 +148,8 @@ class TestTOINDefaultStoragePath:
             default_path = get_default_toin_storage_path()
             print(f"get_default_toin_storage_path(): {default_path}")
 
-            # Should fall back to default ~/.headroom/toin.json
-            assert ".headroom/toin.json" in default_path, (
+            # Should fall back to default ~/.copium/toin.json
+            assert ".copium/toin.json" in default_path, (
                 f"Empty env var should use default, got: {default_path}"
             )
 

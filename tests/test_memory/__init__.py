@@ -1,1 +1,1 @@
-"""Tests for Headroom Memory."""
+"""Tests for Copium Memory."""

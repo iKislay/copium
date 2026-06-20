@@ -23,7 +23,7 @@ Closes #
 
 - [ ] Unit tests pass (`pytest`)
 - [ ] Linting passes (`ruff check .`)
-- [ ] Type checking passes (`mypy headroom`)
+- [ ] Type checking passes (`mypy copium`)
 - [ ] New tests added for new functionality
 - [ ] Manual testing performed
 

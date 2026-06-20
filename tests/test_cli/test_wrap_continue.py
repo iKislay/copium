@@ -1,4 +1,4 @@
-"""Tests for `headroom wrap continue` command (PR-G1, Phase G)."""
+"""Tests for `copium wrap continue` command (PR-G1, Phase G)."""
 
 from __future__ import annotations
 
@@ -9,8 +9,8 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 
-from headroom.cli import wrap as wrap_mod
-from headroom.cli.main import main
+from copium.cli import wrap as wrap_mod
+from copium.cli.main import main
 
 
 @pytest.fixture
@@ -111,7 +111,7 @@ def test_wrap_continue_prepare_only_injects_systemmessage(
 ) -> None:
     """`wrap continue --prepare-only` injects into ./.continue/config.json by default."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
 
     with patch.object(wrap_mod, "_ensure_rtk_binary", return_value=Path("/tmp/rtk")):
         result = runner.invoke(main, ["wrap", "continue", "--prepare-only"])
@@ -130,7 +130,7 @@ def test_wrap_continue_respects_custom_config_path(
 ) -> None:
     """--config writes to the user-specified path, not the cwd default."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
     custom_config = tmp_path / "custom" / "my-continue.json"
 
     with patch.object(wrap_mod, "_ensure_rtk_binary", return_value=Path("/tmp/rtk")):
@@ -295,7 +295,7 @@ def test_wrap_continue_keyboardinterrupt_during_prelude_emits_clear_message(
 ) -> None:
     """Ctrl-C between marker injection and proxy start must signal clearly."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
 
     config_file = tmp_path / ".continue" / "config.json"
 

@@ -20,7 +20,7 @@
 
 ```
 ┌──────────────────┐     ┌──────────────────┐
-│   User's App     │────▶│  Headroom Proxy  │
+│   User's App     │────▶│  Copium Proxy  │
 └──────────────────┘     └────────┬─────────┘
                                   │
                          ┌────────┴─────────┐
@@ -82,7 +82,7 @@ OPENAI_API_KEY=sk-...
 
 ### Secrets Management Systems
 
-Headroom supports:
+Copium supports:
 - AWS Secrets Manager
 - HashiCorp Vault
 - Azure Key Vault

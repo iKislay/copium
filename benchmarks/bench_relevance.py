@@ -1,4 +1,4 @@
-"""Relevance scorer benchmarks for Headroom SDK.
+"""Relevance scorer benchmarks for Copium SDK.
 
 This module contains performance benchmarks for relevance scorers:
 - BM25Scorer: Zero-dependency keyword matching
@@ -57,7 +57,7 @@ class TestBM25Benchmarks:
     @pytest.fixture
     def scorer(self):
         """Create BM25 scorer instance."""
-        from headroom.relevance.bm25 import BM25Scorer
+        from copium.relevance.bm25 import BM25Scorer
 
         return BM25Scorer()
 
@@ -203,8 +203,8 @@ class TestHybridBenchmarks:
     @pytest.fixture
     def scorer_fallback(self):
         """Create hybrid scorer without embeddings (BM25 fallback)."""
-        from headroom.relevance.bm25 import BM25Scorer
-        from headroom.relevance.hybrid import HybridScorer
+        from copium.relevance.bm25 import BM25Scorer
+        from copium.relevance.hybrid import HybridScorer
 
         # Force BM25-only mode by not providing embedding scorer
         scorer = HybridScorer(
@@ -220,7 +220,7 @@ class TestHybridBenchmarks:
     @pytest.fixture
     def scorer_full(self):
         """Create hybrid scorer with embeddings (if available)."""
-        from headroom.relevance.hybrid import HybridScorer
+        from copium.relevance.hybrid import HybridScorer
 
         scorer = HybridScorer(alpha=0.5, adaptive=True)
         return scorer
@@ -349,7 +349,7 @@ class TestScorerFactoryBenchmarks:
         Target: < 0.1ms
         Tests initialization overhead.
         """
-        from headroom.relevance import create_scorer
+        from copium.relevance import create_scorer
 
         scorer = benchmark(create_scorer, tier="bm25")
 
@@ -361,7 +361,7 @@ class TestScorerFactoryBenchmarks:
         Target: < 1ms (without embedding model load)
         Tests initialization with fallback.
         """
-        from headroom.relevance import create_scorer
+        from copium.relevance import create_scorer
 
         scorer = benchmark(create_scorer, tier="hybrid")
 
@@ -378,8 +378,8 @@ class TestRelevanceInSmartCrusher:
     @pytest.fixture
     def crusher_with_bm25(self, smart_crusher_config):
         """SmartCrusher with BM25 relevance scorer."""
-        from headroom.config import RelevanceScorerConfig
-        from headroom.transforms.smart_crusher import SmartCrusher
+        from copium.config import RelevanceScorerConfig
+        from copium.transforms.smart_crusher import SmartCrusher
 
         return SmartCrusher(
             config=smart_crusher_config,
@@ -389,8 +389,8 @@ class TestRelevanceInSmartCrusher:
     @pytest.fixture
     def crusher_with_hybrid(self, smart_crusher_config):
         """SmartCrusher with hybrid relevance scorer."""
-        from headroom.config import RelevanceScorerConfig
-        from headroom.transforms.smart_crusher import SmartCrusher
+        from copium.config import RelevanceScorerConfig
+        from copium.transforms.smart_crusher import SmartCrusher
 
         return SmartCrusher(
             config=smart_crusher_config,
@@ -479,7 +479,7 @@ class TestRelevanceInSmartCrusher:
 def _check_embedding_available() -> bool:
     """Check if embedding scorer is available."""
     try:
-        from headroom.relevance.embedding import EmbeddingScorer
+        from copium.relevance.embedding import EmbeddingScorer
 
         return EmbeddingScorer.is_available()
     except ImportError:

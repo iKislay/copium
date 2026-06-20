@@ -1,4 +1,4 @@
-"""Real-world integration tests for Strands HeadroomHookProvider.
+"""Real-world integration tests for Strands CopiumHookProvider.
 
 These tests use actual AWS Bedrock API calls with real credentials.
 NO MOCKS - all tests hit the real Bedrock API.
@@ -190,8 +190,8 @@ def simple_calculator(a: int, b: int, operation: str) -> str:
 
 @pytest.mark.skipif(SKIP_BEDROCK, reason="AWS credentials not available")
 @pytest.mark.skipif(not STRANDS_AVAILABLE, reason="strands-agents not installed")
-class TestHeadroomHookProviderReal:
-    """Real-world integration tests for HeadroomHookProvider with Bedrock."""
+class TestCopiumHookProviderReal:
+    """Real-world integration tests for CopiumHookProvider with Bedrock."""
 
     @pytest.fixture
     def bedrock_model(self):
@@ -204,10 +204,10 @@ class TestHeadroomHookProviderReal:
 
     @pytest.fixture
     def hook_provider(self):
-        """Create a HeadroomHookProvider with test configuration."""
-        from headroom.integrations.strands import HeadroomHookProvider
+        """Create a CopiumHookProvider with test configuration."""
+        from copium.integrations.strands import CopiumHookProvider
 
-        return HeadroomHookProvider(
+        return CopiumHookProvider(
             compress_tool_outputs=True,
             min_tokens_to_compress=50,  # Low threshold for testing
             preserve_errors=True,
@@ -292,10 +292,10 @@ class TestHeadroomHookProviderReal:
         2. Creates an agent with a tool that returns error data
         3. Verifies error results are preserved unchanged
         """
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
         # Create hook with preserve_errors=True (default)
-        hook_with_preserve = HeadroomHookProvider(
+        hook_with_preserve = CopiumHookProvider(
             compress_tool_outputs=True,
             min_tokens_to_compress=10,  # Very low threshold
             preserve_errors=True,
@@ -446,10 +446,10 @@ class TestHeadroomHookProviderReal:
         1. Creates a hook with compress_tool_outputs=False
         2. Verifies tool outputs are not modified
         """
-        from headroom.integrations.strands import HeadroomHookProvider
+        from copium.integrations.strands import CopiumHookProvider
 
         # Create hook with compression disabled
-        disabled_hook = HeadroomHookProvider(
+        disabled_hook = CopiumHookProvider(
             compress_tool_outputs=False,
             min_tokens_to_compress=10,
         )

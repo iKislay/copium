@@ -1,6 +1,6 @@
 """Tests for compression summary generation."""
 
-from headroom.transforms.compression_summary import (
+from copium.transforms.compression_summary import (
     _extract_name_from_signature,
     summarize_compressed_code,
     summarize_dropped_items,

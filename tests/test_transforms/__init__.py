@@ -1,1 +1,1 @@
-"""Transform tests for Headroom SDK."""
+"""Transform tests for Copium SDK."""

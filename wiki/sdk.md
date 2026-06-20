@@ -1,21 +1,21 @@
 # SDK Guide
 
-The Headroom SDK wraps your existing LLM client to add compression and optimization transparently.
+The Copium SDK wraps your existing LLM client to add compression and optimization transparently.
 
 ## Installation
 
 ```bash
-pip install headroom-ai openai
+pip install copium-ai openai
 ```
 
 ## Quick Start
 
 ```python
-from headroom import HeadroomClient, OpenAIProvider
+from copium import CopiumClient, OpenAIProvider
 from openai import OpenAI
 
 # Create wrapped client
-client = HeadroomClient(
+client = CopiumClient(
     original_client=OpenAI(),
     provider=OpenAIProvider(),
     default_mode="optimize",
@@ -34,7 +34,7 @@ print(response.choices[0].message.content)
 
 ## Tool Output Compression
 
-Real savings happen with tool outputs. Here's where Headroom shines:
+Real savings happen with tool outputs. Here's where Copium shines:
 
 ```python
 import json
@@ -64,7 +64,7 @@ messages = [
     {"role": "user", "content": "What are the top 3?"},
 ]
 
-# Headroom compresses 500 results to ~15, keeping highest-scoring items
+# Copium compresses 500 results to ~15, keeping highest-scoring items
 response = client.chat.completions.create(
     model="gpt-4o-mini",
     messages=messages
@@ -81,10 +81,10 @@ print(f"Tokens saved: {stats['session']['tokens_saved_total']}")
 ### OpenAI
 
 ```python
-from headroom import HeadroomClient, OpenAIProvider
+from copium import CopiumClient, OpenAIProvider
 from openai import OpenAI
 
-client = HeadroomClient(
+client = CopiumClient(
     original_client=OpenAI(),
     provider=OpenAIProvider(),
 )
@@ -93,10 +93,10 @@ client = HeadroomClient(
 ### Anthropic
 
 ```python
-from headroom import HeadroomClient, AnthropicProvider
+from copium import CopiumClient, AnthropicProvider
 from anthropic import Anthropic
 
-client = HeadroomClient(
+client = CopiumClient(
     original_client=Anthropic(),
     provider=AnthropicProvider(),
 )
@@ -111,10 +111,10 @@ response = client.messages.create(
 ### Google
 
 ```python
-from headroom import HeadroomClient, GoogleProvider
+from copium import CopiumClient, GoogleProvider
 import google.generativeai as genai
 
-client = HeadroomClient(
+client = CopiumClient(
     original_client=genai,
     provider=GoogleProvider(),
 )
@@ -148,7 +148,7 @@ if not result["valid"]:
 Applies all safe transforms:
 
 ```python
-client = HeadroomClient(
+client = CopiumClient(
     original_client=OpenAI(),
     provider=OpenAIProvider(),
     default_mode="optimize",
@@ -160,7 +160,7 @@ client = HeadroomClient(
 Observes and logs without modifying:
 
 ```python
-client = HeadroomClient(
+client = CopiumClient(
     original_client=OpenAI(),
     provider=OpenAIProvider(),
     default_mode="audit",
@@ -189,13 +189,13 @@ response = client.chat.completions.create(
     messages=[...],
 
     # Override mode for this request
-    headroom_mode="audit",
+    copium_mode="audit",
 
     # Reserve more tokens for output
-    headroom_output_buffer_tokens=8000,
+    copium_output_buffer_tokens=8000,
 
     # Keep last N turns
-    headroom_keep_turns=5,
+    copium_keep_turns=5,
 )
 ```
 
@@ -206,8 +206,8 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 # Now you'll see:
-# INFO:headroom.transforms.pipeline:Pipeline complete: 45000 -> 4500 tokens
-# INFO:headroom.transforms.smart_crusher:SmartCrusher: kept 15 of 1000 items
+# INFO:copium.transforms.pipeline:Pipeline complete: 45000 -> 4500 tokens
+# INFO:copium.transforms.smart_crusher:SmartCrusher: kept 15 of 1000 items
 ```
 
 ## Streaming
@@ -229,9 +229,9 @@ for chunk in stream:
 ## Error Handling
 
 ```python
-from headroom import (
-    HeadroomClient,
-    HeadroomError,
+from copium import (
+    CopiumClient,
+    CopiumError,
     ConfigurationError,
     ProviderError,
 )
@@ -242,8 +242,8 @@ except ConfigurationError as e:
     print(f"Config issue: {e}")
 except ProviderError as e:
     print(f"Provider issue: {e}")
-except HeadroomError as e:
-    print(f"Headroom error: {e}")
+except CopiumError as e:
+    print(f"Copium error: {e}")
 ```
 
 ## Historical Metrics
@@ -267,7 +267,7 @@ for m in metrics:
 See [Configuration](configuration.md) for full options:
 
 ```python
-client = HeadroomClient(
+client = CopiumClient(
     original_client=OpenAI(),
     provider=OpenAIProvider(),
     default_mode="optimize",

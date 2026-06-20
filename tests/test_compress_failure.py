@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib
 from types import SimpleNamespace
 
-from headroom.compress import compress
+from copium.compress import compress
 
 
 class _FailingPipeline:
@@ -13,7 +13,7 @@ class _FailingPipeline:
 
 def test_compress_returns_original_messages_when_pipeline_fails(monkeypatch) -> None:
     metrics: list[dict[str, str]] = []
-    compress_module = importlib.import_module("headroom.compress")
+    compress_module = importlib.import_module("copium.compress")
     monkeypatch.setattr(compress_module, "_get_pipeline", lambda: _FailingPipeline())
     monkeypatch.setattr(
         compress_module,

@@ -1,7 +1,7 @@
-"""Unit tests for Strands HeadroomStrandsModel.
+"""Unit tests for Strands CopiumStrandsModel.
 
 These tests use mocks and do NOT require AWS credentials or strands-agents.
-They test the internal logic of HeadroomStrandsModel in isolation.
+They test the internal logic of CopiumStrandsModel in isolation.
 
 For real integration tests, see test_model.py.
 """
@@ -72,14 +72,14 @@ def large_conversation():
 # ============================================================================
 
 
-class TestHeadroomStrandsModelInit:
-    """Tests for HeadroomStrandsModel initialization."""
+class TestCopiumStrandsModelInit:
+    """Tests for CopiumStrandsModel initialization."""
 
     def test_init_with_defaults(self, mock_strands_model):
         """Initialize with default settings."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
 
         assert model.wrapped_model is mock_strands_model
         assert model.total_tokens_saved == 0
@@ -87,28 +87,28 @@ class TestHeadroomStrandsModelInit:
         assert model.auto_detect_provider is True
 
     def test_init_with_custom_config(self, mock_strands_model):
-        """Initialize with custom HeadroomConfig."""
-        from headroom import HeadroomConfig
-        from headroom.integrations.strands import HeadroomStrandsModel
+        """Initialize with custom CopiumConfig."""
+        from copium import CopiumConfig
+        from copium.integrations.strands import CopiumStrandsModel
 
-        config = HeadroomConfig()
+        config = CopiumConfig()
         config.smart_crusher.min_tokens_to_crush = 100
 
-        model = HeadroomStrandsModel(
+        model = CopiumStrandsModel(
             wrapped_model=mock_strands_model,
             config=config,
             auto_detect_provider=False,
         )
 
-        assert model.headroom_config is config
+        assert model.copium_config is config
         assert model.auto_detect_provider is False
 
     def test_init_requires_wrapped_model(self):
         """Raises ValueError if wrapped_model is None."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
         with pytest.raises(ValueError, match="wrapped_model cannot be None"):
-            HeadroomStrandsModel(wrapped_model=None)
+            CopiumStrandsModel(wrapped_model=None)
 
 
 class TestAttributeForwarding:
@@ -116,30 +116,30 @@ class TestAttributeForwarding:
 
     def test_forwards_unknown_attributes(self, mock_strands_model):
         """Forwards unknown attributes to wrapped model."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
         mock_strands_model.custom_attr = "custom_value"
         mock_strands_model.another_attr = 42
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
 
         assert model.custom_attr == "custom_value"
         assert model.another_attr == 42
 
     def test_forwards_config_property(self, mock_strands_model):
         """Forwards config property to wrapped model."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
 
         config = model.config
         assert config is mock_strands_model.config
 
     def test_does_not_forward_internal_attrs(self, mock_strands_model):
         """Does not forward internal wrapper attributes."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
 
         # These should be wrapper's own attributes
         assert model.wrapped_model is mock_strands_model
@@ -148,18 +148,18 @@ class TestAttributeForwarding:
 
     def test_get_config_delegates(self, mock_strands_model):
         """get_config() delegates to wrapped model."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
 
         config = model.get_config()
         assert config == mock_strands_model.get_config()
 
     def test_update_config_delegates(self, mock_strands_model):
         """update_config() delegates to wrapped model."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
 
         model.update_config(temperature=0.5)
         mock_strands_model.update_config.assert_called_once_with(temperature=0.5)
@@ -170,9 +170,9 @@ class TestMessageConversion:
 
     def test_convert_dict_messages(self, mock_strands_model, sample_messages):
         """Converts dict messages to OpenAI format."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
 
         converted = model._convert_messages_to_openai(sample_messages)
 
@@ -184,9 +184,9 @@ class TestMessageConversion:
 
     def test_convert_messages_with_tool_calls(self, mock_strands_model):
         """Converts messages with tool calls."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
 
         messages = [
             {
@@ -213,9 +213,9 @@ class TestMessageConversion:
 
     def test_convert_message_objects(self, mock_strands_model):
         """Converts message objects with role/content attributes."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
 
         # Create mock message objects
         msg1 = MagicMock()
@@ -242,9 +242,9 @@ class TestMessageConversion:
 
     def test_convert_handles_content_list(self, mock_strands_model):
         """Converts messages with content as list (content blocks)."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
 
         messages = [
             {
@@ -268,11 +268,11 @@ class TestOptimizeMessages:
 
     def test_optimize_returns_metrics(self, mock_strands_model, sample_messages):
         """_optimize_messages returns messages and metrics."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
 
-        # Mock the pipeline by setting _pipeline directly and mocking _headroom_provider
+        # Mock the pipeline by setting _pipeline directly and mocking _copium_provider
         mock_pipeline = MagicMock()
         mock_result = MagicMock()
         mock_result.messages = sample_messages
@@ -282,8 +282,8 @@ class TestOptimizeMessages:
         mock_pipeline.apply.return_value = mock_result
 
         model._pipeline = mock_pipeline
-        model._headroom_provider = MagicMock()
-        model._headroom_provider.get_context_limit.return_value = 128000
+        model._copium_provider = MagicMock()
+        model._copium_provider.get_context_limit.return_value = 128000
 
         optimized, metrics = model._optimize_messages(sample_messages)
 
@@ -295,9 +295,9 @@ class TestOptimizeMessages:
 
     def test_optimize_handles_empty_messages(self, mock_strands_model):
         """_optimize_messages handles empty message list."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
 
         optimized, metrics = model._optimize_messages([])
 
@@ -308,9 +308,9 @@ class TestOptimizeMessages:
 
     def test_optimize_tracks_metrics(self, mock_strands_model, sample_messages):
         """_optimize_messages tracks metrics in history."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
 
         # Mock the pipeline by setting _pipeline directly
         mock_pipeline = MagicMock()
@@ -322,8 +322,8 @@ class TestOptimizeMessages:
         mock_pipeline.apply.return_value = mock_result
 
         model._pipeline = mock_pipeline
-        model._headroom_provider = MagicMock()
-        model._headroom_provider.get_context_limit.return_value = 128000
+        model._copium_provider = MagicMock()
+        model._copium_provider.get_context_limit.return_value = 128000
 
         model._optimize_messages(sample_messages)
 
@@ -333,17 +333,17 @@ class TestOptimizeMessages:
 
     def test_optimize_handles_pipeline_errors(self, mock_strands_model, sample_messages):
         """_optimize_messages falls back on pipeline errors."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
 
         # Mock the pipeline to raise an error
         mock_pipeline = MagicMock()
         mock_pipeline.apply.side_effect = ValueError("Pipeline error")
 
         model._pipeline = mock_pipeline
-        model._headroom_provider = MagicMock()
-        model._headroom_provider.get_context_limit.return_value = 128000
+        model._copium_provider = MagicMock()
+        model._copium_provider.get_context_limit.return_value = 128000
 
         # Should not raise, should fall back
         optimized, metrics = model._optimize_messages(sample_messages)
@@ -357,15 +357,15 @@ class TestPipelineLazyInit:
 
     def test_pipeline_is_lazily_initialized(self, mock_strands_model):
         """Pipeline is not created until first access."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
 
         # Should be None initially
         assert model._pipeline is None
 
         # Access pipeline property
-        with patch("headroom.integrations.strands.model.TransformPipeline"):
+        with patch("copium.integrations.strands.model.TransformPipeline"):
             _ = model.pipeline
 
         # Now should be initialized
@@ -377,9 +377,9 @@ class TestGetSavingsSummary:
 
     def test_empty_summary(self, mock_strands_model):
         """Returns zero values when no metrics recorded."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
         summary = model.get_savings_summary()
 
         assert summary["total_requests"] == 0
@@ -388,10 +388,10 @@ class TestGetSavingsSummary:
 
     def test_summary_with_metrics(self, mock_strands_model):
         """Returns correct summary with recorded metrics."""
-        from headroom.integrations.strands import HeadroomStrandsModel
-        from headroom.integrations.strands.model import OptimizationMetrics
+        from copium.integrations.strands import CopiumStrandsModel
+        from copium.integrations.strands.model import OptimizationMetrics
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
 
         # Add metrics manually
         model._metrics_history = [
@@ -432,10 +432,10 @@ class TestReset:
 
     def test_reset_clears_all_state(self, mock_strands_model):
         """reset() clears all tracked state."""
-        from headroom.integrations.strands import HeadroomStrandsModel
-        from headroom.integrations.strands.model import OptimizationMetrics
+        from copium.integrations.strands import CopiumStrandsModel
+        from copium.integrations.strands.model import OptimizationMetrics
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
 
         # Add some state
         model._metrics_history = [
@@ -471,10 +471,10 @@ class TestMetricsHistoryBound:
 
     def test_metrics_bounded_to_100(self, mock_strands_model):
         """Metrics history is bounded to 100 entries."""
-        from headroom.integrations.strands import HeadroomStrandsModel
-        from headroom.integrations.strands.model import OptimizationMetrics
+        from copium.integrations.strands import CopiumStrandsModel
+        from copium.integrations.strands.model import OptimizationMetrics
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
 
         # Add 150 metrics
         for i in range(150):
@@ -506,14 +506,14 @@ class TestOptimizeMessagesFunction:
 
     def test_optimize_messages_basic(self):
         """optimize_messages processes messages and returns metrics."""
-        from headroom.integrations.strands import optimize_messages
+        from copium.integrations.strands import optimize_messages
 
         messages = [
             {"role": "user", "content": "Hello"},
             {"role": "assistant", "content": "Hi there!"},
         ]
 
-        with patch("headroom.integrations.strands.model.TransformPipeline") as MockPipeline:
+        with patch("copium.integrations.strands.model.TransformPipeline") as MockPipeline:
             mock_instance = MagicMock()
             mock_result = MagicMock()
             mock_result.messages = messages
@@ -531,13 +531,13 @@ class TestOptimizeMessagesFunction:
 
     def test_optimize_messages_with_custom_config(self):
         """optimize_messages uses custom config."""
-        from headroom import HeadroomConfig
-        from headroom.integrations.strands import optimize_messages
+        from copium import CopiumConfig
+        from copium.integrations.strands import optimize_messages
 
-        config = HeadroomConfig()
+        config = CopiumConfig()
         messages = [{"role": "user", "content": "Test"}]
 
-        with patch("headroom.integrations.strands.model.TransformPipeline") as MockPipeline:
+        with patch("copium.integrations.strands.model.TransformPipeline") as MockPipeline:
             mock_instance = MagicMock()
             mock_result = MagicMock()
             mock_result.messages = messages
@@ -561,9 +561,9 @@ class TestStreamMethod:
     @pytest.mark.asyncio
     async def test_stream_optimizes_messages(self, mock_strands_model, sample_messages):
         """stream() applies optimization before calling wrapped model."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        model = HeadroomStrandsModel(wrapped_model=mock_strands_model)
+        model = CopiumStrandsModel(wrapped_model=mock_strands_model)
 
         # Mock the optimization
         with patch.object(model, "_optimize_messages") as mock_optimize:
@@ -593,7 +593,7 @@ class TestStrandsAvailableFunction:
 
     def test_strands_available_returns_bool(self):
         """strands_available() returns boolean."""
-        from headroom.integrations.strands import strands_available
+        from copium.integrations.strands import strands_available
 
         result = strands_available()
 
@@ -602,19 +602,19 @@ class TestStrandsAvailableFunction:
         assert result is True
 
 
-class TestRealHeadroomIntegration:
-    """Integration tests with real Headroom (no mocking)."""
+class TestRealCopiumIntegration:
+    """Integration tests with real Copium (no mocking)."""
 
     def test_real_optimization_with_mock_model(self, mock_strands_model, sample_messages):
-        """Test with real Headroom transforms (no API calls)."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        """Test with real Copium transforms (no API calls)."""
+        from copium.integrations.strands import CopiumStrandsModel
 
-        model = HeadroomStrandsModel(
+        model = CopiumStrandsModel(
             wrapped_model=mock_strands_model,
             auto_detect_provider=False,  # Use default OpenAI provider
         )
 
-        # This calls real Headroom optimization
+        # This calls real Copium optimization
         optimized, metrics = model._optimize_messages(sample_messages)
 
         # Should return valid messages
@@ -628,9 +628,9 @@ class TestRealHeadroomIntegration:
 
     def test_large_conversation_handling(self, mock_strands_model, large_conversation):
         """Large conversations are processed without errors."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        model = HeadroomStrandsModel(
+        model = CopiumStrandsModel(
             wrapped_model=mock_strands_model,
             auto_detect_provider=False,
         )

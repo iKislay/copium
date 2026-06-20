@@ -35,10 +35,10 @@ import pytest
 
 def _build_extension() -> None:
     try:
-        from headroom._core import SmartCrusher  # noqa: F401
+        from copium._core import SmartCrusher  # noqa: F401
     except ImportError:
         pytest.skip(
-            "headroom._core not built — run `bash scripts/build_rust_extension.sh`",
+            "copium._core not built — run `bash scripts/build_rust_extension.sh`",
             allow_module_level=True,
         )
 
@@ -63,13 +63,13 @@ def test_lossy_crush_populates_python_compression_store() -> None:
     SmartCrusher shim, then verify the Python compression_store has
     an entry keyed by the marker's hash with the canonical original.
     """
-    from headroom.cache.compression_store import (
+    from copium.cache.compression_store import (
         get_compression_store,
         reset_compression_store,
     )
-    from headroom.config import CCRConfig
-    from headroom.config import SmartCrusherConfig as PyConfig
-    from headroom.transforms.smart_crusher import SmartCrusher
+    from copium.config import CCRConfig
+    from copium.config import SmartCrusherConfig as PyConfig
+    from copium.transforms.smart_crusher import SmartCrusher
 
     reset_compression_store()
     try:
@@ -120,13 +120,13 @@ def test_smart_crush_content_populates_python_store() -> None:
     """Same bridge but driven through the runtime path the proxy
     actually uses: `_smart_crush_content` (not `crush_array_json`).
     This is what `apply()` invokes per-message."""
-    from headroom.cache.compression_store import (
+    from copium.cache.compression_store import (
         get_compression_store,
         reset_compression_store,
     )
-    from headroom.config import CCRConfig
-    from headroom.config import SmartCrusherConfig as PyConfig
-    from headroom.transforms.smart_crusher import SmartCrusher
+    from copium.config import CCRConfig
+    from copium.config import SmartCrusherConfig as PyConfig
+    from copium.transforms.smart_crusher import SmartCrusher
 
     reset_compression_store()
     try:
@@ -184,13 +184,13 @@ def test_smart_crush_content_populates_python_store() -> None:
 def test_passthrough_does_not_populate_store() -> None:
     """Below adaptive_k → no row drop → no Python store write.
     Pins that we don't accidentally store on every crush call."""
-    from headroom.cache.compression_store import (
+    from copium.cache.compression_store import (
         get_compression_store,
         reset_compression_store,
     )
-    from headroom.config import CCRConfig
-    from headroom.config import SmartCrusherConfig as PyConfig
-    from headroom.transforms.smart_crusher import SmartCrusher
+    from copium.config import CCRConfig
+    from copium.config import SmartCrusherConfig as PyConfig
+    from copium.transforms.smart_crusher import SmartCrusher
 
     reset_compression_store()
     try:
@@ -213,13 +213,13 @@ def test_passthrough_does_not_populate_store() -> None:
 def test_marker_disabled_skips_python_store() -> None:
     """`ccr_config.enabled=False` flips off marker emission AND store
     writes on the Rust side. The bridge should have nothing to do."""
-    from headroom.cache.compression_store import (
+    from copium.cache.compression_store import (
         get_compression_store,
         reset_compression_store,
     )
-    from headroom.config import CCRConfig
-    from headroom.config import SmartCrusherConfig as PyConfig
-    from headroom.transforms.smart_crusher import SmartCrusher
+    from copium.config import CCRConfig
+    from copium.config import SmartCrusherConfig as PyConfig
+    from copium.transforms.smart_crusher import SmartCrusher
 
     reset_compression_store()
     try:
@@ -249,13 +249,13 @@ def test_marker_disabled_skips_python_store() -> None:
 def test_distinct_payloads_get_distinct_python_store_entries() -> None:
     """Two unrelated payloads → two row drops → two entries under
     distinct hashes in the Python store; both retrievable independently."""
-    from headroom.cache.compression_store import (
+    from copium.cache.compression_store import (
         get_compression_store,
         reset_compression_store,
     )
-    from headroom.config import CCRConfig
-    from headroom.config import SmartCrusherConfig as PyConfig
-    from headroom.transforms.smart_crusher import SmartCrusher
+    from copium.config import CCRConfig
+    from copium.config import SmartCrusherConfig as PyConfig
+    from copium.transforms.smart_crusher import SmartCrusher
 
     reset_compression_store()
     try:
@@ -286,7 +286,7 @@ def test_distinct_payloads_get_distinct_python_store_entries() -> None:
 def test_compression_store_explicit_hash_round_trips() -> None:
     """The new `explicit_hash` parameter on `store.store()` keys the
     entry by the caller-supplied hash instead of MD5(original)[:24]."""
-    from headroom.cache.compression_store import (
+    from copium.cache.compression_store import (
         get_compression_store,
         reset_compression_store,
     )
@@ -313,7 +313,7 @@ def test_compression_store_explicit_hash_round_trips() -> None:
 def test_compression_store_explicit_hash_rejects_non_hex() -> None:
     """Non-hex `explicit_hash` raises ValueError. No silent fallback
     to MD5 — that would re-introduce the marker/store mismatch."""
-    from headroom.cache.compression_store import (
+    from copium.cache.compression_store import (
         get_compression_store,
         reset_compression_store,
     )
@@ -353,8 +353,8 @@ def test_v1_compress_then_v1_retrieve_resolves_marker_hash() -> None:
     """
     from fastapi.testclient import TestClient
 
-    from headroom.cache.compression_store import reset_compression_store
-    from headroom.proxy.server import ProxyConfig, create_app
+    from copium.cache.compression_store import reset_compression_store
+    from copium.proxy.server import ProxyConfig, create_app
 
     reset_compression_store()
     config = ProxyConfig(
@@ -468,8 +468,8 @@ def test_v1_retrieve_unknown_hash_still_404() -> None:
     accidentally make the store too permissive)."""
     from fastapi.testclient import TestClient
 
-    from headroom.cache.compression_store import reset_compression_store
-    from headroom.proxy.server import ProxyConfig, create_app
+    from copium.cache.compression_store import reset_compression_store
+    from copium.proxy.server import ProxyConfig, create_app
 
     reset_compression_store()
     config = ProxyConfig(

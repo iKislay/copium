@@ -1,7 +1,7 @@
 """Behavior-driven Playwright validation for the Compression vs Cache panel.
 
 The /stats endpoint has long exposed ``prefix_cache.compression_vs_cache``
-and ``prefix_cache.prefix_freeze`` (built in ``headroom/proxy/cost.py``)
+and ``prefix_cache.prefix_freeze`` (built in ``copium/proxy/cost.py``)
 but the dashboard never rendered them. These tests pin the new section:
 net tokens saved by compression against cached-prefix tokens its mutations
 invalidated, plus the prefix-freeze net benefit.
@@ -17,7 +17,7 @@ from urllib.parse import urlsplit
 
 import pytest
 
-from headroom.dashboard import get_dashboard_html
+from copium.dashboard import get_dashboard_html
 from tests.test_dashboard_cache_ttl_playwright import _sample_history, _sample_stats
 
 playwright = pytest.importorskip("playwright.sync_api")
@@ -72,12 +72,12 @@ def _install_dashboard_routes(page: Page, stats: dict) -> None:
 
 def _open_dashboard(page: Page, stats: dict) -> None:
     _install_dashboard_routes(page, stats)
-    page.goto("http://headroom.local/dashboard")
+    page.goto("http://copium.local/dashboard")
     page.wait_for_load_state("networkidle")
 
 
 def test_dashboard_renders_compression_vs_cache_net_metrics() -> None:
-    artifact_dir = os.environ.get("HEADROOM_PLAYWRIGHT_ARTIFACT_DIR")
+    artifact_dir = os.environ.get("COPIUM_PLAYWRIGHT_ARTIFACT_DIR")
 
     with sync_playwright() as p:
         browser = p.chromium.launch()

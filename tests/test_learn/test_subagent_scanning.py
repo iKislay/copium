@@ -4,7 +4,7 @@ Claude Code writes a main session at ``<project>/<uuid>.jsonl`` and nests the
 transcripts it spawns under ``<project>/<uuid>/subagents/**`` (subagents) and
 ``.../subagents/workflows/**`` (workflow agents). Each nested transcript is a
 separate context window with its own token spend and its own tool-call
-failures, so ``headroom learn`` must see them — not just the top-level session.
+failures, so ``copium learn`` must see them — not just the top-level session.
 """
 
 from __future__ import annotations
@@ -12,8 +12,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from headroom.learn.models import ProjectInfo
-from headroom.learn.plugins.claude import ClaudeCodePlugin
+from copium.learn.models import ProjectInfo
+from copium.learn.plugins.claude import ClaudeCodePlugin
 
 
 def _write_session(path: Path, out: str = "x" * 400) -> None:

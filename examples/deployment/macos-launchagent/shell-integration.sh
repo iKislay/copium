@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 #
-# Headroom Proxy Shell Integration
+# Copium Proxy Shell Integration
 #
-# Automatically sets ANTHROPIC_BASE_URL if the headroom proxy is running.
+# Automatically sets ANTHROPIC_BASE_URL if the copium proxy is running.
 # Supports both bash and zsh.
 #
 # Usage:
 #   Add to ~/.bashrc or ~/.zshrc:
 #
-#     export HEADROOM_PROXY_PORT=8787  # Optional: customize port (default: 8787)
+#     export COPIUM_PROXY_PORT=8787  # Optional: customize port (default: 8787)
 #     source /path/to/shell-integration.sh
 #
 # This script will:
@@ -19,24 +19,24 @@
 #
 
 # Configuration: Port can be customized via environment variable
-HEADROOM_PROXY_PORT="${HEADROOM_PROXY_PORT:-8787}"
-HEADROOM_PLIST_LABEL="com.headroom.proxy"
+COPIUM_PROXY_PORT="${COPIUM_PROXY_PORT:-8787}"
+COPIUM_PLIST_LABEL="com.copium.proxy"
 USER_UID=$(id -u)
 
 # Prevent duplicate loading (bash and zsh compatible)
-if [[ -n "${HEADROOM_SHELL_INTEGRATION_LOADED:-}" ]]; then
+if [[ -n "${COPIUM_SHELL_INTEGRATION_LOADED:-}" ]]; then
   return 0
 fi
-export HEADROOM_SHELL_INTEGRATION_LOADED=1
+export COPIUM_SHELL_INTEGRATION_LOADED=1
 
 # Check if proxy is running (fast path using lsof)
-_headroom_proxy_running() {
-  lsof -iTCP:"${HEADROOM_PROXY_PORT}" -sTCP:LISTEN -t >/dev/null 2>&1
+_copium_proxy_running() {
+  lsof -iTCP:"${COPIUM_PROXY_PORT}" -sTCP:LISTEN -t >/dev/null 2>&1
 }
 
 # Try to start the LaunchAgent if not running
-_headroom_start_proxy() {
-  local plist_path="${HOME}/Library/LaunchAgents/${HEADROOM_PLIST_LABEL}.plist"
+_copium_start_proxy() {
+  local plist_path="${HOME}/Library/LaunchAgents/${COPIUM_PLIST_LABEL}.plist"
 
   # Check if LaunchAgent is installed
   if [[ ! -f "${plist_path}" ]]; then
@@ -54,21 +54,21 @@ _headroom_start_proxy() {
 }
 
 # Main logic
-if _headroom_proxy_running; then
+if _copium_proxy_running; then
   # Proxy is running - set ANTHROPIC_BASE_URL
-  export ANTHROPIC_BASE_URL="http://localhost:${HEADROOM_PROXY_PORT}"
+  export ANTHROPIC_BASE_URL="http://localhost:${COPIUM_PROXY_PORT}"
 else
   # Proxy not running - try to start it
-  if _headroom_start_proxy && _headroom_proxy_running; then
+  if _copium_start_proxy && _copium_proxy_running; then
     # Successfully started - set ANTHROPIC_BASE_URL
-    export ANTHROPIC_BASE_URL="http://localhost:${HEADROOM_PROXY_PORT}"
-    echo "✓ Headroom proxy started on port ${HEADROOM_PROXY_PORT}"
+    export ANTHROPIC_BASE_URL="http://localhost:${COPIUM_PROXY_PORT}"
+    echo "✓ Copium proxy started on port ${COPIUM_PROXY_PORT}"
   else
     # Could not start - provide helpful message
-    echo "⚠ Headroom proxy not running on port ${HEADROOM_PROXY_PORT}"
-    echo "  Install with: cd /path/to/headroom/examples/deployment/macos-launchagent && ./install.sh"
+    echo "⚠ Copium proxy not running on port ${COPIUM_PROXY_PORT}"
+    echo "  Install with: cd /path/to/copium/examples/deployment/macos-launchagent && ./install.sh"
   fi
 fi
 
 # Cleanup helper functions (don't pollute shell namespace)
-unset -f _headroom_proxy_running _headroom_start_proxy
+unset -f _copium_proxy_running _copium_start_proxy

@@ -2,7 +2,7 @@
 
 import pytest
 
-from headroom.compression.masks import (
+from copium.compression.masks import (
     EntropyScore,
     MaskSpan,
     StructureMask,

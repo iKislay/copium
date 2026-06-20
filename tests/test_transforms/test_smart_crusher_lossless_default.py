@@ -15,10 +15,10 @@ import pytest
 
 def _build_extension() -> None:
     try:
-        from headroom._core import SmartCrusher  # noqa: F401
+        from copium._core import SmartCrusher  # noqa: F401
     except ImportError:
         pytest.skip(
-            "headroom._core not built — run `bash scripts/build_rust_extension.sh`",
+            "copium._core not built — run `bash scripts/build_rust_extension.sh`",
             allow_module_level=True,
         )
 
@@ -30,7 +30,7 @@ def test_default_lossless_wins_on_uniform_tabular() -> None:
     """50 uniform tabular dicts → CSV+schema beats threshold (>=30%)
     by a wide margin. Default `SmartCrusher()` ships the compacted
     string in place of the array."""
-    from headroom._core import SmartCrusher
+    from copium._core import SmartCrusher
 
     items = [{"id": i, "level": "info", "msg": "ok"} for i in range(50)]
     content = json.dumps(items)
@@ -53,7 +53,7 @@ def test_default_lossless_wins_on_uniform_tabular() -> None:
 def test_default_falls_through_to_lossy_when_below_threshold() -> None:
     """Heterogeneous / non-tabular input → compactor declines (or
     savings below threshold) → lossy path runs."""
-    from headroom._core import SmartCrusher
+    from copium._core import SmartCrusher
 
     # 30 unique-id objects with no schema redundancy → not enough
     # tabular signal for lossless to clear 30% by itself.
@@ -72,7 +72,7 @@ def test_default_falls_through_to_lossy_when_below_threshold() -> None:
 
 def test_without_compaction_preserves_pre_pr4_behavior() -> None:
     """Opt-out constructor matches the legacy parity path."""
-    from headroom._core import SmartCrusher
+    from copium._core import SmartCrusher
 
     items = [{"id": i, "level": "info", "msg": "ok"} for i in range(50)]
     content = json.dumps(items)

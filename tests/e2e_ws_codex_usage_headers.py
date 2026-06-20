@@ -134,7 +134,7 @@ async def main_async() -> int:
     log_fp = open("/tmp/e2e_ws_codex_headers_proxy.log", "w")
     proc = subprocess.Popen(
         [
-            str(REPO_ROOT / ".venv/bin/headroom"),
+            str(REPO_ROOT / ".venv/bin/copium"),
             "proxy",
             "--port",
             str(proxy_port),

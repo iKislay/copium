@@ -3,12 +3,12 @@ title: Strands
 description: Context compression for Strands Agents via model wrapping and hook-based tool output compression.
 ---
 
-Headroom integrates with [Strands Agents](https://github.com/strands-agents/sdk-python) through two patterns: wrap the model for full conversation compression, or hook into tool calls for targeted tool output compression.
+Copium integrates with [Strands Agents](https://github.com/strands-agents/sdk-python) through two patterns: wrap the model for full conversation compression, or hook into tool calls for targeted tool output compression.
 
 ## Installation
 
 ```bash
-pip install headroom-ai strands-agents
+pip install copium-ai strands-agents
 ```
 
 ## Quick start
@@ -16,10 +16,10 @@ pip install headroom-ai strands-agents
 ```python
 from strands import Agent
 from strands.models.bedrock import BedrockModel
-from headroom.integrations.strands import HeadroomStrandsModel
+from copium.integrations.strands import CopiumStrandsModel
 
 model = BedrockModel(model_id="us.anthropic.claude-sonnet-4-20250514-v1:0")
-optimized = HeadroomStrandsModel(wrapped_model=model)
+optimized = CopiumStrandsModel(wrapped_model=model)
 
 agent = Agent(model=optimized)
 response = agent("Investigate the production incident")
@@ -32,12 +32,12 @@ print(f"Tokens saved: {optimized.total_tokens_saved}")
 Wraps the Strands `Model` interface. Every call to `stream()` compresses messages before they reach the provider:
 
 ```python
-from headroom import HeadroomConfig
-from headroom.integrations.strands import HeadroomStrandsModel
+from copium import CopiumConfig
+from copium.integrations.strands import CopiumStrandsModel
 
-optimized = HeadroomStrandsModel(
+optimized = CopiumStrandsModel(
     wrapped_model=model,
-    config=HeadroomConfig(),
+    config=CopiumConfig(),
 )
 
 agent = Agent(model=optimized)
@@ -51,10 +51,10 @@ Compresses tool call results via Strands' hook system. Uses SmartCrusher on JSON
 ```python
 from strands import Agent
 from strands.models.bedrock import BedrockModel
-from headroom.integrations.strands import HeadroomHookProvider
+from copium.integrations.strands import CopiumHookProvider
 
 model = BedrockModel(model_id="us.anthropic.claude-sonnet-4-20250514-v1:0")
-hooks = HeadroomHookProvider(
+hooks = CopiumHookProvider(
     compress_tool_outputs=True,
     min_tokens_to_compress=200,
     preserve_errors=True,
@@ -73,10 +73,10 @@ The hook preserves error items, anomalous values (statistical outliers), items m
 Model wrapping compresses conversation history. Hooks compress individual tool results. Use both for maximum savings:
 
 ```python
-from headroom.integrations.strands import HeadroomStrandsModel, HeadroomHookProvider
+from copium.integrations.strands import CopiumStrandsModel, CopiumHookProvider
 
-optimized = HeadroomStrandsModel(wrapped_model=model)
-hooks = HeadroomHookProvider(compress_tool_outputs=True)
+optimized = CopiumStrandsModel(wrapped_model=model)
+hooks = CopiumHookProvider(compress_tool_outputs=True)
 
 agent = Agent(model=optimized, hooks=[hooks])
 ```
@@ -90,21 +90,21 @@ Agent decides to call tool
 Tool executes, returns result
     |
     v
-HeadroomHookProvider (optional)
+CopiumHookProvider (optional)
     compresses tool result JSON
     |
     v
 Agent builds next API request
     |
     v
-HeadroomStrandsModel.stream()
+CopiumStrandsModel.stream()
     compresses full message list
     |
     v
 Provider API (Bedrock, etc.)
 ```
 
-The model wrapper uses the full Headroom pipeline (CacheAligner, ContentRouter, IntelligentContext). The hook provider uses SmartCrusher directly for fast JSON compression.
+The model wrapper uses the full Copium pipeline (CacheAligner, ContentRouter, IntelligentContext). The hook provider uses SmartCrusher directly for fast JSON compression.
 
 ## Structured output
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Context Compression demo for langchain-ai/how_to_fix_your_context PR.
 
-Tests REAL Headroom compression on realistic retriever tool outputs.
+Tests REAL Copium compression on realistic retriever tool outputs.
 No mocks. No API keys needed (compression is local).
 
 Usage:
@@ -294,7 +294,7 @@ def build_retriever_chunks() -> list[dict]:
 
 def main() -> None:
     print("=" * 70)
-    print("Context Compression Demo (Real Headroom, No Mocks)")
+    print("Context Compression Demo (Real Copium, No Mocks)")
     print("=" * 70)
 
     # --- Build retriever output as JSON array ---
@@ -329,10 +329,10 @@ def main() -> None:
         },
     ]
 
-    # --- Compress with REAL Headroom ---
-    from headroom import compress
+    # --- Compress with REAL Copium ---
+    from copium import compress
 
-    print("\nCompressing with Headroom (real compress() call)...")
+    print("\nCompressing with Copium (real compress() call)...")
     t0 = time.perf_counter()
     result = compress(messages, model="claude-sonnet-4-5-20250929")
     latency_ms = (time.perf_counter() - t0) * 1000
@@ -381,7 +381,7 @@ def main() -> None:
     )
     hr_tokens = f"~{result.tokens_after}"
     hr_pct = f"{result.tokens_saved / max(result.tokens_before, 1):.0%}"
-    print(f"  {'07-Headroom Compression':<35} {hr_tokens:<10} {hr_pct:<10} {'No':<18} {'$0'}")
+    print(f"  {'07-Copium Compression':<35} {hr_tokens:<10} {hr_pct:<10} {'No':<18} {'$0'}")
 
     # --- Show compressed output preview ---
     print("\n--- Compressed tool output (first 600 chars) ---")

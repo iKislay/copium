@@ -14,15 +14,15 @@ import json
 
 import pytest
 
-from headroom import OpenAIProvider, Tokenizer
+from copium import OpenAIProvider, Tokenizer
 
 
 def _build_extension() -> None:
     try:
-        from headroom._core import SmartCrusher  # noqa: F401
+        from copium._core import SmartCrusher  # noqa: F401
     except ImportError:
         pytest.skip(
-            "headroom._core not built — run `bash scripts/build_rust_extension.sh`",
+            "copium._core not built — run `bash scripts/build_rust_extension.sh`",
             allow_module_level=True,
         )
 
@@ -38,7 +38,7 @@ def get_tokenizer(model: str = "gpt-4o") -> Tokenizer:
 
 
 def _make_crusher():
-    from headroom.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
+    from copium.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
 
     return SmartCrusher(SmartCrusherConfig(min_tokens_to_crush=10))
 

@@ -30,11 +30,11 @@
 
 ## Privacy Commitments
 
-1. **No prompt logging by default** — Headroom never logs prompt content unless explicitly configured
+1. **No prompt logging by default** — Copium never logs prompt content unless explicitly configured
 2. **No data leaves proxy by default** — All processing happens locally
 3. **User control** — All data handling is configurable via environment variables
 4. **Transparency** — Response headers indicate compression was applied
-5. **No telemetry to Headroom project** — No data sent to external servers without explicit opt-in
+5. **No telemetry to Copium project** — No data sent to external servers without explicit opt-in
 
 ---
 
@@ -46,7 +46,7 @@
 
 ### GDPR
 
-| Requirement | Headroom Support |
+| Requirement | Copium Support |
 |-------------|:----------------:|
 | Data minimization | ✓ Default no-logging |
 | Right to deletion | ✓ Cache can be cleared |
@@ -62,16 +62,16 @@
 ## Configuration for Maximum Privacy
 
 ```bash
-HEADROOM_TELEMETRY=off
-HEADROOM_STATELESS=true
-headroom proxy --no-cache --no-optimize
+COPIUM_TELEMETRY=off
+COPIUM_STATELESS=true
+copium proxy --no-cache --no-optimize
 ```
 
 This configuration results in:
 - No prompt data stored
 - No data exported
 - No analytics collected
-- Headroom acts as a passthrough proxy
+- Copium acts as a passthrough proxy
 
 ---
 

@@ -3,17 +3,17 @@ requires = ["maturin>=1.5,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "headroom-ai"
+name = "copium-ai"
 version = "0.26.0"
 description = "The Context Optimization Layer for LLM Applications - Cut costs by 50-90%"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
 authors = [
-    { name = "Headroom Contributors" }
+    { name = "github.com/iKislay" }
 ]
 maintainers = [
-    { name = "Headroom Contributors" }
+    { name = "github.com/iKislay" }
 ]
 keywords = [
     "llm",
@@ -49,9 +49,9 @@ dependencies = [
     # Core: lightweight compression (SmartCrusher, ContentRouter, CCR, TOIN)
     "tiktoken>=0.5.0",            # Tokenizer for all compressors
     "pydantic>=2.0.0",            # Config and data models
-    # litellm's own metadata pins requires-python <3.14, and headroom only uses it for
+    # litellm's own metadata pins requires-python <3.14, and copium only uses it for
     # model registry / pricing / non-core providers — all lazily imported and
-    # ImportError-guarded. Marking it 3.14-optional lets headroom install on Python 3.14
+    # ImportError-guarded. Marking it 3.14-optional lets copium install on Python 3.14
     # (core compression + the Anthropic proxy path never import litellm). See GH #956.
     "litellm>=1.86.2,<2.0; python_version < '3.14'",  # model registry, pricing, providers (lazy)
     "click>=8.1.0",               # CLI framework
@@ -62,13 +62,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Proxy server (most common install: pip install headroom-ai[proxy])
+# Proxy server (most common install: pip install copium-ai[proxy])
 proxy = [
     "fastapi>=0.100.0",
     "uvicorn>=0.23.0,<1.0",
     "httpx[http2]>=0.24.0",
     "openai>=2.14.0",             # OpenAI API format support
-    "mcp>=1.0.0",                 # MCP server (headroom_compress, retrieve, stats)
+    "mcp>=1.0.0",                 # MCP server (copium_compress, retrieve, stats)
     "magika>=0.6.0",              # ML content detection for ContentRouter
     "zstandard>=0.20.0",          # Decompress zstd request bodies (Codex, etc.)
     "websockets>=13.0",           # WebSocket proxy for /v1/responses (Codex gpt-5.4+)
@@ -80,9 +80,9 @@ proxy = [
 # Production ASGI/WSGI server — Unix-only (gunicorn does not support Windows).
 # Kept separate from [proxy] so that dev, CI, and Windows users are not forced
 # to install a non-functional package.  Production deployments should use:
-#   pip install headroom-ai[proxy,proxy-prod]
+#   pip install copium-ai[proxy,proxy-prod]
 proxy-prod = [
-    "headroom-ai[proxy]",
+    "copium-ai[proxy]",
     "gunicorn>=21.0.0; sys_platform != 'win32'",
 ]
 # AST-based code compression (tree-sitter)
@@ -114,7 +114,7 @@ memory-stack = [
     "neo4j>=5.20.0,<7.0",
 ]
 # Apple-Silicon GPU (MPS) offload for the memory embedder. Opt in at runtime with
-# HEADROOM_EMBEDDER_RUNTIME=pytorch_mps. macOS-only; intentionally excluded from [all].
+# COPIUM_EMBEDDER_RUNTIME=pytorch_mps. macOS-only; intentionally excluded from [all].
 pytorch-mps = [
     "torch>=2.0.0; sys_platform == 'darwin'",
     "sentence-transformers>=2.2.0; sys_platform == 'darwin'",
@@ -141,7 +141,7 @@ relevance = [
 #     Returns a RapidOCROutput dataclass (txts, scores, boxes, ...).
 #     Needs `onnxruntime` installed separately to use the ORT backend.
 #
-# `headroom/image/compressor.py` adapts both API shapes at runtime via
+# `copium/image/compressor.py` adapts both API shapes at runtime via
 # a try/except cascade. See issue #372 for context.
 image = [
     "pillow>=10.0.0",
@@ -200,7 +200,7 @@ voice = [
 ]
 # Voice training (includes voice deps + training extras)
 voice-train = [
-    "headroom-ai[voice]",
+    "copium-ai[voice]",
     "datasets>=2.14.0",
     "accelerate>=0.20.0",
 ]
@@ -254,27 +254,27 @@ dev = [
 ]
 # All optional dependencies (everything you need)
 all = [
-    "headroom-ai[proxy,code,ml,memory,relevance,image,reports,otel,evals,voice,html,benchmark,mcp,spreadsheet]",
+    "copium-ai[proxy,code,ml,memory,relevance,image,reports,otel,evals,voice,html,benchmark,mcp,spreadsheet]",
 ]
 
 [project.scripts]
-headroom = "headroom.cli:main"
+copium = "copium.cli:main"
 
 [project.urls]
-Homepage = "https://headroom-docs.vercel.app"
-Documentation = "https://headroom-docs.vercel.app/docs"
-Repository = "https://github.com/chopratejas/headroom"
-Issues = "https://github.com/chopratejas/headroom/issues"
-Changelog = "https://github.com/chopratejas/headroom/blob/main/CHANGELOG.md"
+Homepage = "https://copium-docs.vercel.app"
+Documentation = "https://copium-docs.vercel.app/docs"
+Repository = "https://github.com/iKislay/copium"
+Issues = "https://github.com/iKislay/copium/issues"
+Changelog = "https://github.com/iKislay/copium/blob/main/CHANGELOG.md"
 # llms.txt convention (llmstxt.org) — point AI agents / LLM crawlers
 # at the auto-generated docs index so they can resolve install paths
 # and entry points without a follow-up fetch.
-"AI / LLM Index" = "https://headroom-docs.vercel.app/llms.txt"
+"AI / LLM Index" = "https://copium-docs.vercel.app/llms.txt"
 
 # Maturin builds a single wheel containing both the Python source under
-# `headroom/` AND the compiled Rust extension `headroom/_core.so` (cdylib
-# from `crates/headroom-py`). One `pip install headroom-ai` ships everything
-# atomically — no separate `headroom-core-py` package, no chicken-and-egg,
+# `copium/` AND the compiled Rust extension `copium/_core.so` (cdylib
+# from `crates/copium-py`). One `pip install copium-ai` ships everything
+# atomically — no separate `copium-core-py` package, no chicken-and-egg,
 # no PIP_FIND_LINKS plumbing. Phase A0's runtime fail-loud check still
 # exists but only fires if someone forces an sdist install on a platform
 # without a wheel and the rust toolchain isn't available to compile it.
@@ -292,8 +292,8 @@ default = true
 
 [tool.maturin]
 # Where the Python package lives. With `python-source = "."` and the
-# package directory `headroom/` at repo root, maturin includes every file
-# under `headroom/` in the wheel — that picks up the dashboard HTML
+# package directory `copium/` at repo root, maturin includes every file
+# under `copium/` in the wheel — that picks up the dashboard HTML
 # templates and bundled YAML configs. `LICENSE` and `NOTICE` are listed
 # explicitly because maturin sdists do not get the package-directory
 # treatment wheels do, and PEP 639 auto-discovery emits both files into
@@ -305,15 +305,15 @@ include = [
     { path = "NOTICE", format = "sdist" },
 ]
 python-source = "."
-module-name = "headroom._core"
-# The cdylib source lives under `crates/headroom-py`. Maturin invokes
+module-name = "copium._core"
+# The cdylib source lives under `crates/copium-py`. Maturin invokes
 # `cargo build` with this manifest to produce `_core.cdylib`, then injects
-# the resulting `.so` into the wheel at `headroom/_core.so`.
-manifest-path = "crates/headroom-py/Cargo.toml"
+# the resulting `.so` into the wheel at `copium/_core.so`.
+manifest-path = "crates/copium-py/Cargo.toml"
 features = ["extension-module"]
 # Forbid building without the cdylib feature — bare `cargo build` won't
 # produce a usable Python extension. Maturin's default `bindings` is "pyo3"
-# which is correct here (see `crates/headroom-py/src/`).
+# which is correct here (see `crates/copium-py/src/`).
 bindings = "pyo3"
 
 [tool.ruff]
@@ -337,7 +337,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["headroom"]
+known-first-party = ["copium"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -353,33 +353,33 @@ ignore_missing_imports = true
 # Per-module overrides for modules with dynamic typing patterns
 [[tool.mypy.overrides]]
 module = [
-    "headroom.proxy.server",
-    "headroom.proxy.cost",
-    "headroom.proxy.prometheus_metrics",
-    "headroom.proxy.semantic_cache",
-    "headroom.proxy.rate_limiter",
-    "headroom.proxy.request_logger",
-    "headroom.proxy.helpers",
-    "headroom.integrations.langchain",
-    "headroom.integrations.mcp",
-    "headroom.ccr.mcp_server",
-    "headroom.relevance.embedding",
-    "headroom.reporting.generator",
+    "copium.proxy.server",
+    "copium.proxy.cost",
+    "copium.proxy.prometheus_metrics",
+    "copium.proxy.semantic_cache",
+    "copium.proxy.rate_limiter",
+    "copium.proxy.request_logger",
+    "copium.proxy.helpers",
+    "copium.integrations.langchain",
+    "copium.integrations.mcp",
+    "copium.ccr.mcp_server",
+    "copium.relevance.embedding",
+    "copium.reporting.generator",
 ]
 disallow_untyped_defs = false
 
 [[tool.mypy.overrides]]
 module = [
-    "headroom.tokenizers.*",
-    "headroom.providers.litellm",
-    "headroom.providers.google",
+    "copium.tokenizers.*",
+    "copium.providers.litellm",
+    "copium.providers.google",
 ]
 disallow_untyped_defs = false
 warn_return_any = false
 
-# Handler mixins use self.* from HeadroomProxy via duck typing — mypy can't resolve these
+# Handler mixins use self.* from CopiumProxy via duck typing — mypy can't resolve these
 [[tool.mypy.overrides]]
-module = ["headroom.proxy.handlers.*"]
+module = ["copium.proxy.handlers.*"]
 disallow_untyped_defs = false
 ignore_errors = true
 
@@ -407,10 +407,10 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["headroom"]
+source = ["copium"]
 branch = true
 omit = [
-    "headroom/cli.py",
+    "copium/cli.py",
     "*/tests/*",
 ]
 

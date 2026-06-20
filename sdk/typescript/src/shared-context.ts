@@ -1,10 +1,10 @@
 /**
  * SharedContext — compressed inter-agent context sharing.
- * Matches Python headroom.shared_context.SharedContext.
+ * Matches Python copium.shared_context.SharedContext.
  */
 
-import { HeadroomClient } from "./client.js";
-import type { HeadroomClientOptions, CompressResult } from "./types.js";
+import { CopiumClient } from "./client.js";
+import type { CopiumClientOptions, CompressResult } from "./types.js";
 
 export interface ContextEntry {
   key: string;
@@ -26,7 +26,7 @@ export interface SharedContextStats {
   savingsPercent: number;
 }
 
-export interface SharedContextOptions extends HeadroomClientOptions {
+export interface SharedContextOptions extends CopiumClientOptions {
   model?: string;
   ttl?: number;
   maxEntries?: number;
@@ -34,14 +34,14 @@ export interface SharedContextOptions extends HeadroomClientOptions {
 
 export class SharedContext {
   private entries = new Map<string, ContextEntry>();
-  private client: HeadroomClient;
+  private client: CopiumClient;
   private model: string;
   private ttl: number;
   private maxEntries: number;
 
   constructor(options: SharedContextOptions = {}) {
     const { model, ttl, maxEntries, ...clientOptions } = options;
-    this.client = new HeadroomClient(clientOptions);
+    this.client = new CopiumClient(clientOptions);
     this.model = model ?? "claude-sonnet-4-5-20250929";
     this.ttl = ttl ?? 3600;
     this.maxEntries = maxEntries ?? 100;

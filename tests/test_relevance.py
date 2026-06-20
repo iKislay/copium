@@ -8,7 +8,7 @@ Tests all scorer tiers:
 
 import pytest
 
-from headroom.relevance import (
+from copium.relevance import (
     BM25Scorer,
     EmbeddingScorer,
     HybridScorer,
@@ -316,7 +316,7 @@ class TestSmartCrusherIntegration:
 
     def test_context_extraction(self):
         """Context is extracted from messages."""
-        from headroom.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
+        from copium.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
 
         crusher = SmartCrusher(config=SmartCrusherConfig())
 
@@ -331,7 +331,7 @@ class TestSmartCrusherIntegration:
 
     def test_context_from_anthropic_style_messages(self):
         """Context extracted from Anthropic-style messages."""
-        from headroom.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
+        from copium.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
 
         crusher = SmartCrusher(config=SmartCrusherConfig())
 
@@ -349,7 +349,7 @@ class TestSmartCrusherIntegration:
 
     def test_context_from_tool_calls(self):
         """Context extracted from tool call arguments."""
-        from headroom.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
+        from copium.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
 
         crusher = SmartCrusher(config=SmartCrusherConfig())
 

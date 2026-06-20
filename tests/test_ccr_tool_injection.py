@@ -2,7 +2,7 @@
 
 import json
 
-from headroom.ccr import (
+from copium.ccr import (
     CCR_TOOL_NAME,
     CCRToolInjector,
     create_ccr_tool_definition,

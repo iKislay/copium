@@ -24,11 +24,11 @@ def _ensure_binding():
     """Skip if the Rust extension hasn't been built (mirrors the pattern
     in `test_responses_pyo3_compression.py`)."""
     try:
-        from headroom._core import compress_openai_responses_live_zone
+        from copium._core import compress_openai_responses_live_zone
 
         return compress_openai_responses_live_zone
     except ImportError:
-        pytest.skip("headroom._core not built — run scripts/build_rust_extension.sh")
+        pytest.skip("copium._core not built — run scripts/build_rust_extension.sh")
 
 
 def _ws_compress_first_frame(

@@ -41,11 +41,11 @@ def main() -> None:
         "pyproject.toml": py_ver,
         "plugins/openclaw/package.json": _read_json_version(ROOT / "plugins/openclaw/package.json"),
         "sdk/typescript/package.json": _read_json_version(ROOT / "sdk/typescript/package.json"),
-        "plugins/headroom-agent-hooks/.claude-plugin/plugin.json": _read_json_version(
-            ROOT / "plugins/headroom-agent-hooks/.claude-plugin/plugin.json"
+        "plugins/copium-agent-hooks/.claude-plugin/plugin.json": _read_json_version(
+            ROOT / "plugins/copium-agent-hooks/.claude-plugin/plugin.json"
         ),
-        "plugins/headroom-agent-hooks/.github/plugin/plugin.json": _read_json_version(
-            ROOT / "plugins/headroom-agent-hooks/.github/plugin/plugin.json"
+        "plugins/copium-agent-hooks/.github/plugin/plugin.json": _read_json_version(
+            ROOT / "plugins/copium-agent-hooks/.github/plugin/plugin.json"
         ),
     }
     versions.update(_read_marketplace_versions(ROOT / ".claude-plugin/marketplace.json"))

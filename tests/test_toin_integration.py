@@ -13,11 +13,11 @@ from pathlib import Path
 
 import pytest
 
-from headroom.cache.compression_store import (
+from copium.cache.compression_store import (
     get_compression_store,
     reset_compression_store,
 )
-from headroom.telemetry.toin import (
+from copium.telemetry.toin import (
     TOINConfig,
     get_toin,
     reset_toin,

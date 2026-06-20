@@ -40,8 +40,8 @@ from benchmarks.claude_session_mode_benchmark import (
     trim_replay_to_recent_turns,
     write_report,
 )
-from headroom.cache.compression_cache import CompressionCache
-from headroom.cache.prefix_tracker import PrefixCacheTracker
+from copium.cache.compression_cache import CompressionCache
+from copium.cache.prefix_tracker import PrefixCacheTracker
 
 DEFAULT_OUTPUT_DIR = Path("benchmark_results") / "cache_validation_bundle"
 
@@ -564,8 +564,8 @@ def main() -> int:
     output_dir = args.output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    logging.getLogger("headroom.transforms").setLevel(logging.WARNING)
-    logging.getLogger("headroom.proxy").setLevel(logging.WARNING)
+    logging.getLogger("copium.transforms").setLevel(logging.WARNING)
+    logging.getLogger("copium.proxy").setLevel(logging.WARNING)
 
     session_files = select_session_files(args.root, max_sessions=args.max_sessions)
     if not session_files:

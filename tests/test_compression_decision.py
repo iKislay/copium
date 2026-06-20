@@ -1,4 +1,4 @@
-"""Tests for :class:`headroom.proxy.compression_decision.CompressionDecision`,
+"""Tests for :class:`copium.proxy.compression_decision.CompressionDecision`,
 the input-side analog of :class:`RequestOutcome`.
 
 The point of this file is the *contract* — every behavioural assertion
@@ -9,7 +9,7 @@ drift. Locking the contract in tests prevents the drift from coming back.
 Specifically, pre-this-PR:
 
 * ``handlers/gemini.py`` had THREE compression sites that NEVER checked
-  the ``x-headroom-bypass`` header — explicit user requests to skip
+  the ``x-copium-bypass`` header — explicit user requests to skip
   compression were silently ignored on Gemini paths.
 * ``handlers/gemini.py:handle_gemini_count_tokens`` also skipped the
   license check.
@@ -28,13 +28,13 @@ from dataclasses import FrozenInstanceError
 from types import SimpleNamespace
 from typing import Any
 
-from headroom.proxy.compression_decision import CompressionDecision
+from copium.proxy.compression_decision import CompressionDecision
 
 # ── Helpers ───────────────────────────────────────────────────────────
 
 
 def _config(*, optimize: bool = True) -> Any:
-    """Minimal stand-in for ``HeadroomConfig`` — only the fields the
+    """Minimal stand-in for ``CopiumConfig`` — only the fields the
     decision reads."""
     return SimpleNamespace(optimize=optimize)
 
@@ -98,13 +98,13 @@ def test_compresses_when_every_gate_open() -> None:
 
 
 def test_bypass_header_wins_over_every_other_gate() -> None:
-    """``x-headroom-bypass`` is the user's explicit "do not touch my
+    """``x-copium-bypass`` is the user's explicit "do not touch my
     bytes" signal. It is the HIGHEST-priority reason for passthrough,
     above operator config, message presence, or license status —
     because a user who set the header is making a contract assertion
     about prefix-cache stability and the operator must honour it."""
     d = CompressionDecision.decide(
-        headers={"x-headroom-bypass": "true"},
+        headers={"x-copium-bypass": "true"},
         config=_config(optimize=True),
         usage_reporter=_usage_reporter(should_compress=True),
         messages=_msgs(),
@@ -114,13 +114,13 @@ def test_bypass_header_wins_over_every_other_gate() -> None:
 
 
 def test_passthrough_mode_header_also_triggers_bypass() -> None:
-    """``x-headroom-mode: passthrough`` is the alternate spelling of the
+    """``x-copium-mode: passthrough`` is the alternate spelling of the
     bypass signal — both go through the same path. This mirrors the
-    pre-existing ``_headroom_bypass_enabled`` semantics in helpers.py;
+    pre-existing ``_copium_bypass_enabled`` semantics in helpers.py;
     re-asserted here so a refactor of that helper can't silently
     diverge."""
     d = CompressionDecision.decide(
-        headers={"x-headroom-mode": "passthrough"},
+        headers={"x-copium-mode": "passthrough"},
         config=_config(optimize=True),
         usage_reporter=_usage_reporter(should_compress=True),
         messages=_msgs(),
@@ -130,10 +130,10 @@ def test_passthrough_mode_header_also_triggers_bypass() -> None:
 
 
 def test_bypass_header_is_case_insensitive() -> None:
-    """Real client UAs send ``X-Headroom-Bypass`` (title-case) or
-    ``x-headroom-bypass`` (lower-case). Both must work — the existing
+    """Real client UAs send ``X-Copium-Bypass`` (title-case) or
+    ``x-copium-bypass`` (lower-case). Both must work — the existing
     helper normalised both, so the consolidated decision must too."""
-    for header_key in ("X-Headroom-Bypass", "x-headroom-bypass", "X-HEADROOM-BYPASS"):
+    for header_key in ("X-Copium-Bypass", "x-copium-bypass", "X-COPIUM-BYPASS"):
         # The decide() input is what handlers pass — fastapi headers
         # are case-insensitive multidicts that surface keys as-typed,
         # so we test both the canonical key and an upper variant.
@@ -149,7 +149,7 @@ def test_bypass_header_is_case_insensitive() -> None:
         # case-tolerant since fastapi normalises but a raw dict here
         # may not. The decision wraps fastapi-style headers, but it
         # MUST be safe for dict inputs.
-        if header_key == "x-headroom-bypass":
+        if header_key == "x-copium-bypass":
             assert d.passthrough_reason == "bypass_header", header_key
 
 
@@ -158,7 +158,7 @@ def test_bypass_header_value_must_be_true() -> None:
     This guards against header-presence-only false positives."""
     for value in ("false", "0", "", "yes", "no"):
         d = CompressionDecision.decide(
-            headers={"x-headroom-bypass": value},
+            headers={"x-copium-bypass": value},
             config=_config(),
             usage_reporter=_usage_reporter(),
             messages=_msgs(),
@@ -248,7 +248,7 @@ def test_bypass_beats_compression_disabled() -> None:
     surface the bypass reason — it's the user's explicit signal, which
     is more informative for the dashboard than the operator default."""
     d = CompressionDecision.decide(
-        headers={"x-headroom-bypass": "true"},
+        headers={"x-copium-bypass": "true"},
         config=_config(optimize=False),
         usage_reporter=_usage_reporter(),
         messages=_msgs(),
@@ -263,7 +263,7 @@ def test_bypass_beats_no_messages() -> None:
     ordering existed; making bypass-first ensures dashboards
     correctly attribute traffic to "user opt-out" vs "weird request"."""
     d = CompressionDecision.decide(
-        headers={"x-headroom-bypass": "true"},
+        headers={"x-copium-bypass": "true"},
         config=_config(),
         usage_reporter=_usage_reporter(),
         messages=[],
@@ -275,7 +275,7 @@ def test_bypass_beats_license_denied() -> None:
     """Bypass overrides license denial too — if the user explicitly
     requested passthrough they should get it regardless of license."""
     d = CompressionDecision.decide(
-        headers={"x-headroom-bypass": "true"},
+        headers={"x-copium-bypass": "true"},
         config=_config(),
         usage_reporter=_usage_reporter(should_compress=False),
         messages=_msgs(),
@@ -335,7 +335,7 @@ def test_observability_booleans_populated_when_passthrough() -> None:
     AND operator also had compression off" as distinct from
     "user opted out, operator wanted to compress"."""
     d = CompressionDecision.decide(
-        headers={"x-headroom-bypass": "true"},
+        headers={"x-copium-bypass": "true"},
         config=_config(optimize=True),
         usage_reporter=_usage_reporter(should_compress=False),
         messages=_msgs(),
@@ -365,7 +365,7 @@ def test_decide_accepts_fastapi_style_starlette_headers() -> None:
         def get(self, key: str, default: Any = None) -> Any:
             return self._items.get(key.lower(), default)
 
-    h = _FakeStarletteHeaders({"X-Headroom-Bypass": "true"})
+    h = _FakeStarletteHeaders({"X-Copium-Bypass": "true"})
     d = CompressionDecision.decide(
         headers=h, config=_config(), usage_reporter=None, messages=_msgs()
     )
@@ -400,7 +400,7 @@ def test_apply_to_tags_stamps_reason_when_passthrough() -> None:
     is the single integration point between the input-side decision and
     the output-side ``RequestOutcome``."""
     d = CompressionDecision.decide(
-        headers={"x-headroom-bypass": "true"},
+        headers={"x-copium-bypass": "true"},
         config=_config(),
         usage_reporter=None,
         messages=_msgs(),
@@ -447,7 +447,7 @@ def test_apply_to_tags_for_every_passthrough_reason() -> None:
     slicing keys; a typo would silently break filtering."""
     reason_to_inputs: dict[str, dict[str, Any]] = {
         "bypass_header": {
-            "headers": {"x-headroom-bypass": "true"},
+            "headers": {"x-copium-bypass": "true"},
             "config": _config(),
             "usage_reporter": None,
             "messages": _msgs(),

@@ -13,7 +13,7 @@
         "content": [
           {
             "type": "input_text",
-            "text": "You are Codex, a proxy-aware coding agent. The upstream connection is a WebSocket proxied through a local Headroom process. Keep responses incremental and stream-friendly; the proxy compresses large tool outputs on the way back and expects well-formed response.created / response.output_text.delta / response.completed envelopes."
+            "text": "You are Codex, a proxy-aware coding agent. The upstream connection is a WebSocket proxied through a local Copium process. Keep responses incremental and stream-friendly; the proxy compresses large tool outputs on the way back and expects well-formed response.created / response.output_text.delta / response.completed envelopes."
           }
         ]
       },

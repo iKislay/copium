@@ -3,7 +3,7 @@
 ``parse_messages(compressed_messages=...)`` splits the existing ``reread``
 signal: repeats whose first serve was replaced by a CCR retrieval marker in
 the transformed output count into ``reread_compressed_tokens`` — re-reads
-attributable to Headroom rather than agent behavior. Lossless reshaping
+attributable to Copium rather than agent behavior. Lossless reshaping
 (no marker) and intact first serves are deliberately not attributed.
 """
 
@@ -13,10 +13,10 @@ import json
 
 import pytest
 
-from headroom import OpenAIProvider, Tokenizer
-from headroom.config import HeadroomConfig, WasteSignals
-from headroom.parser import parse_messages
-from headroom.transforms.pipeline import TransformPipeline
+from copium import OpenAIProvider, Tokenizer
+from copium.config import CopiumConfig, WasteSignals
+from copium.parser import parse_messages
+from copium.transforms.pipeline import TransformPipeline
 
 _provider = OpenAIProvider()
 
@@ -161,7 +161,7 @@ class TestPipelineAttribution:
             {"role": "tool", "content": content},
             {"role": "user", "content": "continue"},
         ]
-        result = TransformPipeline(HeadroomConfig()).apply(
+        result = TransformPipeline(CopiumConfig()).apply(
             [dict(m) for m in messages], model="gpt-4o", model_limit=128000
         )
         assert result.waste_signals is not None

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""End-to-end demo: Strands -> Headroom proxy -> Bedrock.
+"""End-to-end demo: Strands -> Copium proxy -> Bedrock.
 
 Proves the four Path-B fixes work together against live AWS Bedrock:
 
@@ -10,12 +10,12 @@ Proves the four Path-B fixes work together against live AWS Bedrock:
 
 What this script does
 ---------------------
-1. Spawns the Headroom proxy as a subprocess (backend=bedrock).
+1. Spawns the Copium proxy as a subprocess (backend=bedrock).
 2. Waits for /readyz.
 3. Sends two requests in the same session via Strands' OpenAIModel
    pointed at the proxy. The system prompt is intentionally large
    (>1024 tokens; Bedrock's minimum cacheable block) and tagged with
-   ``cache_control: {type: "ephemeral"}`` via Headroom's CacheAligner.
+   ``cache_control: {type: "ephemeral"}`` via Copium's CacheAligner.
 4. Reports:
      * compression numbers (tokens before/after, on each turn)
      * Bedrock cache hits (cache_read_input_tokens on turn 2 -- proves
@@ -75,7 +75,7 @@ LARGE_SYSTEM_PROMPT = (
     "Treat the following as authoritative reference context for every "
     "question in this conversation. Quote it accurately, do not "
     "fabricate. Reference context:\n\n"
-    + "Headroom is an open-source context compression layer for LLM "
+    + "Copium is an open-source context compression layer for LLM "
     "applications. It sits in front of provider APIs (Anthropic, "
     "OpenAI, Bedrock, Vertex) and shrinks the prompt without losing "
     "semantically important information. " * 200
@@ -88,16 +88,16 @@ LARGE_SYSTEM_PROMPT = (
 
 
 def start_proxy(port: int, region: str) -> subprocess.Popen[bytes]:
-    """Spawn `headroom proxy --backend bedrock` as a subprocess."""
+    """Spawn `copium proxy --backend bedrock` as a subprocess."""
     env = os.environ.copy()
     env.setdefault("AWS_REGION", region)
     env.setdefault("AWS_DEFAULT_REGION", region)
     # Crank logging up so we can read pipeline decisions live.
-    env.setdefault("HEADROOM_LOG", "INFO")
+    env.setdefault("COPIUM_LOG", "INFO")
     cmd = [
         sys.executable,
         "-m",
-        "headroom.cli",
+        "copium.cli",
         "proxy",
         "--backend",
         "bedrock",
@@ -170,7 +170,7 @@ def build_agent(port: int, model_id: str) -> Any:
             "default_headers": {
                 # Stable session key so the proxy's PrefixCacheTracker
                 # treats both turns as the same conversation.
-                "x-headroom-session-id": SESSION_ID,
+                "x-copium-session-id": SESSION_ID,
                 # Harness identification (Fix #4) — the proxy labels
                 # this request as 'strands' in metrics + outcomes.
                 "X-Client": "strands",
@@ -232,7 +232,7 @@ def direct_smoke_test(
             "model": model_id,
             "messages": [
                 {"role": "system", "content": system_content},
-                {"role": "user", "content": "In one short sentence, what is Headroom?"},
+                {"role": "user", "content": "In one short sentence, what is Copium?"},
             ],
             "max_tokens": 60,
             "temperature": 0.2,
@@ -244,7 +244,7 @@ def direct_smoke_test(
         headers={
             "Content-Type": "application/json",
             "Authorization": "Bearer dummy-bedrock-uses-aws-creds-at-proxy",
-            "x-headroom-session-id": session_id,
+            "x-copium-session-id": session_id,
             "X-Client": "strands",
         },
         method="POST",
@@ -274,13 +274,13 @@ def usage_summary(usage: dict[str, Any]) -> str:
 
 async def run_demo(port: int, region: str, model_id: str) -> int:
     print("=" * 76)
-    print(" Headroom Path-B E2E: Strands -> Headroom proxy -> Bedrock")
+    print(" Copium Path-B E2E: Strands -> Copium proxy -> Bedrock")
     print("=" * 76)
     print(f" port={port} region={region} model={model_id}")
     print(f" session_id={SESSION_ID}")
     print()
 
-    print("[1/4] Spawning Headroom proxy ...")
+    print("[1/4] Spawning Copium proxy ...")
     proxy = start_proxy(port=port, region=region)
     try:
         try:
@@ -363,7 +363,7 @@ async def run_demo(port: int, region: str, model_id: str) -> int:
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": "Bearer dummy",
-                    "x-headroom-session-id": smoke_session,
+                    "x-copium-session-id": smoke_session,
                     "X-Client": "strands",
                 },
                 method="POST",
@@ -414,7 +414,7 @@ async def run_demo(port: int, region: str, model_id: str) -> int:
         # this shape.
         # ----------------------------------------------------------------
         print("\n[2c/4] Compression probe -- tool_result with verbose JSON")
-        # ContentRouter defaults (headroom/transforms/content_router.py):
+        # ContentRouter defaults (copium/transforms/content_router.py):
         #   skip_user_messages: True   (line 456) -- "subject of conversation"
         #   skip_system: True          (line 2294) -- system prompt is sacred
         #   compress_assistant_text_blocks: False (line 472) -- conservative
@@ -496,7 +496,7 @@ async def run_demo(port: int, region: str, model_id: str) -> int:
             headers={
                 "Content-Type": "application/json",
                 "Authorization": "Bearer dummy",
-                "x-headroom-session-id": "compression-probe-session",
+                "x-copium-session-id": "compression-probe-session",
                 "X-Client": "strands",
             },
             method="POST",
@@ -532,7 +532,7 @@ async def run_demo(port: int, region: str, model_id: str) -> int:
             "\n[4/4] Two-turn cache test via Strands (cache_control inserted by CacheAligner) ..."
         )
         print("  turn 1: priming the cache with the large system prompt")
-        r1 = agent("In one short sentence, what is Headroom?")
+        r1 = agent("In one short sentence, what is Copium?")
         print(f"  turn 1 response: {str(r1)[:160]}")
 
         print("\n  turn 2: same session -> should hit Bedrock prompt cache")
@@ -578,7 +578,7 @@ async def run_demo(port: int, region: str, model_id: str) -> int:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Strands -> Headroom proxy -> Bedrock E2E")
+    ap = argparse.ArgumentParser(description="Strands -> Copium proxy -> Bedrock E2E")
     ap.add_argument("--port", type=int, default=DEFAULT_PORT)
     ap.add_argument("--region", default=DEFAULT_REGION)
     ap.add_argument("--model", default=DEFAULT_MODEL)

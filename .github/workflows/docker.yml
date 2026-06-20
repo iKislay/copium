@@ -150,9 +150,9 @@ jobs:
           # single-platform build it has exactly one digest. Pipe the
           # JSON through a file (same ARG_MAX rationale as before) and
           # extract that digest.
-          cat > "${RUNNER_TEMP}/bake_meta.json" <<'__HEADROOM_BAKE_META_EOF__'
+          cat > "${RUNNER_TEMP}/bake_meta.json" <<'__COPIUM_BAKE_META_EOF__'
           ${{ steps.bake.outputs.metadata }}
-          __HEADROOM_BAKE_META_EOF__
+          __COPIUM_BAKE_META_EOF__
           digest="$(jq -r 'to_entries[0].value."containerimage.digest" // empty' \
               "${RUNNER_TEMP}/bake_meta.json")"
           if [ -z "$digest" ]; then
@@ -175,7 +175,7 @@ jobs:
       # a broken digest from reaching the manifest merge job and being
       # tagged and published. Both python-slim and distroless variants
       # expose python3 in PATH and honour the image's PYTHONPATH env.
-      - name: Smoke-test image (pydantic_core + headroom._core)
+      - name: Smoke-test image (pydantic_core + copium._core)
         env:
           IMAGE: ${{ env.REGISTRY }}/${{ steps.image-name.outputs.image_name }}
           DIGEST: ${{ steps.digest.outputs.digest }}
@@ -187,7 +187,7 @@ jobs:
             "${IMAGE}@${DIGEST}" \
             -c "
           import pydantic_core
-          from headroom._core import DiffCompressor, SmartCrusher
+          from copium._core import DiffCompressor, SmartCrusher
           print('smoke-test OK: pydantic_core', pydantic_core.__version__,
                 '| DiffCompressor', DiffCompressor.__name__,
                 '| SmartCrusher', SmartCrusher.__name__)
@@ -423,6 +423,6 @@ jobs:
           # and stays where it was in the version listing).
           promoted_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           docker buildx imagetools create \
-            --annotation "index:io.headroom.promoted-at=${promoted_at}" \
+            --annotation "index:io.copium.promoted-at=${promoted_at}" \
             --tag "${IMAGE}:latest" \
             "${IMAGE}:${VERSION}"

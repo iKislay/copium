@@ -1,12 +1,12 @@
 # Observability — proxy metrics
 
-The Headroom Rust proxy exposes Prometheus-format metrics on the
+The Copium Rust proxy exposes Prometheus-format metrics on the
 `/metrics` endpoint of every running proxy instance. The metric
 catalogue below covers Phase D (Bedrock route instrumentation) and
 Phase G PR-G3 (per-invocation RTK + proxy-wide observability).
 
 All metric names + label keys are constants in
-`crates/headroom-proxy/src/observability/metric_names.rs`, so any
+`crates/copium-proxy/src/observability/metric_names.rs`, so any
 rename catches one file in code review.
 
 ## Metric catalogue
@@ -35,7 +35,7 @@ rename catches one file in code review.
 |------|------|--------|---------|
 | `proxy_passthrough_bytes_modified_total` | Counter | `path` | Bytes mutated on a passthrough path. **Must stay 0 outside the compression hot path** — any non-zero rate fires the cache-safety alarm. |
 
-The alarm metric is wired in `crates/headroom-proxy/src/proxy.rs`:
+The alarm metric is wired in `crates/copium-proxy/src/proxy.rs`:
 when the dispatcher returns `Outcome::NoCompression` or
 `Outcome::Passthrough`, the post-dispatcher byte length is compared
 to the original buffered length and any delta increments the
@@ -63,10 +63,10 @@ intentional byte mutations do not trip the alarm.
 
 | Name | Type | Labels | Purpose |
 |------|------|--------|---------|
-| `wrap_rtk_invocations_total` | Counter | `tool` | RTK invocations observed via the wrap-CLI tail. Surfaced via the Python proxy's `/metrics` exporter; the wrap CLI bumps `headroom.cli.wrap_rtk_metrics.record_rtk_invocation(...)`. |
+| `wrap_rtk_invocations_total` | Counter | `tool` | RTK invocations observed via the wrap-CLI tail. Surfaced via the Python proxy's `/metrics` exporter; the wrap CLI bumps `copium.cli.wrap_rtk_metrics.record_rtk_invocation(...)`. |
 
 > **C4 remediation:** This counter is Python-side because RTK is
-> wrapped by `headroom wrap` (Python CLI) and the wrap-side tail
+> wrapped by `copium wrap` (Python CLI) and the wrap-side tail
 > is the natural emit site. The Rust proxy previously held a dead
 > counter for this metric; that has been removed.
 
@@ -74,7 +74,7 @@ intentional byte mutations do not trip the alarm.
 
 | Name | Type | Labels | Purpose |
 |------|------|--------|---------|
-| `proxy_image_generation_call_log_redacted_total` | Counter | _none_ | Base64-encoded image payloads redacted from request logs. Driven from `headroom.proxy.request_logger.redactions_total()`. |
+| `proxy_image_generation_call_log_redacted_total` | Counter | _none_ | Base64-encoded image payloads redacted from request logs. Driven from `copium.proxy.request_logger.redactions_total()`. |
 
 > **C3 remediation:** Image redaction is purely a Python-proxy
 > operation (the request logger walks JSON and replaces over-
@@ -138,7 +138,7 @@ histogram_quantile(0.99, sum by (strategy, le) (rate(proxy_compression_ratio_by_
 # kept). High rate here means the compressor needs tuning.
 sum by (strategy) (rate(proxy_compression_rejected_by_token_check_total{strategy!="__init__"}[1h]))
 
-# Upstream rate-limit headroom (smaller = closer to throttle).
+# Upstream rate-limit copium (smaller = closer to throttle).
 proxy_rate_limit_remaining_tokens{provider="anthropic"}
 
 # RTK invocation rate (Python-side).
@@ -189,7 +189,7 @@ after the first real session, by design.
 The H3 contract above relies on the `prometheus` crate's v0.13
 `gather()` semantics — empty MetricVec families are omitted from
 the scrape. **This is implementation-defined behaviour.** If
-`crates/headroom-proxy/Cargo.toml` ever bumps the `prometheus`
+`crates/copium-proxy/Cargo.toml` ever bumps the `prometheus`
 dependency, retest the alarm contract:
 
 1. Start a fresh proxy.
@@ -249,7 +249,7 @@ Every label vocabulary is bounded by code, not customer input:
 - `auth_mode`: 3-variant enum (`payg`, `oauth`, `subscription`).
 - `provider`: 3 values (`anthropic`, `openai_chat`, `openai_responses`).
 - `strategy`: `&'static str` from the compressor's `BlockAction::Compressed`.
-- `content_type`: `&'static str` from `headroom_core::transforms::ContentType`.
+- `content_type`: `&'static str` from `copium_core::transforms::ContentType`.
 - `tier`: validated through
   `crate::observability::metric_names::service_tier::validate(raw: &str)`.
   Returns one of `{auto, default, flex, on_demand, priority, scale}`
@@ -261,7 +261,7 @@ Every label vocabulary is bounded by code, not customer input:
 - `status`: 5-variant enum.
 - `tool` (Python-side `wrap_rtk_invocations_total`): bounded by the
   set of tools the wrap CLI rewrites, captured by
-  `headroom.cli.wrap_rtk_metrics`.
+  `copium.cli.wrap_rtk_metrics`.
 
 There is no code path where a malicious client can drive label
 cardinality unbounded.
@@ -269,6 +269,6 @@ cardinality unbounded.
 ## See also
 
 - `docs/rtk-architecture.md` — why RTK lives wrap-side, not proxy-side.
-- `crates/headroom-proxy/src/observability/` — implementation.
+- `crates/copium-proxy/src/observability/` — implementation.
 - `REALIGNMENT/09-phase-G-rtk-observability.md` — spec.
 - `REALIGNMENT/10-phase-H-python-retirement.md` — H1 acceptance gate.

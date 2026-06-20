@@ -1,10 +1,10 @@
-"""Eval: Does the LLM invoke headroom_retrieve when summaries are present?
+"""Eval: Does the LLM invoke copium_retrieve when summaries are present?
 
 The REAL test — it's not enough for the LLM to know something is missing.
 It must actually call the tool to fetch it.
 
 Compares:
-- WITH summary: LLM sees "2 failed, 1 error" → should call headroom_retrieve
+- WITH summary: LLM sees "2 failed, 1 error" → should call copium_retrieve
 - WITHOUT summary: LLM sees "[90 items compressed]" → likely does NOT call tool
 
 Requires: ANTHROPIC_API_KEY in environment or .env file.
@@ -30,11 +30,11 @@ pytestmark = pytest.mark.skipif(
     reason="ANTHROPIC_API_KEY not set — skipping integration tests",
 )
 
-# The headroom_retrieve tool definition (same as what CCR injects)
-HEADROOM_RETRIEVE_TOOL = {
-    "name": "headroom_retrieve",
+# The copium_retrieve tool definition (same as what CCR injects)
+COPIUM_RETRIEVE_TOOL = {
+    "name": "copium_retrieve",
     "description": (
-        "Retrieve original uncompressed content from Headroom's compression cache. "
+        "Retrieve original uncompressed content from Copium's compression cache. "
         "Use this when you need more details from compressed data. "
         "You can pass a query to search within the compressed content."
     ),
@@ -125,21 +125,21 @@ def _get_tool_calls(response: dict) -> list[dict]:
 
 
 class TestToolInvocationWithSummary:
-    """The real eval: does the LLM call headroom_retrieve?"""
+    """The real eval: does the LLM call copium_retrieve?"""
 
     def test_with_summary_triggers_tool_call(self):
-        """WITH compression summary → LLM should call headroom_retrieve."""
+        """WITH compression summary → LLM should call copium_retrieve."""
         test_results = _make_test_results(100)
         kept = test_results[:10]  # All passing
 
-        from headroom.transforms.compression_summary import summarize_dropped_items
+        from copium.transforms.compression_summary import summarize_dropped_items
 
         summary = summarize_dropped_items(test_results, kept)
 
         compressed = json.dumps(kept, indent=2)
         compressed += (
             f"\n[90 items compressed to 10. Omitted: {summary}."
-            f' Retrieve specific items: headroom_retrieve(hash="ccr_test_abc123", query="your search")]'
+            f' Retrieve specific items: copium_retrieve(hash="ccr_test_abc123", query="your search")]'
         )
 
         messages = [
@@ -153,7 +153,7 @@ class TestToolInvocationWithSummary:
             },
         ]
 
-        resp = _call_claude_with_tools(messages, [HEADROOM_RETRIEVE_TOOL])
+        resp = _call_claude_with_tools(messages, [COPIUM_RETRIEVE_TOOL])
 
         tool_calls = _get_tool_calls(resp)
         stop_reason = resp.get("stop_reason", "")
@@ -166,7 +166,7 @@ class TestToolInvocationWithSummary:
         if stop_reason == "tool_use":
             assert len(tool_calls) > 0
             call = tool_calls[0]
-            assert call["name"] == "headroom_retrieve"
+            assert call["name"] == "copium_retrieve"
             assert call["input"].get("hash") == "ccr_test_abc123"
             # The query should be about failures/errors
             query = call["input"].get("query", "").lower()
@@ -175,7 +175,7 @@ class TestToolInvocationWithSummary:
                 term in query for term in ["fail", "error", "issue", "problem", "broken", "test"]
             )
             assert has_relevant_query, f"Tool was called but query isn't relevant: {query}"
-            print("  RESULT: LLM invoked headroom_retrieve with relevant query ✓")
+            print("  RESULT: LLM invoked copium_retrieve with relevant query ✓")
         else:
             # LLM responded with text — check if it at least mentions the failures
             text = ""
@@ -186,7 +186,7 @@ class TestToolInvocationWithSummary:
             # It's acceptable if the LLM mentions it WANTS to retrieve
             mentions_retrieval = any(
                 term in text.lower()
-                for term in ["retrieve", "headroom_retrieve", "fetch", "see more", "compressed"]
+                for term in ["retrieve", "copium_retrieve", "fetch", "see more", "compressed"]
             )
             print(f"  Mentions retrieval: {mentions_retrieval}")
 
@@ -209,7 +209,7 @@ class TestToolInvocationWithSummary:
             },
         ]
 
-        resp = _call_claude_with_tools(messages, [HEADROOM_RETRIEVE_TOOL])
+        resp = _call_claude_with_tools(messages, [COPIUM_RETRIEVE_TOOL])
 
         tool_calls = _get_tool_calls(resp)
         stop_reason = resp.get("stop_reason", "")
@@ -249,7 +249,7 @@ class TestToolInvocationWithSummary:
     def get_balance(self) -> float:
         # [2 lines omitted]
         pass
-# [180 tokens compressed. removed: def charge (12 lines), def refund (6 lines). Retrieve full code: headroom_retrieve(hash="ccr_code_xyz", query="function name")]'''
+# [180 tokens compressed. removed: def charge (12 lines), def refund (6 lines). Retrieve full code: copium_retrieve(hash="ccr_code_xyz", query="function name")]'''
 
         messages = [
             {
@@ -263,7 +263,7 @@ class TestToolInvocationWithSummary:
             },
         ]
 
-        resp = _call_claude_with_tools(messages, [HEADROOM_RETRIEVE_TOOL])
+        resp = _call_claude_with_tools(messages, [COPIUM_RETRIEVE_TOOL])
 
         tool_calls = _get_tool_calls(resp)
         stop_reason = resp.get("stop_reason", "")
@@ -273,7 +273,7 @@ class TestToolInvocationWithSummary:
 
         if stop_reason == "tool_use":
             call = tool_calls[0]
-            assert call["name"] == "headroom_retrieve"
+            assert call["name"] == "copium_retrieve"
             query = call["input"].get("query", "").lower()
             print(f"  Query: {query}")
             # Should be asking for the charge function specifically

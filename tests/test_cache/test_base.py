@@ -1,6 +1,6 @@
 """Tests for cache base types and interfaces."""
 
-from headroom.cache.base import (
+from copium.cache.base import (
     BreakpointLocation,
     CacheBreakpoint,
     CacheConfig,

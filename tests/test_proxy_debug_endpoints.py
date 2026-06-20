@@ -12,18 +12,18 @@ pytest.importorskip("httpx")
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-from headroom.proxy.debug_introspection import (
+from copium.proxy.debug_introspection import (
     collect_tasks,
 )
-from headroom.proxy.loopback_guard import (
+from copium.proxy.loopback_guard import (
     LOOPBACK_HOSTS,
     is_loopback_host,
     is_loopback_host_header,
     require_loopback,
 )
-from headroom.proxy.server import ProxyConfig, create_app
-from headroom.proxy.warmup import WarmupRegistry
-from headroom.proxy.ws_session_registry import (
+from copium.proxy.server import ProxyConfig, create_app
+from copium.proxy.warmup import WarmupRegistry
+from copium.proxy.ws_session_registry import (
     WebSocketSessionRegistry,
     WSSessionHandle,
 )

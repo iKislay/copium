@@ -1,6 +1,6 @@
 # Proxy Server Documentation
 
-The Headroom proxy server is a production-ready HTTP server that applies context optimization to all requests passing through it.
+The Copium proxy server is a production-ready HTTP server that applies context optimization to all requests passing through it.
 
 > **New:** The proxy now supports the [TypeScript SDK](typescript-sdk.md) via the `POST /v1/compress` endpoint, enabling compression-as-a-service for any HTTP client without calling an LLM.
 
@@ -8,16 +8,16 @@ The Headroom proxy server is a production-ready HTTP server that applies context
 
 ```bash
 # Basic usage
-headroom proxy
+copium proxy
 
 # Custom port
-headroom proxy --port 8080
+copium proxy --port 8080
 
 # With all options
-headroom proxy \
+copium proxy \
   --host 0.0.0.0 \
   --port 8787 \
-  --log-file /var/log/headroom.jsonl \
+  --log-file /var/log/copium.jsonl \
   --budget 100.0
 ```
 
@@ -28,37 +28,37 @@ headroom proxy \
 ANTHROPIC_BASE_URL=http://localhost:8787 claude
 
 # GitHub Copilot CLI
-headroom wrap copilot -- --model claude-sonnet-4-20250514
+copium wrap copilot -- --model claude-sonnet-4-20250514
 
 # OpenAI-compatible clients
 OPENAI_BASE_URL=http://localhost:8787/v1 your-app
 ```
 
-`headroom wrap copilot` uses Copilot CLI's BYOK provider settings under the hood. In `provider-type=auto`, it chooses Headroom's Anthropic route for the default proxy backend and the OpenAI-compatible `/v1` route for translated backends such as `anyllm` and LiteLLM.
+`copium wrap copilot` uses Copilot CLI's BYOK provider settings under the hood. In `provider-type=auto`, it chooses Copium's Anthropic route for the default proxy backend and the OpenAI-compatible `/v1` route for translated backends such as `anyllm` and LiteLLM.
 
-Anonymous aggregate telemetry is enabled by default. Opt out with `HEADROOM_TELEMETRY=off` or `headroom proxy --no-telemetry`. Downstream apps can set `HEADROOM_SDK=headroom-app` to override the anonymous telemetry `sdk` label; the default remains `proxy`.
+Anonymous aggregate telemetry is enabled by default. Opt out with `COPIUM_TELEMETRY=off` or `copium proxy --no-telemetry`. Downstream apps can set `COPIUM_SDK=copium-app` to override the anonymous telemetry `sdk` label; the default remains `proxy`.
 
-Operational OTEL metrics are configured separately and are **off by default**. Install `headroom-ai[proxy,otel]` and set:
+Operational OTEL metrics are configured separately and are **off by default**. Install `copium-ai[proxy,otel]` and set:
 
 ```bash
-HEADROOM_OTEL_METRICS_ENABLED=1
-HEADROOM_OTEL_METRICS_EXPORTER=otlp_http
-HEADROOM_OTEL_METRICS_ENDPOINT=http://127.0.0.1:4318/v1/metrics
-HEADROOM_OTEL_SERVICE_NAME=headroom-proxy
+COPIUM_OTEL_METRICS_ENABLED=1
+COPIUM_OTEL_METRICS_EXPORTER=otlp_http
+COPIUM_OTEL_METRICS_ENDPOINT=http://127.0.0.1:4318/v1/metrics
+COPIUM_OTEL_SERVICE_NAME=copium-proxy
 ```
 
-Use `HEADROOM_OTEL_METRICS_EXPORTER=console` for local smoke testing. `HEADROOM_TELEMETRY` controls the anonymous data-flywheel beacon only; it does not disable or enable OTEL export.
+Use `COPIUM_OTEL_METRICS_EXPORTER=console` for local smoke testing. `COPIUM_TELEMETRY` controls the anonymous data-flywheel beacon only; it does not disable or enable OTEL export.
 
-Langfuse can be enabled alongside this OTEL path for **trace ingestion**. Langfuse does **not** ingest OTEL metrics, so Headroom keeps metrics and Langfuse traces as complementary signals:
+Langfuse can be enabled alongside this OTEL path for **trace ingestion**. Langfuse does **not** ingest OTEL metrics, so Copium keeps metrics and Langfuse traces as complementary signals:
 
 ```bash
-HEADROOM_LANGFUSE_ENABLED=1
+COPIUM_LANGFUSE_ENABLED=1
 LANGFUSE_PUBLIC_KEY=pk-lf-...
 LANGFUSE_SECRET_KEY=sk-lf-...
 LANGFUSE_BASE_URL=https://cloud.langfuse.com
 ```
 
-When configured, Headroom emits OTLP traces for the shared compression pipeline to Langfuse while continuing to expose metrics through `/metrics` and OTEL metric exporters.
+When configured, Copium emits OTLP traces for the shared compression pipeline to Langfuse while continuing to expose metrics through `/metrics` and OTEL metric exporters.
 
 ## Command Line Options
 
@@ -74,14 +74,14 @@ When configured, Headroom emits OTLP traces for the shared compression pipeline 
 | `--no-rate-limit` | `false` | Disable rate limiting |
 | `--log-file` | None | Path to JSONL log file |
 | `--budget` | None | Daily budget limit in USD |
-| `--code-aware` | true | Enable AST-based code compression (env: HEADROOM_CODE_AWARE_ENABLED) |
+| `--code-aware` | true | Enable AST-based code compression (env: COPIUM_CODE_AWARE_ENABLED) |
 | `--no-code-aware` | false | Disable code-aware compression |
 | `--anthropic-api-url` | `https://api.anthropic.com` | Custom Anthropic API URL endpoint |
 | `--openai-api-url` | `https://api.openai.com` | Custom OpenAI API URL endpoint |
 
 ### Run Modes
 
-Headroom proxy has two explicit run modes:
+Copium proxy has two explicit run modes:
 
 - `token` mode: prioritize token reduction. Prior history may be rewritten when that improves compression.
 - `cache` mode: prioritize provider prefix cache stability. Prior turns are frozen; only the newest turn is mutable.
@@ -89,8 +89,8 @@ Headroom proxy has two explicit run modes:
 Set via CLI or env:
 
 ```bash
-headroom proxy --mode token
-HEADROOM_MODE=cache headroom proxy
+copium proxy --mode token
+COPIUM_MODE=cache copium proxy
 ```
 
 When to pick each:
@@ -98,7 +98,7 @@ When to pick each:
 - `token`: best for maximizing immediate compression savings.
 - `cache`: best for long conversations where preserving prior-turn bytes improves prefix-cache reuse.
 
-Legacy values (`token_headroom`, `cost_savings`) are still accepted as aliases.
+Legacy values (`token_copium`, `cost_savings`) are still accepted as aliases.
 
 ### Context Management Options
 
@@ -114,17 +114,17 @@ By default, the proxy uses **IntelligentContextManager** which scores messages b
 
 ```bash
 # Use legacy RollingWindow (drops oldest first)
-headroom proxy --no-intelligent-context
+copium proxy --no-intelligent-context
 
 # Disable semantic scoring (faster, but less intelligent)
-headroom proxy --no-intelligent-scoring
+copium proxy --no-intelligent-scoring
 ```
 
 ### ML Compression — RETIRED `--llmlingua` flag
 
 The `--llmlingua` / `--llmlingua-device` / `--llmlingua-rate` flags and
-the `headroom-ai[llmlingua]` extra were retired and replaced by Kompress
-(ModernBERT). For the current opt-in path, install `headroom-ai[ml]`
+the `copium-ai[llmlingua]` extra were retired and replaced by Kompress
+(ModernBERT). For the current opt-in path, install `copium-ai[ml]`
 and see [transforms.md](transforms.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## API Endpoints
@@ -138,7 +138,7 @@ curl http://localhost:8787/livez
 Response:
 ```json
 {
-  "service": "headroom-proxy",
+  "service": "copium-proxy",
   "status": "healthy",
   "alive": true,
   "version": "0.5.21",
@@ -156,7 +156,7 @@ curl http://localhost:8787/readyz
 Response:
 ```json
 {
-  "service": "headroom-proxy",
+  "service": "copium-proxy",
   "status": "healthy",
   "ready": true,
   "version": "0.5.21",
@@ -172,7 +172,7 @@ Response:
 }
 ```
 
-`/readyz` returns HTTP 503 when Headroom has not completed startup or a required enabled subsystem is unavailable. This is the endpoint used by the container health checks.
+`/readyz` returns HTTP 503 when Copium has not completed startup or a required enabled subsystem is unavailable. This is the endpoint used by the container health checks.
 
 ### Aggregate Health
 
@@ -227,7 +227,7 @@ curl http://localhost:8787/stats-history
 ```
 
 `/stats-history` exposes durable proxy compression history for dashboards and
-other Headroom frontends. It returns:
+other Copium frontends. It returns:
 
 - lifetime proxy compression totals
 - compact checkpoint history by default, with `history_mode=full` available for
@@ -237,10 +237,10 @@ other Headroom frontends. It returns:
 - UTC timestamps throughout
 
 By default the proxy stores this history at
-`${HEADROOM_WORKSPACE_DIR}/proxy_savings.json` (i.e.
-`~/.headroom/proxy_savings.json` when `HEADROOM_WORKSPACE_DIR` is unset).
-Set `HEADROOM_SAVINGS_PATH` to override the location directly, or set
-`HEADROOM_WORKSPACE_DIR` to relocate the full state root. See the
+`${COPIUM_WORKSPACE_DIR}/proxy_savings.json` (i.e.
+`~/.copium/proxy_savings.json` when `COPIUM_WORKSPACE_DIR` is unset).
+Set `COPIUM_SAVINGS_PATH` to override the location directly, or set
+`COPIUM_WORKSPACE_DIR` to relocate the full state root. See the
 [Filesystem Contract](filesystem-contract.md).
 
 `/dashboard` uses this endpoint directly for its historical view, including the
@@ -298,7 +298,7 @@ Compression-only endpoint. Compresses messages without calling any LLM. Used by 
 ```
 
 **Headers:**
-- `x-headroom-bypass: true` — skip compression, return messages as-is
+- `x-copium-bypass: true` — skip compression, return messages as-is
 
 **Error responses:** 400 (missing fields), 401 (bad API key), 503 (compression failed)
 
@@ -306,7 +306,7 @@ Compression-only endpoint. Compresses messages without calling any LLM. Used by 
 
 ```bash
 # Start proxy
-headroom proxy --port 8787
+copium proxy --port 8787
 
 # In another terminal
 ANTHROPIC_BASE_URL=http://localhost:8787 claude
@@ -314,7 +314,7 @@ ANTHROPIC_BASE_URL=http://localhost:8787 claude
 
 ## Using with Cursor
 
-1. Start the proxy: `headroom proxy`
+1. Start the proxy: `copium proxy`
 2. In Cursor settings, set the base URL to `http://localhost:8787`
 
 ## Using with OpenAI SDK
@@ -334,9 +334,9 @@ client = OpenAI(
 
 > The earlier LLMLingua-2 integration documented in this section
 > (`--llmlingua`, `--llmlingua-device`, `--llmlingua-rate`,
-> `headroom-ai[llmlingua]`, `LLMLinguaCompressor`) was retired and
+> `copium-ai[llmlingua]`, `LLMLinguaCompressor`) was retired and
 > replaced by **Kompress** (ModernBERT). Install with `pip install
-> 'headroom-ai[ml]'`. See [transforms.md](transforms.md) and
+> 'copium-ai[ml]'`. See [transforms.md](transforms.md) and
 > [ARCHITECTURE.md](ARCHITECTURE.md) for current configuration.
 
 ### Semantic Caching
@@ -368,18 +368,18 @@ Track spending and enforce budgets:
 Export metrics for monitoring:
 
 ```
-headroom_requests_total
-headroom_tokens_saved_total
-headroom_cost_usd_total
-headroom_latency_ms_sum
+copium_requests_total
+copium_tokens_saved_total
+copium_cost_usd_total
+copium_latency_ms_sum
 ```
 
 ## Configuration via Environment
 
 ```bash
-export HEADROOM_HOST=0.0.0.0
-export HEADROOM_PORT=8787
-export HEADROOM_BUDGET=100.0
+export COPIUM_HOST=0.0.0.0
+export COPIUM_PORT=8787
+export COPIUM_BUDGET=100.0
 
 # Route OpenAI passthrough requests to a custom endpoint
 export OPENAI_TARGET_API_URL=https://custom.openai.endpoint.com
@@ -387,7 +387,7 @@ export OPENAI_TARGET_API_URL=https://custom.openai.endpoint.com
 # Route Anthropic passthrough requests to a custom endpoint
 export ANTHROPIC_TARGET_API_URL=https://litellm.company.internal
 
-headroom proxy
+copium proxy
 ```
 
 ## Running in Production
@@ -399,7 +399,7 @@ For production deployments:
 pip install gunicorn
 
 # Run with gunicorn
-gunicorn headroom.proxy.server:app \
+gunicorn copium.proxy.server:app \
   --workers 4 \
   --bind 0.0.0.0:8787 \
   --worker-class uvicorn.workers.UvicornWorker
@@ -410,11 +410,11 @@ Or with Docker:
 ```dockerfile
 FROM python:3.11-slim
 RUN apt-get update && apt-get install -y --no-install-recommends build-essential \
-    && pip install "headroom-ai[proxy]" \
+    && pip install "copium-ai[proxy]" \
     && apt-get purge -y build-essential && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 EXPOSE 8787
-CMD ["headroom", "proxy", "--host", "0.0.0.0"]
+CMD ["copium", "proxy", "--host", "0.0.0.0"]
 ```
 
-> **Note:** `build-essential` is required at install time because `headroom-ai` includes `hnswlib`, a C++ extension that must be compiled from source. It is removed after installation to keep the image slim.
+> **Note:** `build-essential` is required at install time because `copium-ai` includes `hnswlib`, a C++ extension that must be compiled from source. It is removed after installation to keep the image slim.

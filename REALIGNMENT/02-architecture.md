@@ -11,12 +11,12 @@ The Rust-only proxy after Phase H. Each subsystem documented with its scope, inv
                                       │
                                       ▼
             ┌──────────────────────────────────────────────┐
-            │ headroom-proxy (axum)                        │
+            │ copium-proxy (axum)                        │
             │                                              │
             │  1. classify_auth_mode(headers)              │  ← Phase F
             │     → "payg" | "oauth" | "subscription"      │
             │                                              │
-            │  2. strip x-headroom-* from upstream-bound   │  ← Phase A (PR-A5)
+            │  2. strip x-copium-* from upstream-bound   │  ← Phase A (PR-A5)
             │                                              │
             │  3. byte-buffer body via RawValue            │  ← Phase A (PR-A4)
             │     (numeric precision preserved)            │
@@ -72,7 +72,7 @@ For every request, the bytes sent to upstream are byte-equal (SHA-256) to the by
 **Test gate:** `proxy_byte_faithful_anthropic_sha256` — record a real Anthropic `/v1/messages` payload, send it through the proxy with compression off, assert SHA-256 byte-equal at the upstream mock.
 
 ### Invariant I2 — Cache hot zone never modified
-The following are never mutated by Headroom:
+The following are never mutated by Copium:
 - `system` (string or block list)
 - `tools[*]` (other than alpha-sorting and JSON Schema key sorting in Phase E — both deterministic)
 - Any message at index < `frozen_message_count`
@@ -133,7 +133,7 @@ TOIN's pattern stats grow across requests. Recommendations are published to disk
 **Implementation:** Phase B PR-B5. TOIN's in-memory state writes are append-only; reads never block compression.
 
 ### Invariant I10 — Auth mode gates compression policy
-PAYG: aggressive (full live-zone compression, CCR, tool injection, Phase 3 stabilization). OAuth: passthrough-prefer (live-zone lossless only, no auto-`cache_control`, no auto-`prompt_cache_key`, no `X-Forwarded-*`). Subscription: stealth-prefer (everything OAuth does PLUS preserve `accept-encoding`, never inject `X-Headroom-*` upstream, never mutate `User-Agent`).
+PAYG: aggressive (full live-zone compression, CCR, tool injection, Phase 3 stabilization). OAuth: passthrough-prefer (live-zone lossless only, no auto-`cache_control`, no auto-`prompt_cache_key`, no `X-Forwarded-*`). Subscription: stealth-prefer (everything OAuth does PLUS preserve `accept-encoding`, never inject `X-Copium-*` upstream, never mutate `User-Agent`).
 
 **Implementation:** Phase F PR-F1, PR-F2.
 
@@ -142,7 +142,7 @@ PAYG: aggressive (full live-zone compression, CCR, tool injection, Phase 3 stabi
 ## 2.3 The compressor module layout (post-Phase-B)
 
 ```
-crates/headroom-core/src/
+crates/copium-core/src/
 ├── lib.rs                     # public surface
 ├── tokenizer/                 # KEEP (HF + tiktoken impls)
 │   ├── mod.rs
@@ -186,7 +186,7 @@ crates/headroom-core/src/
 ```
 
 ```
-crates/headroom-proxy/src/
+crates/copium-proxy/src/
 ├── lib.rs
 ├── main.rs
 ├── config.rs
@@ -241,7 +241,7 @@ crates/headroom-proxy/src/
 | Auto `cache_control` placement      | yes           | NO (could void scope)    | NO                        |
 | Auto `prompt_cache_key` injection   | yes (OpenAI)  | NO                       | NO                        |
 | `anthropic-beta` mutation           | NO            | NO                       | NO                        |
-| `X-Headroom-*` upstream             | NO            | NO                       | NO                        |
+| `X-Copium-*` upstream             | NO            | NO                       | NO                        |
 | `X-Forwarded-*` upstream            | yes           | yes                      | NO                        |
 | `User-Agent` rewrite                | NO            | NO                       | NO                        |
 | `accept-encoding` strip             | OK            | OK                       | NO (preserve)             |
@@ -270,7 +270,7 @@ pub trait Telemetry {
 }
 
 // Recommendations published between deploys via:
-//   $ cargo run -p headroom-toin-publish -- --auth-mode payg --model claude-3-7-sonnet
+//   $ cargo run -p copium-toin-publish -- --auth-mode payg --model claude-3-7-sonnet
 // Output: recommendations.toml committed to repo, loaded by compressor at startup.
 ```
 
@@ -311,12 +311,12 @@ impl LossyTransform for KompressCompressor { ... }
 
 - Does NOT drop messages from history. Ever. ICM is gone.
 - Does NOT modify `system`, `tools`, or any old turn.
-- Does NOT inject Headroom's own tools into customer prompts unless CCR has already fired in this session (and then always, never toggling).
+- Does NOT inject Copium's own tools into customer prompts unless CCR has already fired in this session (and then always, never toggling).
 - Does NOT consult TOIN at request time. Recommendations are loaded at startup only.
 - Does NOT shell out to RTK from the proxy. RTK lives on the wrap-CLI side (project-decided 2026-05-01).
 - Does NOT translate Anthropic ↔ OpenAI shapes. Each provider has its own native handler. Bedrock and Vertex have native envelopes (Phase D).
 - Does NOT compress on `/v1/responses/compact` or `/v1/conversations` (different shapes; passthrough only).
-- Does NOT rewrite request headers except to strip `x-headroom-*` from upstream-bound headers and add conditional `X-Forwarded-*` (PAYG/OAuth only).
+- Does NOT rewrite request headers except to strip `x-copium-*` from upstream-bound headers and add conditional `X-Forwarded-*` (PAYG/OAuth only).
 - Does NOT add `User-Agent` headers. The customer's UA passes through verbatim.
 - Does NOT compress images, base64 blobs, or audio (out of scope for this realignment).
 - Does NOT modify `tool_use.input` JSON key order, `tool_calls.function.arguments` string contents, `phase` field, V4A patches, `local_shell_call.action.command` argv arrays, or any encrypted/redacted/compaction content.

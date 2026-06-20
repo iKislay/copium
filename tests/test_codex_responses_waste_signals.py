@@ -3,7 +3,7 @@
 The /v1/responses path never ran ``parse_messages``: compression goes through
 CompressionUnits (not TransformPipeline), and the minimal ``messages`` list it
 synthesises drops list-typed ``input`` entirely — so tool output never reached
-waste detection and the dashboard "What Headroom Removed" stayed empty for
+waste detection and the dashboard "What Copium Removed" stayed empty for
 Codex traffic.
 
 The fix is telemetry-only:
@@ -27,9 +27,9 @@ import pytest
 pytest.importorskip("fastapi")
 pytest.importorskip("httpx")
 
-from headroom import OpenAIProvider, Tokenizer
-from headroom.parser import parse_messages
-from headroom.proxy.handlers.openai import (
+from copium import OpenAIProvider, Tokenizer
+from copium.parser import parse_messages
+from copium.proxy.handlers.openai import (
     _RESPONSES_OUTPUT_ITEM_TYPES,
     OpenAIHandlerMixin,
     _responses_input_to_waste_messages,

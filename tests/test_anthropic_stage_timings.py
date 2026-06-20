@@ -11,8 +11,8 @@ import anyio
 import pytest
 from fastapi import Request
 
-from headroom.proxy.handlers.anthropic import AnthropicHandlerMixin
-from headroom.proxy.models import ProxyConfig
+from copium.proxy.handlers.anthropic import AnthropicHandlerMixin
+from copium.proxy.models import ProxyConfig
 
 
 class _DummyTokenizer:
@@ -170,7 +170,7 @@ class _CapturingHandler(logging.Handler):
 
 @pytest.fixture
 def stage_log_capture():
-    target = logging.getLogger("headroom.proxy")
+    target = logging.getLogger("copium.proxy")
     handler = _CapturingHandler()
     previous_level = target.level
     target.addHandler(handler)
@@ -202,7 +202,7 @@ def test_anthropic_http_happy_path_emits_stage_timings(stage_log_capture):
     handler = _DummyAnthropicHandler()
 
     # Force tokenizer to a stub.
-    import headroom.tokenizers as _tk
+    import copium.tokenizers as _tk
 
     orig_get = _tk.get_tokenizer
     _tk.get_tokenizer = lambda model: _DummyTokenizer()
@@ -288,7 +288,7 @@ def test_anthropic_http_request_and_session_ids_present(stage_log_capture):
     )
     handler = _DummyAnthropicHandler()
 
-    import headroom.tokenizers as _tk
+    import copium.tokenizers as _tk
 
     orig_get = _tk.get_tokenizer
     _tk.get_tokenizer = lambda model: _DummyTokenizer()

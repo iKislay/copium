@@ -9,9 +9,9 @@ import pytest
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import InMemoryMetricReader
 
-from headroom.observability import HeadroomOtelMetrics, reset_otel_metrics, set_otel_metrics
-from headroom.proxy.prometheus_metrics import PrometheusMetrics
-from headroom.transforms.pipeline import TransformPipeline
+from copium.observability import CopiumOtelMetrics, reset_otel_metrics, set_otel_metrics
+from copium.proxy.prometheus_metrics import PrometheusMetrics
+from copium.transforms.pipeline import TransformPipeline
 
 
 def _collect_metrics(reader: InMemoryMetricReader) -> dict[str, Any]:
@@ -33,10 +33,10 @@ def _find_point(metric: Any, **expected_attributes: Any) -> Any:
     raise AssertionError(f"No datapoint matched attributes: {expected_attributes}")
 
 
-def test_headroom_otel_metrics_records_proxy_and_pipeline_metrics() -> None:
+def test_copium_otel_metrics_records_proxy_and_pipeline_metrics() -> None:
     reader = InMemoryMetricReader()
     provider = MeterProvider(metric_readers=[reader])
-    otel_metrics = HeadroomOtelMetrics(meter_provider=provider)
+    otel_metrics = CopiumOtelMetrics(meter_provider=provider)
 
     otel_metrics.record_proxy_request(
         provider="anthropic",
@@ -68,7 +68,7 @@ def test_headroom_otel_metrics_records_proxy_and_pipeline_metrics() -> None:
 
     metrics = _collect_metrics(reader)
 
-    requests = metrics["headroom.proxy.requests"]
+    requests = metrics["copium.proxy.requests"]
     request_point = _find_point(
         requests,
         provider="anthropic",
@@ -77,7 +77,7 @@ def test_headroom_otel_metrics_records_proxy_and_pipeline_metrics() -> None:
     )
     assert request_point.value == 1
 
-    latency = metrics["headroom.proxy.request.duration"]
+    latency = metrics["copium.proxy.request.duration"]
     latency_point = _find_point(
         latency,
         provider="anthropic",
@@ -87,7 +87,7 @@ def test_headroom_otel_metrics_records_proxy_and_pipeline_metrics() -> None:
     assert latency_point.count == 1
     assert latency_point.sum == pytest.approx(0.0185)
 
-    ttl_tokens = metrics["headroom.proxy.cache.write_ttl_tokens"]
+    ttl_tokens = metrics["copium.proxy.cache.write_ttl_tokens"]
     five_minute_ttl = _find_point(
         ttl_tokens,
         provider="anthropic",
@@ -96,7 +96,7 @@ def test_headroom_otel_metrics_records_proxy_and_pipeline_metrics() -> None:
     )
     assert five_minute_ttl.value == 10
 
-    compression_runs = metrics["headroom.compression.runs"]
+    compression_runs = metrics["copium.compression.runs"]
     compression_point = _find_point(
         compression_runs,
         provider="anthropic",
@@ -104,7 +104,7 @@ def test_headroom_otel_metrics_records_proxy_and_pipeline_metrics() -> None:
     )
     assert compression_point.value == 1
 
-    stage_duration = metrics["headroom.compression.stage.duration"]
+    stage_duration = metrics["copium.compression.stage.duration"]
     router_stage = _find_point(
         stage_duration,
         provider="anthropic",
@@ -116,7 +116,7 @@ def test_headroom_otel_metrics_records_proxy_and_pipeline_metrics() -> None:
 
     assert len(stage_duration.data.data_points) == 1
 
-    waste_tokens = metrics["headroom.compression.waste.tokens"]
+    waste_tokens = metrics["copium.compression.waste.tokens"]
     waste_point = _find_point(
         waste_tokens,
         provider="anthropic",
@@ -166,18 +166,18 @@ def test_transform_pipeline_simulate_skips_metric_recording() -> None:
 def test_proxy_failure_and_rate_limit_metrics_include_provider_labels() -> None:
     reader = InMemoryMetricReader()
     provider = MeterProvider(metric_readers=[reader])
-    otel_metrics = HeadroomOtelMetrics(meter_provider=provider)
+    otel_metrics = CopiumOtelMetrics(meter_provider=provider)
 
     otel_metrics.record_proxy_failed(provider="openai")
     otel_metrics.record_proxy_rate_limited(provider="anthropic", model="claude-sonnet")
 
     metrics = _collect_metrics(reader)
 
-    failed_point = _find_point(metrics["headroom.proxy.requests.failed"], provider="openai")
+    failed_point = _find_point(metrics["copium.proxy.requests.failed"], provider="openai")
     assert failed_point.value == 1
 
     rate_limited_point = _find_point(
-        metrics["headroom.proxy.requests.rate_limited"],
+        metrics["copium.proxy.requests.rate_limited"],
         provider="anthropic",
         model="claude-sonnet",
     )

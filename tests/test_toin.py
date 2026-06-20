@@ -12,7 +12,7 @@ import time
 
 import pytest
 
-from headroom.telemetry import (
+from copium.telemetry import (
     TOINConfig,
     ToolIntelligenceNetwork,
     ToolPattern,
@@ -26,12 +26,12 @@ from headroom.telemetry import (
 def reset_globals(monkeypatch, tmp_path):
     """Reset global state before each test.
 
-    Also disables disk persistence by setting HEADROOM_TOIN_PATH to a temp file
-    to avoid loading stale data from ~/.headroom/toin.json.
+    Also disables disk persistence by setting COPIUM_TOIN_PATH to a temp file
+    to avoid loading stale data from ~/.copium/toin.json.
     """
     # Use a unique temp file for each test to avoid cross-test contamination
     temp_toin_path = str(tmp_path / "toin_test.json")
-    monkeypatch.setenv("HEADROOM_TOIN_PATH", temp_toin_path)
+    monkeypatch.setenv("COPIUM_TOIN_PATH", temp_toin_path)
     reset_toin()
     yield
     reset_toin()
@@ -153,7 +153,7 @@ class TestTOINConfig:
         config = TOINConfig()
 
         assert config.enabled is True
-        # Storage path comes from HEADROOM_TOIN_PATH env var (set by fixture) or default
+        # Storage path comes from COPIUM_TOIN_PATH env var (set by fixture) or default
         # Just verify it's a non-empty string
         assert isinstance(config.storage_path, str)
         assert len(config.storage_path) > 0

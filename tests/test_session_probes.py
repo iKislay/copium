@@ -2,7 +2,7 @@
 
 import json
 
-from headroom.evals.session_probes import (
+from copium.evals.session_probes import (
     DIMENSIONS,
     DimensionTally,
     extract_probe_targets,
@@ -15,7 +15,7 @@ ORIGINAL_TOOL_TEXT = (
     "Deploy summary\n"
     "retry_limit: 3\n"
     "port=8787\n"
-    "see headroom/proxy/server.py and https://example.com/build/42\n"
+    "see copium/proxy/server.py and https://example.com/build/42\n"
     "commit d293b77ab12\n"
     "ModuleNotFoundError: No module named 'left_pad'\n"
 )
@@ -57,12 +57,12 @@ class TestExtractProbeTargets:
 
     def test_extracts_artifacts(self):
         text = (
-            "path headroom/proxy/server.py url https://example.com/build/42 "
+            "path copium/proxy/server.py url https://example.com/build/42 "
             "hash d293b77ab12 id 123e4567-e89b-42d3-a456-426614174000"
         )
         targets = extract_probe_targets(text)
 
-        assert "headroom/proxy/server.py" in targets["artifacts"]
+        assert "copium/proxy/server.py" in targets["artifacts"]
         assert "https://example.com/build/42" in targets["artifacts"]
         assert "d293b77ab12" in targets["artifacts"]
         assert "123e4567-e89b-42d3-a456-426614174000" in targets["artifacts"]

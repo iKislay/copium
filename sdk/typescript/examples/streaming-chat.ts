@@ -1,12 +1,12 @@
 /**
  * Example 03: Streaming Chat with Compression
  *
- * Use withHeadroom with streamText for real-time streaming responses.
+ * Use withCopium with streamText for real-time streaming responses.
  * Compression happens before the stream starts — the LLM sees fewer tokens.
  *
  * Run: npx tsx examples/03-streaming-chat.ts
  */
-import { withHeadroom } from "headroom-ai/vercel-ai";
+import { withCopium } from "copium-ai/vercel-ai";
 import { openai } from "@ai-sdk/openai";
 import { streamText } from "ai";
 
@@ -54,7 +54,7 @@ function generateLargeDiff(): string {
 }
 
 async function main() {
-  const model = withHeadroom(openai("gpt-4o"));
+  const model = withCopium(openai("gpt-4o"));
 
   const result = streamText({
     model,

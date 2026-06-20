@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { HeadroomContextEngine } from "../src/engine.js";
+import { CopiumContextEngine } from "../src/engine.js";
 
-describe("HeadroomContextEngine", () => {
+describe("CopiumContextEngine", () => {
   it("normalizes pass-through assistant messages when no proxy is available", async () => {
-    const engine = new HeadroomContextEngine({ enabled: false });
+    const engine = new CopiumContextEngine({ enabled: false });
 
     const result = await engine.assemble({
       sessionId: "test-session",

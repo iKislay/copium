@@ -10,7 +10,7 @@ import sys
 
 import pytest
 
-from headroom.memory.tracker import (
+from copium.memory.tracker import (
     ComponentStats,
     MemoryReport,
     MemoryTracker,

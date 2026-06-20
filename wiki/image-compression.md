@@ -1,6 +1,6 @@
 # Image Compression
 
-Headroom automatically compresses images in your LLM requests, reducing token usage by **40-90%** while maintaining answer accuracy.
+Copium automatically compresses images in your LLM requests, reducing token usage by **40-90%** while maintaining answer accuracy.
 
 ## Overview
 
@@ -8,7 +8,7 @@ Vision models charge by the token, and images are expensive:
 - A 1024x1024 image costs ~765 tokens (OpenAI)
 - A 2048x2048 image costs ~2,900 tokens
 
-Headroom's image compression uses a **trained ML router** to analyze your query and automatically select the optimal compression technique:
+Copium's image compression uses a **trained ML router** to analyze your query and automatically select the optimal compression technique:
 
 | Technique | Savings | When Used |
 |-----------|---------|-----------|
@@ -40,11 +40,11 @@ User uploads image + asks question
 
 ## Quick Start
 
-### With Headroom Proxy (Zero Code Changes)
+### With Copium Proxy (Zero Code Changes)
 
 ```bash
 # Start the proxy
-headroom proxy --port 8787
+copium proxy --port 8787
 
 # Connect your client
 ANTHROPIC_BASE_URL=http://localhost:8787 claude
@@ -52,12 +52,12 @@ ANTHROPIC_BASE_URL=http://localhost:8787 claude
 
 Images are automatically compressed based on your queries.
 
-### With HeadroomClient
+### With CopiumClient
 
 ```python
-from headroom import HeadroomClient
+from copium import CopiumClient
 
-client = HeadroomClient(provider="openai")
+client = CopiumClient(provider="openai")
 
 response = client.chat.completions.create(
     model="gpt-4o",
@@ -75,7 +75,7 @@ response = client.chat.completions.create(
 ### Direct API
 
 ```python
-from headroom.image import ImageCompressor
+from copium.image import ImageCompressor
 
 compressor = ImageCompressor()
 
@@ -93,16 +93,16 @@ print(f"Technique: {compressor.last_result.technique.value}")
 
 ```bash
 # Enable image compression (default: true)
-headroom proxy --image-optimize
+copium proxy --image-optimize
 
 # Disable image compression
-headroom proxy --no-image-optimize
+copium proxy --no-image-optimize
 ```
 
 ### Programmatic Configuration
 
 ```python
-from headroom.image import ImageCompressor
+from copium.image import ImageCompressor
 
 compressor = ImageCompressor(
     model_id="chopratejas/technique-router",  # HuggingFace model
@@ -231,7 +231,7 @@ The HuggingFace model downloads on first use:
 import os
 os.environ["HF_HOME"] = "/path/to/cache"
 
-from headroom.image import ImageCompressor
+from copium.image import ImageCompressor
 compressor = ImageCompressor()
 ```
 
@@ -247,7 +247,7 @@ compressor = ImageCompressor(device="cpu")
 
 ```python
 # Proxy
-headroom proxy --no-image-optimize
+copium proxy --no-image-optimize
 
 # Direct
 # Simply don't call compress()

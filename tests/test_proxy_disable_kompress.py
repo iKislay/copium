@@ -6,8 +6,8 @@ import pytest
 
 pytest.importorskip("fastapi")
 
-from headroom.proxy.server import ProxyConfig, create_app
-from headroom.transforms import CompressionStrategy, ContentRouter
+from copium.proxy.server import ProxyConfig, create_app
+from copium.transforms import CompressionStrategy, ContentRouter
 
 
 def _proxy_router(config: ProxyConfig):

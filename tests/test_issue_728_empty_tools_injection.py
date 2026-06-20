@@ -15,8 +15,8 @@ from __future__ import annotations
 
 import pytest
 
-from headroom.ccr.tool_injection import CCR_TOOL_NAME
-from headroom.proxy.helpers import (
+from copium.ccr.tool_injection import CCR_TOOL_NAME
+from copium.proxy.helpers import (
     _reset_session_ccr_tracker_for_test,
     apply_session_sticky_ccr_tool,
 )
@@ -63,7 +63,7 @@ class TestHandlerGuardCondition:
     def test_ccr_injection_sets_body_tools(self):
         """When CCR injects a tool into an originally tool-free request → set body."""
         original_tools = None
-        from headroom.ccr.tool_injection import create_ccr_tool_definition
+        from copium.ccr.tool_injection import create_ccr_tool_definition
 
         tools_after_helpers = [create_ccr_tool_definition("openai")]
 
@@ -115,7 +115,7 @@ class TestCCRHelperNoToolsNoCompression:
 
     def test_no_double_injection_when_client_pre_registered_ccr_tool(self):
         """If the client already included the CCR tool, the helper must not duplicate it."""
-        from headroom.ccr.tool_injection import create_ccr_tool_definition
+        from copium.ccr.tool_injection import create_ccr_tool_definition
 
         existing = [create_ccr_tool_definition("openai")]
         tools_out, was_injected = apply_session_sticky_ccr_tool(

@@ -1,4 +1,4 @@
-"""PR-B5 acceptance tests for ``headroom.cli.toin_publish``.
+"""PR-B5 acceptance tests for ``copium.cli.toin_publish``.
 
 Pins:
 
@@ -6,7 +6,7 @@ Pins:
 2. Slices below ``--min-observations`` are filtered out.
 3. Rows include ``auth_mode``, ``model_family``, ``structure_hash``,
    ``strategy_hint``, ``confidence``, ``observations`` — the schema
-   ``crates/headroom-core/src/transforms/recommendations.rs`` consumes.
+   ``crates/copium-core/src/transforms/recommendations.rs`` consumes.
 4. The CLI entry point honors ``--output`` / ``--min-observations``.
 """
 
@@ -24,9 +24,9 @@ if sys.version_info >= (3, 11):
 else:  # pragma: no cover - only hit on Python 3.10
     import tomli as tomllib  # type: ignore[no-redef]
 
-from headroom.cli.toin_publish import main as publish_main
-from headroom.cli.toin_publish import publish
-from headroom.telemetry import (
+from copium.cli.toin_publish import main as publish_main
+from copium.cli.toin_publish import publish
+from copium.telemetry import (
     TOINConfig,
     ToolIntelligenceNetwork,
     ToolSignature,
@@ -195,12 +195,12 @@ def test_publish_rows_are_deterministically_sorted(
 
 
 def test_cli_entrypoint_writes_to_output_arg(tmp_path: Path, monkeypatch) -> None:
-    """`python -m headroom.cli.toin_publish --output X --min-observations N`."""
+    """`python -m copium.cli.toin_publish --output X --min-observations N`."""
     storage = tmp_path / "toin.json"
-    monkeypatch.setenv("HEADROOM_TOIN_PATH", str(storage))
+    monkeypatch.setenv("COPIUM_TOIN_PATH", str(storage))
 
     # Prime the global TOIN singleton with eligible data.
-    from headroom.telemetry.toin import get_toin, reset_toin
+    from copium.telemetry.toin import get_toin, reset_toin
 
     reset_toin()
     try:

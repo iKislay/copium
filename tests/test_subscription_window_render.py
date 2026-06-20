@@ -16,14 +16,14 @@ from typing import Any
 
 import pytest
 
-import headroom.subscription.tracker as tracker_module
-from headroom.subscription.models import (
+import copium.subscription.tracker as tracker_module
+from copium.subscription.models import (
     RateLimitWindow,
     SubscriptionSnapshot,
     WindowTokens,
     _utc_now,
 )
-from headroom.subscription.tracker import SubscriptionTracker
+from copium.subscription.tracker import SubscriptionTracker
 
 
 def _build_tracker(monkeypatch: pytest.MonkeyPatch) -> SubscriptionTracker:
@@ -315,7 +315,7 @@ def test_render_state_with_no_snapshot_returns_base_state(
 
 
 def test_synthesize_helper_handles_none_window() -> None:
-    from headroom.subscription.models import synthesize_window_render
+    from copium.subscription.models import synthesize_window_render
 
     out = synthesize_window_render(None, used_since_reset=None, window_duration=timedelta(hours=5))
     assert out["synthesized"] is False
@@ -327,7 +327,7 @@ def test_synthesize_helper_advances_reset_when_dashboard_long_after_reset(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """If now is multiple windows past resets_at, walk forward correctly."""
-    from headroom.subscription.models import synthesize_window_render
+    from copium.subscription.models import synthesize_window_render
 
     now = _utc_now()
     resets_at = now - timedelta(hours=12)  # 2.4 windows ago

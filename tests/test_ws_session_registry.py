@@ -12,7 +12,7 @@ import asyncio
 
 import pytest
 
-from headroom.proxy.ws_session_registry import (
+from copium.proxy.ws_session_registry import (
     WebSocketSessionRegistry,
     WSSessionHandle,
 )

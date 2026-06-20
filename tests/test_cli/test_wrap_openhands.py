@@ -1,4 +1,4 @@
-"""Tests for `headroom wrap openhands` command (PR-G1, Phase G)."""
+"""Tests for `copium wrap openhands` command (PR-G1, Phase G)."""
 
 from __future__ import annotations
 
@@ -8,8 +8,8 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 
-from headroom.cli import wrap as wrap_mod
-from headroom.cli.main import main
+from copium.cli import wrap as wrap_mod
+from copium.cli.main import main
 
 
 @pytest.fixture
@@ -24,7 +24,7 @@ def test_wrap_openhands_sets_provider_envs(
 ) -> None:
     """OPENAI_BASE_URL, ANTHROPIC_BASE_URL, LLM_BASE_URL are set on launch."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
 
     captured: dict[str, object] = {}
 
@@ -57,7 +57,7 @@ def test_wrap_openhands_injects_rtk_via_env_var(
 ) -> None:
     """OPENHANDS_INSTRUCTIONS env var must contain the RTK block at launch."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
     monkeypatch.delenv("OPENHANDS_INSTRUCTIONS", raising=False)
 
     captured: dict[str, object] = {}
@@ -85,7 +85,7 @@ def test_wrap_openhands_preserves_existing_openhands_instructions(
 ) -> None:
     """Pre-existing OPENHANDS_INSTRUCTIONS env content is preserved, rtk is appended."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
     monkeypatch.setenv("OPENHANDS_INSTRUCTIONS", "Prefer typed Python.")
 
     captured: dict[str, object] = {}
@@ -112,7 +112,7 @@ def test_wrap_openhands_idempotent_already_injected(
 ) -> None:
     """If OPENHANDS_INSTRUCTIONS already contains the marker, do not re-append."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
     pre_existing = "Prefer typed Python.\n\n" + wrap_mod.RTK_INSTRUCTIONS_BLOCK
     monkeypatch.setenv("OPENHANDS_INSTRUCTIONS", pre_existing)
 
@@ -139,7 +139,7 @@ def test_wrap_openhands_missing_binary_errors_clearly(
 ) -> None:
     """If the openhands binary is missing the command must fail with a clear error."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
 
     with patch.object(wrap_mod.shutil, "which", return_value=None):
         with patch.object(wrap_mod, "_ensure_rtk_binary", return_value=Path("/tmp/rtk")):
@@ -188,7 +188,7 @@ def test_wrap_openhands_rtk_install_failure_aborts_loudly(
 ) -> None:
     """If rtk install fails, command must exit non-zero with a clear error."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
     monkeypatch.delenv("OPENHANDS_INSTRUCTIONS", raising=False)
 
     launch_called: list[bool] = []
@@ -247,7 +247,7 @@ def test_wrap_openhands_keyboardinterrupt_during_prelude_emits_clear_message(
 ) -> None:
     """Ctrl-C during the prelude must signal cleanly with no on-disk artifact."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
     monkeypatch.delenv("OPENHANDS_INSTRUCTIONS", raising=False)
 
     with patch.object(wrap_mod, "_ensure_rtk_binary", side_effect=KeyboardInterrupt):

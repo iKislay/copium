@@ -2,14 +2,14 @@
 
 A "shim" is a tiny executable with a given name (e.g. `claude`, `codex`) that
 the harness drops into a temporary directory and prepends to PATH. It lets
-tests drive `headroom init` without requiring a real Claude/Codex install.
+tests drive `copium init` without requiring a real Claude/Codex install.
 
 Three behaviors are supported:
 
 * ``noop``         — exits 0 with no output. Default.
 * ``fail``         — exits 1 with a short stderr message.
 * ``record-args``  — appends a JSON record of (tool, argv, cwd) to the file at
-                     ``$HEADROOM_E2E_SHIM_LOG``, then exits 0. Useful for
+                     ``$COPIUM_E2E_SHIM_LOG``, then exits 0. Useful for
                      asserting that `init claude` invoked
                      `claude plugin install` with the right arguments.
 """
@@ -35,7 +35,7 @@ exit 1
 
 _RECORD_SH = """#!/usr/bin/env bash
 tool="${0##*/}"
-log="${HEADROOM_E2E_SHIM_LOG:-/dev/null}"
+log="${COPIUM_E2E_SHIM_LOG:-/dev/null}"
 mkdir -p "$(dirname "$log")" 2>/dev/null || true
 python3 - "$tool" "$log" "$@" <<'PY'
 import json, os, sys
@@ -57,8 +57,8 @@ _FAIL_CMD = "@echo off\r\necho %~n0: simulated failure 1>&2\r\nexit /b 1\r\n"
 _RECORD_CMD = (
     "@echo off\r\n"
     "setlocal\r\n"
-    'if "%HEADROOM_E2E_SHIM_LOG%"=="" set HEADROOM_E2E_SHIM_LOG=NUL\r\n'
-    "python -c \"import json,os,sys; name=r'%~n0'; log=os.environ['HEADROOM_E2E_SHIM_LOG']; "
+    'if "%COPIUM_E2E_SHIM_LOG%"=="" set COPIUM_E2E_SHIM_LOG=NUL\r\n'
+    "python -c \"import json,os,sys; name=r'%~n0'; log=os.environ['COPIUM_E2E_SHIM_LOG']; "
     "rec={'tool':name,'argv':sys.argv[1:],'cwd':os.getcwd()};\r\n"
     "open(log,'a',encoding='utf-8').write(json.dumps(rec)+chr(10)) if log!='NUL' else None;\r\n"
     "print(f'{name} shim executed')\" %*\r\n"

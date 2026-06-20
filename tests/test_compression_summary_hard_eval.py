@@ -27,8 +27,8 @@ pytestmark = pytest.mark.skipif(
     reason="ANTHROPIC_API_KEY not set",
 )
 
-HEADROOM_RETRIEVE_TOOL = {
-    "name": "headroom_retrieve",
+COPIUM_RETRIEVE_TOOL = {
+    "name": "copium_retrieve",
     "description": "Retrieve uncompressed content. Pass a query to search within it.",
     "input_schema": {
         "type": "object",
@@ -113,7 +113,7 @@ class TestHardCases:
             * 5
         )
 
-        from headroom.transforms.compression_summary import summarize_dropped_items
+        from copium.transforms.compression_summary import summarize_dropped_items
 
         summary = summarize_dropped_items(all_items, visible)
 
@@ -121,7 +121,7 @@ class TestHardCases:
         compressed_output += (
             f"\n[{len(all_items) - len(visible)} items compressed to {len(visible)}."
             f" Omitted: {summary}."
-            f' Retrieve specific items: headroom_retrieve(hash="config_hash", query="search")]'
+            f' Retrieve specific items: copium_retrieve(hash="config_hash", query="search")]'
         )
 
         messages = [
@@ -134,7 +134,7 @@ class TestHardCases:
             }
         ]
 
-        resp = _call_claude(messages, [HEADROOM_RETRIEVE_TOOL])
+        resp = _call_claude(messages, [COPIUM_RETRIEVE_TOOL])
         tool_calls = _get_tool_calls(resp)
         text = _get_text(resp)
 
@@ -146,7 +146,7 @@ class TestHardCases:
 
         # WITH summary mentioning "staging" → should retrieve
         if resp.get("stop_reason") == "tool_use":
-            assert tool_calls[0]["name"] == "headroom_retrieve"
+            assert tool_calls[0]["name"] == "copium_retrieve"
             query = tool_calls[0]["input"].get("query", "").lower()
             assert "staging" in query or "database" in query
             print("  RESULT: Retrieved staging config ✓")
@@ -176,7 +176,7 @@ class TestHardCases:
             }
         ]
 
-        resp = _call_claude(messages, [HEADROOM_RETRIEVE_TOOL])
+        resp = _call_claude(messages, [COPIUM_RETRIEVE_TOOL])
         tool_calls = _get_tool_calls(resp)
         text = _get_text(resp)
 
@@ -212,7 +212,7 @@ class TestHardCases:
             ]
         )
 
-        from headroom.transforms.compression_summary import summarize_dropped_items
+        from copium.transforms.compression_summary import summarize_dropped_items
 
         summary = summarize_dropped_items(all_items, visible)
 
@@ -220,7 +220,7 @@ class TestHardCases:
         compressed_output += (
             f"\n[{len(all_items) - len(visible)} items compressed to {len(visible)}."
             f" Omitted: {summary}."
-            f' Retrieve: headroom_retrieve(hash="users_hash", query="search")]'
+            f' Retrieve: copium_retrieve(hash="users_hash", query="search")]'
         )
 
         messages = [
@@ -233,7 +233,7 @@ class TestHardCases:
             }
         ]
 
-        resp = _call_claude(messages, [HEADROOM_RETRIEVE_TOOL])
+        resp = _call_claude(messages, [COPIUM_RETRIEVE_TOOL])
         tool_calls = _get_tool_calls(resp)
         text = _get_text(resp)
 

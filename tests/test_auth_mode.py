@@ -1,6 +1,6 @@
-"""Python parity tests for ``headroom.proxy.auth_mode.classify_auth_mode``.
+"""Python parity tests for ``copium.proxy.auth_mode.classify_auth_mode``.
 
-Mirrors the Rust matrix in ``crates/headroom-core/tests/auth_mode.rs``
+Mirrors the Rust matrix in ``crates/copium-core/tests/auth_mode.rs``
 byte-for-byte. The two implementations MUST agree on every header set
 covered here. Any divergence is a bug — we catch it at PR review by
 running both suites side by side.
@@ -12,7 +12,7 @@ import time
 
 import pytest
 
-from headroom.proxy.auth_mode import (
+from copium.proxy.auth_mode import (
     SUBSCRIPTION_UA_PREFIXES,
     AuthMode,
     classify_auth_mode,

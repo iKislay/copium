@@ -1,9 +1,9 @@
 ---
 title: Error Handling
-description: How to catch and handle Headroom errors in Python and TypeScript. Error hierarchy, proxy error mapping, and safety guarantees.
+description: How to catch and handle Copium errors in Python and TypeScript. Error hierarchy, proxy error mapping, and safety guarantees.
 ---
 
-Headroom provides explicit exceptions for debugging, with a core safety guarantee: **compression failures never break your LLM calls**. If compression fails, the original content passes through unchanged.
+Copium provides explicit exceptions for debugging, with a core safety guarantee: **compression failures never break your LLM calls**. If compression fails, the original content passes through unchanged.
 
 ## Error Hierarchy
 
@@ -11,10 +11,10 @@ Headroom provides explicit exceptions for debugging, with a core safety guarante
 <Tab value="TypeScript">
 
 ```
-HeadroomError (base class)
-  +-- HeadroomConnectionError   # Cannot reach proxy
-  +-- HeadroomAuthError         # 401 from proxy
-  +-- HeadroomCompressError     # Compression failed (with statusCode)
+CopiumError (base class)
+  +-- CopiumConnectionError   # Cannot reach proxy
+  +-- CopiumAuthError         # 401 from proxy
+  +-- CopiumCompressError     # Compression failed (with statusCode)
   +-- ConfigurationError        # Invalid configuration
   +-- ProviderError             # Provider issues
   +-- StorageError              # Storage failures
@@ -26,21 +26,21 @@ HeadroomError (base class)
 
 ```ts twoslash
 import {
-  HeadroomError,
-  HeadroomConnectionError,
-  HeadroomAuthError,
-  HeadroomCompressError,
+  CopiumError,
+  CopiumConnectionError,
+  CopiumAuthError,
+  CopiumCompressError,
   ConfigurationError,
   ProviderError,
   mapProxyError,
-} from 'headroom-ai';
+} from 'copium-ai';
 ```
 
 </Tab>
 <Tab value="Python">
 
 ```
-HeadroomError (base class)
+CopiumError (base class)
   +-- ConfigurationError     # Invalid configuration
   +-- ProviderError          # Provider issues (unknown model, etc.)
   +-- StorageError           # Database/storage failures
@@ -49,8 +49,8 @@ HeadroomError (base class)
 ```
 
 ```python
-from headroom import (
-    HeadroomError,
+from copium import (
+    CopiumError,
     ConfigurationError,
     ProviderError,
     StorageError,
@@ -68,19 +68,19 @@ from headroom import (
 <Tab value="TypeScript">
 
 ```ts twoslash
-import { compress, HeadroomConnectionError, HeadroomAuthError, HeadroomCompressError, HeadroomError } from 'headroom-ai';
+import { compress, CopiumConnectionError, CopiumAuthError, CopiumCompressError, CopiumError } from 'copium-ai';
 
 try {
   const result = await compress(messages, { model: 'gpt-4o' });
 } catch (e) {
-  if (e instanceof HeadroomConnectionError) {
+  if (e instanceof CopiumConnectionError) {
     console.error('Cannot reach proxy:', e.message);
-  } else if (e instanceof HeadroomAuthError) {
+  } else if (e instanceof CopiumAuthError) {
     console.error('Auth failed:', e.message);
-  } else if (e instanceof HeadroomCompressError) {
+  } else if (e instanceof CopiumCompressError) {
     console.error(`Compress failed (${e.statusCode}):`, e.message);
-  } else if (e instanceof HeadroomError) {
-    console.error('Headroom error:', e.message, e.details);
+  } else if (e instanceof CopiumError) {
+    console.error('Copium error:', e.message, e.details);
   }
 }
 ```
@@ -89,15 +89,15 @@ try {
 <Tab value="Python">
 
 ```python
-from headroom import (
-    HeadroomClient,
-    HeadroomError,
+from copium import (
+    CopiumClient,
+    CopiumError,
     ConfigurationError,
     StorageError,
 )
 
 try:
-    client = HeadroomClient(...)
+    client = CopiumClient(...)
     response = client.chat.completions.create(...)
 
 except ConfigurationError as e:
@@ -106,10 +106,10 @@ except ConfigurationError as e:
 
 except StorageError as e:
     print(f"Storage issue: {e}")
-    # Headroom continues to work, just without metrics persistence
+    # Copium continues to work, just without metrics persistence
 
-except HeadroomError as e:
-    print(f"Headroom error: {e}")
+except CopiumError as e:
+    print(f"Copium error: {e}")
 ```
 
 </Tab>
@@ -124,7 +124,7 @@ Raised when configuration is invalid.
 <Tabs groupId="lang" items={['TypeScript', 'Python']}>
 <Tab value="TypeScript">
 ```ts twoslash
-import { ConfigurationError } from 'headroom-ai';
+import { ConfigurationError } from 'copium-ai';
 
 // ConfigurationError is thrown when the proxy returns
 // a configuration_error type in its error response
@@ -133,7 +133,7 @@ import { ConfigurationError } from 'headroom-ai';
 <Tab value="Python">
 ```python
 try:
-    client = HeadroomClient(
+    client = CopiumClient(
         original_client=OpenAI(),
         provider=OpenAIProvider(),
         default_mode="invalid_mode",  # Will raise ConfigurationError
@@ -175,18 +175,18 @@ except StorageError as e:
 
 Raised when compression fails (rare). In practice, compression errors are caught internally and the original content passes through unchanged. This exception is only raised in strict mode.
 
-### HeadroomConnectionError (TypeScript)
+### CopiumConnectionError (TypeScript)
 
-Raised when the TypeScript SDK cannot connect to the Headroom proxy.
+Raised when the TypeScript SDK cannot connect to the Copium proxy.
 
 ```ts twoslash
-import { compress, HeadroomConnectionError } from 'headroom-ai';
+import { compress, CopiumConnectionError } from 'copium-ai';
 
 try {
   await compress(messages, { model: 'gpt-4o' });
 } catch (e) {
-  if (e instanceof HeadroomConnectionError) {
-    console.error('Is the proxy running? Start with: headroom proxy');
+  if (e instanceof CopiumConnectionError) {
+    console.error('Is the proxy running? Start with: copium proxy');
   }
 }
 ```
@@ -197,19 +197,19 @@ The TypeScript SDK automatically maps proxy error responses to the correct error
 
 | HTTP Status | Proxy Error Type | TypeScript Class |
 |-------------|-----------------|-----------------|
-| 401 | -- | `HeadroomAuthError` |
+| 401 | -- | `CopiumAuthError` |
 | 4xx/5xx | `configuration_error` | `ConfigurationError` |
 | 4xx/5xx | `provider_error` | `ProviderError` |
 | 4xx/5xx | `storage_error` | `StorageError` |
 | 4xx/5xx | `tokenization_error` | `TokenizationError` |
 | 4xx/5xx | `validation_error` | `ValidationError` |
 | 4xx/5xx | `transform_error` | `TransformError` |
-| 4xx/5xx | (other) | `HeadroomCompressError` |
+| 4xx/5xx | (other) | `CopiumCompressError` |
 
 The `mapProxyError()` function handles this mapping:
 
 ```ts twoslash
-import { mapProxyError } from 'headroom-ai';
+import { mapProxyError } from 'copium-ai';
 
 const error = mapProxyError(400, 'configuration_error', 'Invalid mode');
 // Returns a ConfigurationError instance
@@ -217,22 +217,22 @@ const error = mapProxyError(400, 'configuration_error', 'Invalid mode');
 
 ## Error Details
 
-All Headroom exceptions include a `details` dict/object with additional context:
+All Copium exceptions include a `details` dict/object with additional context:
 
 <Tabs groupId="lang" items={['TypeScript', 'Python']}>
 <Tab value="TypeScript">
 ```ts twoslash
-import { HeadroomError } from 'headroom-ai';
+import { CopiumError } from 'copium-ai';
 
-// HeadroomError.details is Record<string, any> | undefined
-// HeadroomCompressError also has .statusCode and .errorType
+// CopiumError.details is Record<string, any> | undefined
+// CopiumCompressError also has .statusCode and .errorType
 ```
 </Tab>
 <Tab value="Python">
 ```python
 try:
-    client = HeadroomClient(...)
-except HeadroomError as e:
+    client = CopiumClient(...)
+except CopiumError as e:
     print(f"Error: {e}")
     print(f"Type: {type(e).__name__}")
     print(f"Details: {e.details}")
@@ -247,7 +247,7 @@ except HeadroomError as e:
 
 ## Safety Guarantee
 
-If compression fails, the original content passes through unchanged. Your LLM calls never fail due to Headroom:
+If compression fails, the original content passes through unchanged. Your LLM calls never fail due to Copium:
 
 ```python
 messages = [
@@ -272,5 +272,5 @@ response = client.chat.completions.create(
 ```python
 import logging
 logging.basicConfig(level=logging.WARNING)
-# WARNING:headroom.transforms.smart_crusher:Skipping compression: invalid JSON
+# WARNING:copium.transforms.smart_crusher:Skipping compression: invalid JSON
 ```

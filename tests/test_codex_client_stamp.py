@@ -8,7 +8,7 @@ fail-open path instead of being refused with a 413 on a compression timeout.
 
 from __future__ import annotations
 
-from headroom.proxy.auth_mode import classify_client, should_stamp_codex_client
+from copium.proxy.auth_mode import classify_client, should_stamp_codex_client
 
 CODEX_DESKTOP_UA = (
     "Codex Desktop/0.140.0-alpha.2 (Mac OS 15.7.7; arm64) unknown (Codex Desktop; 26.609.71450)"

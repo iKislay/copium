@@ -1,12 +1,12 @@
 /**
  * Example 10: Middleware Composition
  *
- * Combine headroomMiddleware with other Vercel AI SDK middlewares.
- * Headroom compresses first, then other middlewares process the result.
+ * Combine copiumMiddleware with other Vercel AI SDK middlewares.
+ * Copium compresses first, then other middlewares process the result.
  *
  * Run: npx tsx examples/10-middleware-composition.ts
  */
-import { headroomMiddleware } from "headroom-ai/vercel-ai";
+import { copiumMiddleware } from "copium-ai/vercel-ai";
 import { openai } from "@ai-sdk/openai";
 import { generateText, wrapLanguageModel, extractReasoningMiddleware } from "ai";
 
@@ -28,7 +28,7 @@ async function main() {
   const model = wrapLanguageModel({
     model: openai("gpt-4o"),
     middleware: [
-      headroomMiddleware(), // compress large context
+      copiumMiddleware(), // compress large context
       extractReasoningMiddleware({ tagName: "think" }), // extract chain-of-thought
     ],
   });

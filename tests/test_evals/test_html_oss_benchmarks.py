@@ -34,7 +34,7 @@ class TestExtractionBenchmark:
 
     @pytest.fixture
     def extractor(self):
-        from headroom.transforms.html_extractor import HTMLExtractor
+        from copium.transforms.html_extractor import HTMLExtractor
 
         return HTMLExtractor()
 
@@ -55,7 +55,7 @@ class TestExtractionBenchmark:
     def test_extraction_f1_quick(self, extractor):
         """Quick test: evaluate on 10 samples."""
         pytest.importorskip("datasets")
-        from headroom.evals.html_oss_benchmarks import evaluate_scrapinghub_benchmark
+        from copium.evals.html_oss_benchmarks import evaluate_scrapinghub_benchmark
 
         result = evaluate_scrapinghub_benchmark(
             extractor=extractor,
@@ -77,7 +77,7 @@ class TestExtractionBenchmark:
     def test_extraction_f1_medium(self, extractor):
         """Medium test: evaluate on 50 samples."""
         pytest.importorskip("datasets")
-        from headroom.evals.html_oss_benchmarks import evaluate_scrapinghub_benchmark
+        from copium.evals.html_oss_benchmarks import evaluate_scrapinghub_benchmark
 
         result = evaluate_scrapinghub_benchmark(
             extractor=extractor,
@@ -99,7 +99,7 @@ class TestExtractionBenchmark:
     def test_extraction_f1_full(self, extractor):
         """Full test: evaluate on all 181 samples."""
         pytest.importorskip("datasets")
-        from headroom.evals.html_oss_benchmarks import evaluate_scrapinghub_benchmark
+        from copium.evals.html_oss_benchmarks import evaluate_scrapinghub_benchmark
 
         result = evaluate_scrapinghub_benchmark(
             extractor=extractor,
@@ -120,7 +120,7 @@ class TestExtractionBenchmark:
     def test_compression_achieved(self, extractor):
         """Verify we achieve meaningful compression."""
         pytest.importorskip("datasets")
-        from headroom.evals.html_oss_benchmarks import evaluate_scrapinghub_benchmark
+        from copium.evals.html_oss_benchmarks import evaluate_scrapinghub_benchmark
 
         result = evaluate_scrapinghub_benchmark(
             extractor=extractor,
@@ -141,7 +141,7 @@ class TestMetrics:
     """Tests for evaluation metrics."""
 
     def test_f1_computation(self):
-        from headroom.evals.html_oss_benchmarks import compute_f1
+        from copium.evals.html_oss_benchmarks import compute_f1
 
         # Perfect match
         p, r, f1 = compute_f1("hello world", "hello world")
@@ -156,7 +156,7 @@ class TestMetrics:
         assert f1 == 0.0
 
     def test_exact_match(self):
-        from headroom.evals.html_oss_benchmarks import compute_exact_match
+        from copium.evals.html_oss_benchmarks import compute_exact_match
 
         assert compute_exact_match("hello world", "Hello World") is True
         assert compute_exact_match("hello", "hello world") is False
@@ -199,7 +199,7 @@ Answer:"""
     def test_qa_accuracy_squad_quick(self, answer_fn):
         """Quick QA accuracy test on 10 SQuAD questions."""
         pytest.importorskip("datasets")
-        from headroom.evals.html_oss_benchmarks import evaluate_qa_accuracy_preservation
+        from copium.evals.html_oss_benchmarks import evaluate_qa_accuracy_preservation
 
         result = evaluate_qa_accuracy_preservation(
             answer_fn=answer_fn,
@@ -221,7 +221,7 @@ Answer:"""
     def test_qa_accuracy_squad_medium(self, answer_fn):
         """Medium QA accuracy test on 30 SQuAD questions."""
         pytest.importorskip("datasets")
-        from headroom.evals.html_oss_benchmarks import evaluate_qa_accuracy_preservation
+        from copium.evals.html_oss_benchmarks import evaluate_qa_accuracy_preservation
 
         result = evaluate_qa_accuracy_preservation(
             answer_fn=answer_fn,
@@ -268,7 +268,7 @@ Answer concisely:"""
     def test_full_suite(self, answer_fn):
         """Run the complete benchmark suite."""
         pytest.importorskip("datasets")
-        from headroom.evals.html_oss_benchmarks import run_full_benchmark_suite
+        from copium.evals.html_oss_benchmarks import run_full_benchmark_suite
 
         result = run_full_benchmark_suite(
             answer_fn=answer_fn,
@@ -314,7 +314,7 @@ class TestBenchmarkInfrastructure:
 
     def test_result_classes(self):
         """Test result dataclasses work correctly."""
-        from headroom.evals.html_oss_benchmarks import (
+        from copium.evals.html_oss_benchmarks import (
             ExtractionBenchmarkResult,
             QAAccuracyResult,
         )
@@ -343,7 +343,7 @@ class TestBenchmarkInfrastructure:
 
     def test_suite_all_passed(self):
         """Test suite pass/fail logic."""
-        from headroom.evals.html_oss_benchmarks import (
+        from copium.evals.html_oss_benchmarks import (
             ExtractionBenchmarkResult,
             HTMLExtractorBenchmarkSuite,
             QAAccuracyResult,

@@ -136,7 +136,7 @@ class TestAcceptEncodingStripping:
             "authorization": "Bearer sk-test",
             "content-type": "application/json",
             "accept-encoding": "gzip, br, zstd",
-            "host": "headroom.example.com",
+            "host": "copium.example.com",
             "content-length": "123",
         }
 
@@ -155,7 +155,7 @@ class TestAcceptEncodingStripping:
             "content-type": "application/json",
             "accept-encoding": "gzip, br",
             "x-custom": "value",
-            "host": "headroom.example.com",
+            "host": "copium.example.com",
             "content-length": "42",
         }
 

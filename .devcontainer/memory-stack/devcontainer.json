@@ -1,5 +1,5 @@
 {
-  "name": "Headroom (memory stack)",
+  "name": "Copium (memory stack)",
   "dockerComposeFile": [
     "../docker-compose.memory.yml"
   ],
@@ -34,7 +34,7 @@
   ],
   "portsAttributes": {
     "8787": {
-      "label": "Headroom proxy",
+      "label": "Copium proxy",
       "onAutoForward": "notify"
     },
     "6333": {
@@ -69,7 +69,7 @@
         "editor.formatOnSave": true,
         "files.eol": "\n",
         "python.analysis.typeCheckingMode": "basic",
-        "python.defaultInterpreterPath": "/home/vscode/.venvs/headroom-memory/bin/python",
+        "python.defaultInterpreterPath": "/home/vscode/.venvs/copium-memory/bin/python",
         "python.terminal.activateEnvironment": false,
         "python.testing.pytestArgs": [
           "tests"

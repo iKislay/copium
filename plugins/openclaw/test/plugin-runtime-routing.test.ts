@@ -4,13 +4,13 @@ const mocked = vi.hoisted(() => ({
   ensureProxyUrl: vi.fn(async () => "http://127.0.0.1:8787"),
   ensureProxyStarted: vi.fn(),
   getProxyUrl: vi.fn(() => null as string | null),
-  createHeadroomRetrieveTool: vi.fn(({ proxyUrl }: { proxyUrl: string }) => ({ proxyUrl })),
+  createCopiumRetrieveTool: vi.fn(({ proxyUrl }: { proxyUrl: string }) => ({ proxyUrl })),
 }));
 
 const proxyReadyListeners: Array<(proxyUrl: string) => void | Promise<void>> = [];
 
 vi.mock("../src/engine.js", () => ({
-  HeadroomContextEngine: class {
+  CopiumContextEngine: class {
     ensureProxyUrl = mocked.ensureProxyUrl;
     ensureProxyStarted = mocked.ensureProxyStarted;
     getProxyUrl = mocked.getProxyUrl;
@@ -21,21 +21,21 @@ vi.mock("../src/engine.js", () => ({
   },
 }));
 
-vi.mock("../src/tools/headroom-retrieve.js", () => ({
-  createHeadroomRetrieveTool: mocked.createHeadroomRetrieveTool,
+vi.mock("../src/tools/copium-retrieve.js", () => ({
+  createCopiumRetrieveTool: mocked.createCopiumRetrieveTool,
 }));
 
-import headroomPlugin from "../src/plugin/index.js";
+import copiumPlugin from "../src/plugin/index.js";
 
 afterEach(() => {
   mocked.ensureProxyUrl.mockClear();
   mocked.ensureProxyStarted.mockClear();
   mocked.getProxyUrl.mockClear();
-  mocked.createHeadroomRetrieveTool.mockClear();
+  mocked.createCopiumRetrieveTool.mockClear();
   proxyReadyListeners.length = 0;
 });
 
-describe("headroomPlugin runtime routing", () => {
+describe("copiumPlugin runtime routing", () => {
   it("routes configured providers in memory once the proxy becomes available", async () => {
     const gatewayHandlers = new Map<string, () => Promise<void>>();
     const writeConfigFile = vi.fn();
@@ -53,7 +53,7 @@ describe("headroomPlugin runtime routing", () => {
       config: {
         plugins: {
           entries: {
-            headroom: {
+            copium: {
               config: {
                 gatewayProviderIds: ["codex", "claude", "copilot", "gemini", "openrouter"],
               },
@@ -97,7 +97,7 @@ describe("headroomPlugin runtime routing", () => {
       },
     };
 
-    headroomPlugin(api);
+    copiumPlugin(api);
     await Promise.resolve();
 
     expect(mocked.ensureProxyUrl).not.toHaveBeenCalled();

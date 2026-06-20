@@ -1,9 +1,9 @@
 ---
 title: Architecture
-description: How Headroom's three-stage compression pipeline works, from message parsing through transform execution to provider cache optimization.
+description: How Copium's three-stage compression pipeline works, from message parsing through transform execution to provider cache optimization.
 ---
 
-Headroom sits between your application and the LLM provider. It intercepts messages, compresses them intelligently, and forwards the optimized request. The response comes back unchanged.
+Copium sits between your application and the LLM provider. It intercepts messages, compresses them intelligently, and forwards the optimized request. The response comes back unchanged.
 
 ## High-Level Flow
 
@@ -14,7 +14,7 @@ Headroom sits between your application and the LLM provider. It intercepts messa
                                |
                                v
 +---------------------------------------------------------------+
-|                      HEADROOM CLIENT                          |
+|                      COPIUM CLIENT                          |
 |  +-----------+   +------------+   +---------+                 |
 |  |  ANALYZE  | > |  TRANSFORM | > |  CALL   |                 |
 |  |  (Parser) |   |  (Pipeline)|   |  (API)  |                 |
@@ -33,12 +33,12 @@ Headroom sits between your application and the LLM provider. It intercepts messa
 
 ## Entry Points
 
-Headroom can be used in three ways, all feeding into the same pipeline:
+Copium can be used in three ways, all feeding into the same pipeline:
 
 | Entry Point | How It Works | Code Changes |
 |-------------|-------------|--------------|
-| **SDK Mode** | Wrap your LLM client with `HeadroomClient` | Minimal -- swap client constructor |
-| **Proxy Mode** | Run `headroom proxy` and point your client at it | Zero -- just change the base URL |
+| **SDK Mode** | Wrap your LLM client with `CopiumClient` | Minimal -- swap client constructor |
+| **Proxy Mode** | Run `copium proxy` and point your client at it | Zero -- just change the base URL |
 | **Integrations** | LangChain, Vercel AI SDK, Agno adapters | Framework-specific setup |
 
 ## The Transform Pipeline
@@ -98,7 +98,7 @@ Overhead: sub-millisecond for Rolling Window; depends on scoring config for Inte
 
 ## Provider Cache Optimization
 
-After the pipeline, Headroom applies provider-specific cache hints:
+After the pipeline, Copium applies provider-specific cache hints:
 
 | Provider | Mechanism | Savings |
 |----------|-----------|---------|
@@ -122,7 +122,7 @@ TOIN learns compression patterns across sessions and users. When a tool is used 
 
 Cold start: For new tool types, TOIN falls back to statistical heuristics. Patterns build up over time as tools are used.
 
-## What Headroom Does NOT Touch
+## What Copium Does NOT Touch
 
 - **User messages**: Never compressed (the user's intent must be preserved exactly)
 - **System prompts**: Content preserved; only dynamic parts are relocated for caching

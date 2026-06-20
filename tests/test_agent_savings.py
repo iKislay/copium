@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import pytest
 from click.testing import CliRunner
 
-from headroom.agent_savings import (
+from copium.agent_savings import (
     AGENT_90_PROFILE,
     apply_agent_savings_env_defaults,
     apply_agent_savings_profile,
@@ -15,22 +15,22 @@ from headroom.agent_savings import (
     proxy_pipeline_kwargs,
     with_target_savings,
 )
-from headroom.cli import wrap as wrap_module
-from headroom.cli.main import main
-from headroom.compress import CompressConfig, compress
-from headroom.proxy.models import ProxyConfig
-from headroom.transforms.compression_units import (
+from copium.cli import wrap as wrap_module
+from copium.cli.main import main
+from copium.compress import CompressConfig, compress
+from copium.proxy.models import ProxyConfig
+from copium.transforms.compression_units import (
     CompressionUnit,
     compress_unit_with_router,
 )
-from headroom.transforms.content_router import (
+from copium.transforms.content_router import (
     CompressionStrategy,
     ContentRouter,
     ContentRouterConfig,
     RouterCompressionResult,
 )
 
-compress_module = import_module("headroom.compress")
+compress_module = import_module("copium.compress")
 
 
 def test_agent_90_profile_sets_accuracy_preserving_compress_config() -> None:
@@ -51,30 +51,30 @@ def test_agent_90_profile_exports_cross_agent_proxy_env() -> None:
 
     env = profile.proxy_env()
 
-    assert env["HEADROOM_MODE"] == "token"
-    assert env["HEADROOM_SAVINGS_PROFILE"] == "agent-90"
-    assert env["HEADROOM_SAVINGS_TARGET"] == "0.90"
-    assert env["HEADROOM_TARGET_RATIO"] == "0.10"
-    assert env["HEADROOM_COMPRESS_USER_MESSAGES"] == "1"
-    assert env["HEADROOM_COMPRESS_SYSTEM_MESSAGES"] == "1"
-    assert env["HEADROOM_MAX_ITEMS"] == "8"
-    assert env["HEADROOM_SMART_CRUSHER_COMPACTION"] == "0"
-    assert env["HEADROOM_FORCE_KOMPRESS"] == "1"
-    assert env["HEADROOM_ACCURACY_GUARD"] == "strict"
+    assert env["COPIUM_MODE"] == "token"
+    assert env["COPIUM_SAVINGS_PROFILE"] == "agent-90"
+    assert env["COPIUM_SAVINGS_TARGET"] == "0.90"
+    assert env["COPIUM_TARGET_RATIO"] == "0.10"
+    assert env["COPIUM_COMPRESS_USER_MESSAGES"] == "1"
+    assert env["COPIUM_COMPRESS_SYSTEM_MESSAGES"] == "1"
+    assert env["COPIUM_MAX_ITEMS"] == "8"
+    assert env["COPIUM_SMART_CRUSHER_COMPACTION"] == "0"
+    assert env["COPIUM_FORCE_KOMPRESS"] == "1"
+    assert env["COPIUM_ACCURACY_GUARD"] == "strict"
 
 
 def test_agent_savings_env_defaults_preserve_user_overrides() -> None:
     env = {
-        "HEADROOM_TARGET_RATIO": "0.25",
-        "HEADROOM_MAX_ITEMS": "12",
+        "COPIUM_TARGET_RATIO": "0.25",
+        "COPIUM_MAX_ITEMS": "12",
     }
 
     apply_agent_savings_env_defaults(env, AGENT_90_PROFILE)
 
-    assert env["HEADROOM_SAVINGS_PROFILE"] == "agent-90"
-    assert env["HEADROOM_TARGET_RATIO"] == "0.25"
-    assert env["HEADROOM_MAX_ITEMS"] == "12"
-    assert env["HEADROOM_SMART_CRUSHER_COMPACTION"] == "0"
+    assert env["COPIUM_SAVINGS_PROFILE"] == "agent-90"
+    assert env["COPIUM_TARGET_RATIO"] == "0.25"
+    assert env["COPIUM_MAX_ITEMS"] == "12"
+    assert env["COPIUM_SMART_CRUSHER_COMPACTION"] == "0"
 
 
 def test_unknown_agent_savings_profile_lists_valid_profiles() -> None:
@@ -93,9 +93,9 @@ def test_agent_savings_cli_renders_shell_exports() -> None:
     result = CliRunner().invoke(main, ["agent-savings", "--profile", "agent-90"])
 
     assert result.exit_code == 0
-    assert 'export HEADROOM_SAVINGS_PROFILE="agent-90"' in result.output
-    assert 'export HEADROOM_SAVINGS_TARGET="0.90"' in result.output
-    assert 'export HEADROOM_ACCURACY_GUARD="strict"' in result.output
+    assert 'export COPIUM_SAVINGS_PROFILE="agent-90"' in result.output
+    assert 'export COPIUM_SAVINGS_TARGET="0.90"' in result.output
+    assert 'export COPIUM_ACCURACY_GUARD="strict"' in result.output
 
 
 def test_agent_savings_cli_renders_json() -> None:
@@ -105,7 +105,7 @@ def test_agent_savings_cli_renders_json() -> None:
     )
 
     assert result.exit_code == 0
-    assert '"HEADROOM_TARGET_RATIO": "0.10"' in result.output
+    assert '"COPIUM_TARGET_RATIO": "0.10"' in result.output
 
 
 def test_compress_applies_agent_savings_profile_to_pipeline(monkeypatch) -> None:
@@ -332,11 +332,11 @@ def test_proxy_cli_reads_agent_90_profile_env() -> None:
 
     runner = CliRunner()
     with pytest.MonkeyPatch.context() as mp:
-        mp.setattr("headroom.proxy.server.run_server", mock_run_server)
+        mp.setattr("copium.proxy.server.run_server", mock_run_server)
         result = runner.invoke(
             main,
             ["proxy"],
-            env={"HEADROOM_SAVINGS_PROFILE": "agent-90"},
+            env={"COPIUM_SAVINGS_PROFILE": "agent-90"},
             catch_exceptions=False,
         )
 
@@ -392,7 +392,7 @@ def test_agent_savings_check_perf_and_accuracy_report_passes(
     monkeypatch,
     tmp_path,
 ) -> None:
-    from headroom.perf import analyzer
+    from copium.perf import analyzer
 
     monkeypatch.setattr(analyzer, "parse_log_files", lambda last_n_hours: object())
     monkeypatch.setattr(
@@ -424,7 +424,7 @@ def test_agent_savings_accuracy_report_below_threshold_fails(
     monkeypatch,
     tmp_path,
 ) -> None:
-    from headroom.perf import analyzer
+    from copium.perf import analyzer
 
     monkeypatch.setattr(analyzer, "parse_log_files", lambda last_n_hours: object())
     monkeypatch.setattr(
@@ -452,8 +452,8 @@ def test_agent_savings_accuracy_report_below_threshold_fails(
 
 
 def test_agent_savings_requires_each_agent_to_meet_target(monkeypatch) -> None:
-    from headroom.perf import analyzer
-    from headroom.perf.analyzer import PerfRecord, PerfReport
+    from copium.perf import analyzer
+    from copium.perf.analyzer import PerfRecord, PerfReport
 
     report = PerfReport(
         perf_records=[
@@ -505,8 +505,8 @@ def test_agent_savings_requires_each_agent_to_meet_target(monkeypatch) -> None:
 
 
 def test_agent_savings_required_agent_missing_fails(monkeypatch) -> None:
-    from headroom.perf import analyzer
-    from headroom.perf.analyzer import PerfRecord, PerfReport
+    from copium.perf import analyzer
+    from copium.perf.analyzer import PerfRecord, PerfReport
 
     report = PerfReport(
         perf_records=[
@@ -583,7 +583,7 @@ def test_agent_savings_smoke_fixture_passes_real_gate(tmp_path) -> None:
             "--accuracy-report",
             str(workspace / "agent-90-eval.json"),
         ],
-        env={"HEADROOM_WORKSPACE_DIR": str(workspace)},
+        env={"COPIUM_WORKSPACE_DIR": str(workspace)},
     )
 
     assert gate_result.exit_code == 0, gate_result.output

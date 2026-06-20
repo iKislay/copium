@@ -10,7 +10,7 @@ import threading
 
 import pytest
 
-from headroom.transforms.code_compressor import (
+from copium.transforms.code_compressor import (
     _check_tree_sitter_available,
     _get_parser,
     is_tree_sitter_loaded,
@@ -19,7 +19,7 @@ from headroom.transforms.code_compressor import (
 
 pytestmark = pytest.mark.skipif(
     not _check_tree_sitter_available(),
-    reason="tree-sitter not installed (pip install headroom-ai[code])",
+    reason="tree-sitter not installed (pip install copium-ai[code])",
 )
 
 PYTHON_CODE = "def hello():\n    return 42\n"

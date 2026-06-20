@@ -17,8 +17,8 @@ from dataclasses import dataclass
 
 import pytest
 
-from headroom.compression.detector import ContentType
-from headroom.compression.universal import (
+from copium.compression.detector import ContentType
+from copium.compression.universal import (
     CompressionResult,
     UniversalCompressor,
     UniversalCompressorConfig,
@@ -36,8 +36,8 @@ GITHUB_SEARCH_RESPONSE = json.dumps(
             {
                 "id": 12345678,
                 "node_id": "MDEwOlJlcG9zaXRvcnkxMjM0NTY3OA==",
-                "name": "headroom",
-                "full_name": "anthropic/headroom",
+                "name": "copium",
+                "full_name": "anthropic/copium",
                 "private": False,
                 "owner": {
                     "login": "anthropic",
@@ -47,7 +47,7 @@ GITHUB_SEARCH_RESPONSE = json.dumps(
                 },
                 "description": "Context optimization layer for LLM applications with intelligent compression and caching",
                 "fork": False,
-                "url": "https://api.github.com/repos/anthropic/headroom",
+                "url": "https://api.github.com/repos/anthropic/copium",
                 "created_at": "2024-01-15T10:30:00Z",
                 "updated_at": "2024-06-20T15:45:00Z",
                 "pushed_at": "2024-06-20T14:30:00Z",
@@ -1111,7 +1111,7 @@ class TestMultiToolAgentScenario:
 
         # Verify key information is still accessible
         # JSON: Can see repository names and keys
-        assert "headroom" in results[0].compressed
+        assert "copium" in results[0].compressed
         assert "stargazers_count" in results[0].compressed
 
         # Code: Can see function signatures

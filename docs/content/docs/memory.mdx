@@ -11,7 +11,7 @@ This is **temporal compression** -- instead of carrying 10,000 tokens of convers
 
 ```python
 from openai import OpenAI
-from headroom import with_memory
+from copium import with_memory
 
 # One line -- that's it
 client = with_memory(OpenAI(), user_id="alice")
@@ -57,7 +57,7 @@ Memories exist at four scope levels, from broadest to narrowest:
 
 ```python
 from openai import OpenAI
-from headroom import with_memory
+from copium import with_memory
 
 # Session 1: Morning
 client1 = with_memory(
@@ -129,10 +129,10 @@ print(f"By category: {stats['categories']}")
 
 ## Temporal Versioning
 
-When facts change, Headroom creates a **supersession chain** that preserves history:
+When facts change, Copium creates a **supersession chain** that preserves history:
 
 ```python
-from headroom.memory import HierarchicalMemory, MemoryCategory
+from copium.memory import HierarchicalMemory, MemoryCategory
 
 memory = await HierarchicalMemory.create()
 
@@ -171,7 +171,7 @@ This gives you an audit trail, the ability to debug why the LLM made certain dec
 ### Embedder Backends
 
 ```python
-from headroom.memory import MemoryConfig, EmbedderBackend
+from copium.memory import MemoryConfig, EmbedderBackend
 
 # ONNX embeddings (recommended -- fast, free, private; ~30 MB int8-quantized)
 # Note: EmbedderBackend.LOCAL requires PyTorch (~2 GB); use ONNX instead.
@@ -206,8 +206,8 @@ On Apple Silicon you can opt in to running the embedder on the **Apple GPU
 responsive. Install the extra and set the env var:
 
 ```bash
-pip install "headroom-ai[pytorch-mps]"   # also works as [pytorch_mps]
-export HEADROOM_EMBEDDER_RUNTIME=pytorch_mps
+pip install "copium-ai[pytorch-mps]"   # also works as [pytorch_mps]
+export COPIUM_EMBEDDER_RUNTIME=pytorch_mps
 ```
 
 When set, the embedder runs via the torch sentence-transformers backend on the
@@ -247,7 +247,7 @@ Memory works with any OpenAI-compatible client:
 
 ```python
 from openai import OpenAI
-from headroom import with_memory
+from copium import with_memory
 
 # OpenAI
 client = with_memory(OpenAI(), user_id="alice")

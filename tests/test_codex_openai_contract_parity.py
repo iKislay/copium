@@ -23,8 +23,8 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 
-from headroom.proxy.handlers.openai import _extract_codex_handshake_headers
-from headroom.subscription.codex_rate_limits import parse_codex_rate_limits
+from copium.proxy.handlers.openai import _extract_codex_handshake_headers
+from copium.subscription.codex_rate_limits import parse_codex_rate_limits
 
 _SCHEMA_PATH = (
     Path(__file__).parent

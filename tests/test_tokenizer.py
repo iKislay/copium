@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from headroom.tokenizer import Tokenizer, count_tokens_messages, count_tokens_text
+from copium.tokenizer import Tokenizer, count_tokens_messages, count_tokens_text
 
 
 class FakeTokenCounter:

@@ -23,7 +23,7 @@ The fix:
     used at every memory injection site (Anthropic custom + native,
     OpenAI Chat-Completions + Responses + WS).
 
-Operator opt-in `HEADROOM_TOOL_INJECTION_STICKY=disabled` short-
+Operator opt-in `COPIUM_TOOL_INJECTION_STICKY=disabled` short-
 circuits the tracker (per-turn decision flows through verbatim — the
 broken behavior). That mode is loud and explicit per realignment build
 constraint #4 — NOT a silent fallback. It exists for diagnostic shadow
@@ -40,7 +40,7 @@ from typing import Any
 
 import pytest
 
-from headroom.proxy.helpers import (
+from copium.proxy.helpers import (
     SessionToolTracker,
     _reset_session_tool_tracker_for_test,
     apply_session_sticky_memory_tools,
@@ -49,7 +49,7 @@ from headroom.proxy.helpers import (
     get_tool_tracker_max_sessions,
     serialize_tool_definition_canonical,
 )
-from headroom.proxy.memory_handler import MemoryConfig, MemoryHandler
+from copium.proxy.memory_handler import MemoryConfig, MemoryHandler
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "memory_tool_definitions"
 
@@ -62,8 +62,8 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures" / "memory_tool_definitions"
 @pytest.fixture(autouse=True)
 def _isolate_tracker(monkeypatch: pytest.MonkeyPatch) -> None:
     """Reset env + tracker singleton between tests."""
-    monkeypatch.delenv("HEADROOM_TOOL_INJECTION_STICKY", raising=False)
-    monkeypatch.delenv("HEADROOM_TOOL_TRACKER_MAX_SESSIONS", raising=False)
+    monkeypatch.delenv("COPIUM_TOOL_INJECTION_STICKY", raising=False)
+    monkeypatch.delenv("COPIUM_TOOL_TRACKER_MAX_SESSIONS", raising=False)
     _reset_session_tool_tracker_for_test()
     yield
     _reset_session_tool_tracker_for_test()
@@ -302,18 +302,18 @@ def test_max_sessions_env_var_default() -> None:
 
 
 def test_max_sessions_env_var_custom(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("HEADROOM_TOOL_TRACKER_MAX_SESSIONS", "42")
+    monkeypatch.setenv("COPIUM_TOOL_TRACKER_MAX_SESSIONS", "42")
     assert get_tool_tracker_max_sessions() == 42
 
 
 def test_max_sessions_env_var_invalid_raises(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("HEADROOM_TOOL_TRACKER_MAX_SESSIONS", "0")
+    monkeypatch.setenv("COPIUM_TOOL_TRACKER_MAX_SESSIONS", "0")
     with pytest.raises(ValueError):
         get_tool_tracker_max_sessions()
-    monkeypatch.setenv("HEADROOM_TOOL_TRACKER_MAX_SESSIONS", "-3")
+    monkeypatch.setenv("COPIUM_TOOL_TRACKER_MAX_SESSIONS", "-3")
     with pytest.raises(ValueError):
         get_tool_tracker_max_sessions()
-    monkeypatch.setenv("HEADROOM_TOOL_TRACKER_MAX_SESSIONS", "not-int")
+    monkeypatch.setenv("COPIUM_TOOL_TRACKER_MAX_SESSIONS", "not-int")
     with pytest.raises(ValueError):
         get_tool_tracker_max_sessions()
 
@@ -323,13 +323,13 @@ def test_sticky_mode_default_enabled() -> None:
 
 
 def test_sticky_mode_disabled(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("HEADROOM_TOOL_INJECTION_STICKY", "disabled")
+    monkeypatch.setenv("COPIUM_TOOL_INJECTION_STICKY", "disabled")
     assert get_tool_injection_sticky_mode() == "disabled"
 
 
 def test_sticky_mode_invalid_raises(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("HEADROOM_TOOL_INJECTION_STICKY", "yolo")
-    with pytest.raises(ValueError, match="HEADROOM_TOOL_INJECTION_STICKY"):
+    monkeypatch.setenv("COPIUM_TOOL_INJECTION_STICKY", "yolo")
+    with pytest.raises(ValueError, match="COPIUM_TOOL_INJECTION_STICKY"):
         get_tool_injection_sticky_mode()
 
 
@@ -543,13 +543,13 @@ def test_different_sessions_independent() -> None:
 def test_disabled_mode_passes_through_per_turn_decision(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """`HEADROOM_TOOL_INJECTION_STICKY=disabled` reverts to per-turn behavior.
+    """`COPIUM_TOOL_INJECTION_STICKY=disabled` reverts to per-turn behavior.
 
     This is the broken behavior — explicit operator opt-in only. Turn 1
     injects; turn 2 with `inject_this_turn=False` does NOT replay (the
     sticky guarantee is bypassed).
     """
-    monkeypatch.setenv("HEADROOM_TOOL_INJECTION_STICKY", "disabled")
+    monkeypatch.setenv("COPIUM_TOOL_INJECTION_STICKY", "disabled")
     defs = _anthropic_memory_defs()
 
     tools1, was1 = apply_session_sticky_memory_tools(

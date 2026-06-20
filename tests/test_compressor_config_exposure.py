@@ -8,7 +8,7 @@ Covers:
 - factor_out_constants config acceptance end-to-end.
 - ContentRouter plumbing for both knobs.
 
-Requires the rebuilt `headroom._core` extension — these tests fail loudly
+Requires the rebuilt `copium._core` extension — these tests fail loudly
 (not skip) if the installed extension predates the new fields, because a
 silent version skew here is exactly the parity drift the lockstep rule
 exists to prevent.
@@ -18,8 +18,8 @@ from __future__ import annotations
 
 import pytest
 
-from headroom.transforms.search_compressor import SearchCompressor, SearchCompressorConfig
-from headroom.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
+from copium.transforms.search_compressor import SearchCompressor, SearchCompressorConfig
+from copium.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
 
 
 class TestSmartCrusherConfigExposure:
@@ -34,14 +34,14 @@ class TestSmartCrusherConfigExposure:
 
     def test_rust_default_lockstep(self):
         """Rust PyO3 default must equal the Python dataclass default."""
-        from headroom._core import SmartCrusherConfig as RustConfig
+        from copium._core import SmartCrusherConfig as RustConfig
 
         assert RustConfig().lossless_min_savings_ratio == 0.15
         assert RustConfig().compaction_core_field_fraction == 0.8
         assert RustConfig().compaction_max_buckets == 8
 
     def test_values_reach_rust(self):
-        from headroom._core import SmartCrusherConfig as RustConfig
+        from copium._core import SmartCrusherConfig as RustConfig
 
         rust_cfg = RustConfig(
             lossless_min_savings_ratio=0.42,
@@ -71,9 +71,9 @@ class TestSmartCrusherConfigExposure:
         assert result.compressed
 
     def test_foreign_config_object_tolerated(self):
-        """headroom.config.SmartCrusherConfig (the SDK-surface class) is
+        """copium.config.SmartCrusherConfig (the SDK-surface class) is
         structurally similar and flows through getattr fallbacks."""
-        from headroom.config import SmartCrusherConfig as SdkConfig
+        from copium.config import SmartCrusherConfig as SdkConfig
 
         crusher = SmartCrusher(config=SdkConfig())  # type: ignore[arg-type]
         assert crusher is not None
@@ -116,7 +116,7 @@ class TestSearchGroupedOutput:
 
 class TestContentRouterPlumbing:
     def test_router_passes_smart_crusher_config(self):
-        from headroom.transforms.content_router import ContentRouter, ContentRouterConfig
+        from copium.transforms.content_router import ContentRouter, ContentRouterConfig
 
         router = ContentRouter(
             ContentRouterConfig(smart_crusher=SmartCrusherConfig(lossless_min_savings_ratio=0.33))
@@ -125,14 +125,14 @@ class TestContentRouterPlumbing:
         assert crusher.config.lossless_min_savings_ratio == 0.33
 
     def test_router_passes_search_grouping(self):
-        from headroom.transforms.content_router import ContentRouter, ContentRouterConfig
+        from copium.transforms.content_router import ContentRouter, ContentRouterConfig
 
         router = ContentRouter(ContentRouterConfig(search_group_by_file=True))
         compressor = router._get_search_compressor()
         assert compressor.config.group_by_file is True
 
     def test_router_defaults_off(self):
-        from headroom.transforms.content_router import ContentRouter, ContentRouterConfig
+        from copium.transforms.content_router import ContentRouter, ContentRouterConfig
 
         router = ContentRouter(ContentRouterConfig())
         compressor = router._get_search_compressor()

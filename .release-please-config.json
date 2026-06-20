@@ -11,7 +11,7 @@
   "pull-request-title-pattern": "chore: release ${version}",
   "packages": {
     ".": {
-      "package-name": "headroom-ai",
+      "package-name": "copium-ai",
       "release-type": "python",
       "extra-files": [
         {

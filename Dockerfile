@@ -25,10 +25,10 @@ RUN apt-get update && \
 
 RUN python -m pip install --no-cache-dir uv==${UV_VERSION}
 
-# Rust toolchain for the headroom._core extension. With single-wheel
+# Rust toolchain for the copium._core extension. With single-wheel
 # architecture (post-#355), `pip install -e .` invokes maturin via
 # pyproject.toml's [build-system], which calls cargo. No more separate
-# headroom-core-py package.
+# copium-core-py package.
 ENV CARGO_HOME=/usr/local/cargo \
     RUSTUP_HOME=/usr/local/rustup \
     PATH=/usr/local/cargo/bin:${PATH}
@@ -43,33 +43,33 @@ WORKDIR /build
 COPY pyproject.toml uv.lock README.md ./
 COPY Cargo.toml Cargo.lock rust-toolchain.toml ./
 COPY crates/ crates/
-COPY headroom/ headroom/
+COPY copium/ copium/
 
-ARG HEADROOM_EXTRAS=proxy,code
+ARG COPIUM_EXTRAS=proxy,code
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=cache,target=/root/.cargo/registry \
     --mount=type=cache,target=/build/target \
-    uv pip install --system ".[${HEADROOM_EXTRAS}]"
+    uv pip install --system ".[${COPIUM_EXTRAS}]"
 
 # Build-stage smoke check: verify the extension loads end-to-end inside
 # the build image before we copy site-packages into the runtime image.
 # If this fails, the runtime image would fail Phase A0's fail-loud
 # startup check on every restart. Run from /tmp so cwd doesn't shadow
-# site-packages with /build/headroom/ (which has no _core.so since
+# site-packages with /build/copium/ (which has no _core.so since
 # maturin installed the .so into site-packages).
-RUN cd /tmp && python -c "from headroom._core import DiffCompressor, SmartCrusher; \
+RUN cd /tmp && python -c "from copium._core import DiffCompressor, SmartCrusher; \
     print(f'build-stage rust core verify OK: {DiffCompressor.__name__}, {SmartCrusher.__name__}')"
 
 # Build the native Rust reverse proxy binary and stage it for the runtime
 # images (issue #976). These images already run "the proxy"; bundling the
-# native `headroom-proxy` binary lets operators front the Python proxy with
+# native `copium-proxy` binary lets operators front the Python proxy with
 # the Rust SigV4 / live-zone compression path from the same image. The
 # binary is copied out of the cache-mounted target dir into a persistent
 # path so the COPY in the runtime stages can pick it up.
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/build/target \
-    cargo build --release --locked --bin headroom-proxy && \
-    cp target/release/headroom-proxy /usr/local/bin/headroom-proxy
+    cargo build --release --locked --bin copium-proxy && \
+    cp target/release/copium-proxy /usr/local/bin/copium-proxy
 
 # ---- Runtime stage (python-slim): supports root/nonroot via build arg ----
 FROM python:${PYTHON_VERSION}-slim AS runtime-slim-base
@@ -82,24 +82,24 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder ${PYTHON_SITE_PACKAGES} ${PYTHON_SITE_PACKAGES}
-COPY --from=builder /usr/local/bin/headroom /usr/local/bin/headroom
+COPY --from=builder /usr/local/bin/copium /usr/local/bin/copium
 # Native Rust reverse proxy binary (issue #976).
-COPY --from=builder /usr/local/bin/headroom-proxy /usr/local/bin/headroom-proxy
+COPY --from=builder /usr/local/bin/copium-proxy /usr/local/bin/copium-proxy
 
 RUN mkdir -p /home/nonroot /data && \
     if [ "$RUNTIME_USER" = "nonroot" ]; then \
       groupadd --gid 1000 nonroot && \
       useradd --uid 1000 --gid nonroot --create-home nonroot && \
-      mkdir -p /home/nonroot/.headroom && \
+      mkdir -p /home/nonroot/.copium && \
       chown -R nonroot:nonroot /data /home/nonroot; \
     else \
-      mkdir -p /root/.headroom; \
+      mkdir -p /root/.copium; \
     fi
 
 USER ${RUNTIME_USER}
 WORKDIR /home/nonroot
 
-ENV HEADROOM_HOST=0.0.0.0 \
+ENV COPIUM_HOST=0.0.0.0 \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
@@ -108,7 +108,7 @@ EXPOSE 8787
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD ["curl", "--fail", "--silent", "http://127.0.0.1:8787/readyz"]
 
-ENTRYPOINT ["headroom", "proxy"]
+ENTRYPOINT ["copium", "proxy"]
 CMD ["--host", "0.0.0.0", "--port", "8787"]
 
 FROM ${DISTROLESS_IMAGE} AS runtime-slim
@@ -118,12 +118,12 @@ ARG PYTHON_SITE_PACKAGES
 
 COPY --from=builder ${PYTHON_SITE_PACKAGES} ${PYTHON_SITE_PACKAGES}
 # Native Rust reverse proxy binary (issue #976).
-COPY --from=builder /usr/local/bin/headroom-proxy /usr/local/bin/headroom-proxy
+COPY --from=builder /usr/local/bin/copium-proxy /usr/local/bin/copium-proxy
 
 USER ${RUNTIME_USER}
 WORKDIR /app
 
-ENV HEADROOM_HOST=0.0.0.0 \
+ENV COPIUM_HOST=0.0.0.0 \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=${PYTHON_SITE_PACKAGES}
@@ -133,7 +133,7 @@ EXPOSE 8787
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD ["python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8787/readyz', timeout=5)"]
 
-ENTRYPOINT ["python3", "-m", "headroom.cli", "proxy"]
+ENTRYPOINT ["python3", "-m", "copium.cli", "proxy"]
 CMD ["--host", "0.0.0.0", "--port", "8787"]
 
 # Default published image remains python-slim runtime

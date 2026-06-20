@@ -3,7 +3,7 @@ title: SmartCrusher
 description: Statistical JSON and array compression that keeps important items and drops the rest, achieving 70-90% token reduction.
 ---
 
-SmartCrusher is Headroom's compressor for JSON tool outputs. It analyzes arrays statistically, keeps the important items (errors, anomalies, relevant matches), and drops the rest. This is the compressor that fires automatically when ContentRouter detects JSON arrays.
+SmartCrusher is Copium's compressor for JSON tool outputs. It analyzes arrays statistically, keeps the important items (errors, anomalies, relevant matches), and drops the rest. This is the compressor that fires automatically when ContentRouter detects JSON arrays.
 
 ## How It Works
 
@@ -33,7 +33,7 @@ The result: a 1,000-item array becomes ~50 items with all the information the LL
 <Tabs groupId="lang" items={['TypeScript', 'Python']}>
 <Tab value="TypeScript">
 ```ts twoslash
-import { compress } from "headroom-ai";
+import { compress } from "copium-ai";
 
 // SmartCrusher fires automatically for JSON tool outputs
 const messages = [
@@ -53,7 +53,7 @@ console.log(`Tokens saved: ${result.tokensSaved}`);
 </Tab>
 <Tab value="Python">
 ```python
-from headroom import SmartCrusher
+from copium import SmartCrusher
 
 crusher = SmartCrusher()
 
@@ -71,9 +71,9 @@ compressed = crusher.crush(tool_output, query="user's question")
 <Tabs groupId="lang" items={['TypeScript', 'Python']}>
 <Tab value="TypeScript">
 ```ts twoslash
-import { compress } from "headroom-ai";
+import { compress } from "copium-ai";
 
-// Configure via the Headroom proxy or HeadroomClient
+// Configure via the Copium proxy or CopiumClient
 const result = await compress(messages, {
   model: "gpt-4o",
   tokenBudget: 10000, // SmartCrusher will reduce JSON to fit
@@ -85,7 +85,7 @@ console.log(`Transforms: ${result.transformsApplied}`);
 </Tab>
 <Tab value="Python">
 ```python
-from headroom import SmartCrusher, SmartCrusherConfig
+from copium import SmartCrusher, SmartCrusherConfig
 
 config = SmartCrusherConfig(
     min_tokens_to_crush=200,      # Only compress if > 200 tokens

@@ -30,17 +30,17 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any
 
-from headroom.cache.compression_feedback import (
+from copium.cache.compression_feedback import (
     get_compression_feedback,
     reset_compression_feedback,
 )
-from headroom.cache.compression_store import (
+from copium.cache.compression_store import (
     CompressionStore,
     RetrievalEvent,
     get_compression_store,
     reset_compression_store,
 )
-from headroom.transforms.smart_crusher import (
+from copium.transforms.smart_crusher import (
     SmartCrusherConfig,
     smart_crush_tool_output,
 )
@@ -586,24 +586,24 @@ def test_json_injection_in_content() -> AdversarialResult:
     return result
 
 
-def test_headroom_marker_collision() -> AdversarialResult:
+def test_copium_marker_collision() -> AdversarialResult:
     """
-    ATTACK: Input data already contains __headroom_ fields.
+    ATTACK: Input data already contains __copium_ fields.
     """
     result = AdversarialResult(
         name="Marker Field Collision",
         category="injection",
-        expected_behavior="Should not confuse existing __headroom_ fields with our markers",
+        expected_behavior="Should not confuse existing __copium_ fields with our markers",
         severity="high",
     )
 
-    # Data that already has __headroom_ fields
+    # Data that already has __copium_ fields
     items = [
         {
             "id": i,
-            "__headroom_compressed": True,  # Fake marker!
-            "__headroom_hash": "fakehash12345678",
-            "__headroom_stats": {"fake": True},
+            "__copium_compressed": True,  # Fake marker!
+            "__copium_hash": "fakehash12345678",
+            "__copium_stats": {"fake": True},
         }
         for i in range(100)
     ]
@@ -1849,7 +1849,7 @@ def main():
         test_ttl_exact_boundary,
         # Injection attacks
         test_json_injection_in_content,
-        test_headroom_marker_collision,
+        test_copium_marker_collision,
         test_unicode_and_emoji_handling,
         test_extremely_long_strings,
         test_query_injection_in_search,

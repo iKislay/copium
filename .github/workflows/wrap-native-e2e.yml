@@ -1,6 +1,6 @@
 name: Wrap Native E2E
 
-# Cross-platform smoke tests for the hidden ``headroom wrap ... --prepare-only``
+# Cross-platform smoke tests for the hidden ``copium wrap ... --prepare-only``
 # flows. These reuse the existing pytest bridge cases so we exercise the real
 # CLI on linux / macos without depending on agent binaries or long-lived proxy
 # processes. Windows will be added once the upstream CRT conflict is resolved
@@ -14,11 +14,11 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "headroom/cli/**"
-      - "headroom/providers/**"
-      - "headroom/rtk/**"
+      - "copium/cli/**"
+      - "copium/providers/**"
+      - "copium/rtk/**"
       - "tests/test_cli/test_wrap_bridge.py"
-      - ".github/actions/headroom-e2e-setup/**"
+      - ".github/actions/copium-e2e-setup/**"
       - ".github/workflows/wrap-native-e2e.yml"
   push:
     branches: [main]
@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Setup
-        uses: ./.github/actions/headroom-e2e-setup
+        uses: ./.github/actions/copium-e2e-setup
         with:
           python-version: "3.11"
 
@@ -60,7 +60,7 @@ jobs:
       - name: Run wrap native bridge tests
         shell: bash
         run: |
-          pytest tests/test_cli/test_wrap_bridge.py --cov=headroom --cov-report=xml:coverage-wrap-native.xml --cov-report=term-missing -q
+          pytest tests/test_cli/test_wrap_bridge.py --cov=copium --cov-report=xml:coverage-wrap-native.xml --cov-report=term-missing -q
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

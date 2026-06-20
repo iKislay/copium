@@ -1,6 +1,6 @@
 # CCR: Compress-Cache-Retrieve
 
-Headroom's CCR architecture makes compression **reversible**. When content is compressed, the original data is cached. If the LLM needs more data, it can retrieve it instantly.
+Copium's CCR architecture makes compression **reversible**. When content is compressed, the original data is cached. If the LLM needs more data, it can retrieve it instantly.
 
 ## The Problem with Traditional Compression
 
@@ -33,7 +33,7 @@ CCR eliminates this tradeoff.
 ┌─────────────────────────────────────────────────────────────────┐
 │  LLM PROCESSING                                                  │
 │  Option A: LLM solves task with 20 items → Done (90% savings)   │
-│  Option B: LLM calls headroom_retrieve(hash=abc123)             │
+│  Option B: LLM calls copium_retrieve(hash=abc123)             │
 │            → Response Handler executes retrieval automatically  │
 │            → LLM receives full data, responds accurately        │
 └─────────────────────────────────────────────────────────────────┘
@@ -48,12 +48,12 @@ When SmartCrusher compresses tool output:
 
 ### Phase 2: Tool Injection
 
-Headroom injects a `headroom_retrieve` tool into the LLM's available tools:
+Copium injects a `copium_retrieve` tool into the LLM's available tools:
 
 ```json
 {
-  "name": "headroom_retrieve",
-  "description": "Retrieve original uncompressed data from Headroom cache",
+  "name": "copium_retrieve",
+  "description": "Retrieve original uncompressed data from Copium cache",
   "parameters": {
     "hash": "The hash key from the compression marker",
     "query": "Optional: search within the cached data"
@@ -63,7 +63,7 @@ Headroom injects a `headroom_retrieve` tool into the LLM's available tools:
 
 ### Phase 3: Response Handler
 
-When the LLM calls `headroom_retrieve`:
+When the LLM calls `copium_retrieve`:
 1. Response Handler intercepts the tool call
 2. Retrieves data from the local cache (~1ms)
 3. Adds the result to the conversation
@@ -109,7 +109,7 @@ IntelligentContextManager is a **message-level compressor**. When it drops low-i
 │  LLM PROCESSING                                                  │
 │  Option A: LLM solves task with remaining messages → Done       │
 │  Option B: LLM needs earlier context                            │
-│            → Calls headroom_retrieve(hash=def456)               │
+│            → Calls copium_retrieve(hash=def456)               │
 │            → Full conversation restored                          │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -126,22 +126,22 @@ Full content available via ccr_retrieve tool with reference 'def456'.]
 
 | Feature | Description |
 |---------|-------------|
-| **Automatic Response Handling** | When LLM calls `headroom_retrieve`, the proxy handles it automatically |
+| **Automatic Response Handling** | When LLM calls `copium_retrieve`, the proxy handles it automatically |
 | **Multi-Turn Context Tracking** | Tracks compressed content across turns, proactively expands when relevant |
-| **BM25 Search** | LLM can search within compressed data: `headroom_retrieve(hash, query="errors")` |
+| **BM25 Search** | LLM can search within compressed data: `copium_retrieve(hash, query="errors")` |
 | **Feedback Learning** | Learns from retrieval patterns to improve future compression |
 
 ## Configuration
 
 ```bash
 # Proxy with CCR enabled (default)
-headroom proxy --port 8787
+copium proxy --port 8787
 
 # Disable CCR response handling
-headroom proxy --no-ccr-responses
+copium proxy --no-ccr-responses
 
 # Disable proactive expansion
-headroom proxy --no-ccr-expansion
+copium proxy --no-ccr-expansion
 ```
 
 ## Why This Matters

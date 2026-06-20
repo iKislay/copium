@@ -39,8 +39,8 @@ sys.path.insert(0, str(REPO_ROOT))
 
 
 # Telemetry off so we don't pollute the user's metrics during replay.
-os.environ.setdefault("HEADROOM_DISABLE_TELEMETRY", "true")
-os.environ.setdefault("HEADROOM_REQUIRE_RUST_CORE", "false")
+os.environ.setdefault("COPIUM_DISABLE_TELEMETRY", "true")
+os.environ.setdefault("COPIUM_REQUIRE_RUST_CORE", "false")
 
 
 @dataclass
@@ -204,7 +204,7 @@ def synthesize_payload(frame: Frame, turn_no: int) -> dict:
 
 
 def boot_proxy():
-    """Build a HeadroomProxy instance with optimize=True so the compression
+    """Build a CopiumProxy instance with optimize=True so the compression
     dispatch is actually exercised.
 
     This deliberately does NOT start the FastAPI server. We only need the
@@ -213,7 +213,7 @@ def boot_proxy():
     method we exercise — Kompress will lazy-load on first use, which we
     explicitly warm up below.
     """
-    from headroom.proxy.server import ProxyConfig, create_app
+    from copium.proxy.server import ProxyConfig, create_app
 
     config = ProxyConfig(
         optimize=True,

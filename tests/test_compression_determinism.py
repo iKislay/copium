@@ -17,11 +17,11 @@ from __future__ import annotations
 
 import json
 
-from headroom.transforms.compression_units import (
+from copium.transforms.compression_units import (
     CompressionUnit,
     compress_unit_with_router,
 )
-from headroom.transforms.content_router import (
+from copium.transforms.content_router import (
     ContentRouter,
     ContentRouterConfig,
 )
@@ -44,10 +44,10 @@ _FIXTURES: dict[str, str] = {
         "Process exited with code 0\n"
         "Original token count: 1996\n"
         "Output:\n"
-        "headroom/proxy/handlers/openai.py | 12 ++++++++++++\n"
+        "copium/proxy/handlers/openai.py | 12 ++++++++++++\n"
         " 1 file changed, 12 insertions(+)\n\n"
         "--- Changes ---\n\n"
-        "diff --git a/headroom/proxy/handlers/openai.py b/headroom/proxy/handlers/openai.py\n"
+        "diff --git a/copium/proxy/handlers/openai.py b/copium/proxy/handlers/openai.py\n"
         "@@ -10,6 +10,18 @@\n"
         " def handle():\n"
         "+    # twelve lines of added context\n" * 6 + "     return None\n"
@@ -70,7 +70,7 @@ _FIXTURES: dict[str, str] = {
     "search_results_grep": "\n".join(
         f"src/foo/bar/{n:03d}.py:{n * 7}:    def function_{n}(self, arg):" for n in range(40)
     ),
-    "plain_long_text": " ".join(["headroom"] * 400),
+    "plain_long_text": " ".join(["copium"] * 400),
 }
 
 

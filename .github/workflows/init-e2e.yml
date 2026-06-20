@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'headroom/**'
+      - 'copium/**'
       - 'crates/**'
       - 'docker/**'
       - 'Dockerfile'
@@ -17,7 +17,7 @@ on:
       - 'uv.lock'
       - '.claude-plugin'
       - '.github/plugin/**'
-      - 'plugins/headroom-agent-hooks/**'
+      - 'plugins/copium-agent-hooks/**'
       - '.github/workflows/init-e2e.yml'
   push:
     branches: [main]
@@ -36,7 +36,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Build init e2e image
-        run: docker build -f e2e/init/Dockerfile -t headroom-init-e2e .
+        run: docker build -f e2e/init/Dockerfile -t copium-init-e2e .
 
       - name: Run init e2e container
-        run: docker run --rm headroom-init-e2e
+        run: docker run --rm copium-init-e2e

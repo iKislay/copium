@@ -1,11 +1,11 @@
 """Issue #327 — live API smoke test.
 
 Drives a 10-turn multi-turn conversation against `api.anthropic.com` directly
-(NO proxy in the loop) and against the local Headroom proxy, and asserts:
+(NO proxy in the loop) and against the local Copium proxy, and asserts:
 
   1. Both shapes of `tool_result` content (string and list-of-blocks) are
      accepted by the upstream API for both streaming and non-streaming.
-  2. When proxied through Headroom in token mode, at least one post-warmup
+  2. When proxied through Copium in token mode, at least one post-warmup
      turn has `transforms_applied != []` AND `cache_read_input_tokens > 0`
      on turns 2+ (proves prefix cache is intact AND compression resumed).
   3. No cache busts (bust_count stays at 0 across the session).
@@ -21,7 +21,7 @@ USAGE
     RUN_LIVE_API=1 .venv/bin/python scripts/smoke_issue_327.py
 
     # With local proxy running on :8787:
-    RUN_LIVE_API=1 HEADROOM_PROXY_URL=http://localhost:8787 \
+    RUN_LIVE_API=1 COPIUM_PROXY_URL=http://localhost:8787 \
         .venv/bin/python scripts/smoke_issue_327.py
 """
 
@@ -53,7 +53,7 @@ if not KEY:
 
 import anthropic  # noqa: E402
 
-PROXY_URL = os.environ.get("HEADROOM_PROXY_URL")  # optional
+PROXY_URL = os.environ.get("COPIUM_PROXY_URL")  # optional
 TOOLS = [
     {
         "name": "get_lines",

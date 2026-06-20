@@ -1,7 +1,7 @@
-"""Tests for the Hermes headroom_retrieve plugin (plugins/hermes/).
+"""Tests for the Hermes copium_retrieve plugin (plugins/hermes/).
 
 The plugin targets the Hermes Agent runtime, which provides a
-``tools.registry`` module. That module does not exist inside the headroom
+``tools.registry`` module. That module does not exist inside the copium
 codebase, so these tests stub it before loading the plugin file directly
 via importlib.
 """
@@ -22,7 +22,7 @@ PLUGIN_PATH = (
     Path(__file__).resolve().parent.parent
     / "plugins"
     / "hermes"
-    / "headroom_retrieve"
+    / "copium_retrieve"
     / "__init__.py"
 )
 
@@ -37,7 +37,7 @@ def _load_plugin() -> types.ModuleType:
     sys.modules.setdefault("tools", tools_pkg)
     sys.modules["tools.registry"] = registry
 
-    spec = importlib.util.spec_from_file_location("hermes_headroom_retrieve", PLUGIN_PATH)
+    spec = importlib.util.spec_from_file_location("hermes_copium_retrieve", PLUGIN_PATH)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -83,7 +83,7 @@ def test_handler_normalizes_marker_shapes_to_bare_hash(
     monkeypatch.setattr(plugin.httpx, "post", fake_post)
 
     # Act
-    plugin._handle_headroom_retrieve({"hash": raw})
+    plugin._handle_copium_retrieve({"hash": raw})
 
     # Assert
     assert seen["payload"]["hash"] == expected
@@ -102,7 +102,7 @@ def test_handler_passes_optional_query_through(
     monkeypatch.setattr(plugin.httpx, "post", fake_post)
 
     # Act
-    plugin._handle_headroom_retrieve({"hash": "abc123", "query": "error lines"})
+    plugin._handle_copium_retrieve({"hash": "abc123", "query": "error lines"})
 
     # Assert
     assert seen["payload"] == {"hash": "abc123", "query": "error lines"}
@@ -116,7 +116,7 @@ def test_handler_returns_original_content_on_200(
     monkeypatch.setattr(plugin.httpx, "post", lambda *a, **kw: _FakeResponse(200, payload))
 
     # Act
-    out = json.loads(plugin._handle_headroom_retrieve({"hash": "abc123"}))
+    out = json.loads(plugin._handle_copium_retrieve({"hash": "abc123"}))
 
     # Assert
     assert out["result"]["original_content"] == "full text"
@@ -131,7 +131,7 @@ def test_handler_reports_expired_entry_on_404(
     monkeypatch.setattr(plugin.httpx, "post", lambda *a, **kw: _FakeResponse(404))
 
     # Act
-    out = json.loads(plugin._handle_headroom_retrieve({"hash": "deadbeef"}))
+    out = json.loads(plugin._handle_copium_retrieve({"hash": "deadbeef"}))
 
     # Assert: actionable message, not a bare error
     assert "expired" in out["error"]
@@ -148,7 +148,7 @@ def test_handler_reports_unreachable_proxy_on_connection_error(
     monkeypatch.setattr(plugin.httpx, "post", raise_connect_error)
 
     # Act
-    out = json.loads(plugin._handle_headroom_retrieve({"hash": "abc123"}))
+    out = json.loads(plugin._handle_copium_retrieve({"hash": "abc123"}))
 
     # Assert
     assert "unreachable" in out["error"]
@@ -156,7 +156,7 @@ def test_handler_reports_unreachable_proxy_on_connection_error(
 
 def test_handler_rejects_empty_hash(plugin: types.ModuleType) -> None:
     # Act
-    out = json.loads(plugin._handle_headroom_retrieve({"hash": "   "}))
+    out = json.loads(plugin._handle_copium_retrieve({"hash": "   "}))
 
     # Assert
     assert "required" in out["error"]
@@ -174,8 +174,8 @@ def test_register_exposes_tool_with_marker_aware_schema(plugin: types.ModuleType
     plugin.register(FakeCtx())
 
     # Assert
-    assert registered["name"] == "headroom_retrieve"
-    assert registered["toolset"] == "headroom"
+    assert registered["name"] == "copium_retrieve"
+    assert registered["toolset"] == "copium"
     assert registered["schema"]["parameters"]["required"] == ["hash"]
     # The description must teach both marker formats so the model recognizes them.
     description = registered["schema"]["description"]

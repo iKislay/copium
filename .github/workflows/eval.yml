@@ -6,9 +6,9 @@ on:
   workflow_dispatch:       # Manual trigger
   pull_request:
     paths:
-      - 'headroom/transforms/**'
-      - 'headroom/evals/**'
-      - 'headroom/compress.py'
+      - 'copium/transforms/**'
+      - 'copium/evals/**'
+      - 'copium/compress.py'
 
 jobs:
   # Fast smoke test on PRs touching compression code (~$0.05, ~2 min)
@@ -42,12 +42,12 @@ jobs:
       - name: Install dependencies (builds Rust extension via maturin)
         run: |
           pip install -e ".[all]"
-          python -c "from headroom._core import SmartCrusher; print('headroom._core OK:', SmartCrusher)"
+          python -c "from copium._core import SmartCrusher; print('copium._core OK:', SmartCrusher)"
 
       - name: Run CCR round-trip (zero cost)
         run: |
           python -c "
-          from headroom.evals.runners.compression_only import CompressionOnlyRunner
+          from copium.evals.runners.compression_only import CompressionOnlyRunner
           runner = CompressionOnlyRunner()
           cases = runner.generate_ccr_test_cases(n=50)
           result = runner.evaluate_ccr_lossless(cases)
@@ -58,7 +58,7 @@ jobs:
       - name: Run tool schema compaction integrity eval (zero cost)
         run: |
           python -c "
-          from headroom.evals.runners.compression_only import CompressionOnlyRunner
+          from copium.evals.runners.compression_only import CompressionOnlyRunner
           runner = CompressionOnlyRunner()
           result = runner.evaluate_tool_schema_compaction()
           print(f'Tool schema compaction: {result.passed_cases}/{result.total_cases} passed, {result.total_tokens_saved} annotation tokens stripped')
@@ -79,7 +79,7 @@ jobs:
             echo "::warning title=Smoke eval skipped::OPENAI_API_KEY is not configured for this repo; only the CCR round-trip gate ran. Wire the secret to enable the live OpenAI eval."
             exit 0
           fi
-          python -m headroom.evals quick -n 8 --provider openai --model gpt-4o-mini
+          python -m copium.evals quick -n 8 --provider openai --model gpt-4o-mini
 
   # Full Tier 1 suite, weekly or manual (~$3-5, ~30-45 min)
   weekly-suite:
@@ -110,7 +110,7 @@ jobs:
       - name: Install dependencies (builds Rust extension via maturin)
         run: |
           pip install -e ".[all]"
-          python -c "from headroom._core import SmartCrusher; print('headroom._core OK')"
+          python -c "from copium._core import SmartCrusher; print('copium._core OK')"
       - name: Run Tier 1 evaluation suite
         run: |
           if [ -z "${OPENAI_API_KEY}" ]; then
@@ -122,7 +122,7 @@ jobs:
               > eval_results/skipped.md
             exit 0
           fi
-          python -m headroom.evals suite --tier 1 --ci -o eval_results/
+          python -m copium.evals suite --tier 1 --ci -o eval_results/
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

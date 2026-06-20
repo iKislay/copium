@@ -3,14 +3,14 @@
  * Accepts messages in any format: OpenAI, Anthropic, Vercel AI SDK, or Google Gemini.
  */
 
-import { HeadroomClient } from "./client.js";
+import { CopiumClient } from "./client.js";
 import type { CompressResult, CompressOptions } from "./types.js";
 import { detectFormat, toOpenAI, fromOpenAI } from "./utils/format.js";
 import type { CompressionHooks, CompressContext, CompressEvent } from "./hooks.js";
 import { extractUserQuery, countTurns, extractToolCalls } from "./hooks.js";
 
 /**
- * Compress an array of messages using the Headroom proxy.
+ * Compress an array of messages using the Copium proxy.
  *
  * Accepts messages in any format: OpenAI, Anthropic, Vercel AI SDK, or Google Gemini.
  * Detects the format automatically, compresses via the proxy, and returns
@@ -56,7 +56,7 @@ export async function compress(
   }
 
   // 5. Compress via proxy
-  const client = providedClient ?? new HeadroomClient(clientOptions);
+  const client = providedClient ?? new CopiumClient(clientOptions);
   const result = await client.compress(openaiMessages, { model, tokenBudget });
 
   // 6. Convert compressed messages back to original format

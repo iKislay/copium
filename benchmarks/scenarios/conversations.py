@@ -1,7 +1,7 @@
 """Conversation generators for benchmark scenarios.
 
 This module provides generators for realistic conversation patterns that
-exercise Headroom transforms:
+exercise Copium transforms:
 
 - Agentic conversations: Multi-turn with tool calls (SmartCrusher, RollingWindow)
 - RAG conversations: Large context injection (CacheAligner, RollingWindow)

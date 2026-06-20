@@ -3,14 +3,14 @@ title: Simulation
 description: Preview compression results without making an LLM call. Use simulation for cost estimation, debugging, and understanding waste signals.
 ---
 
-Simulation mode lets you preview what Headroom would do to your messages without sending them to an LLM. This is useful for cost estimation, debugging compression behavior, and understanding where token waste comes from.
+Simulation mode lets you preview what Copium would do to your messages without sending them to an LLM. This is useful for cost estimation, debugging compression behavior, and understanding where token waste comes from.
 
 ## Basic Usage
 
 <Tabs groupId="lang" items={['TypeScript', 'Python']}>
 <Tab value="TypeScript">
 ```ts twoslash
-import { compress } from 'headroom-ai';
+import { compress } from 'copium-ai';
 
 // compress() returns the same result structure —
 // use it without sending to your LLM to simulate
@@ -124,8 +124,8 @@ else:
 Test different configurations to find the best settings for your workload:
 
 ```python
-from headroom import HeadroomClient, OpenAIProvider
-from headroom.transforms import SmartCrusherConfig
+from copium import CopiumClient, OpenAIProvider
+from copium.transforms import SmartCrusherConfig
 
 configs = [
     SmartCrusherConfig(max_items_after_crush=10),
@@ -134,7 +134,7 @@ configs = [
 ]
 
 for config in configs:
-    client = HeadroomClient(
+    client = CopiumClient(
         original_client=OpenAI(),
         provider=OpenAIProvider(),
         smart_crusher_config=config,

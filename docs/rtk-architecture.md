@@ -1,11 +1,11 @@
 # RTK architecture — why wrap-CLI only
 
 **Status:** decided. Locked at Phase G PR-G3 (2026-05).
-**Owner:** Headroom realignment.
+**Owner:** Copium realignment.
 
 ## TL;DR
 
-**RTK is a wrap-CLI hook, not a proxy-side compressor.** The Headroom
+**RTK is a wrap-CLI hook, not a proxy-side compressor.** The Copium
 proxy does NOT invoke RTK on tool-result content. Future contributors
 who consider moving RTK into the proxy hot path: read this doc first.
 
@@ -14,7 +14,7 @@ who consider moving RTK into the proxy hot path: read this doc first.
 RTK (Realtime Token Kompress) rewrites shell **commands** at exec
 time so that a `git diff` or `grep` invocation emits a more
 compressed output before the agent ever ingests it. RTK runs in the
-wrap-CLI tail — `headroom wrap claude`, `headroom wrap codex`, etc.
+wrap-CLI tail — `copium wrap claude`, `copium wrap codex`, etc.
 — where it installs a `~/.rtk/bin/rtk` shim ahead of the agent CLI
 and intercepts shelled-out subprocesses.
 
@@ -48,7 +48,7 @@ proxy-side would re-introduce it.
 
 ### 2. Parallel implementation with `log_compressor.rs`
 
-The Rust proxy already has a `crates/headroom-core/src/transforms/log_compressor.rs`
+The Rust proxy already has a `crates/copium-core/src/transforms/log_compressor.rs`
 that compresses **tool output text** in the live zone. It uses the
 same heuristics RTK uses (whitespace de-dup, line de-dup,
 file-listing collapse) but invoked at the proxy's per-block
@@ -85,16 +85,16 @@ re-implementing RTK inside the proxy.
 
 ## What the wrap CLI does
 
-Every `headroom wrap <agent>` subcommand:
+Every `copium wrap <agent>` subcommand:
 
 1. Ensures the RTK binary is installed via `_ensure_rtk_binary()`.
-2. Injects the `<!-- headroom:rtk-instructions -->` block into the
+2. Injects the `<!-- copium:rtk-instructions -->` block into the
    agent's instruction file (e.g. `AGENTS.md`, `.cursorrules`).
 3. Spawns the proxy and the agent CLI side-by-side.
 4. Polls `rtk gain --format json` on a 5-second memoization window
    and feeds the delta into the proxy's metric registry.
 
-See `headroom/cli/wrap/` for the per-agent shims.
+See `copium/cli/wrap/` for the per-agent shims.
 
 ## Re-litigation policy
 
@@ -115,8 +115,8 @@ doc.
 
 - `REALIGNMENT/09-phase-G-rtk-observability.md` — Phase G plan.
 - `REALIGNMENT/04-phase-B-live-zone.md` — cache hot-zone contract.
-- `headroom/cli/wrap/` — wrap-CLI implementation.
-- `crates/headroom-core/src/transforms/log_compressor.rs` — the
+- `copium/cli/wrap/` — wrap-CLI implementation.
+- `crates/copium-core/src/transforms/log_compressor.rs` — the
   proxy-side log compressor RTK would parallel.
 - 2026-05-01 user direction message archived in
   `project_compression_realignment_2026_05` memory note.

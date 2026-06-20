@@ -4,13 +4,13 @@
 
 ## Supported Agents
 
-### Claude (`headroom/learn/plugins/claude/`)
+### Claude (`copium/learn/plugins/claude/`)
 
 **Plugin:** `ClaudeLearnPlugin`
 
 **Capabilities:**
 - Session branch comparison
-- Token headroom mode detection
+- Token copium mode detection
 - Tool use tracking
 - Multi-modal support (images)
 
@@ -44,12 +44,12 @@ class ClaudeLearnPlugin(LearnPlugin, ConversationScanner):
 
 **Configuration:**
 ```bash
-HEADROOM_LEARN_CLI=claude
+COPIUM_LEARN_CLI=claude
 ```
 
 ---
 
-### Codex (OpenAI) (`headroom/learn/plugins/codex/`)
+### Codex (OpenAI) (`copium/learn/plugins/codex/`)
 
 **Plugin:** `CodexLearnPlugin`
 
@@ -84,12 +84,12 @@ class CodexLearnPlugin(LearnPlugin, ConversationScanner):
 
 **Configuration:**
 ```bash
-HEADROOM_LEARN_CLI=codex
+COPIUM_LEARN_CLI=codex
 ```
 
 ---
 
-### Gemini (Google) (`headroom/learn/plugins/gemini/`)
+### Gemini (Google) (`copium/learn/plugins/gemini/`)
 
 **Plugin:** `GeminiLearnPlugin`
 
@@ -124,14 +124,14 @@ class GeminiLearnPlugin(LearnPlugin, ConversationScanner):
 
 **Configuration:**
 ```bash
-HEADROOM_LEARN_CLI=gemini
+COPIUM_LEARN_CLI=gemini
 ```
 
 ---
 
 ## Integration Points
 
-### LiteLLM Callback (`headroom/integrations/litellm_callback.py`)
+### LiteLLM Callback (`copium/integrations/litellm_callback.py`)
 
 LiteLLM proxy callback for integrating with LiteLLM-based setups.
 
@@ -140,10 +140,10 @@ LiteLLM proxy callback for integrating with LiteLLM-based setups.
 class LiteLLMCallback:
     def __init__(
         self,
-        headroom_url: str = "http://localhost:8787",
+        copium_url: str = "http://localhost:8787",
         api_key: str | None = None,
     ) -> None:
-        self.headroom_url = headroom_url
+        self.copium_url = copium_url
         self.api_key = api_key
     
     def on_completion(self, completion_response: dict) -> dict:
@@ -157,29 +157,29 @@ class LiteLLMCallback:
 
 **Usage:**
 ```python
-from headroom.integrations import LiteLLMCallback
+from copium.integrations import LiteLLMCallback
 
-callback = LiteLLMCallback(headroom_url="http://localhost:8787")
+callback = LiteLLMCallback(copium_url="http://localhost:8787")
 # Register with LiteLLM proxy
 ```
 
 ---
 
-### ASGI Middleware (`headroom/integrations/asgi.py`)
+### ASGI Middleware (`copium/integrations/asgi.py`)
 
 ASGI-compatible middleware for Python web frameworks (FastAPI, Starlette, etc.).
 
-**`HeadroomMiddleware` class:**
+**`CopiumMiddleware` class:**
 ```python
-class HeadroomMiddleware:
+class CopiumMiddleware:
     def __init__(
         self,
         app: ASGIApplication,
-        headroom_url: str = "http://localhost:8787",
+        copium_url: str = "http://localhost:8787",
         mode: ProxyMode = ProxyMode.COMPRESS,
     ) -> None:
         self.app = app
-        self.headroom_url = headroom_url
+        self.copium_url = copium_url
         self.mode = mode
     
     async def __call__(
@@ -194,30 +194,30 @@ class HeadroomMiddleware:
 
 **Usage:**
 ```python
-from headroom.integrations import HeadroomMiddleware
+from copium.integrations import CopiumMiddleware
 from fastapi import FastAPI
 
 app = FastAPI()
 app.add_middleware(
-    HeadroomMiddleware,
-    headroom_url="http://localhost:8787",
+    CopiumMiddleware,
+    copium_url="http://localhost:8787",
     mode=ProxyMode.COMPRESS,
 )
 ```
 
 ---
 
-### MCP integration helpers (`headroom/integrations/mcp/server.py`)
+### MCP integration helpers (`copium/integrations/mcp/server.py`)
 
 Helpers for MCP-aware host applications and custom wrappers. This module does
-not currently ship a standalone `HeadroomMCPProxy` server implementation.
+not currently ship a standalone `CopiumMCPProxy` server implementation.
 
-**`HeadroomMCPCompressor` class:**
+**`CopiumMCPCompressor` class:**
 ```python
-class HeadroomMCPCompressor:
+class CopiumMCPCompressor:
     def __init__(
         self,
-        config: HeadroomConfig | None = None,
+        config: CopiumConfig | None = None,
         profiles: list[MCPToolProfile] | None = None,
         token_counter: Callable[[str], int] | None = None,
     ) -> None:
@@ -236,42 +236,42 @@ class HeadroomMCPCompressor:
 
 **Companion helpers:**
 - `compress_tool_result(...)` — standalone helper for host applications
-- `HeadroomMCPClientWrapper` — wraps an MCP client and compresses tool results
-- `create_headroom_mcp_proxy(...)` — returns config for a custom wrapper/proxy
+- `CopiumMCPClientWrapper` — wraps an MCP client and compresses tool results
+- `create_copium_mcp_proxy(...)` — returns config for a custom wrapper/proxy
 
 **Ready-to-run MCP tools server:**
 ```bash
-headroom mcp serve
+copium mcp serve
 ```
 
 ---
 
-### Strands (`headroom/integrations/strands/`)
+### Strands (`copium/integrations/strands/`)
 
 Strands framework integration.
 
 **Usage:**
 ```python
-from headroom.integrations.strands import HeadroomStrandsPlugin
+from copium.integrations.strands import CopiumStrandsPlugin
 
-plugin = HeadroomStrandsPlugin()
+plugin = CopiumStrandsPlugin()
 ```
 
 ---
 
-### LangChain (`headroom/integrations/langchain/`)
+### LangChain (`copium/integrations/langchain/`)
 
 LangChain callback handler integration.
 
-**`HeadroomLangChainCallback` class:**
+**`CopiumLangChainCallback` class:**
 ```python
-class HeadroomLangChainCallback(BaseCallbackHandler):
+class CopiumLangChainCallback(BaseCallbackHandler):
     def __init__(
         self,
-        headroom_url: str = "http://localhost:8787",
+        copium_url: str = "http://localhost:8787",
         api_key: str | None = None,
     ) -> None:
-        self.headroom_url = headroom_url
+        self.copium_url = copium_url
         self.api_key = api_key
     
     async def on_llm_start(self, serialized, prompts, **kwargs) -> None:
@@ -283,9 +283,9 @@ class HeadroomLangChainCallback(BaseCallbackHandler):
 
 **Usage:**
 ```python
-from langchain.callbacks import HeadroomLangChainCallback
+from langchain.callbacks import CopiumLangChainCallback
 
-callback = HeadroomLangChainCallback()
+callback = CopiumLangChainCallback()
 # Pass to LangChain chain
 ```
 
@@ -297,8 +297,8 @@ All learn plugins must implement the `LearnPlugin` interface:
 
 ```python
 from abc import ABC, abstractmethod
-from headroom.learn.base import ConversationScanner, ContextWriter
-from headroom.learn.models import ProjectInfo, SessionData
+from copium.learn.base import ConversationScanner, ContextWriter
+from copium.learn.models import ProjectInfo, SessionData
 
 class LearnPlugin(ConversationScanner):
     """A self-contained learn plugin for a single coding agent."""
@@ -342,7 +342,7 @@ class LearnPlugin(ConversationScanner):
 plugin = MyAgentPlugin()
 ```
 
-Plugins are auto-discovered from `headroom.learn.plugins.*` or via `headroom.learn_plugin` entry points.
+Plugins are auto-discovered from `copium.learn.plugins.*` or via `copium.learn_plugin` entry points.
 
 ---
 

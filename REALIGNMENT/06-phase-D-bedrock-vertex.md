@@ -11,7 +11,7 @@
 ## PR-D1 — Native Bedrock InvokeModel route (non-streaming)
 
 **Branch:** `realign-D1-bedrock-native-invoke`
-**Worktree:** `~/claude-projects/headroom-worktrees/realign-D1-bedrock-native-invoke`
+**Worktree:** `~/claude-projects/copium-worktrees/realign-D1-bedrock-native-invoke`
 **Risk:** **HIGH** (new auth + envelope surface)
 **LOC:** +1500
 
@@ -21,31 +21,31 @@ Eliminate part of P4-37 and P4-39. Add `POST /model/{model}/invoke` route to the
 ### Files
 
 **Add:**
-- `crates/headroom-proxy/src/bedrock/mod.rs` — module re-exports.
-- `crates/headroom-proxy/src/bedrock/sigv4.rs` — AWS SigV4 signing. Use the `aws-sigv4` crate. Sign over the (possibly modified) request body bytes. Critical: sign **after** Headroom finishes mutating the body, so the signature matches what Bedrock receives.
-- `crates/headroom-proxy/src/bedrock/invoke.rs` — POST handler for `/model/{model}/invoke`. Detects `anthropic.claude-*` model IDs; routes to live-zone compression for Anthropic shape; signs and forwards.
-- `crates/headroom-proxy/src/bedrock/envelope.rs` — `BedrockEnvelope` struct: parses `{"anthropic_version": "...", ...rest_of_anthropic_body}`. Re-emits in Bedrock shape with `anthropic_version` preserved as the first key.
+- `crates/copium-proxy/src/bedrock/mod.rs` — module re-exports.
+- `crates/copium-proxy/src/bedrock/sigv4.rs` — AWS SigV4 signing. Use the `aws-sigv4` crate. Sign over the (possibly modified) request body bytes. Critical: sign **after** Copium finishes mutating the body, so the signature matches what Bedrock receives.
+- `crates/copium-proxy/src/bedrock/invoke.rs` — POST handler for `/model/{model}/invoke`. Detects `anthropic.claude-*` model IDs; routes to live-zone compression for Anthropic shape; signs and forwards.
+- `crates/copium-proxy/src/bedrock/envelope.rs` — `BedrockEnvelope` struct: parses `{"anthropic_version": "...", ...rest_of_anthropic_body}`. Re-emits in Bedrock shape with `anthropic_version` preserved as the first key.
 
 **Modify:**
-- `crates/headroom-proxy/src/lib.rs` — route `/model/{model}/invoke` and `/model/{model}/converse` (POST) to the new handler.
-- `crates/headroom-proxy/src/config.rs` — add `--bedrock-region` flag (default `us-east-1`) and AWS credential config (uses `aws-config` crate's default chain).
+- `crates/copium-proxy/src/lib.rs` — route `/model/{model}/invoke` and `/model/{model}/converse` (POST) to the new handler.
+- `crates/copium-proxy/src/config.rs` — add `--bedrock-region` flag (default `us-east-1`) and AWS credential config (uses `aws-config` crate's default chain).
 - `Cargo.toml` workspace — add `aws-sigv4`, `aws-config`, `aws-credential-types`.
 
 **Tests added:**
-- `crates/headroom-proxy/tests/integration_bedrock_invoke.rs::native_envelope_round_trip_byte_equal`
-- `crates/headroom-proxy/tests/integration_bedrock_invoke.rs::sigv4_signed_correctly_after_compression`
-- `crates/headroom-proxy/tests/integration_bedrock_invoke.rs::thinking_block_preserved_through_bedrock`
-- `crates/headroom-proxy/tests/integration_bedrock_invoke.rs::redacted_thinking_preserved`
-- `crates/headroom-proxy/tests/integration_bedrock_invoke.rs::document_block_preserved`
-- `crates/headroom-proxy/tests/integration_bedrock_invoke.rs::tool_result_array_with_image_preserved`
-- `crates/headroom-proxy/tests/integration_bedrock_invoke.rs::stop_sequence_null_only_when_present`
-- `crates/headroom-proxy/tests/integration_bedrock_invoke.rs::tool_use_input_byte_equal_preserves_key_order`
+- `crates/copium-proxy/tests/integration_bedrock_invoke.rs::native_envelope_round_trip_byte_equal`
+- `crates/copium-proxy/tests/integration_bedrock_invoke.rs::sigv4_signed_correctly_after_compression`
+- `crates/copium-proxy/tests/integration_bedrock_invoke.rs::thinking_block_preserved_through_bedrock`
+- `crates/copium-proxy/tests/integration_bedrock_invoke.rs::redacted_thinking_preserved`
+- `crates/copium-proxy/tests/integration_bedrock_invoke.rs::document_block_preserved`
+- `crates/copium-proxy/tests/integration_bedrock_invoke.rs::tool_result_array_with_image_preserved`
+- `crates/copium-proxy/tests/integration_bedrock_invoke.rs::stop_sequence_null_only_when_present`
+- `crates/copium-proxy/tests/integration_bedrock_invoke.rs::tool_use_input_byte_equal_preserves_key_order`
 
 ### Acceptance criteria
 
 - All new tests pass.
 - Manual test against a real Bedrock endpoint (developer's AWS account) succeeds.
-- Existing fake Bedrock path (`headroom/backends/litellm.py`) still works in Python; this PR adds the Rust path alongside.
+- Existing fake Bedrock path (`copium/backends/litellm.py`) still works in Python; this PR adds the Rust path alongside.
 
 ### Blocked by
 
@@ -69,7 +69,7 @@ PR-D2, PR-D3, PR-H2.
 ## PR-D2 — Bedrock streaming via binary EventStream
 
 **Branch:** `realign-D2-bedrock-event-stream`
-**Worktree:** `~/claude-projects/headroom-worktrees/realign-D2-bedrock-event-stream`
+**Worktree:** `~/claude-projects/copium-worktrees/realign-D2-bedrock-event-stream`
 **Risk:** **HIGH** (binary protocol, not SSE)
 **LOC:** +1100
 
@@ -79,19 +79,19 @@ Add `POST /model/{model}/invoke-with-response-stream` route. Bedrock's streaming
 ### Files
 
 **Add:**
-- `crates/headroom-proxy/src/bedrock/eventstream.rs` — EventStream binary parser. Format: 12-byte prelude (length + headers length + CRC32 of prelude), N bytes of headers, payload, 4-byte CRC32 of message. Parse incrementally; yield `EventStreamMessage { headers: HashMap, payload: Bytes }`.
-- `crates/headroom-proxy/src/bedrock/eventstream_to_sse.rs` — for Anthropic-shape Bedrock responses, each `EventStreamMessage` whose `:event-type` header is `chunk` carries an Anthropic SSE event in its payload. Re-emit as SSE to the client. (Or pass through as EventStream — choose based on the `Accept` header from the client.)
-- `crates/headroom-proxy/src/bedrock/invoke_streaming.rs` — POST handler.
+- `crates/copium-proxy/src/bedrock/eventstream.rs` — EventStream binary parser. Format: 12-byte prelude (length + headers length + CRC32 of prelude), N bytes of headers, payload, 4-byte CRC32 of message. Parse incrementally; yield `EventStreamMessage { headers: HashMap, payload: Bytes }`.
+- `crates/copium-proxy/src/bedrock/eventstream_to_sse.rs` — for Anthropic-shape Bedrock responses, each `EventStreamMessage` whose `:event-type` header is `chunk` carries an Anthropic SSE event in its payload. Re-emit as SSE to the client. (Or pass through as EventStream — choose based on the `Accept` header from the client.)
+- `crates/copium-proxy/src/bedrock/invoke_streaming.rs` — POST handler.
 
 **Modify:**
-- `crates/headroom-proxy/src/lib.rs` — route `/model/{model}/invoke-with-response-stream`.
-- `crates/headroom-proxy/src/sse/anthropic.rs` — accept events from EventStream-translated source.
+- `crates/copium-proxy/src/lib.rs` — route `/model/{model}/invoke-with-response-stream`.
+- `crates/copium-proxy/src/sse/anthropic.rs` — accept events from EventStream-translated source.
 
 **Tests added:**
-- `crates/headroom-proxy/tests/integration_bedrock_streaming.rs::eventstream_parses_correctly`
-- `crates/headroom-proxy/tests/integration_bedrock_streaming.rs::eventstream_translated_to_sse`
-- `crates/headroom-proxy/tests/integration_bedrock_streaming.rs::usage_extracted_from_translated_stream`
-- `crates/headroom-proxy/tests/integration_bedrock_streaming.rs::client_can_choose_eventstream_or_sse`
+- `crates/copium-proxy/tests/integration_bedrock_streaming.rs::eventstream_parses_correctly`
+- `crates/copium-proxy/tests/integration_bedrock_streaming.rs::eventstream_translated_to_sse`
+- `crates/copium-proxy/tests/integration_bedrock_streaming.rs::usage_extracted_from_translated_stream`
+- `crates/copium-proxy/tests/integration_bedrock_streaming.rs::client_can_choose_eventstream_or_sse`
 - Property test: `proptest! { fn eventstream_parser_no_panic(bytes in any::<Vec<u8>>()) { let _ = parse(bytes); } }`
 
 ### Acceptance criteria
@@ -116,7 +116,7 @@ PR-H2.
 ## PR-D3 — Bedrock-side observability + auth-mode integration
 
 **Branch:** `realign-D3-bedrock-observability`
-**Worktree:** `~/claude-projects/headroom-worktrees/realign-D3-bedrock-observability`
+**Worktree:** `~/claude-projects/copium-worktrees/realign-D3-bedrock-observability`
 **Risk:** **LOW**
 **LOC:** +400
 
@@ -126,15 +126,15 @@ Per-Bedrock-model metrics, region tagging, IAM role attribution, and integration
 ### Files
 
 **Modify:**
-- `crates/headroom-proxy/src/bedrock/invoke.rs` — auth_mode classification: when an inbound request hits `/model/.../invoke`, classify as `AuthMode::OAuth` for compression policy.
-- `crates/headroom-proxy/src/observability/prometheus.rs` — add `bedrock_invoke_count_total{model, region}`, `bedrock_invoke_latency_seconds`, `bedrock_eventstream_message_count_total`.
+- `crates/copium-proxy/src/bedrock/invoke.rs` — auth_mode classification: when an inbound request hits `/model/.../invoke`, classify as `AuthMode::OAuth` for compression policy.
+- `crates/copium-proxy/src/observability/prometheus.rs` — add `bedrock_invoke_count_total{model, region}`, `bedrock_invoke_latency_seconds`, `bedrock_eventstream_message_count_total`.
 
 **Add:**
 - `docs/bedrock.md` — operator docs: how to configure AWS credentials, what models are supported (any `anthropic.claude-*`), what compression behavior to expect (live-zone-only, lossless preferred).
 
 **Tests added:**
-- `crates/headroom-proxy/tests/integration_bedrock_authmode.rs::bedrock_classified_as_oauth`
-- `crates/headroom-proxy/tests/integration_bedrock_authmode.rs::oauth_policy_passthrough_prefer`
+- `crates/copium-proxy/tests/integration_bedrock_authmode.rs::bedrock_classified_as_oauth`
+- `crates/copium-proxy/tests/integration_bedrock_authmode.rs::oauth_policy_passthrough_prefer`
 
 ### Acceptance criteria
 
@@ -158,7 +158,7 @@ PR-H2.
 ## PR-D4 — Native Vertex publisher path
 
 **Branch:** `realign-D4-vertex-native`
-**Worktree:** `~/claude-projects/headroom-worktrees/realign-D4-vertex-native`
+**Worktree:** `~/claude-projects/copium-worktrees/realign-D4-vertex-native`
 **Risk:** **HIGH** (new auth + envelope surface)
 **LOC:** +1300
 
@@ -168,20 +168,20 @@ Eliminate P4-38, P4-39 (Vertex parts). Add `POST /v1beta1/projects/{project}/loc
 ### Files
 
 **Add:**
-- `crates/headroom-proxy/src/vertex/mod.rs` — module re-exports.
-- `crates/headroom-proxy/src/vertex/adc.rs` — GCP ADC bearer token resolution. Use `gcp_auth` crate.
-- `crates/headroom-proxy/src/vertex/raw_predict.rs` — POST handler.
-- `crates/headroom-proxy/src/vertex/stream_raw_predict.rs` — streaming handler. Vertex uses SSE for streaming (unlike Bedrock); the existing `AnthropicStreamState` from PR-C1 works directly.
+- `crates/copium-proxy/src/vertex/mod.rs` — module re-exports.
+- `crates/copium-proxy/src/vertex/adc.rs` — GCP ADC bearer token resolution. Use `gcp_auth` crate.
+- `crates/copium-proxy/src/vertex/raw_predict.rs` — POST handler.
+- `crates/copium-proxy/src/vertex/stream_raw_predict.rs` — streaming handler. Vertex uses SSE for streaming (unlike Bedrock); the existing `AnthropicStreamState` from PR-C1 works directly.
 
 **Modify:**
-- `crates/headroom-proxy/src/lib.rs` — route Vertex paths.
+- `crates/copium-proxy/src/lib.rs` — route Vertex paths.
 - `Cargo.toml` workspace — add `gcp_auth`.
 
 **Tests added:**
-- `crates/headroom-proxy/tests/integration_vertex_raw_predict.rs::native_envelope_round_trip_byte_equal`
-- `crates/headroom-proxy/tests/integration_vertex_raw_predict.rs::adc_bearer_token_signed_correctly`
-- `crates/headroom-proxy/tests/integration_vertex_raw_predict.rs::thinking_block_preserved`
-- `crates/headroom-proxy/tests/integration_vertex_raw_predict.rs::stream_raw_predict_sse_handled`
+- `crates/copium-proxy/tests/integration_vertex_raw_predict.rs::native_envelope_round_trip_byte_equal`
+- `crates/copium-proxy/tests/integration_vertex_raw_predict.rs::adc_bearer_token_signed_correctly`
+- `crates/copium-proxy/tests/integration_vertex_raw_predict.rs::thinking_block_preserved`
+- `crates/copium-proxy/tests/integration_vertex_raw_predict.rs::stream_raw_predict_sse_handled`
 
 ### Acceptance criteria
 

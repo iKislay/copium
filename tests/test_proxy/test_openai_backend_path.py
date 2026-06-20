@@ -9,7 +9,7 @@ don't need a real provider:
 
 1. Backend response with cache_read_input_tokens > 0 → tracker.update_from_response
    is called with the right cache_read_tokens and cache_write_tokens.
-2. Backend response with headroom_retrieve tool call → ccr_response_handler.handle_response
+2. Backend response with copium_retrieve tool call → ccr_response_handler.handle_response
    is awaited with provider="openai", and the final body returned.
 3. CCR intercept exception path → re-raises (NOT swallowed).
 """
@@ -25,8 +25,8 @@ httpx = pytest.importorskip("httpx")
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from headroom.backends.base import BackendResponse  # noqa: E402
-from headroom.proxy.server import ProxyConfig, create_app  # noqa: E402
+from copium.backends.base import BackendResponse  # noqa: E402
+from copium.proxy.server import ProxyConfig, create_app  # noqa: E402
 
 
 class _RecordingTracker:
@@ -127,7 +127,7 @@ def test_backend_response_updates_prefix_tracker_with_bedrock_cache_fields():
     }
 
     mock_backend = _make_mock_backend(response_body)
-    with patch("headroom.proxy.server.AnyLLMBackend", return_value=mock_backend):
+    with patch("copium.proxy.server.AnyLLMBackend", return_value=mock_backend):
         app = create_app(config)
         with TestClient(app) as client:
             tracker = _install_tracker_stub(client)
@@ -174,7 +174,7 @@ def test_backend_response_falls_back_to_openai_cached_tokens_when_bedrock_keys_a
     }
 
     mock_backend = _make_mock_backend(response_body)
-    with patch("headroom.proxy.server.AnyLLMBackend", return_value=mock_backend):
+    with patch("copium.proxy.server.AnyLLMBackend", return_value=mock_backend):
         app = create_app(config)
         with TestClient(app) as client:
             tracker = _install_tracker_stub(client)
@@ -197,9 +197,9 @@ def test_backend_response_falls_back_to_openai_cached_tokens_when_bedrock_keys_a
 
 
 def test_backend_response_with_ccr_tool_call_is_intercepted_and_resolved():
-    """OpenAI-shape response carrying headroom_retrieve → CCR handler resolves it."""
+    """OpenAI-shape response carrying copium_retrieve → CCR handler resolves it."""
     config = _make_config()
-    # First response: tool_call for headroom_retrieve
+    # First response: tool_call for copium_retrieve
     tool_call_response = {
         "id": "chatcmpl-ccr-1",
         "object": "chat.completion",
@@ -215,7 +215,7 @@ def test_backend_response_with_ccr_tool_call_is_intercepted_and_resolved():
                             "id": "call_abc",
                             "type": "function",
                             "function": {
-                                "name": "headroom_retrieve",
+                                "name": "copium_retrieve",
                                 "arguments": '{"hash": "deadbeef"}',
                             },
                         }
@@ -249,7 +249,7 @@ def test_backend_response_with_ccr_tool_call_is_intercepted_and_resolved():
     }
 
     mock_backend = _make_mock_backend(tool_call_response)
-    with patch("headroom.proxy.server.AnyLLMBackend", return_value=mock_backend):
+    with patch("copium.proxy.server.AnyLLMBackend", return_value=mock_backend):
         app = create_app(config)
         with TestClient(app) as client:
             _install_tracker_stub(client)
@@ -297,7 +297,7 @@ def test_backend_ccr_intercept_exception_is_reraised_not_swallowed():
                             "id": "call_bad",
                             "type": "function",
                             "function": {
-                                "name": "headroom_retrieve",
+                                "name": "copium_retrieve",
                                 "arguments": '{"hash": "badhash"}',
                             },
                         }
@@ -310,7 +310,7 @@ def test_backend_ccr_intercept_exception_is_reraised_not_swallowed():
     }
 
     mock_backend = _make_mock_backend(tool_call_response)
-    with patch("headroom.proxy.server.AnyLLMBackend", return_value=mock_backend):
+    with patch("copium.proxy.server.AnyLLMBackend", return_value=mock_backend):
         app = create_app(config)
         with TestClient(app) as client:
             _install_tracker_stub(client)
@@ -355,7 +355,7 @@ def test_backend_streaming_passes_prefix_tracker_through():
     # The wiring contract is structural — just confirm the parameter exists.
     import inspect
 
-    from headroom.proxy.handlers.streaming import StreamingMixin
+    from copium.proxy.handlers.streaming import StreamingMixin
 
     sig = inspect.signature(StreamingMixin._stream_openai_via_backend)
     assert "prefix_tracker" in sig.parameters, (

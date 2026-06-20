@@ -5,8 +5,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from headroom.memory.config import EmbedderBackend
-from headroom.memory.wrapper import MemoryWrapper, _MemoryAPI, with_memory
+from copium.memory.config import EmbedderBackend
+from copium.memory.wrapper import MemoryWrapper, _MemoryAPI, with_memory
 
 
 class FakeMemory:
@@ -53,7 +53,7 @@ def test_memory_wrapper_lazy_initialization_and_factory(monkeypatch: pytest.Monk
         seen["config"] = config
         return fake_memory
 
-    monkeypatch.setattr("headroom.memory.wrapper.HierarchicalMemory.create", fake_create)
+    monkeypatch.setattr("copium.memory.wrapper.HierarchicalMemory.create", fake_create)
 
     wrapper = MemoryWrapper(
         client,
@@ -158,13 +158,13 @@ def test_wrapped_completions_create_injects_parses_and_stores(
         lambda messages: [{"role": "user", "content": "enhanced"}],
     )
     monkeypatch.setattr(
-        "headroom.memory.wrapper.inject_memory_instruction",
+        "copium.memory.wrapper.inject_memory_instruction",
         lambda messages, short=True: (
             messages + [{"role": "system", "content": "memory-instruction"}]
         ),
     )
     monkeypatch.setattr(
-        "headroom.memory.wrapper.parse_response_with_memory",
+        "copium.memory.wrapper.parse_response_with_memory",
         lambda content: SimpleNamespace(
             content="clean response",
             memories=[{"content": "saved memory"}],

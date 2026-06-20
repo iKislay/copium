@@ -1,7 +1,7 @@
-"""End-to-end test suites for Headroom CLI commands.
+"""End-to-end test suites for Copium CLI commands.
 
 Subpackages:
     _lib — shared harness and helpers
-    init — ``headroom init`` coverage
-    wrap — ``headroom wrap`` coverage
+    init — ``copium init`` coverage
+    wrap — ``copium wrap`` coverage
 """

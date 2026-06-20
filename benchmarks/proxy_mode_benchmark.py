@@ -19,14 +19,14 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from headroom.cache.compression_cache import CompressionCache
-from headroom.cache.prefix_tracker import PrefixCacheTracker
-from headroom.proxy.handlers.anthropic import AnthropicHandlerMixin
-from headroom.proxy.models import ProxyConfig
-from headroom.proxy.modes import PROXY_MODE_CACHE, PROXY_MODE_TOKEN
-from headroom.proxy.server import HeadroomProxy
-from headroom.tokenizers import get_tokenizer
-from headroom.utils import extract_user_query
+from copium.cache.compression_cache import CompressionCache
+from copium.cache.prefix_tracker import PrefixCacheTracker
+from copium.proxy.handlers.anthropic import AnthropicHandlerMixin
+from copium.proxy.models import ProxyConfig
+from copium.proxy.modes import PROXY_MODE_CACHE, PROXY_MODE_TOKEN
+from copium.proxy.server import CopiumProxy
+from copium.tokenizers import get_tokenizer
+from copium.utils import extract_user_query
 
 MODEL = "claude-sonnet-4-6"
 
@@ -132,7 +132,7 @@ def _common_prefix_tokens(
     return common, counts
 
 
-def _make_proxy(mode: str) -> HeadroomProxy:
+def _make_proxy(mode: str) -> CopiumProxy:
     cfg = ProxyConfig(
         mode=mode,
         optimize=True,
@@ -148,7 +148,7 @@ def _make_proxy(mode: str) -> HeadroomProxy:
         ccr_handle_responses=False,
         ccr_context_tracking=False,
     )
-    return HeadroomProxy(cfg)
+    return CopiumProxy(cfg)
 
 
 def _simulate_mode(turns: int, mode: str) -> ModeBenchmarkResult:
@@ -259,15 +259,15 @@ def _print_results(results: dict[str, ModeBenchmarkResult]) -> None:
 
 def _print_real_harness() -> None:
     print("\nReal test harness (manual; optional, not executed by this benchmark):")
-    print("  1) Start proxy in cache mode:  HEADROOM_MODE=cache headroom proxy --port 8787")
-    print("  2) Start proxy in token mode:  HEADROOM_MODE=token headroom proxy --port 8787")
+    print("  1) Start proxy in cache mode:  COPIUM_MODE=cache copium proxy --port 8787")
+    print("  2) Start proxy in token mode:  COPIUM_MODE=token copium proxy --port 8787")
     print("  3) Run Claude Code against each:")
     print("     ANTHROPIC_BASE_URL=http://localhost:8787 claude")
     print("  4) Compare /stats prefix_cache and compression sections per run.")
 
 
 def main() -> None:
-    logging.getLogger("headroom").setLevel(logging.WARNING)
+    logging.getLogger("copium").setLevel(logging.WARNING)
     logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
     logging.getLogger("huggingface_hub").setLevel(logging.WARNING)
 

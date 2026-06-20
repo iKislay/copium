@@ -2,7 +2,7 @@
 
 import pytest
 
-from headroom.proxy.modes import (
+from copium.proxy.modes import (
     PROXY_MODE_CACHE,
     PROXY_MODE_TOKEN,
     is_cache_mode,
@@ -17,7 +17,7 @@ def test_proxy_mode_normalizes_canonical_values() -> None:
 
 
 def test_proxy_mode_normalizes_legacy_aliases() -> None:
-    assert normalize_proxy_mode("token_headroom") == PROXY_MODE_TOKEN
+    assert normalize_proxy_mode("token_copium") == PROXY_MODE_TOKEN
     assert normalize_proxy_mode("token_savings") == PROXY_MODE_TOKEN
     assert normalize_proxy_mode("cost_savings") == PROXY_MODE_CACHE
     assert normalize_proxy_mode("cache_mode") == PROXY_MODE_CACHE
@@ -28,7 +28,7 @@ def test_proxy_mode_invalid_falls_back_to_default() -> None:
 
 
 def test_proxy_mode_predicates() -> None:
-    assert is_token_mode("token_headroom") is True
+    assert is_token_mode("token_copium") is True
     assert is_cache_mode("cost_savings") is True
 
 
@@ -36,7 +36,7 @@ def test_stats_reports_configured_mode_for_compression_cache() -> None:
     pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
 
-    from headroom.proxy.server import ProxyConfig, create_app
+    from copium.proxy.server import ProxyConfig, create_app
 
     app = create_app(
         ProxyConfig(

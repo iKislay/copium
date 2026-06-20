@@ -5,11 +5,11 @@ import json
 
 import pytest
 
-from headroom.cache.compression_store import (
+from copium.cache.compression_store import (
     get_compression_store,
     reset_compression_store,
 )
-from headroom.ccr import mcp_server
+from copium.ccr import mcp_server
 
 
 def test_shared_stats_work_without_fcntl(monkeypatch, tmp_path) -> None:
@@ -48,7 +48,7 @@ def fresh_store():
 def test_mcp_uses_shared_singleton_store(fresh_store) -> None:
     """MCP's store is the global singleton, not a private instance."""
     pytest.importorskip("mcp", reason="MCP SDK required")
-    server = mcp_server.HeadroomMCPServer(check_proxy=False)
+    server = mcp_server.CopiumMCPServer(check_proxy=False)
     assert server._get_local_store() is get_compression_store()
 
 
@@ -60,7 +60,7 @@ def test_mcp_retrieves_proxy_stored_content(fresh_store) -> None:
     original = '{"some": "original proxy-compressed content"}'
     hash_key = get_compression_store().store(original, '{"compressed": true}')
 
-    server = mcp_server.HeadroomMCPServer(check_proxy=False)
+    server = mcp_server.CopiumMCPServer(check_proxy=False)
     result = asyncio.run(server._retrieve_content(hash_key, query=None))
 
     assert result.get("source") == "local"

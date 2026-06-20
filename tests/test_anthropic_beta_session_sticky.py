@@ -19,7 +19,7 @@ The fix:
   * `SessionBetaTracker`: bounded LRU keyed by (provider, session_id),
     unioning client tokens with previously-seen tokens.
 
-Operator opt-in `HEADROOM_BETA_HEADER_STICKY=disabled` short-circuits
+Operator opt-in `COPIUM_BETA_HEADER_STICKY=disabled` short-circuits
 the tracker (returns the client value verbatim). That mode is loud and
 explicit per realignment build constraint #4 — NOT a silent fallback.
 """
@@ -30,7 +30,7 @@ import threading
 
 import pytest
 
-from headroom.proxy.helpers import (
+from copium.proxy.helpers import (
     SessionBetaTracker,
     _reset_session_beta_tracker_for_test,
     get_beta_header_sticky_mode,
@@ -61,20 +61,20 @@ def test_merge_helper_only_client() -> None:
     assert merge_anthropic_beta("a,b", []) == "a,b"
 
 
-def test_merge_helper_only_headroom() -> None:
+def test_merge_helper_only_copium() -> None:
     assert merge_anthropic_beta(None, ["a", "b"]) == "a,b"
 
 
-def test_merge_helper_preserves_client_order_and_appends_headroom() -> None:
-    # Client tokens FIRST in their original order, headroom AFTER in passed order.
+def test_merge_helper_preserves_client_order_and_appends_copium() -> None:
+    # Client tokens FIRST in their original order, copium AFTER in passed order.
     assert (
-        merge_anthropic_beta("client-1,client-2", ["headroom-a", "headroom-b"])
-        == "client-1,client-2,headroom-a,headroom-b"
+        merge_anthropic_beta("client-1,client-2", ["copium-a", "copium-b"])
+        == "client-1,client-2,copium-a,copium-b"
     )
 
 
 def test_dedupe_case_insensitive_preserves_first_casing() -> None:
-    # Client casing wins over headroom casing.
+    # Client casing wins over copium casing.
     assert (
         merge_anthropic_beta("Context-Management-2025-06-27", ["context-management-2025-06-27"])
         == "Context-Management-2025-06-27"
@@ -99,7 +99,7 @@ def test_merge_helper_skips_empty_tokens() -> None:
 
 
 def test_merge_helper_no_double_inject_when_already_present() -> None:
-    # Headroom token already in client value → not re-appended.
+    # Copium token already in client value → not re-appended.
     assert (
         merge_anthropic_beta("context-management-2025-06-27", ["context-management-2025-06-27"])
         == "context-management-2025-06-27"
@@ -114,8 +114,8 @@ def test_merge_helper_no_double_inject_when_already_present() -> None:
 @pytest.fixture(autouse=True)
 def _isolate_tracker(monkeypatch: pytest.MonkeyPatch) -> None:
     """Reset the process-wide tracker singleton + env flags between tests."""
-    monkeypatch.delenv("HEADROOM_BETA_HEADER_STICKY", raising=False)
-    monkeypatch.delenv("HEADROOM_BETA_TRACKER_MAX_SESSIONS", raising=False)
+    monkeypatch.delenv("COPIUM_BETA_HEADER_STICKY", raising=False)
+    monkeypatch.delenv("COPIUM_BETA_TRACKER_MAX_SESSIONS", raising=False)
     _reset_session_beta_tracker_for_test()
     yield
     _reset_session_beta_tracker_for_test()
@@ -144,7 +144,7 @@ def test_beta_seen_turn_1_present_in_turn_2_even_if_client_drops() -> None:
 
 
 def test_client_value_preserved_when_no_injection() -> None:
-    """First-turn client value flows through unchanged when no headroom adds."""
+    """First-turn client value flows through unchanged when no copium adds."""
     tracker = SessionBetaTracker(max_sessions=10)
     out = tracker.record_and_get_sticky_betas(
         provider="anthropic",
@@ -228,8 +228,8 @@ def test_max_sessions_invalid_raises() -> None:
 
 
 def test_disabled_mode_passes_through(monkeypatch: pytest.MonkeyPatch) -> None:
-    """`HEADROOM_BETA_HEADER_STICKY=disabled` returns client value verbatim."""
-    monkeypatch.setenv("HEADROOM_BETA_HEADER_STICKY", "disabled")
+    """`COPIUM_BETA_HEADER_STICKY=disabled` returns client value verbatim."""
+    monkeypatch.setenv("COPIUM_BETA_HEADER_STICKY", "disabled")
     tracker = SessionBetaTracker(max_sessions=10)
 
     # Turn 1: record a token.
@@ -249,8 +249,8 @@ def test_disabled_mode_passes_through(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_disabled_mode_invalid_value_raises(monkeypatch: pytest.MonkeyPatch) -> None:
     """Unknown values raise loudly — no silent fallback."""
-    monkeypatch.setenv("HEADROOM_BETA_HEADER_STICKY", "yolo")
-    with pytest.raises(ValueError, match="HEADROOM_BETA_HEADER_STICKY"):
+    monkeypatch.setenv("COPIUM_BETA_HEADER_STICKY", "yolo")
+    with pytest.raises(ValueError, match="COPIUM_BETA_HEADER_STICKY"):
         get_beta_header_sticky_mode()
 
 
@@ -259,18 +259,18 @@ def test_max_sessions_env_var_default() -> None:
 
 
 def test_max_sessions_env_var_custom(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("HEADROOM_BETA_TRACKER_MAX_SESSIONS", "42")
+    monkeypatch.setenv("COPIUM_BETA_TRACKER_MAX_SESSIONS", "42")
     assert get_beta_tracker_max_sessions() == 42
 
 
 def test_max_sessions_env_var_invalid_raises(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("HEADROOM_BETA_TRACKER_MAX_SESSIONS", "0")
+    monkeypatch.setenv("COPIUM_BETA_TRACKER_MAX_SESSIONS", "0")
     with pytest.raises(ValueError):
         get_beta_tracker_max_sessions()
-    monkeypatch.setenv("HEADROOM_BETA_TRACKER_MAX_SESSIONS", "-3")
+    monkeypatch.setenv("COPIUM_BETA_TRACKER_MAX_SESSIONS", "-3")
     with pytest.raises(ValueError):
         get_beta_tracker_max_sessions()
-    monkeypatch.setenv("HEADROOM_BETA_TRACKER_MAX_SESSIONS", "not-int")
+    monkeypatch.setenv("COPIUM_BETA_TRACKER_MAX_SESSIONS", "not-int")
     with pytest.raises(ValueError):
         get_beta_tracker_max_sessions()
 
@@ -334,7 +334,7 @@ def test_memory_injection_appends_deterministic_order() -> None:
     """End-to-end: client value + memory beta token → deterministic merged value.
 
     Mirrors the ad-hoc concat that the handler used to do but via the
-    new merge helper. Order is client first, headroom token after.
+    new merge helper. Order is client first, copium token after.
     """
     client = "interleaved-thinking-2025-05-14"
     merged = merge_anthropic_beta(client, ["context-management-2025-06-27"])

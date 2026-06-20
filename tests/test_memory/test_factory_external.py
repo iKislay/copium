@@ -2,9 +2,9 @@
 
 Three extension groups let packages register memory backends via
 setuptools entry points:
-  - headroom.memory_store
-  - headroom.memory_vector
-  - headroom.memory_text
+  - copium.memory_store
+  - copium.memory_vector
+  - copium.memory_text
 
 A package registers a callable under one of these groups; the factory
 loads it when the corresponding backend enum is EXTERNAL.
@@ -16,13 +16,13 @@ from __future__ import annotations
 
 import pytest
 
-from headroom.memory.config import (
+from copium.memory.config import (
     MemoryConfig,
     StoreBackend,
     TextBackend,
     VectorBackend,
 )
-from headroom.memory.factory import (
+from copium.memory.factory import (
     _create_store,
     _create_text_index,
     _create_vector_index,
@@ -41,8 +41,8 @@ class _FakeEntryPoint:
 
 
 def _patch_entry_points(monkeypatch, expected_group: str, name: str, target):
-    """Patch headroom.memory.factory.entry_points to return our fake EP."""
-    from headroom.memory import factory as factory_mod
+    """Patch copium.memory.factory.entry_points to return our fake EP."""
+    from copium.memory import factory as factory_mod
 
     def fake_entry_points(*, group: str):
         if group == expected_group:
@@ -53,7 +53,7 @@ def _patch_entry_points(monkeypatch, expected_group: str, name: str, target):
 
 
 class TestExternalStoreBackend:
-    """EXTERNAL store backend loads via entry_points(group='headroom.memory_store')."""
+    """EXTERNAL store backend loads via entry_points(group='copium.memory_store')."""
 
     def test_loads_external_store(self, monkeypatch):
         sentinel = object()
@@ -62,7 +62,7 @@ class TestExternalStoreBackend:
             assert isinstance(config, MemoryConfig)
             return sentinel
 
-        _patch_entry_points(monkeypatch, "headroom.memory_store", "myvec", make_store)
+        _patch_entry_points(monkeypatch, "copium.memory_store", "myvec", make_store)
 
         config = MemoryConfig(
             store_backend=StoreBackend.EXTERNAL,
@@ -76,7 +76,7 @@ class TestExternalStoreBackend:
             _create_store(config)
 
     def test_external_unknown_name_raises(self, monkeypatch):
-        from headroom.memory import factory as factory_mod
+        from copium.memory import factory as factory_mod
 
         monkeypatch.setattr(factory_mod, "entry_points", lambda *, group: [])
 
@@ -89,11 +89,11 @@ class TestExternalStoreBackend:
 
 
 class TestExternalVectorBackend:
-    """EXTERNAL vector backend loads via entry_points(group='headroom.memory_vector')."""
+    """EXTERNAL vector backend loads via entry_points(group='copium.memory_vector')."""
 
     def test_loads_external_vector(self, monkeypatch):
         sentinel = object()
-        _patch_entry_points(monkeypatch, "headroom.memory_vector", "myvec", lambda cfg: sentinel)
+        _patch_entry_points(monkeypatch, "copium.memory_vector", "myvec", lambda cfg: sentinel)
 
         config = MemoryConfig(
             vector_backend=VectorBackend.EXTERNAL,
@@ -108,11 +108,11 @@ class TestExternalVectorBackend:
 
 
 class TestExternalTextBackend:
-    """EXTERNAL text backend loads via entry_points(group='headroom.memory_text')."""
+    """EXTERNAL text backend loads via entry_points(group='copium.memory_text')."""
 
     def test_loads_external_text(self, monkeypatch):
         sentinel = object()
-        _patch_entry_points(monkeypatch, "headroom.memory_text", "mytext", lambda cfg: sentinel)
+        _patch_entry_points(monkeypatch, "copium.memory_text", "mytext", lambda cfg: sentinel)
 
         config = MemoryConfig(
             text_backend=TextBackend.EXTERNAL,

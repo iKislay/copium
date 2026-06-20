@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from headroom.evals import metrics
+from copium.evals import metrics
 
 
 def test_normalize_tokenize_and_exact_match() -> None:
@@ -47,13 +47,13 @@ def test_compute_semantic_similarity_and_zero_norm(monkeypatch: pytest.MonkeyPat
             return self.embeddings
 
     monkeypatch.setattr(
-        "headroom.models.ml_models.MLModelRegistry.get_sentence_transformer",
+        "copium.models.ml_models.MLModelRegistry.get_sentence_transformer",
         lambda model_name=None: FakeModel([[1.0, 0.0], [1.0, 0.0]]),
     )
     assert metrics.compute_semantic_similarity("first", "second") == 1.0
 
     monkeypatch.setattr(
-        "headroom.models.ml_models.MLModelRegistry.get_sentence_transformer",
+        "copium.models.ml_models.MLModelRegistry.get_sentence_transformer",
         lambda model_name=None: FakeModel([[0.0, 0.0], [1.0, 0.0]]),
     )
     assert metrics.compute_semantic_similarity("first", "second") == 0.0
@@ -139,7 +139,7 @@ def test_tool_schema_compaction_integrity() -> None:
     against the built-in cases and asserts zero failures.  This is zero-cost
     (no API calls) and safe for CI smoke runs.
     """
-    from headroom.evals.runners.compression_only import CompressionOnlyRunner
+    from copium.evals.runners.compression_only import CompressionOnlyRunner
 
     runner = CompressionOnlyRunner()
     result = runner.evaluate_tool_schema_compaction()

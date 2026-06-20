@@ -1,10 +1,10 @@
 """
-Truncation vs Summarization vs Headroom: A Fair Benchmark
+Truncation vs Summarization vs Copium: A Fair Benchmark
 
 This benchmark compares three approaches to context compression:
 1. Truncation - Keep first N items (industry standard)
 2. Summarization - Use LLM to summarize (common alternative)
-3. Headroom - Statistical compression with retrieval
+3. Copium - Statistical compression with retrieval
 
 FAIRNESS PRINCIPLES:
 - Include scenarios where each approach could win
@@ -34,19 +34,19 @@ try:
 except ImportError:
     OPENAI_AVAILABLE = False
 
-# Headroom imports
+# Copium imports
 try:
-    from headroom.config import SmartCrusherConfig
-    from headroom.tokenizers import TiktokenCounter
-    from headroom.transforms.smart_crusher import SmartCrusher
+    from copium.config import SmartCrusherConfig
+    from copium.tokenizers import TiktokenCounter
+    from copium.transforms.smart_crusher import SmartCrusher
 
-    HEADROOM_AVAILABLE = True
+    COPIUM_AVAILABLE = True
 except ImportError:
-    HEADROOM_AVAILABLE = False
+    COPIUM_AVAILABLE = False
 
 # Kompress imports (ML baseline)
 try:
-    from headroom.transforms.kompress_compressor import KompressCompressor, is_kompress_available
+    from copium.transforms.kompress_compressor import KompressCompressor, is_kompress_available
 
     KOMPRESS_AVAILABLE = is_kompress_available()
 except ImportError:
@@ -306,7 +306,7 @@ def generate_metrics_data(n_points: int = 500) -> tuple[list[dict], list[Questio
     Generate realistic time series metrics.
 
     Baseline values with anomalies (spikes) at specific positions.
-    This is where Headroom should excel - detecting statistical outliers.
+    This is where Copium should excel - detecting statistical outliers.
     """
 
     base_cpu = 45.0
@@ -433,7 +433,7 @@ def kompress_compress(data: list[dict]) -> tuple[str, dict]:
     Returns (compressed_text, metadata).
     """
     if not KOMPRESS_AVAILABLE:
-        raise RuntimeError("Kompress not available. Install with: pip install headroom-ai[ml]")
+        raise RuntimeError("Kompress not available. Install with: pip install copium-ai[ml]")
 
     compressor = KompressCompressor()
 
@@ -454,13 +454,13 @@ def kompress_compress(data: list[dict]) -> tuple[str, dict]:
     return result.compressed, metadata
 
 
-def headroom_compress(data: list[dict], query_context: str = "") -> tuple[list[dict], dict]:
+def copium_compress(data: list[dict], query_context: str = "") -> tuple[list[dict], dict]:
     """
-    Use Headroom's SmartCrusher for statistical compression.
+    Use Copium's SmartCrusher for statistical compression.
     Returns (compressed_data, metadata).
     """
-    if not HEADROOM_AVAILABLE:
-        raise RuntimeError("Headroom not available")
+    if not COPIUM_AVAILABLE:
+        raise RuntimeError("Copium not available")
 
     config = SmartCrusherConfig(
         enabled=True,
@@ -509,7 +509,7 @@ def headroom_compress(data: list[dict], query_context: str = "") -> tuple[list[d
 
 def count_tokens(text: str) -> int:
     """Count tokens using tiktoken."""
-    if HEADROOM_AVAILABLE:
+    if COPIUM_AVAILABLE:
         counter = TiktokenCounter()
         return counter.count_text(text)
     else:
@@ -582,7 +582,7 @@ class BenchmarkConfig:
 
     model: str = "gpt-4o-mini"  # Model for queries (and summarization)
     max_truncate_items: int = 20
-    max_headroom_items: int = 20
+    max_copium_items: int = 20
     run_summarization: bool = True  # Can disable to save cost
     run_kompress: bool = True  # Run Kompress (ML baseline)
 
@@ -743,15 +743,15 @@ def run_scenario_benchmark(
             except Exception as e:
                 print(f"   Kompress failed: {e}")
         else:
-            print("   Kompress not available. Install with: pip install headroom-ai[ml]")
+            print("   Kompress not available. Install with: pip install copium-ai[ml]")
 
-    # --- HEADROOM ---
-    print("\n[4/4] Running Headroom...")
-    if HEADROOM_AVAILABLE:
+    # --- COPIUM ---
+    print("\n[4/4] Running Copium...")
+    if COPIUM_AVAILABLE:
         try:
             # Use first question as query context (realistic usage)
             query_context = scenario.questions[0].text if scenario.questions else ""
-            compressed, metadata = headroom_compress(scenario.data, query_context)
+            compressed, metadata = copium_compress(scenario.data, query_context)
 
             hr_json = (
                 json.dumps(compressed, indent=2)
@@ -780,7 +780,7 @@ def run_scenario_benchmark(
 
             results.append(
                 ApproachResult(
-                    approach="headroom",
+                    approach="copium",
                     scenario=scenario.name,
                     tokens_original=original_tokens,
                     tokens_after=hr_tokens,
@@ -798,12 +798,12 @@ def run_scenario_benchmark(
             print(f"   Accuracy: {hr_accuracy:.1%}")
             print(f"   Compression latency: {metadata['latency_ms']:.1f}ms")
         except Exception as e:
-            print(f"   Headroom failed: {e}")
+            print(f"   Copium failed: {e}")
             import traceback
 
             traceback.print_exc()
     else:
-        print("   Headroom not available")
+        print("   Copium not available")
 
     return results
 
@@ -815,13 +815,13 @@ def run_full_benchmark(client: "OpenAI", config: BenchmarkConfig = None) -> dict
         config = BenchmarkConfig()
 
     print("\n" + "=" * 70)
-    print("TRUNCATION vs SUMMARIZATION vs LLMLINGUA-2 vs HEADROOM BENCHMARK")
+    print("TRUNCATION vs SUMMARIZATION vs LLMLINGUA-2 vs COPIUM BENCHMARK")
     print("=" * 70)
 
     # Generate scenarios
     scenarios = []
 
-    # Scenario 1: Logs (Headroom should win - needs anomaly detection)
+    # Scenario 1: Logs (Copium should win - needs anomaly detection)
     logs, log_questions = generate_log_data(500, error_positions=[3, 250, 495])
     scenarios.append(
         Scenario(
@@ -829,7 +829,7 @@ def run_full_benchmark(client: "OpenAI", config: BenchmarkConfig = None) -> dict
             description="Find errors buried in routine logs",
             data=logs,
             questions=log_questions,
-            expected_winner="headroom",
+            expected_winner="copium",
         )
     )
 
@@ -845,7 +845,7 @@ def run_full_benchmark(client: "OpenAI", config: BenchmarkConfig = None) -> dict
         )
     )
 
-    # Scenario 3: Metrics (Headroom should win - statistical outliers)
+    # Scenario 3: Metrics (Copium should win - statistical outliers)
     metrics, metric_questions = generate_metrics_data(500)
     scenarios.append(
         Scenario(
@@ -853,7 +853,7 @@ def run_full_benchmark(client: "OpenAI", config: BenchmarkConfig = None) -> dict
             description="Find anomalies in metrics data",
             data=metrics,
             questions=metric_questions,
-            expected_winner="headroom",
+            expected_winner="copium",
         )
     )
 
@@ -903,7 +903,7 @@ def generate_summary(results: list[ApproachResult], scenarios: list[Scenario]) -
     # Overall stats
     lines.append("\n### Overall Statistics")
 
-    for approach in ["truncation", "summarization", "llmlingua-2", "headroom"]:
+    for approach in ["truncation", "summarization", "llmlingua-2", "copium"]:
         approach_results = [r for r in results if r.approach == approach]
         if approach_results:
             avg_compression = sum(r.compression_ratio for r in approach_results) / len(
@@ -923,7 +923,7 @@ def generate_summary(results: list[ApproachResult], scenarios: list[Scenario]) -
 
     for location in ["early", "middle", "late", "scattered"]:
         lines.append(f"\n**{location.title()} position:**")
-        for approach in ["truncation", "summarization", "llmlingua-2", "headroom"]:
+        for approach in ["truncation", "summarization", "llmlingua-2", "copium"]:
             approach_results = [r for r in results if r.approach == approach]
             location_answers = []
             for r in approach_results:
@@ -957,7 +957,7 @@ if __name__ == "__main__":
     config = BenchmarkConfig(
         model="gpt-4o-mini",
         max_truncate_items=20,
-        max_headroom_items=20,
+        max_copium_items=20,
         run_summarization=True,
     )
 

@@ -24,7 +24,7 @@ pytest.importorskip("httpx")
 
 from fastapi.testclient import TestClient
 
-from headroom.proxy.server import ProxyConfig, create_app
+from copium.proxy.server import ProxyConfig, create_app
 
 # =============================================================================
 # Fixtures
@@ -200,22 +200,22 @@ class TestOpenAIBatchCreate:
             batch_id = batch_data["id"]
 
             # Verify compression stats in response headers
-            if "x-headroom-tokens-saved" in response.headers:
-                tokens_saved = int(response.headers["x-headroom-tokens-saved"])
+            if "x-copium-tokens-saved" in response.headers:
+                tokens_saved = int(response.headers["x-copium-tokens-saved"])
                 assert tokens_saved >= 0
 
-            if "x-headroom-savings-percent" in response.headers:
-                savings_percent = float(response.headers["x-headroom-savings-percent"])
+            if "x-copium-savings-percent" in response.headers:
+                savings_percent = float(response.headers["x-copium-savings-percent"])
                 assert 0 <= savings_percent <= 100
 
             # Verify compression metadata was added
             metadata = batch_data.get("metadata", {})
-            if metadata.get("headroom_compressed") == "true":
+            if metadata.get("copium_compressed") == "true":
                 # Compression was applied
-                assert "headroom_tokens_saved" in metadata
-                assert "headroom_original_tokens" in metadata
-                assert "headroom_compressed_tokens" in metadata
-                tokens_saved = int(metadata["headroom_tokens_saved"])
+                assert "copium_tokens_saved" in metadata
+                assert "copium_original_tokens" in metadata
+                assert "copium_compressed_tokens" in metadata
+                tokens_saved = int(metadata["copium_tokens_saved"])
                 assert tokens_saved >= 0
 
             # Step 4: Cancel the batch to avoid costs

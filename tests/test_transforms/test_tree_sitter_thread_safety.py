@@ -18,7 +18,7 @@ from collections.abc import Iterator
 
 import pytest
 
-from headroom.transforms.code_compressor import (
+from copium.transforms.code_compressor import (
     _get_parser,
     _tree_sitter_local,
     is_tree_sitter_loaded,

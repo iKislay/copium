@@ -14,7 +14,7 @@ The fix:
   (``self._compression_executor`` already provides frame-level parallelism
   via 32 workers sized ``min(32, cpu*4)``).
 * Adds a ``PERF`` log emission from ``handle_openai_responses_ws`` so
-  Codex traffic is no longer invisible to ``headroom perf``.
+  Codex traffic is no longer invisible to ``copium perf``.
 
 These tests verify that future contributors cannot silently re-introduce
 either bottleneck.
@@ -33,7 +33,7 @@ from unittest.mock import MagicMock
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-OPENAI_HANDLER = REPO_ROOT / "headroom" / "proxy" / "handlers" / "openai.py"
+OPENAI_HANDLER = REPO_ROOT / "copium" / "proxy" / "handlers" / "openai.py"
 
 
 # ── Source-level regression guards ──────────────────────────────────────
@@ -63,8 +63,8 @@ def test_module_global_unit_semaphore_is_removed() -> None:
         "inner pool was deleted. Reintroducing it suggests the inner pool "
         "is back too — re-read docs/superpowers/specs/P2-codex-scheduler-fix.md."
     )
-    assert "HEADROOM_CODEX_WS_UNIT_WORKERS" not in source, (
-        "The HEADROOM_CODEX_WS_UNIT_WORKERS env knob was removed. It only "
+    assert "COPIUM_CODEX_WS_UNIT_WORKERS" not in source, (
+        "The COPIUM_CODEX_WS_UNIT_WORKERS env knob was removed. It only "
         "existed to tune around the semaphore bottleneck, which is gone."
     )
 
@@ -93,7 +93,7 @@ def test_no_per_call_threadpool_inside_compress_routed_units() -> None:
 
 # ── PERF log emission from the Codex WS path ────────────────────────────
 #
-# Codex WS traffic was invisible to ``headroom perf`` pre-fix because
+# Codex WS traffic was invisible to ``copium perf`` pre-fix because
 # ``handle_openai_responses_ws`` emitted no PERF line. This is structurally
 # the same bug class as #327's "Cache write: 0" for backend-routed
 # streaming — the request is processed correctly but the operator can't
@@ -101,7 +101,7 @@ def test_no_per_call_threadpool_inside_compress_routed_units() -> None:
 
 
 class _DirectLogCapture(logging.Handler):
-    """Direct handler attached to ``headroom.proxy`` so the proxy's
+    """Direct handler attached to ``copium.proxy`` so the proxy's
     propagation flip in ``_setup_file_logging`` does not strip records.
 
     Same pattern as ``tests/test_backend_streaming_cache_metrics.py`` —
@@ -118,7 +118,7 @@ class _DirectLogCapture(logging.Handler):
 
 def _attach_proxy_log_capture() -> tuple[_DirectLogCapture, logging.Logger, int]:
     handler = _DirectLogCapture()
-    target = logging.getLogger("headroom.proxy")
+    target = logging.getLogger("copium.proxy")
     target.addHandler(handler)
     prior_level = target.level
     target.setLevel(logging.INFO)
@@ -137,8 +137,8 @@ def _make_perf_log_test_handler():
     Imported lazily so a collection-time import error in the proxy module
     does not break the source-level regression guards above.
     """
-    from headroom.proxy.handlers.openai import OpenAIHandlerMixin
-    from headroom.proxy.ws_session_registry import WebSocketSessionRegistry
+    from copium.proxy.handlers.openai import OpenAIHandlerMixin
+    from copium.proxy.ws_session_registry import WebSocketSessionRegistry
 
     class _M(OpenAIHandlerMixin):
         OPENAI_API_URL = "https://api.openai.com"
@@ -191,10 +191,10 @@ def _make_perf_log_test_handler():
 
 @pytest.mark.asyncio
 async def test_codex_ws_emits_perf_log_with_cache_keys() -> None:
-    """``handle_openai_responses_ws`` must emit a PERF line so ``headroom
+    """``handle_openai_responses_ws`` must emit a PERF line so ``copium
     perf`` counts Codex traffic instead of reporting it as zero requests.
 
-    Asserts on the structured-PERF kv fragment used by ``headroom/perf/
+    Asserts on the structured-PERF kv fragment used by ``copium/perf/
     analyzer.py`` (``cache_read=`` / ``cache_write=`` / ``cache_hit_pct=``)
     so the analyzer parser actually picks it up.
     """

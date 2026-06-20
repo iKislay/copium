@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from headroom.transforms.adaptive_sizer import compute_optimal_k
+from copium.transforms.adaptive_sizer import compute_optimal_k
 
 
 def _make_unique_items(n: int) -> list[str]:

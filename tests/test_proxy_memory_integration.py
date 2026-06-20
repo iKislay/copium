@@ -28,7 +28,7 @@ pytest.importorskip("httpx")
 
 from fastapi.testclient import TestClient
 
-from headroom.proxy.server import ProxyConfig, create_app
+from copium.proxy.server import ProxyConfig, create_app
 
 
 @pytest.fixture
@@ -88,7 +88,7 @@ class TestMemoryHeaderValidation:
     """Test user ID header validation."""
 
     def test_missing_user_id_uses_default(self, memory_client, anthropic_api_key):
-        """Request without x-headroom-user-id should use 'default' user for simple DevEx."""
+        """Request without x-copium-user-id should use 'default' user for simple DevEx."""
         if not anthropic_api_key:
             pytest.skip("ANTHROPIC_API_KEY not set")
 
@@ -97,7 +97,7 @@ class TestMemoryHeaderValidation:
             headers={
                 "x-api-key": anthropic_api_key,
                 "anthropic-version": "2023-06-01",
-                # Note: NOT setting x-headroom-user-id - should default to "default"
+                # Note: NOT setting x-copium-user-id - should default to "default"
             },
             json={
                 "model": "claude-sonnet-4-20250514",
@@ -109,7 +109,7 @@ class TestMemoryHeaderValidation:
         assert response.status_code == 200
 
     def test_with_user_id_succeeds(self, memory_client, anthropic_api_key):
-        """Request with x-headroom-user-id should succeed."""
+        """Request with x-copium-user-id should succeed."""
         if not anthropic_api_key:
             pytest.skip("ANTHROPIC_API_KEY not set")
 
@@ -118,7 +118,7 @@ class TestMemoryHeaderValidation:
             headers={
                 "x-api-key": anthropic_api_key,
                 "anthropic-version": "2023-06-01",
-                "x-headroom-user-id": "test-user-123",
+                "x-copium-user-id": "test-user-123",
             },
             json={
                 "model": "claude-sonnet-4-20250514",
@@ -138,7 +138,7 @@ class TestMemoryHeaderValidation:
             headers={
                 "x-api-key": anthropic_api_key,
                 "anthropic-version": "2023-06-01",
-                # No x-headroom-user-id
+                # No x-copium-user-id
             },
             json={
                 "model": "claude-sonnet-4-20250514",
@@ -160,7 +160,7 @@ class TestMemoryToolInjection:
             headers={
                 "x-api-key": anthropic_api_key,
                 "anthropic-version": "2023-06-01",
-                "x-headroom-user-id": "test-user-tool-check",
+                "x-copium-user-id": "test-user-tool-check",
             },
             json={
                 "model": "claude-sonnet-4-20250514",
@@ -202,7 +202,7 @@ class TestMemorySaveAndSearch:
             headers={
                 "x-api-key": anthropic_api_key,
                 "anthropic-version": "2023-06-01",
-                "x-headroom-user-id": user_id,
+                "x-copium-user-id": user_id,
             },
             json={
                 "model": "claude-sonnet-4-20250514",
@@ -236,7 +236,7 @@ class TestMemorySaveAndSearch:
             headers={
                 "x-api-key": anthropic_api_key,
                 "anthropic-version": "2023-06-01",
-                "x-headroom-user-id": user_id,
+                "x-copium-user-id": user_id,
             },
             json={
                 "model": "claude-sonnet-4-20250514",
@@ -262,7 +262,7 @@ class TestMemorySaveAndSearch:
             headers={
                 "x-api-key": anthropic_api_key,
                 "anthropic-version": "2023-06-01",
-                "x-headroom-user-id": user_id,
+                "x-copium-user-id": user_id,
             },
             json={
                 "model": "claude-sonnet-4-20250514",
@@ -309,7 +309,7 @@ class TestMemoryUserIsolation:
             headers={
                 "x-api-key": anthropic_api_key,
                 "anthropic-version": "2023-06-01",
-                "x-headroom-user-id": user_a,
+                "x-copium-user-id": user_a,
             },
             json={
                 "model": "claude-sonnet-4-20250514",
@@ -334,7 +334,7 @@ class TestMemoryUserIsolation:
             headers={
                 "x-api-key": anthropic_api_key,
                 "anthropic-version": "2023-06-01",
-                "x-headroom-user-id": user_b,
+                "x-copium-user-id": user_b,
             },
             json={
                 "model": "claude-sonnet-4-20250514",
@@ -425,7 +425,7 @@ def _seed_memory(*, db_path: str, user_id: str, content: str) -> str:
     pointed at ``db_path``. Returns the new memory's ID."""
     import asyncio
 
-    from headroom.memory.backends.local import LocalBackend, LocalBackendConfig
+    from copium.memory.backends.local import LocalBackend, LocalBackendConfig
 
     async def _run() -> str:
         backend = LocalBackend(
@@ -512,7 +512,7 @@ class TestMemoryIdAutoTailAndUpdate:
                 headers={
                     "x-api-key": anthropic_api_key,
                     "anthropic-version": "2023-06-01",
-                    "x-headroom-user-id": user_id,
+                    "x-copium-user-id": user_id,
                 },
                 json={
                     "model": "claude-sonnet-4-20250514",
@@ -575,7 +575,7 @@ class TestMemoryIdAutoTailAndUpdate:
                 headers={
                     "x-api-key": anthropic_api_key,
                     "anthropic-version": "2023-06-01",
-                    "x-headroom-user-id": user_id,
+                    "x-copium-user-id": user_id,
                 },
                 json={
                     "model": "claude-sonnet-4-20250514",
@@ -653,7 +653,7 @@ class TestMemoryIdAutoTailAndUpdate:
                 headers={
                     "x-api-key": anthropic_api_key,
                     "anthropic-version": "2023-06-01",
-                    "x-headroom-user-id": user_id,
+                    "x-copium-user-id": user_id,
                 },
                 json={
                     "model": "claude-sonnet-4-20250514",

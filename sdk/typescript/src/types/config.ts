@@ -1,11 +1,11 @@
 /**
- * Configuration types matching Python headroom.config dataclasses.
+ * Configuration types matching Python copium.config dataclasses.
  * All fields are optional — the proxy uses defaults for omitted values.
  */
 
 // --- Enums ---
 
-export type HeadroomMode = "audit" | "optimize" | "simulate";
+export type CopiumMode = "audit" | "optimize" | "simulate";
 
 export type RelevanceTier = "bm25" | "embedding" | "hybrid";
 
@@ -166,9 +166,9 @@ export interface CompressionProfile {
   maxK?: number | null;
 }
 
-export interface HeadroomConfig {
+export interface CopiumConfig {
   storeUrl?: string;
-  defaultMode?: HeadroomMode;
+  defaultMode?: CopiumMode;
   modelContextLimits?: Record<string, number>;
   toolCrusher?: ToolCrusherConfig;
   smartCrusher?: SmartCrusherConfig;

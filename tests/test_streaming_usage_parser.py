@@ -8,7 +8,7 @@ buffered the entire response just to scan the trailing usage frame.
 
 from __future__ import annotations
 
-from headroom.proxy.handlers.streaming import _parse_completion_tokens_from_sse_chunk
+from copium.proxy.handlers.streaming import _parse_completion_tokens_from_sse_chunk
 
 
 def test_returns_completion_tokens_from_usage_frame() -> None:

@@ -6,7 +6,7 @@ This catches the bug class from issue #355: a wheel tagged
 `manylinux_2_28_x86_64` whose `_core.so` references `__isoc23_strtoll`
 (introduced in glibc 2.38) — the link succeeds because the manylinux
 build host has 2.38+, but every end user with glibc < 2.38 sees an
-`ImportError: undefined symbol` at `import headroom._core`.
+`ImportError: undefined symbol` at `import copium._core`.
 
 How it works
 ------------
@@ -30,7 +30,7 @@ Exit 0 = wheel is portable. Exit 1 = wheel will break on some users.
 Usage
 -----
 
-    scripts/audit_wheel_glibc_symbols.py path/to/headroom_ai-*.whl
+    scripts/audit_wheel_glibc_symbols.py path/to/copium_ai-*.whl
 
 Run on Linux only — `objdump` from binutils is the audit tool. macOS's
 default `objdump` is llvm-objdump, also works on ELF.
@@ -78,7 +78,7 @@ POST_FLOOR_SYMBOLS = [
 def parse_manylinux_floor(wheel_filename: str) -> tuple[int, int] | None:
     """Extract glibc floor from a manylinux wheel filename.
 
-    `headroom_ai-0.20.26-cp312-cp312-manylinux_2_28_x86_64.whl` → (2, 28).
+    `copium_ai-0.20.26-cp312-cp312-manylinux_2_28_x86_64.whl` → (2, 28).
     Returns None for non-manylinux wheels (macOS, Windows, sdist).
     """
     m = re.search(r"manylinux_(\d+)_(\d+)_", wheel_filename)
@@ -208,7 +208,7 @@ def main() -> int:
         "\nThis wheel will fail to import on end-user systems with the "
         "older glibc. Fix the build (or add a compat shim) before "
         "publishing to PyPI. See issue #355 for the canonical example "
-        "and `crates/headroom-py/glibc_compat.c` for the shim pattern."
+        "and `crates/copium-py/glibc_compat.c` for the shim pattern."
     )
     return 1
 

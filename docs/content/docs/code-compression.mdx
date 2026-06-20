@@ -3,7 +3,7 @@ title: Code Compression
 description: AST-aware compression that preserves imports, signatures, and types while compressing function bodies. Powered by tree-sitter.
 ---
 
-Headroom's CodeAwareCompressor uses tree-sitter to parse source code into an AST, then selectively compresses function bodies while preserving the structural elements that LLMs need -- imports, signatures, type annotations, and error handlers.
+Copium's CodeAwareCompressor uses tree-sitter to parse source code into an AST, then selectively compresses function bodies while preserving the structural elements that LLMs need -- imports, signatures, type annotations, and error handlers.
 
 ## Why AST-Aware Compression?
 
@@ -38,7 +38,7 @@ Naive truncation breaks code. Cutting a function in half leaves invalid syntax t
 ## Example
 
 ```python
-from headroom.transforms import CodeAwareCompressor
+from copium.transforms import CodeAwareCompressor
 
 compressor = CodeAwareCompressor()
 
@@ -76,7 +76,7 @@ print(f"Syntax valid: {result.syntax_valid}")  # True
 ## Configuration
 
 ```python
-from headroom.transforms import CodeAwareCompressor, CodeCompressorConfig, DocstringMode
+from copium.transforms import CodeAwareCompressor, CodeCompressorConfig, DocstringMode
 
 config = CodeCompressorConfig(
     preserve_imports=True,              # Always keep imports
@@ -142,7 +142,7 @@ The LLM sees the function's purpose, its input/output types, and the general app
 
 ```bash
 # Install tree-sitter language pack
-pip install "headroom-ai[code]"
+pip install "copium-ai[code]"
 ```
 
 ## Memory Management
@@ -150,7 +150,7 @@ pip install "headroom-ai[code]"
 Tree-sitter parsers are lazy-loaded and cached. You can free memory when done:
 
 ```python
-from headroom.transforms import is_tree_sitter_available, unload_tree_sitter
+from copium.transforms import is_tree_sitter_available, unload_tree_sitter
 
 # Check if tree-sitter is installed
 print(is_tree_sitter_available())  # True
@@ -169,5 +169,5 @@ unload_tree_sitter()
 | Syntax validity | Guaranteed |
 
 <Callout type="info" title="Automatic routing">
-  When you use the Headroom proxy or call `compress()`, source code is automatically detected and routed to CodeAwareCompressor. Direct usage gives you control over compression settings per language.
+  When you use the Copium proxy or call `compress()`, source code is automatically detected and routed to CodeAwareCompressor. Direct usage gives you control over compression settings per language.
 </Callout>

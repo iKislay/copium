@@ -6,12 +6,12 @@ from pathlib import Path
 
 from click.testing import CliRunner
 
-from headroom.capture.network_diff import (
+from copium.capture.network_diff import (
     compare_captures,
     load_capture_file,
     render_markdown_report,
 )
-from headroom.cli.main import main
+from copium.cli.main import main
 
 
 def _write_jsonl(path: Path, records: list[dict[str, object]]) -> None:
@@ -24,7 +24,7 @@ def _body(payload: dict[str, object]) -> str:
 
 def test_network_diff_redacts_and_reports_body_json_deltas(tmp_path: Path) -> None:
     direct_path = tmp_path / "direct.jsonl"
-    headroom_path = tmp_path / "headroom.jsonl"
+    copium_path = tmp_path / "copium.jsonl"
     _write_jsonl(
         direct_path,
         [
@@ -45,16 +45,16 @@ def test_network_diff_redacts_and_reports_body_json_deltas(tmp_path: Path) -> No
         ],
     )
     _write_jsonl(
-        headroom_path,
+        copium_path,
         [
             {
-                "lane": "headroom",
+                "lane": "copium",
                 "method": "POST",
                 "url": "https://api.anthropic.com/v1/messages?api_key=secret",
                 "request_headers": {
                     "authorization": "Bearer other",
                     "anthropic-version": "2023-06-01",
-                    "x-headroom-mode": "optimize",
+                    "x-copium-mode": "optimize",
                 },
                 "request_body_b64": _body(
                     {
@@ -70,20 +70,20 @@ def test_network_diff_redacts_and_reports_body_json_deltas(tmp_path: Path) -> No
     )
 
     direct = load_capture_file(direct_path, fallback_lane="direct")
-    headroom = load_capture_file(headroom_path, fallback_lane="headroom")
+    copium = load_capture_file(copium_path, fallback_lane="copium")
 
     assert direct[0].url == "https://api.anthropic.com/v1/messages?api_key=%3Credacted%3E"
     assert direct[0].request_headers["authorization"] == "<redacted>"
 
-    diff = compare_captures(direct, headroom)
+    diff = compare_captures(direct, copium)
     assert diff.direct_count == 1
-    assert diff.headroom_count == 1
+    assert diff.copium_count == 1
     paired = diff.paired[0]
-    assert paired["headers"]["only_headroom"] == ["x-headroom-mode"]
-    assert "$.metadata" in paired["json"]["only_headroom"]
+    assert paired["headers"]["only_copium"] == ["x-copium-mode"]
+    assert "$.metadata" in paired["json"]["only_copium"]
     assert "$.messages[0].content" in paired["json"]["changed"]
     assert paired["anthropic"]["direct"]["tools_count"] == 0
-    assert paired["anthropic"]["headroom"]["tools_count"] == 1
+    assert paired["anthropic"]["copium"]["tools_count"] == 1
 
     markdown = render_markdown_report(diff)
     assert "Differential Network Capture Report" in markdown
@@ -93,7 +93,7 @@ def test_network_diff_redacts_and_reports_body_json_deltas(tmp_path: Path) -> No
 
 def test_network_diff_cli_writes_markdown_and_json(tmp_path: Path) -> None:
     direct_path = tmp_path / "direct.jsonl"
-    headroom_path = tmp_path / "headroom.jsonl"
+    copium_path = tmp_path / "copium.jsonl"
     markdown_path = tmp_path / "report.md"
     json_path = tmp_path / "report.json"
     record = {
@@ -104,7 +104,7 @@ def test_network_diff_cli_writes_markdown_and_json(tmp_path: Path) -> None:
         "response_status": 200,
     }
     _write_jsonl(direct_path, [record])
-    _write_jsonl(headroom_path, [record])
+    _write_jsonl(copium_path, [record])
 
     result = CliRunner().invoke(
         main,
@@ -113,8 +113,8 @@ def test_network_diff_cli_writes_markdown_and_json(tmp_path: Path) -> None:
             "network-diff",
             "--direct",
             str(direct_path),
-            "--headroom",
-            str(headroom_path),
+            "--copium",
+            str(copium_path),
             "--output",
             str(markdown_path),
             "--json-output",
@@ -127,4 +127,4 @@ def test_network_diff_cli_writes_markdown_and_json(tmp_path: Path) -> None:
     assert "Differential Network Capture Report" in markdown_path.read_text(encoding="utf-8")
     payload = json.loads(json_path.read_text(encoding="utf-8"))
     assert payload["direct_count"] == 1
-    assert payload["headroom_count"] == 1
+    assert payload["copium_count"] == 1

@@ -6,9 +6,9 @@ the WS /v1/responses handler forwarded the *original* uncompressed
 frame on compression timeout (fail-open). The upstream then rejected
 the oversized frame, and Codex's auto-compaction never fired because
 its ``total_usage_tokens`` heuristic had been hidden from cumulative
-context pressure by Headroom's earlier successful compressions.
+context pressure by Copium's earlier successful compressions.
 
-These tests pin :func:`headroom.proxy.helpers.decide_compression_failure_action`
+These tests pin :func:`copium.proxy.helpers.decide_compression_failure_action`
 so the matrix is reviewable in one place and regressions are loud.
 """
 
@@ -21,7 +21,7 @@ from contextlib import contextmanager
 
 import pytest
 
-from headroom.proxy.helpers import (
+from copium.proxy.helpers import (
     WS_COMPRESSION_FAIL_OPEN_ENV,
     WS_COMPRESSION_OVERSIZE_BYTES_DEFAULT,
     WS_COMPRESSION_OVERSIZE_BYTES_ENV,

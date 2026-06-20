@@ -5,9 +5,9 @@ This is critical - errors should NEVER be dropped during compression.
 
 import json
 
-from headroom.config import SmartCrusherConfig
-from headroom.providers import OpenAIProvider
-from headroom.transforms import SmartCrusher
+from copium.config import SmartCrusherConfig
+from copium.providers import OpenAIProvider
+from copium.transforms import SmartCrusher
 
 from .mock_tools import generate_log_entries
 

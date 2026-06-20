@@ -4,13 +4,13 @@
 // PerplexityBot, Google-Extended, etc.) see a clear green light, and
 // so the sitemap is discoverable.
 //
-// Headroom docs are open-source documentation we WANT indexed. If a
+// Copium docs are open-source documentation we WANT indexed. If a
 // future page should be excluded, add it to the ``disallow`` list of
 // the relevant rule.
 
 import type { MetadataRoute } from 'next';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://headroom-docs.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://copium-docs.vercel.app';
 
 export default function robots(): MetadataRoute.Robots {
   return {

@@ -1,7 +1,7 @@
 """litellm must be optional on Python 3.14 (GH #956).
 
 litellm's metadata pins requires-python <3.14, so a hard dependency makes
-`pip install headroom-ai` unsatisfiable on 3.14. headroom only uses litellm for
+`pip install copium-ai` unsatisfiable on 3.14. copium only uses litellm for
 model registry / pricing / non-core providers (all lazily imported and
 ImportError-guarded), so every litellm requirement must carry a marker that
 skips it on 3.14, and the core paths must degrade gracefully without it.
@@ -47,7 +47,7 @@ def test_every_litellm_requirement_is_skipped_on_py314() -> None:
 def test_proxy_cost_degrades_without_litellm(monkeypatch: pytest.MonkeyPatch) -> None:
     # With litellm absent (its state on 3.14), the proxy cost path must return
     # None rather than raise.
-    from headroom.proxy import cost
+    from copium.proxy import cost
 
     monkeypatch.setattr(cost, "LITELLM_AVAILABLE", False)
     monkeypatch.setattr(cost, "litellm", None)

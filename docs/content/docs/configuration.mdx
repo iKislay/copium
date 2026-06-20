@@ -1,27 +1,27 @@
 ---
 title: Configuration
-description: All configuration options for the Headroom Python and TypeScript SDKs, proxy server, and per-request overrides.
+description: All configuration options for the Copium Python and TypeScript SDKs, proxy server, and per-request overrides.
 ---
 
-Headroom can be configured via the SDK constructor, proxy command line, environment variables, or per-request overrides.
+Copium can be configured via the SDK constructor, proxy command line, environment variables, or per-request overrides.
 
 ## CLI Context Tool
 
-`headroom wrap ...` uses RTK for local shell-output filtering by default.
-Set `HEADROOM_CONTEXT_TOOL=lean-ctx` to have wrap commands install or reuse
+`copium wrap ...` uses RTK for local shell-output filtering by default.
+Set `COPIUM_CONTEXT_TOOL=lean-ctx` to have wrap commands install or reuse
 `lean-ctx` and run `lean-ctx init --agent <tool>` instead of RTK setup.
 
 ```bash
-export HEADROOM_CONTEXT_TOOL=lean-ctx
-headroom wrap claude
-headroom wrap codex --prepare-only
+export COPIUM_CONTEXT_TOOL=lean-ctx
+copium wrap claude
+copium wrap codex --prepare-only
 ```
 
 Supported values are `rtk` and `lean-ctx`; unset defaults to `rtk`.
 
 The proxy reads RTK lifetime savings with global scope by default so a shared
 daemon reports savings across the operator's projects. Set
-`HEADROOM_RTK_GAIN_SCOPE=project` to query `rtk gain --project` from the
+`COPIUM_RTK_GAIN_SCOPE=project` to query `rtk gain --project` from the
 proxy process working directory.
 
 ## Modes
@@ -37,13 +37,13 @@ proxy process working directory.
 <Tabs groupId="lang" items={['TypeScript', 'Python']}>
 <Tab value="TypeScript">
 ```ts twoslash
-import { HeadroomClient } from 'headroom-ai';
+import { CopiumClient } from 'copium-ai';
 
-// Reads from HEADROOM_BASE_URL and HEADROOM_API_KEY automatically
-const client = new HeadroomClient();
+// Reads from COPIUM_BASE_URL and COPIUM_API_KEY automatically
+const client = new CopiumClient();
 
 // Or configure explicitly
-const explicit = new HeadroomClient({
+const explicit = new CopiumClient({
   baseUrl: 'http://localhost:8787',
   apiKey: 'your-api-key',
   timeout: 30_000,
@@ -54,10 +54,10 @@ const explicit = new HeadroomClient({
 </Tab>
 <Tab value="Python">
 ```python
-from headroom import HeadroomClient, OpenAIProvider
+from copium import CopiumClient, OpenAIProvider
 from openai import OpenAI
 
-client = HeadroomClient(
+client = CopiumClient(
     original_client=OpenAI(),
     provider=OpenAIProvider(),
 
@@ -77,7 +77,7 @@ client = HeadroomClient(
     },
 
     # Database location (defaults to temp directory)
-    # store_url="sqlite:////absolute/path/to/headroom.db",
+    # store_url="sqlite:////absolute/path/to/copium.db",
 )
 ```
 </Tab>
@@ -90,7 +90,7 @@ Override configuration for individual requests:
 <Tabs groupId="lang" items={['TypeScript', 'Python']}>
 <Tab value="TypeScript">
 ```ts twoslash
-import { compress } from 'headroom-ai';
+import { compress } from 'copium-ai';
 
 const result = await compress(messages, {
   model: 'gpt-4o',
@@ -106,16 +106,16 @@ response = client.chat.completions.create(
     messages=[...],
 
     # Override mode for this request
-    headroom_mode="audit",
+    copium_mode="audit",
 
     # Reserve more tokens for output
-    headroom_output_buffer_tokens=8000,
+    copium_output_buffer_tokens=8000,
 
     # Keep last N turns (don't compress)
-    headroom_keep_turns=5,
+    copium_keep_turns=5,
 
     # Skip compression for specific tools
-    headroom_tool_profiles={
+    copium_tool_profiles={
         "important_tool": {"skip_compression": True}
     },
 )
@@ -128,7 +128,7 @@ response = client.chat.completions.create(
 Fine-tune JSON compression behavior:
 
 ```python
-from headroom.transforms import SmartCrusherConfig
+from copium.transforms import SmartCrusherConfig
 
 config = SmartCrusherConfig(
     # Maximum items to keep after compression
@@ -151,7 +151,7 @@ config = SmartCrusherConfig(
 Control prefix stabilization for provider cache hit rates:
 
 ```python
-from headroom.transforms import CacheAlignerConfig
+from copium.transforms import CacheAlignerConfig
 
 config = CacheAlignerConfig(
     # Enable/disable cache alignment
@@ -174,9 +174,9 @@ response = client.chat.completions.create(
     model="gpt-4o",
     messages=messages,
     # Reserve tokens for model output
-    headroom_output_buffer_tokens=4000,
+    copium_output_buffer_tokens=4000,
     # Keep last N turns uncompressed
-    headroom_keep_turns=3,
+    copium_keep_turns=3,
 )
 ```
 
@@ -187,90 +187,90 @@ The `RollingWindowConfig`, `IntelligentContextConfig`, and `ScoringWeights` clas
 ### Command Line Options
 
 ```bash
-headroom proxy \
+copium proxy \
   --port 8787 \              # Port to listen on
   --host 0.0.0.0 \           # Host to bind to
   --mode token \             # token compression mode; use cache for prefix-cache stability
   --budget 10.00 \           # Daily budget limit in USD
-  --log-file headroom.jsonl  # Log file path
+  --log-file copium.jsonl  # Log file path
 ```
 
 ### Feature Flags
 
 ```bash
 # Disable optimization (passthrough mode)
-headroom proxy --no-optimize
+copium proxy --no-optimize
 
 # Disable semantic caching
-headroom proxy --no-cache
+copium proxy --no-cache
 
 # Preserve provider prefix-cache stability instead of maximizing token removal
-headroom proxy --mode cache
+copium proxy --mode cache
 
 # Enable memory and live learning
-headroom proxy --memory
-headroom proxy --learn --min-evidence 3
+copium proxy --memory
+copium proxy --learn --min-evidence 3
 ```
 
 ## Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `HEADROOM_HOST` | Proxy bind host | `127.0.0.1` |
-| `HEADROOM_PORT` | Proxy bind port | `8787` |
-| `HEADROOM_MODE` | Proxy optimization mode: `token` or `cache` | `token` |
-| `HEADROOM_WORKERS` | Uvicorn worker count | `1` |
-| `HEADROOM_LIMIT_CONCURRENCY` | Maximum concurrent connections before 503 | `1000` |
-| `HEADROOM_MAX_CONNECTIONS` | Maximum upstream HTTP connections | `500` |
-| `HEADROOM_MAX_KEEPALIVE` | Maximum upstream keep-alive connections | `100` |
-| `HEADROOM_BUDGET` | Daily budget limit in USD | -- |
-| `HEADROOM_TELEMETRY` | Set to `off` to disable anonymous telemetry | enabled |
-| `HEADROOM_STATELESS` | Set to `true` to disable filesystem writes | `false` |
-| `HEADROOM_MODEL_LIMITS` | Custom model config (JSON string or file path) | -- |
-| `HEADROOM_BASE_URL` | Base URL of the Headroom proxy (TypeScript SDK) | `http://localhost:8787` |
-| `HEADROOM_API_KEY` | API key for Headroom Cloud authentication | -- |
-| `HEADROOM_CONFIG_DIR` | Canonical config (read-mostly) root. Derives `models.json` and per-plugin config paths when set. | `~/.headroom/config` |
-| `HEADROOM_WORKSPACE_DIR` | Canonical workspace (read-write state) root. Derives savings, memory DB, logs, TOIN, subscription state, and more when set. | `~/.headroom` |
-| `HEADROOM_SAVINGS_PATH` | Override persistent savings file location. Always wins when set. | derived from `${HEADROOM_WORKSPACE_DIR}` |
-| `HEADROOM_TOIN_PATH` | Override TOIN telemetry file location. Always wins when set. | derived from `${HEADROOM_WORKSPACE_DIR}` |
-| `HEADROOM_SUBSCRIPTION_STATE_PATH` | Override subscription tracker state file. Always wins when set. | derived from `${HEADROOM_WORKSPACE_DIR}` |
-| `HEADROOM_TELEMETRY` | Set to `off` to disable anonymous telemetry | `on` |
-| `HEADROOM_MEMORY_INJECTION_MODE` | Memory-context routing mode: `live_zone_tail` (default) or `disabled`. The legacy `system_prompt` mode was retired by PR-A2; supplying it raises. | `live_zone_tail` |
-| `HEADROOM_PROXY_PYTHON_FORWARDER_MODE` | Python forwarder serialization mode. `byte_faithful` (default) forwards original request bytes verbatim when no transform mutated the body and re-serializes canonically only when needed — keeps Anthropic prompt-cache hit-rate intact. `legacy_json_kwarg` is an explicit operator opt-in for emergency rollback to the historical `httpx ... json=body` behavior. NOT a fallback — only flip on explicit operator decision. | `byte_faithful` |
-| `HEADROOM_STRIP_INTERNAL_HEADERS` | Python proxy: whether to strip internal `x-headroom-*` request headers (e.g. `x-headroom-bypass`, `x-headroom-mode`, `x-headroom-user-id`, `x-headroom-stack`, `x-headroom-base-url`) before every upstream forwarder call (PR-A5, fixes P5-49). `enabled` (default) stops fingerprinting / leakage. `disabled` is an explicit operator opt-in for diagnostic shadow tracing — NOT a fallback. Inbound reads of these headers (bypass gating, memory user-id resolution) are unaffected because they read `request.headers` directly. | `enabled` |
-| `HEADROOM_PROXY_STRIP_INTERNAL_HEADERS` | Rust proxy: same policy as `HEADROOM_STRIP_INTERNAL_HEADERS` but for the Rust transparent proxy. Stripping happens inside `build_forward_request_headers` so both HTTP and WebSocket upstream calls are gated by one flag. `enabled` default; `disabled` operator opt-in for diagnostic shadow tracing. Response-side `X-Headroom-*` injection (e.g. `x-headroom-tokens-saved`) is unrelated and stays. | `enabled` |
-| `HEADROOM_EMBEDDER_RUNTIME` | Set to `pytorch_mps` to run the memory embedder via the torch sentence-transformers backend on the Apple GPU (MPS). Only engages when Apple MPS is actually available; otherwise it logs a warning and uses the existing default embedder selection path. `pytorch_mps` is the only accepted value. Requires the `[pytorch-mps]` extra. See [Memory](/docs/memory#embedding-runtime--gpu-offload-apple-silicon). | default embedder selection |
-| `HEADROOM_BETA_HEADER_STICKY` | Controls per-session `anthropic-beta` / `OpenAI-Beta` re-echo. `enabled` (default): the proxy unions beta tokens across turns within a session — if the client sends a token in turn N and omits it in turn N+1, the proxy re-injects it to preserve prefix-cache stability. `disabled`: the client's value is forwarded verbatim with no accumulation. Any other value raises at request time. See [Session Beta Header Tracking](/docs/configuration#session-beta-header-tracking). | `enabled` |
-| `HEADROOM_BETA_TRACKER_MAX_SESSIONS` | LRU capacity of the in-memory session beta tracker. Once full, the oldest session entry is evicted. | `1000` |
+| `COPIUM_HOST` | Proxy bind host | `127.0.0.1` |
+| `COPIUM_PORT` | Proxy bind port | `8787` |
+| `COPIUM_MODE` | Proxy optimization mode: `token` or `cache` | `token` |
+| `COPIUM_WORKERS` | Uvicorn worker count | `1` |
+| `COPIUM_LIMIT_CONCURRENCY` | Maximum concurrent connections before 503 | `1000` |
+| `COPIUM_MAX_CONNECTIONS` | Maximum upstream HTTP connections | `500` |
+| `COPIUM_MAX_KEEPALIVE` | Maximum upstream keep-alive connections | `100` |
+| `COPIUM_BUDGET` | Daily budget limit in USD | -- |
+| `COPIUM_TELEMETRY` | Set to `off` to disable anonymous telemetry | enabled |
+| `COPIUM_STATELESS` | Set to `true` to disable filesystem writes | `false` |
+| `COPIUM_MODEL_LIMITS` | Custom model config (JSON string or file path) | -- |
+| `COPIUM_BASE_URL` | Base URL of the Copium proxy (TypeScript SDK) | `http://localhost:8787` |
+| `COPIUM_API_KEY` | API key for Copium Cloud authentication | -- |
+| `COPIUM_CONFIG_DIR` | Canonical config (read-mostly) root. Derives `models.json` and per-plugin config paths when set. | `~/.copium/config` |
+| `COPIUM_WORKSPACE_DIR` | Canonical workspace (read-write state) root. Derives savings, memory DB, logs, TOIN, subscription state, and more when set. | `~/.copium` |
+| `COPIUM_SAVINGS_PATH` | Override persistent savings file location. Always wins when set. | derived from `${COPIUM_WORKSPACE_DIR}` |
+| `COPIUM_TOIN_PATH` | Override TOIN telemetry file location. Always wins when set. | derived from `${COPIUM_WORKSPACE_DIR}` |
+| `COPIUM_SUBSCRIPTION_STATE_PATH` | Override subscription tracker state file. Always wins when set. | derived from `${COPIUM_WORKSPACE_DIR}` |
+| `COPIUM_TELEMETRY` | Set to `off` to disable anonymous telemetry | `on` |
+| `COPIUM_MEMORY_INJECTION_MODE` | Memory-context routing mode: `live_zone_tail` (default) or `disabled`. The legacy `system_prompt` mode was retired by PR-A2; supplying it raises. | `live_zone_tail` |
+| `COPIUM_PROXY_PYTHON_FORWARDER_MODE` | Python forwarder serialization mode. `byte_faithful` (default) forwards original request bytes verbatim when no transform mutated the body and re-serializes canonically only when needed — keeps Anthropic prompt-cache hit-rate intact. `legacy_json_kwarg` is an explicit operator opt-in for emergency rollback to the historical `httpx ... json=body` behavior. NOT a fallback — only flip on explicit operator decision. | `byte_faithful` |
+| `COPIUM_STRIP_INTERNAL_HEADERS` | Python proxy: whether to strip internal `x-copium-*` request headers (e.g. `x-copium-bypass`, `x-copium-mode`, `x-copium-user-id`, `x-copium-stack`, `x-copium-base-url`) before every upstream forwarder call (PR-A5, fixes P5-49). `enabled` (default) stops fingerprinting / leakage. `disabled` is an explicit operator opt-in for diagnostic shadow tracing — NOT a fallback. Inbound reads of these headers (bypass gating, memory user-id resolution) are unaffected because they read `request.headers` directly. | `enabled` |
+| `COPIUM_PROXY_STRIP_INTERNAL_HEADERS` | Rust proxy: same policy as `COPIUM_STRIP_INTERNAL_HEADERS` but for the Rust transparent proxy. Stripping happens inside `build_forward_request_headers` so both HTTP and WebSocket upstream calls are gated by one flag. `enabled` default; `disabled` operator opt-in for diagnostic shadow tracing. Response-side `X-Copium-*` injection (e.g. `x-copium-tokens-saved`) is unrelated and stays. | `enabled` |
+| `COPIUM_EMBEDDER_RUNTIME` | Set to `pytorch_mps` to run the memory embedder via the torch sentence-transformers backend on the Apple GPU (MPS). Only engages when Apple MPS is actually available; otherwise it logs a warning and uses the existing default embedder selection path. `pytorch_mps` is the only accepted value. Requires the `[pytorch-mps]` extra. See [Memory](/docs/memory#embedding-runtime--gpu-offload-apple-silicon). | default embedder selection |
+| `COPIUM_BETA_HEADER_STICKY` | Controls per-session `anthropic-beta` / `OpenAI-Beta` re-echo. `enabled` (default): the proxy unions beta tokens across turns within a session — if the client sends a token in turn N and omits it in turn N+1, the proxy re-injects it to preserve prefix-cache stability. `disabled`: the client's value is forwarded verbatim with no accumulation. Any other value raises at request time. See [Session Beta Header Tracking](/docs/configuration#session-beta-header-tracking). | `enabled` |
+| `COPIUM_BETA_TRACKER_MAX_SESSIONS` | LRU capacity of the in-memory session beta tracker. Once full, the oldest session entry is evicted. | `1000` |
 
 ### Session Beta Header Tracking
 
-When running as a proxy, Headroom maintains a per-session union of `anthropic-beta` (and `OpenAI-Beta`) tokens via `SessionBetaTracker`. The session key is derived from the `x-headroom-session-id` header if present, otherwise from `md5(model + system_prompt[:500])[:16]` — stable across turns of the same conversation.
+When running as a proxy, Copium maintains a per-session union of `anthropic-beta` (and `OpenAI-Beta`) tokens via `SessionBetaTracker`. The session key is derived from the `x-copium-session-id` header if present, otherwise from `md5(model + system_prompt[:500])[:16]` — stable across turns of the same conversation.
 
 **Why:** clients such as Claude Code and Codex CLI may drop a beta token between consecutive turns. Because `anthropic-beta` is part of the request bytes that determine the upstream prefix-cache key, a dropped token would bust the cache mid-conversation. The tracker re-injects any token seen earlier in the session so the cache key stays stable.
 
-**Trade-off:** once the proxy has seen a beta token in a session it will continue re-sending it for the rest of that session, even if the client stops including it. Stopping the token on the client side alone is not sufficient — the proxy re-injects it. Set `HEADROOM_BETA_HEADER_STICKY=disabled` to pass the client's `anthropic-beta` value verbatim and bypass this accumulation.
+**Trade-off:** once the proxy has seen a beta token in a session it will continue re-sending it for the rest of that session, even if the client stops including it. Stopping the token on the client side alone is not sufficient — the proxy re-injects it. Set `COPIUM_BETA_HEADER_STICKY=disabled` to pass the client's `anthropic-beta` value verbatim and bypass this accumulation.
 
 ```bash
 # Disable sticky beta re-echo
-export HEADROOM_BETA_HEADER_STICKY=disabled
-headroom proxy ...
+export COPIUM_BETA_HEADER_STICKY=disabled
+copium proxy ...
 ```
 
 Note: disabling sticky mode may reduce prefix-cache hit rates for clients that legitimately drop-and-re-add beta tokens across turns.
 
 ### Filesystem Contract
 
-Headroom resolves every on-disk resource through a two-root model
-(`HEADROOM_CONFIG_DIR` + `HEADROOM_WORKSPACE_DIR`) with additive
+Copium resolves every on-disk resource through a two-root model
+(`COPIUM_CONFIG_DIR` + `COPIUM_WORKSPACE_DIR`) with additive
 precedence rules: explicit argument > per-resource env var > derived
 from canonical root > default. Every legacy env var continues to work
 unchanged.
 
-See the **[Filesystem Contract](https://github.com/chopratejas/headroom/blob/main/wiki/filesystem-contract.md)**
+See the **[Filesystem Contract](https://github.com/chopratejas/copium/blob/main/wiki/filesystem-contract.md)**
 page for the full bucket table, plugin-author guidance, and the Docker
-naming overlap note (`HEADROOM_WORKSPACE` is *not* the same as
-`HEADROOM_WORKSPACE_DIR`).
+naming overlap note (`COPIUM_WORKSPACE` is *not* the same as
+`COPIUM_WORKSPACE_DIR`).
 
 ## Custom Model Configuration
 
@@ -300,18 +300,18 @@ Configure context limits and pricing for new or custom models:
 }
 ```
 
-Save as `${HEADROOM_CONFIG_DIR}/models.json` (defaults to
-`~/.headroom/config/models.json`), or set `HEADROOM_MODEL_LIMITS` to a
+Save as `${COPIUM_CONFIG_DIR}/models.json` (defaults to
+`~/.copium/config/models.json`), or set `COPIUM_MODEL_LIMITS` to a
 JSON string or file path. Installs that still have
-`~/.headroom/models.json` (the legacy location) continue to work.
+`~/.copium/models.json` (the legacy location) continue to work.
 
 Settings are resolved in this order (later overrides earlier):
 
 1. Built-in defaults
-2. `${HEADROOM_CONFIG_DIR}/models.json` (new canonical location); falls
-   back to `~/.headroom/models.json` (legacy) when the canonical file
+2. `${COPIUM_CONFIG_DIR}/models.json` (new canonical location); falls
+   back to `~/.copium/models.json` (legacy) when the canonical file
    is absent
-3. `HEADROOM_MODEL_LIMITS` environment variable
+3. `COPIUM_MODEL_LIMITS` environment variable
 4. SDK constructor arguments
 
 ### Pattern-Based Inference
@@ -331,7 +331,7 @@ Unknown models are automatically inferred from naming patterns:
 <Tabs groupId="lang" items={['OpenAI', 'Anthropic', 'Google']}>
 <Tab value="OpenAI">
 ```python
-from headroom import OpenAIProvider
+from copium import OpenAIProvider
 
 provider = OpenAIProvider(
     enable_prefix_caching=True,
@@ -340,7 +340,7 @@ provider = OpenAIProvider(
 </Tab>
 <Tab value="Anthropic">
 ```python
-from headroom import AnthropicProvider
+from copium import AnthropicProvider
 
 provider = AnthropicProvider(
     enable_cache_control=True,
@@ -349,7 +349,7 @@ provider = AnthropicProvider(
 </Tab>
 <Tab value="Google">
 ```python
-from headroom import GoogleProvider
+from copium import GoogleProvider
 
 provider = GoogleProvider(
     enable_context_caching=True,
@@ -366,7 +366,7 @@ Skip or customize compression for specific tools:
 response = client.chat.completions.create(
     model="gpt-4o",
     messages=messages,
-    headroom_tool_profiles={
+    copium_tool_profiles={
         "important_tool": {"skip_compression": True},
         "search_tool": {"max_items_after_crush": 25},
     },

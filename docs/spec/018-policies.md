@@ -37,14 +37,14 @@
 
 All settings can be overridden via environment variables:
 ```bash
-HEADROOM_MODE=token
-headroom proxy --no-cache
+COPIUM_MODE=token
+copium proxy --no-cache
 ```
 
 ### Config File
 
 ```yaml
-# ~/.headroom/config.yaml
+# ~/.copium/config.yaml
 proxy:
   host: 0.0.0.0
   port: 8787
@@ -70,16 +70,16 @@ learn:
 ```bash
 # Disable compression for single request
 curl -X POST http://localhost:8787/v1/messages \
-  -H "X-Headroom-Compress: false"
+  -H "X-Copium-Compress: false"
 ```
 
 ### Runtime Headers
 
 | Header | Description |
 |--------|-------------|
-| `X-Headroom-Compress` | Override compression (true/false) |
-| `X-Headroom-Mode` | Override mode (passthrough/compress/learn) |
-| `X-Headroom-Cache` | Override cache (true/false) |
+| `X-Copium-Compress` | Override compression (true/false) |
+| `X-Copium-Mode` | Override mode (passthrough/compress/learn) |
+| `X-Copium-Cache` | Override cache (true/false) |
 
 ---
 

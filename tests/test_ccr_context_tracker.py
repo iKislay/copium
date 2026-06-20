@@ -13,11 +13,11 @@ import time
 
 import pytest
 
-from headroom.cache.compression_store import (
+from copium.cache.compression_store import (
     get_compression_store,
     reset_compression_store,
 )
-from headroom.ccr.context_tracker import (
+from copium.ccr.context_tracker import (
     CompressedContext,
     ContextTracker,
     ContextTrackerConfig,

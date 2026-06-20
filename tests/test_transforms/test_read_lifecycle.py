@@ -13,8 +13,8 @@ Tests covering:
 
 import json
 
-from headroom.config import ReadLifecycleConfig
-from headroom.transforms.read_lifecycle import (
+from copium.config import ReadLifecycleConfig
+from copium.transforms.read_lifecycle import (
     ReadLifecycleManager,
 )
 

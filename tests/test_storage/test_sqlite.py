@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from headroom.config import RequestMetrics
-from headroom.storage.sqlite import SQLiteStorage
+from copium.config import RequestMetrics
+from copium.storage.sqlite import SQLiteStorage
 
 
 class TestSQLiteStorageInit:

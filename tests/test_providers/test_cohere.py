@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from headroom.providers import CohereProvider
+from copium.providers import CohereProvider
 
 
 class TestCohereProvider:

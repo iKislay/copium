@@ -126,7 +126,7 @@ BEGIN
         MAX(COALESCE(tokens_saved, 0)) AS max_tokens,
         MAX(COALESCE(cost_saved_usd, 0)) AS max_cost,
         MAX(os) AS os,
-        MAX(headroom_version) AS version
+        MAX(copium_version) AS version
       FROM proxy_telemetry_v2
       GROUP BY instance_id, created_at::date
     ) sub
@@ -154,12 +154,12 @@ BEGIN
   ) sub;
 
   -- Version breakdown
-  SELECT COALESCE(jsonb_object_agg(COALESCE(headroom_version, '?'), cnt), '{}'::jsonb)
+  SELECT COALESCE(jsonb_object_agg(COALESCE(copium_version, '?'), cnt), '{}'::jsonb)
   INTO _versions
   FROM (
-    SELECT headroom_version, COUNT(*) AS cnt
+    SELECT copium_version, COUNT(*) AS cnt
     FROM proxy_telemetry_v2
-    GROUP BY headroom_version
+    GROUP BY copium_version
   ) sub;
 
   -- Upsert the single summary row

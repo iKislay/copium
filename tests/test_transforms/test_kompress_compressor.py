@@ -20,7 +20,7 @@ class TestLazyImports:
 
     def test_is_kompress_available_importable(self) -> None:
         """is_kompress_available can be imported even without torch."""
-        from headroom.transforms.kompress_compressor import is_kompress_available
+        from copium.transforms.kompress_compressor import is_kompress_available
 
         # Should return bool (True or False depending on environment)
         result = is_kompress_available()
@@ -35,7 +35,7 @@ class TestLazyImports:
             sys.modules,
             {"torch": None, "torch.nn": None, "onnxruntime": None},
         ):
-            from headroom.transforms.kompress_compressor import (
+            from copium.transforms.kompress_compressor import (
                 _is_pytorch_available,
             )
 
@@ -46,7 +46,7 @@ class TestLazyImports:
 
     def test_dataclasses_importable_without_torch(self) -> None:
         """KompressConfig, KompressResult, KompressCompressor are importable without torch."""
-        from headroom.transforms.kompress_compressor import (
+        from copium.transforms.kompress_compressor import (
             KompressCompressor,  # noqa: F401
             KompressConfig,
             KompressResult,
@@ -70,24 +70,24 @@ class TestLazyImports:
 
 class TestKompressBackendSelection:
     def test_selected_backend_aliases(self, monkeypatch) -> None:
-        import headroom.transforms.kompress_compressor as kmod
+        import copium.transforms.kompress_compressor as kmod
 
-        monkeypatch.setenv("HEADROOM_KOMPRESS_BACKEND", "mps")
+        monkeypatch.setenv("COPIUM_KOMPRESS_BACKEND", "mps")
         assert kmod._selected_backend() == "pytorch_mps"
 
-        monkeypatch.setenv("HEADROOM_KOMPRESS_BACKEND", "coreml")
+        monkeypatch.setenv("COPIUM_KOMPRESS_BACKEND", "coreml")
         assert kmod._selected_backend() == "onnx_coreml"
 
-        monkeypatch.setenv("HEADROOM_KOMPRESS_BACKEND", "cpu")
+        monkeypatch.setenv("COPIUM_KOMPRESS_BACKEND", "cpu")
         assert kmod._selected_backend() == "onnx_cpu"
 
-        monkeypatch.setenv("HEADROOM_KOMPRESS_BACKEND", "unknown")
+        monkeypatch.setenv("COPIUM_KOMPRESS_BACKEND", "unknown")
         assert kmod._selected_backend() == "auto"
 
     def test_unrecognized_backend_warns_and_falls_back_to_auto(self, monkeypatch, caplog) -> None:
-        import headroom.transforms.kompress_compressor as kmod
+        import copium.transforms.kompress_compressor as kmod
 
-        monkeypatch.setenv("HEADROOM_KOMPRESS_BACKEND", "tpu")
+        monkeypatch.setenv("COPIUM_KOMPRESS_BACKEND", "tpu")
         with caplog.at_level(logging.WARNING, logger=kmod.logger.name):
             assert kmod._selected_backend() == "auto"
 
@@ -97,22 +97,22 @@ class TestKompressBackendSelection:
         )
 
     def test_valid_backend_values_do_not_warn(self, monkeypatch, caplog) -> None:
-        import headroom.transforms.kompress_compressor as kmod
+        import copium.transforms.kompress_compressor as kmod
 
         with caplog.at_level(logging.WARNING, logger=kmod.logger.name):
             for value in ("auto", "onnx", "cpu", "coreml", "mps", "torch", "ONNX-CPU"):
-                monkeypatch.setenv("HEADROOM_KOMPRESS_BACKEND", value)
+                monkeypatch.setenv("COPIUM_KOMPRESS_BACKEND", value)
                 kmod._selected_backend()
-            monkeypatch.delenv("HEADROOM_KOMPRESS_BACKEND", raising=False)
+            monkeypatch.delenv("COPIUM_KOMPRESS_BACKEND", raising=False)
             kmod._selected_backend()
 
         assert not caplog.records
 
     def test_forced_pytorch_mps_backend_uses_mps_device(self, monkeypatch) -> None:
-        import headroom.transforms.kompress_compressor as kmod
+        import copium.transforms.kompress_compressor as kmod
 
         calls: list[tuple[str, str]] = []
-        monkeypatch.setenv("HEADROOM_KOMPRESS_BACKEND", "pytorch_mps")
+        monkeypatch.setenv("COPIUM_KOMPRESS_BACKEND", "pytorch_mps")
         monkeypatch.setattr(kmod, "_kompress_cache", {})
         monkeypatch.setattr(
             kmod,
@@ -126,10 +126,10 @@ class TestKompressBackendSelection:
         assert calls == [("model-a", "mps")]
 
     def test_forced_coreml_backend_uses_onnx_coreml(self, monkeypatch) -> None:
-        import headroom.transforms.kompress_compressor as kmod
+        import copium.transforms.kompress_compressor as kmod
 
         calls: list[tuple[str, bool]] = []
-        monkeypatch.setenv("HEADROOM_KOMPRESS_BACKEND", "onnx_coreml")
+        monkeypatch.setenv("COPIUM_KOMPRESS_BACKEND", "onnx_coreml")
         monkeypatch.setattr(kmod, "_kompress_cache", {})
         monkeypatch.setattr(
             kmod,
@@ -143,10 +143,10 @@ class TestKompressBackendSelection:
         assert calls == [("model-b", True)]
 
     def test_auto_backend_preserves_onnx_first(self, monkeypatch) -> None:
-        import headroom.transforms.kompress_compressor as kmod
+        import copium.transforms.kompress_compressor as kmod
 
         calls: list[str] = []
-        monkeypatch.delenv("HEADROOM_KOMPRESS_BACKEND", raising=False)
+        monkeypatch.delenv("COPIUM_KOMPRESS_BACKEND", raising=False)
         monkeypatch.setattr(kmod, "_kompress_cache", {})
         monkeypatch.setattr(kmod, "_is_onnx_available", lambda: True)
         monkeypatch.setattr(kmod, "_is_pytorch_available", lambda: True)
@@ -169,7 +169,7 @@ class TestKompressBackendSelection:
         assert calls == ["onnx"]
 
     def test_onnx_session_options_read_thread_caps(self, monkeypatch) -> None:
-        import headroom.transforms.kompress_compressor as kmod
+        import copium.transforms.kompress_compressor as kmod
 
         created: list[SimpleNamespace] = []
 
@@ -183,8 +183,8 @@ class TestKompressBackendSelection:
         fake_ort = SimpleNamespace(
             SessionOptions=lambda: created.append(FakeSessionOptions()) or created[-1]
         )
-        monkeypatch.setenv("HEADROOM_KOMPRESS_ONNX_INTRA_THREADS", "2")
-        monkeypatch.setenv("HEADROOM_KOMPRESS_ONNX_INTER_THREADS", "1")
+        monkeypatch.setenv("COPIUM_KOMPRESS_ONNX_INTRA_THREADS", "2")
+        monkeypatch.setenv("COPIUM_KOMPRESS_ONNX_INTER_THREADS", "1")
 
         options = kmod._onnx_session_options(fake_ort)
 
@@ -199,7 +199,7 @@ class TestKompressBackendSelection:
 
 class TestKompressResult:
     def test_tokens_saved(self) -> None:
-        from headroom.transforms.kompress_compressor import KompressResult
+        from copium.transforms.kompress_compressor import KompressResult
 
         r = KompressResult(
             compressed="a b",
@@ -211,7 +211,7 @@ class TestKompressResult:
         assert r.tokens_saved == 2
 
     def test_tokens_saved_no_negative(self) -> None:
-        from headroom.transforms.kompress_compressor import KompressResult
+        from copium.transforms.kompress_compressor import KompressResult
 
         r = KompressResult(
             compressed="a b c d e",
@@ -223,7 +223,7 @@ class TestKompressResult:
         assert r.tokens_saved == 0
 
     def test_savings_percentage_zero_tokens(self) -> None:
-        from headroom.transforms.kompress_compressor import KompressResult
+        from copium.transforms.kompress_compressor import KompressResult
 
         r = KompressResult(
             compressed="",
@@ -235,7 +235,7 @@ class TestKompressResult:
         assert r.savings_percentage == 0.0
 
     def test_default_model(self) -> None:
-        from headroom.transforms.kompress_compressor import HF_MODEL_ID, KompressResult
+        from copium.transforms.kompress_compressor import HF_MODEL_ID, KompressResult
 
         r = KompressResult(
             compressed="x",
@@ -255,7 +255,7 @@ class TestKompressCompressorPassthrough:
 
     def test_short_content_passthrough(self) -> None:
         """Content under 10 words should pass through unchanged."""
-        from headroom.transforms.kompress_compressor import KompressCompressor
+        from copium.transforms.kompress_compressor import KompressCompressor
 
         compressor = KompressCompressor()
         result = compressor.compress("hello world")
@@ -265,7 +265,7 @@ class TestKompressCompressorPassthrough:
         assert result.compressed_tokens == 2
 
     def test_empty_content_passthrough(self) -> None:
-        from headroom.transforms.kompress_compressor import KompressCompressor
+        from copium.transforms.kompress_compressor import KompressCompressor
 
         compressor = KompressCompressor()
         result = compressor.compress("")
@@ -274,13 +274,13 @@ class TestKompressCompressorPassthrough:
 
     def test_fallback_on_model_error(self) -> None:
         """If _load_kompress fails, compress should return passthrough."""
-        from headroom.transforms.kompress_compressor import KompressCompressor
+        from copium.transforms.kompress_compressor import KompressCompressor
 
         compressor = KompressCompressor()
         long_text = " ".join(f"word{i}" for i in range(20))
 
         with patch(
-            "headroom.transforms.kompress_compressor._load_kompress",
+            "copium.transforms.kompress_compressor._load_kompress",
             side_effect=RuntimeError("no model"),
         ):
             result = compressor.compress(long_text)
@@ -294,7 +294,7 @@ class TestKompressCompressorPassthrough:
 class TestKompressTransformInterface:
     def test_apply_short_messages_unchanged(self) -> None:
         """Messages with <10 words should pass through apply() unchanged."""
-        from headroom.transforms.kompress_compressor import KompressCompressor
+        from copium.transforms.kompress_compressor import KompressCompressor
 
         compressor = KompressCompressor()
         messages = [
@@ -311,7 +311,7 @@ class TestKompressTransformInterface:
 
     def test_apply_preserves_user_messages(self) -> None:
         """User messages should never be compressed."""
-        from headroom.transforms.kompress_compressor import KompressCompressor
+        from copium.transforms.kompress_compressor import KompressCompressor
 
         compressor = KompressCompressor()
         long_text = " ".join(f"word{i}" for i in range(50))
@@ -320,7 +320,7 @@ class TestKompressTransformInterface:
         tokenizer.count_text = MagicMock(return_value=50)
 
         with patch(
-            "headroom.transforms.kompress_compressor._load_kompress",
+            "copium.transforms.kompress_compressor._load_kompress",
             side_effect=RuntimeError("should not be called"),
         ):
             result = compressor.apply(messages, tokenizer)
@@ -340,7 +340,7 @@ class TestKompressCompressorBatch:
     """
 
     def test_empty_batch_returns_empty_list(self) -> None:
-        from headroom.transforms.kompress_compressor import KompressCompressor
+        from copium.transforms.kompress_compressor import KompressCompressor
 
         compressor = KompressCompressor()
         result = compressor.compress_batch([])
@@ -348,13 +348,13 @@ class TestKompressCompressorBatch:
 
     def test_all_short_texts_passthrough_without_model(self) -> None:
         """Texts under 10 words must passthrough; model never loaded."""
-        from headroom.transforms.kompress_compressor import KompressCompressor
+        from copium.transforms.kompress_compressor import KompressCompressor
 
         compressor = KompressCompressor()
         contents = ["hello", "world", "short text here"]
 
         with patch(
-            "headroom.transforms.kompress_compressor._load_kompress",
+            "copium.transforms.kompress_compressor._load_kompress",
             side_effect=AssertionError("model should not be loaded for short texts"),
         ):
             results = compressor.compress_batch(contents)
@@ -366,7 +366,7 @@ class TestKompressCompressorBatch:
 
     def test_order_preserved(self) -> None:
         """Output order must match input order even when model load fails."""
-        from headroom.transforms.kompress_compressor import KompressCompressor
+        from copium.transforms.kompress_compressor import KompressCompressor
 
         compressor = KompressCompressor()
         long_texts = [
@@ -376,7 +376,7 @@ class TestKompressCompressorBatch:
         ]
 
         with patch(
-            "headroom.transforms.kompress_compressor._load_kompress",
+            "copium.transforms.kompress_compressor._load_kompress",
             side_effect=RuntimeError("no model"),
         ):
             results = compressor.compress_batch(long_texts)
@@ -388,7 +388,7 @@ class TestKompressCompressorBatch:
 
     def test_mixed_short_and_long_passthrough_on_model_failure(self) -> None:
         """Short texts passthrough; long texts fall back to passthrough on model failure."""
-        from headroom.transforms.kompress_compressor import KompressCompressor
+        from copium.transforms.kompress_compressor import KompressCompressor
 
         compressor = KompressCompressor()
         contents = [
@@ -398,7 +398,7 @@ class TestKompressCompressorBatch:
         ]
 
         with patch(
-            "headroom.transforms.kompress_compressor._load_kompress",
+            "copium.transforms.kompress_compressor._load_kompress",
             side_effect=RuntimeError("no model"),
         ):
             results = compressor.compress_batch(contents)
@@ -411,7 +411,7 @@ class TestKompressCompressorBatch:
 
     def test_ratio_list_length_mismatch_raises(self) -> None:
         """If target_ratio is a list it must match contents length."""
-        from headroom.transforms.kompress_compressor import KompressCompressor
+        from copium.transforms.kompress_compressor import KompressCompressor
 
         compressor = KompressCompressor()
         contents = ["a b c", "d e f"]
@@ -432,7 +432,7 @@ class TestKompressCompressorBatch:
 
     def test_batch_of_one_equivalent_to_single_compress_on_short_text(self) -> None:
         """Batch-of-one with short text should produce identical passthrough."""
-        from headroom.transforms.kompress_compressor import KompressCompressor
+        from copium.transforms.kompress_compressor import KompressCompressor
 
         compressor = KompressCompressor()
         text = "hello world"
@@ -447,7 +447,7 @@ class TestKompressCompressorBatch:
 
     def test_uniform_ratio_scalar(self) -> None:
         """A scalar target_ratio must apply to every text in the batch."""
-        from headroom.transforms.kompress_compressor import KompressCompressor
+        from copium.transforms.kompress_compressor import KompressCompressor
 
         compressor = KompressCompressor()
         # Short texts — passthrough regardless of ratio
@@ -461,7 +461,7 @@ class TestKompressCompressorBatch:
 
     def test_per_item_ratio_list_with_nones(self) -> None:
         """A list of ratios with some None entries must be accepted."""
-        from headroom.transforms.kompress_compressor import KompressCompressor
+        from copium.transforms.kompress_compressor import KompressCompressor
 
         compressor = KompressCompressor()
         contents = ["short a", "short b", "short c"]
@@ -477,8 +477,8 @@ class TestKompressCompressorBatch:
 
 class TestUnloadKompressModel:
     def test_unload_when_no_model(self) -> None:
-        import headroom.transforms.kompress_compressor as kmod
-        from headroom.transforms.kompress_compressor import unload_kompress_model
+        import copium.transforms.kompress_compressor as kmod
+        from copium.transforms.kompress_compressor import unload_kompress_model
 
         # Ensure no model is loaded (previous tests may have set the cache)
         kmod._kompress_cache.clear()

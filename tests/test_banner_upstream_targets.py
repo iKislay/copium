@@ -15,15 +15,15 @@ import pytest
 
 pytest.importorskip("fastapi")
 
-from headroom.providers.claude import DEFAULT_API_URL as DEFAULT_ANTHROPIC_API_URL  # noqa: E402
-from headroom.providers.codex import DEFAULT_API_URL as DEFAULT_OPENAI_API_URL  # noqa: E402
-from headroom.providers.gemini import DEFAULT_API_URL as DEFAULT_GEMINI_API_URL  # noqa: E402
-from headroom.providers.registry import (  # noqa: E402
+from copium.providers.claude import DEFAULT_API_URL as DEFAULT_ANTHROPIC_API_URL  # noqa: E402
+from copium.providers.codex import DEFAULT_API_URL as DEFAULT_OPENAI_API_URL  # noqa: E402
+from copium.providers.gemini import DEFAULT_API_URL as DEFAULT_GEMINI_API_URL  # noqa: E402
+from copium.providers.registry import (  # noqa: E402
     DEFAULT_CLOUDCODE_API_URL,
     DEFAULT_VERTEX_API_URL,
 )
-from headroom.proxy.models import ProxyConfig  # noqa: E402
-from headroom.proxy.server import run_server  # noqa: E402
+from copium.proxy.models import ProxyConfig  # noqa: E402
+from copium.proxy.server import run_server  # noqa: E402
 
 
 class TestBannerUpstreamTargets:
@@ -35,8 +35,8 @@ class TestBannerUpstreamTargets:
         config = config or ProxyConfig()
         with (
             patch("sys.stdout", buf),
-            patch("headroom.proxy.server.uvicorn") as mock_uvicorn,
-            patch("headroom.proxy.server.create_app"),
+            patch("copium.proxy.server.uvicorn") as mock_uvicorn,
+            patch("copium.proxy.server.create_app"),
         ):
             mock_uvicorn.run = lambda *a, **kw: None
             run_server(config, print_banner=True)
@@ -114,8 +114,8 @@ class TestBannerUpstreamTargets:
         buf = StringIO()
         with (
             patch("sys.stdout", buf),
-            patch("headroom.proxy.server.uvicorn") as mock_uvicorn,
-            patch("headroom.proxy.server.create_app"),
+            patch("copium.proxy.server.uvicorn") as mock_uvicorn,
+            patch("copium.proxy.server.create_app"),
         ):
             mock_uvicorn.run = lambda *a, **kw: None
             run_server(ProxyConfig(), print_banner=False)

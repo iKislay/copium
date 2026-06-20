@@ -10,14 +10,14 @@ from pathlib import Path
 
 import pytest
 
-from headroom.memory.config import (
+from copium.memory.config import (
     EmbedderBackend,
     MemoryConfig,
     StoreBackend,
     TextBackend,
     VectorBackend,
 )
-from headroom.memory.factory import (
+from copium.memory.factory import (
     _create_cache,
     _create_embedder,
     _create_store,
@@ -28,7 +28,7 @@ from headroom.memory.factory import (
 
 # Check if hnswlib is available (most factory tests require it)
 try:
-    from headroom.memory.adapters.hnsw import _check_hnswlib_available
+    from copium.memory.adapters.hnsw import _check_hnswlib_available
 
     HNSW_AVAILABLE = _check_hnswlib_available()
 except ImportError:
@@ -141,7 +141,7 @@ class TestCreateStore:
             )
             store = _create_store(config)
 
-            from headroom.memory.adapters.sqlite import SQLiteMemoryStore
+            from copium.memory.adapters.sqlite import SQLiteMemoryStore
 
             assert isinstance(store, SQLiteMemoryStore)
 
@@ -152,7 +152,7 @@ class TestCreateStore:
             config = MemoryConfig(db_path=custom_path)
             store = _create_store(config)
 
-            from headroom.memory.adapters.sqlite import SQLiteMemoryStore
+            from copium.memory.adapters.sqlite import SQLiteMemoryStore
 
             assert isinstance(store, SQLiteMemoryStore)
 
@@ -179,7 +179,7 @@ class TestCreateEmbedder:
         config = MemoryConfig(embedder_backend=EmbedderBackend.LOCAL)
         embedder = _create_embedder(config)
 
-        from headroom.memory.adapters.embedders import LocalEmbedder
+        from copium.memory.adapters.embedders import LocalEmbedder
 
         assert isinstance(embedder, LocalEmbedder)
 
@@ -190,7 +190,7 @@ class TestCreateEmbedder:
         )
         embedder = _create_embedder(config)
 
-        from headroom.memory.adapters.embedders import LocalEmbedder
+        from copium.memory.adapters.embedders import LocalEmbedder
 
         assert isinstance(embedder, LocalEmbedder)
         assert embedder.model_name == "paraphrase-MiniLM-L6-v2"
@@ -200,7 +200,7 @@ class TestCreateEmbedder:
         config = MemoryConfig(embedder_backend=EmbedderBackend.OPENAI, openai_api_key="sk-test-key")
         embedder = _create_embedder(config)
 
-        from headroom.memory.adapters.embedders import OpenAIEmbedder
+        from copium.memory.adapters.embedders import OpenAIEmbedder
 
         assert isinstance(embedder, OpenAIEmbedder)
 
@@ -219,7 +219,7 @@ class TestCreateEmbedder:
         config = MemoryConfig(embedder_backend=EmbedderBackend.OLLAMA)
         embedder = _create_embedder(config)
 
-        from headroom.memory.adapters.embedders import OllamaEmbedder
+        from copium.memory.adapters.embedders import OllamaEmbedder
 
         assert isinstance(embedder, OllamaEmbedder)
 
@@ -232,7 +232,7 @@ class TestCreateEmbedder:
         )
         embedder = _create_embedder(config)
 
-        from headroom.memory.adapters.embedders import OllamaEmbedder
+        from copium.memory.adapters.embedders import OllamaEmbedder
 
         assert isinstance(embedder, OllamaEmbedder)
         assert embedder.model_name == "custom-model"
@@ -260,7 +260,7 @@ class TestCreateVectorIndex:
         config = MemoryConfig(vector_backend=VectorBackend.HNSW)
         index = _create_vector_index(config)
 
-        from headroom.memory.adapters.hnsw import HNSWVectorIndex
+        from copium.memory.adapters.hnsw import HNSWVectorIndex
 
         assert isinstance(index, HNSWVectorIndex)
 
@@ -275,7 +275,7 @@ class TestCreateVectorIndex:
         )
         index = _create_vector_index(config)
 
-        from headroom.memory.adapters.hnsw import HNSWVectorIndex
+        from copium.memory.adapters.hnsw import HNSWVectorIndex
 
         assert isinstance(index, HNSWVectorIndex)
         assert index._dimension == 768
@@ -307,7 +307,7 @@ class TestCreateTextIndex:
             config = MemoryConfig(text_backend=TextBackend.FTS5, db_path=Path(tmpdir) / "test.db")
             index = _create_text_index(config)
 
-            from headroom.memory.adapters.fts5 import FTS5TextIndex
+            from copium.memory.adapters.fts5 import FTS5TextIndex
 
             assert isinstance(index, FTS5TextIndex)
 
@@ -318,7 +318,7 @@ class TestCreateTextIndex:
             config = MemoryConfig(db_path=custom_path)
             index = _create_text_index(config)
 
-            from headroom.memory.adapters.fts5 import FTS5TextIndex
+            from copium.memory.adapters.fts5 import FTS5TextIndex
 
             assert isinstance(index, FTS5TextIndex)
 
@@ -345,7 +345,7 @@ class TestCreateCache:
         config = MemoryConfig(cache_max_size=500)
         cache = _create_cache(config)
 
-        from headroom.memory.adapters.cache import LRUMemoryCache
+        from copium.memory.adapters.cache import LRUMemoryCache
 
         assert isinstance(cache, LRUMemoryCache)
         assert cache.max_size == 500
@@ -355,7 +355,7 @@ class TestCreateCache:
         config = MemoryConfig()  # Default cache_max_size=1000
         cache = _create_cache(config)
 
-        from headroom.memory.adapters.cache import LRUMemoryCache
+        from copium.memory.adapters.cache import LRUMemoryCache
 
         assert isinstance(cache, LRUMemoryCache)
         assert cache.max_size == 1000
@@ -383,12 +383,12 @@ class TestCreateMemorySystem:
             config = MemoryConfig(db_path=Path(tmpdir) / "test.db")
             store, vector, text, embedder, cache = await create_memory_system(config)
 
-            from headroom.memory.adapters.cache import LRUMemoryCache
-            from headroom.memory.adapters.embedders import LocalEmbedder
-            from headroom.memory.adapters.fts5 import FTS5TextIndex
-            from headroom.memory.adapters.hnsw import HNSWVectorIndex
-            from headroom.memory.adapters.sqlite import SQLiteMemoryStore
-            from headroom.memory.adapters.sqlite_vector import SQLiteVectorIndex
+            from copium.memory.adapters.cache import LRUMemoryCache
+            from copium.memory.adapters.embedders import LocalEmbedder
+            from copium.memory.adapters.fts5 import FTS5TextIndex
+            from copium.memory.adapters.hnsw import HNSWVectorIndex
+            from copium.memory.adapters.sqlite import SQLiteMemoryStore
+            from copium.memory.adapters.sqlite_vector import SQLiteVectorIndex
 
             assert isinstance(store, SQLiteMemoryStore)
             # Factory auto-selects best available: SQLiteVectorIndex (preferred) or HNSW (fallback)
@@ -413,12 +413,12 @@ class TestCreateMemorySystem:
         # Just verify it doesn't raise
         store, vector, text, embedder, cache = await create_memory_system(None)
 
-        from headroom.memory.adapters.cache import LRUMemoryCache
-        from headroom.memory.adapters.embedders import LocalEmbedder
-        from headroom.memory.adapters.fts5 import FTS5TextIndex
-        from headroom.memory.adapters.hnsw import HNSWVectorIndex
-        from headroom.memory.adapters.sqlite import SQLiteMemoryStore
-        from headroom.memory.adapters.sqlite_vector import SQLiteVectorIndex
+        from copium.memory.adapters.cache import LRUMemoryCache
+        from copium.memory.adapters.embedders import LocalEmbedder
+        from copium.memory.adapters.fts5 import FTS5TextIndex
+        from copium.memory.adapters.hnsw import HNSWVectorIndex
+        from copium.memory.adapters.sqlite import SQLiteMemoryStore
+        from copium.memory.adapters.sqlite_vector import SQLiteVectorIndex
 
         assert isinstance(store, SQLiteMemoryStore)
         # Factory auto-selects best available: SQLiteVectorIndex (preferred) or HNSW (fallback)
@@ -436,7 +436,7 @@ class TestCreateMemorySystem:
             )
             store, vector, text, embedder, cache = await create_memory_system(config)
 
-            from headroom.memory.adapters.embedders import OllamaEmbedder
+            from copium.memory.adapters.embedders import OllamaEmbedder
 
             assert isinstance(embedder, OllamaEmbedder)
 
@@ -451,7 +451,7 @@ class TestCreateMemorySystem:
             )
             store, vector, text, embedder, cache = await create_memory_system(config)
 
-            from headroom.memory.adapters.embedders import OpenAIEmbedder
+            from copium.memory.adapters.embedders import OpenAIEmbedder
 
             assert isinstance(embedder, OpenAIEmbedder)
 

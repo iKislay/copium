@@ -1,7 +1,7 @@
 """Comprehensive tests for Agno integration.
 
 Tests cover:
-1. HeadroomAgnoModel - Wrapper for any Agno model
+1. CopiumAgnoModel - Wrapper for any Agno model
 2. Provider detection - Detecting correct provider from Agno model
 3. Hooks - Pre and post hooks for observability
 4. optimize_messages() - Standalone optimization function
@@ -20,7 +20,7 @@ try:
 except ImportError:
     AGNO_AVAILABLE = False
 
-from headroom import HeadroomConfig, HeadroomMode
+from copium import CopiumConfig, CopiumMode
 
 # Skip all tests if Agno not installed
 pytestmark = pytest.mark.skipif(not AGNO_AVAILABLE, reason="Agno not installed")
@@ -135,67 +135,67 @@ class TestAgnoAvailable:
 
     def test_returns_bool(self):
         """agno_available returns boolean."""
-        from headroom.integrations.agno import agno_available
+        from copium.integrations.agno import agno_available
 
         assert isinstance(agno_available(), bool)
 
     def test_returns_true_when_installed(self):
         """Returns True when Agno is installed."""
-        from headroom.integrations.agno import agno_available
+        from copium.integrations.agno import agno_available
 
         assert agno_available() is True
 
 
-class TestHeadroomAgnoModel:
-    """Tests for HeadroomAgnoModel wrapper."""
+class TestCopiumAgnoModel:
+    """Tests for CopiumAgnoModel wrapper."""
 
     def test_init_with_defaults(self, mock_agno_model):
         """Initialize with default config."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
-        model = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        model = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         assert model.wrapped_model is mock_agno_model
-        assert model.headroom_config is not None
+        assert model.copium_config is not None
         assert model._metrics_history == []
         assert model._total_tokens_saved == 0
 
     def test_init_with_custom_config(self, mock_agno_model):
         """Initialize with custom config."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
-        config = HeadroomConfig(default_mode=HeadroomMode.AUDIT)
-        model = HeadroomAgnoModel(
+        config = CopiumConfig(default_mode=CopiumMode.AUDIT)
+        model = CopiumAgnoModel(
             wrapped_model=mock_agno_model,
-            headroom_config=config,
-            headroom_mode=HeadroomMode.SIMULATE,
+            copium_config=config,
+            copium_mode=CopiumMode.SIMULATE,
         )
 
-        assert model.headroom_config is config
-        assert model.headroom_mode == HeadroomMode.SIMULATE
+        assert model.copium_config is config
+        assert model.copium_mode == CopiumMode.SIMULATE
 
     def test_init_auto_detect_provider(self, mock_agno_model):
         """Auto-detect provider from wrapped model."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
-        model = HeadroomAgnoModel(wrapped_model=mock_agno_model, auto_detect_provider=True)
+        model = CopiumAgnoModel(wrapped_model=mock_agno_model, auto_detect_provider=True)
 
         assert model.auto_detect_provider is True
 
     def test_forward_attributes(self, mock_agno_model):
         """Forward attribute access to wrapped model."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         mock_agno_model.custom_attribute = "test_value"
-        model = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        model = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         assert model.custom_attribute == "test_value"
 
     def test_properties_not_forwarded(self, mock_agno_model):
         """Own properties should not be forwarded."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
-        model = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        model = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         # These should work without forwarding to wrapped model
         assert model.total_tokens_saved == 0
@@ -203,9 +203,9 @@ class TestHeadroomAgnoModel:
 
     def test_convert_messages_to_openai(self, mock_agno_model, sample_messages):
         """Convert Agno messages to OpenAI format."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
-        model = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        model = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         # Test with dict messages (already OpenAI format)
         openai_msgs = model._convert_messages_to_openai(sample_messages)
@@ -218,7 +218,7 @@ class TestHeadroomAgnoModel:
 
     def test_convert_agno_message_objects(self, mock_agno_model):
         """Convert Agno Message objects to OpenAI format."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         # Create mock Agno Message objects
         system_msg = MagicMock()
@@ -235,7 +235,7 @@ class TestHeadroomAgnoModel:
 
         messages = [system_msg, user_msg]
 
-        model = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        model = CopiumAgnoModel(wrapped_model=mock_agno_model)
         openai_msgs = model._convert_messages_to_openai(messages)
 
         assert len(openai_msgs) == 2
@@ -244,7 +244,7 @@ class TestHeadroomAgnoModel:
 
     def test_convert_messages_with_tool_calls(self, mock_agno_model):
         """Convert messages with tool calls."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         assistant_msg = MagicMock()
         assistant_msg.role = "assistant"
@@ -262,7 +262,7 @@ class TestHeadroomAgnoModel:
 
         messages = [assistant_msg, tool_msg]
 
-        model = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        model = CopiumAgnoModel(wrapped_model=mock_agno_model)
         openai_msgs = model._convert_messages_to_openai(messages)
 
         assert len(openai_msgs) == 2
@@ -271,14 +271,14 @@ class TestHeadroomAgnoModel:
         assert openai_msgs[1]["tool_call_id"] == "call_123"
 
     def test_response_applies_optimization(self, mock_agno_model, sample_messages):
-        """response() applies Headroom optimization."""
-        from headroom.integrations.agno import HeadroomAgnoModel
-        from headroom.providers import OpenAIProvider
+        """response() applies Copium optimization."""
+        from copium.integrations.agno import CopiumAgnoModel
+        from copium.providers import OpenAIProvider
 
-        model = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        model = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         # Initialize provider and pipeline for mocking
-        model._headroom_provider = OpenAIProvider()
+        model._copium_provider = OpenAIProvider()
         _ = model.pipeline  # Force lazy init
 
         # Mock the pipeline apply method
@@ -303,12 +303,12 @@ class TestHeadroomAgnoModel:
             assert model._metrics_history[0].tokens_saved == 20
 
     def test_response_stream_applies_optimization(self, mock_agno_model, sample_messages):
-        """response_stream() applies Headroom optimization."""
-        from headroom.integrations.agno import HeadroomAgnoModel
-        from headroom.providers import OpenAIProvider
+        """response_stream() applies Copium optimization."""
+        from copium.integrations.agno import CopiumAgnoModel
+        from copium.providers import OpenAIProvider
 
-        model = HeadroomAgnoModel(wrapped_model=mock_agno_model)
-        model._headroom_provider = OpenAIProvider()
+        model = CopiumAgnoModel(wrapped_model=mock_agno_model)
+        model._copium_provider = OpenAIProvider()
         _ = model.pipeline
 
         with patch.object(model._pipeline, "apply") as mock_apply:
@@ -327,9 +327,9 @@ class TestHeadroomAgnoModel:
 
     def test_metrics_history_limited(self, mock_agno_model, sample_messages):
         """Metrics history is limited to 100 entries."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
-        model = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        model = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         # Add 150 fake metrics
         for _i in range(150):
@@ -342,9 +342,9 @@ class TestHeadroomAgnoModel:
 
     def test_get_savings_summary_empty(self, mock_agno_model):
         """get_savings_summary with no history."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
-        model = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        model = CopiumAgnoModel(wrapped_model=mock_agno_model)
         summary = model.get_savings_summary()
 
         assert summary["total_requests"] == 0
@@ -353,10 +353,10 @@ class TestHeadroomAgnoModel:
 
     def test_get_savings_summary_with_data(self, mock_agno_model):
         """get_savings_summary with metrics."""
-        from headroom.integrations.agno import HeadroomAgnoModel
-        from headroom.integrations.agno.model import OptimizationMetrics
+        from copium.integrations.agno import CopiumAgnoModel
+        from copium.integrations.agno.model import OptimizationMetrics
 
-        model = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        model = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         # Add fake metrics
         model._metrics_history = [
@@ -391,10 +391,10 @@ class TestHeadroomAgnoModel:
 
     def test_reset_clears_all_state(self, mock_agno_model):
         """reset() clears all metrics state."""
-        from headroom.integrations.agno import HeadroomAgnoModel
-        from headroom.integrations.agno.model import OptimizationMetrics
+        from copium.integrations.agno import CopiumAgnoModel
+        from copium.integrations.agno.model import OptimizationMetrics
 
-        model = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        model = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         # Add fake metrics
         model._metrics_history = [
@@ -434,65 +434,65 @@ class TestProviderDetection:
 
     def test_detect_openai_provider(self, mock_agno_model):
         """Detect OpenAI provider from OpenAIChat."""
-        from headroom.integrations.agno.providers import get_headroom_provider
-        from headroom.providers import OpenAIProvider
+        from copium.integrations.agno.providers import get_copium_provider
+        from copium.providers import OpenAIProvider
 
-        provider = get_headroom_provider(mock_agno_model)
+        provider = get_copium_provider(mock_agno_model)
 
         assert isinstance(provider, OpenAIProvider)
 
     def test_detect_anthropic_provider(self, mock_claude_model):
         """Detect Anthropic provider from Claude model."""
-        from headroom.integrations.agno.providers import get_headroom_provider
-        from headroom.providers import AnthropicProvider
+        from copium.integrations.agno.providers import get_copium_provider
+        from copium.providers import AnthropicProvider
 
-        provider = get_headroom_provider(mock_claude_model)
+        provider = get_copium_provider(mock_claude_model)
 
         assert isinstance(provider, AnthropicProvider)
 
     def test_detect_from_model_id(self):
         """Detect provider from model ID string."""
-        from headroom.integrations.agno.providers import get_headroom_provider
-        from headroom.providers import AnthropicProvider, GoogleProvider, OpenAIProvider
+        from copium.integrations.agno.providers import get_copium_provider
+        from copium.providers import AnthropicProvider, GoogleProvider, OpenAIProvider
 
         # GPT model
         mock_gpt = MagicMock()
         mock_gpt.__class__.__name__ = "UnknownModel"
         mock_gpt.__class__.__module__ = "some.module"
         mock_gpt.id = "gpt-4o-mini"
-        assert isinstance(get_headroom_provider(mock_gpt), OpenAIProvider)
+        assert isinstance(get_copium_provider(mock_gpt), OpenAIProvider)
 
         # Claude model
         mock_claude = MagicMock()
         mock_claude.__class__.__name__ = "UnknownModel"
         mock_claude.__class__.__module__ = "some.module"
         mock_claude.id = "claude-3-opus-20240229"
-        assert isinstance(get_headroom_provider(mock_claude), AnthropicProvider)
+        assert isinstance(get_copium_provider(mock_claude), AnthropicProvider)
 
         # Gemini model
         mock_gemini = MagicMock()
         mock_gemini.__class__.__name__ = "UnknownModel"
         mock_gemini.__class__.__module__ = "some.module"
         mock_gemini.id = "gemini-pro"
-        assert isinstance(get_headroom_provider(mock_gemini), GoogleProvider)
+        assert isinstance(get_copium_provider(mock_gemini), GoogleProvider)
 
     def test_fallback_to_openai(self):
         """Fallback to OpenAI provider for unknown models."""
-        from headroom.integrations.agno.providers import get_headroom_provider
-        from headroom.providers import OpenAIProvider
+        from copium.integrations.agno.providers import get_copium_provider
+        from copium.providers import OpenAIProvider
 
         mock = MagicMock()
         mock.__class__.__name__ = "TotallyUnknownModel"
         mock.__class__.__module__ = "completely.unknown"
         mock.id = "mystery-model-v1"
 
-        provider = get_headroom_provider(mock)
+        provider = get_copium_provider(mock)
 
         assert isinstance(provider, OpenAIProvider)
 
     def test_get_model_name(self, mock_agno_model):
         """Extract model name from Agno model."""
-        from headroom.integrations.agno.providers import get_model_name_from_agno
+        from copium.integrations.agno.providers import get_model_name_from_agno
 
         name = get_model_name_from_agno(mock_agno_model)
 
@@ -500,7 +500,7 @@ class TestProviderDetection:
 
     def test_get_model_name_fallback(self):
         """Fallback model name when not found."""
-        from headroom.integrations.agno.providers import get_model_name_from_agno
+        from copium.integrations.agno.providers import get_model_name_from_agno
 
         mock = MagicMock(spec=[])  # No attributes
         name = get_model_name_from_agno(mock)
@@ -513,9 +513,9 @@ class TestOptimizeMessages:
 
     def test_basic_optimization(self, sample_messages):
         """Basic message optimization."""
-        from headroom.integrations.agno import optimize_messages
+        from copium.integrations.agno import optimize_messages
 
-        with patch("headroom.integrations.agno.model.TransformPipeline") as MockPipeline:
+        with patch("copium.integrations.agno.model.TransformPipeline") as MockPipeline:
             mock_instance = MagicMock()
             mock_result = MagicMock()
             mock_result.messages = [
@@ -536,11 +536,11 @@ class TestOptimizeMessages:
 
     def test_with_custom_config(self, sample_messages):
         """Optimization with custom config."""
-        from headroom.integrations.agno import optimize_messages
+        from copium.integrations.agno import optimize_messages
 
-        config = HeadroomConfig(default_mode=HeadroomMode.AUDIT)
+        config = CopiumConfig(default_mode=CopiumMode.AUDIT)
 
-        with patch("headroom.integrations.agno.model.TransformPipeline") as MockPipeline:
+        with patch("copium.integrations.agno.model.TransformPipeline") as MockPipeline:
             mock_instance = MagicMock()
             mock_result = MagicMock()
             mock_result.messages = []
@@ -553,7 +553,7 @@ class TestOptimizeMessages:
             _, metrics = optimize_messages(
                 sample_messages,
                 config=config,
-                mode=HeadroomMode.AUDIT,
+                mode=CopiumMode.AUDIT,
             )
 
             # Verify pipeline was created with config
@@ -562,17 +562,17 @@ class TestOptimizeMessages:
             assert call_kwargs["config"] is config
 
 
-class TestIntegrationWithRealHeadroom:
-    """Integration tests using real Headroom components (no mocking)."""
+class TestIntegrationWithRealCopium:
+    """Integration tests using real Copium components (no mocking)."""
 
     def test_real_optimization_pipeline(self, sample_messages):
-        """Test with real Headroom client (no API calls)."""
-        from headroom.integrations.agno import optimize_messages
+        """Test with real Copium client (no API calls)."""
+        from copium.integrations.agno import optimize_messages
 
-        # This uses real Headroom transforms but no LLM API calls
+        # This uses real Copium transforms but no LLM API calls
         optimized, metrics = optimize_messages(
             sample_messages,
-            mode=HeadroomMode.OPTIMIZE,
+            mode=CopiumMode.OPTIMIZE,
         )
 
         # Should return valid messages
@@ -587,7 +587,7 @@ class TestIntegrationWithRealHeadroom:
 
     def test_large_conversation_compression(self, large_conversation):
         """Test compression of large conversation."""
-        from headroom.integrations.agno import optimize_messages
+        from copium.integrations.agno import optimize_messages
 
         optimized, metrics = optimize_messages(large_conversation)
 
@@ -595,10 +595,10 @@ class TestIntegrationWithRealHeadroom:
         assert metrics["tokens_before"] >= metrics["tokens_after"]
 
     def test_model_wrapper_real_optimization(self, mock_agno_model, sample_messages):
-        """Test HeadroomAgnoModel with real Headroom optimization."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        """Test CopiumAgnoModel with real Copium optimization."""
+        from copium.integrations.agno import CopiumAgnoModel
 
-        model = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        model = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         # Call response - this will apply real optimization
         model.response(sample_messages)
@@ -611,18 +611,18 @@ class TestIntegrationWithRealHeadroom:
 
 
 class TestReasoningCapabilityForwarding:
-    """Tests for reasoning capability forwarding in HeadroomAgnoModel.
+    """Tests for reasoning capability forwarding in CopiumAgnoModel.
 
-    These tests verify that HeadroomAgnoModel properly forwards
+    These tests verify that CopiumAgnoModel properly forwards
     reasoning-related properties from the wrapped model, enabling
     framework introspection (e.g., Agno's reasoning detection).
     """
 
     def test_underlying_model_property_returns_wrapped_model(self, mock_agno_model):
         """underlying_model property should return the wrapped model."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
-        wrapped = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        wrapped = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         assert wrapped.underlying_model is mock_agno_model
 
@@ -630,154 +630,154 @@ class TestReasoningCapabilityForwarding:
         """underlying_model allows class name introspection for framework detection."""
         from agno.models.openai import OpenAIChat
 
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         base_model = OpenAIChat(id="gpt-4o")
-        wrapped = HeadroomAgnoModel(wrapped_model=base_model)
+        wrapped = CopiumAgnoModel(wrapped_model=base_model)
 
         # Framework detection typically checks __class__.__name__
         assert wrapped.underlying_model.__class__.__name__ == "OpenAIChat"
-        assert wrapped.__class__.__name__ == "HeadroomAgnoModel"
+        assert wrapped.__class__.__name__ == "CopiumAgnoModel"
 
     def test_thinking_property_forwarded_when_present(self, mock_agno_model):
         """thinking property is forwarded from wrapped model when present."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         # Set thinking config on mock model
         mock_agno_model.thinking = {"type": "enabled", "budget_tokens": 5000}
 
-        wrapped = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        wrapped = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         assert wrapped.thinking == {"type": "enabled", "budget_tokens": 5000}
 
     def test_thinking_property_not_present_when_absent(self, mock_agno_model):
         """thinking property not set when wrapped model doesn't have it."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         # Ensure mock doesn't have thinking attribute
         if hasattr(mock_agno_model, "thinking"):
             delattr(mock_agno_model, "thinking")
 
-        wrapped = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        wrapped = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         # Should raise AttributeError when accessed
         assert not hasattr(wrapped, "thinking") or wrapped.thinking is None
 
     def test_reasoning_effort_property_forwarded(self, mock_agno_model):
         """reasoning_effort property is forwarded from wrapped model."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         mock_agno_model.reasoning_effort = "high"
 
-        wrapped = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        wrapped = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         assert wrapped.reasoning_effort == "high"
 
     def test_provider_property_forwarded_from_wrapped_model(self, mock_agno_model):
         """provider property is set from wrapped model during init."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         mock_agno_model.provider = "OpenAI"
 
-        wrapped = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        wrapped = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         assert wrapped.provider == "OpenAI"
 
     def test_name_property_forwarded_from_wrapped_model(self, mock_agno_model):
         """name property is set from wrapped model during init."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         mock_agno_model.name = "gpt-4o"
 
-        wrapped = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        wrapped = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         assert wrapped.name == "gpt-4o"
 
     def test_has_extended_thinking_enabled_with_dict_config(self, mock_agno_model):
         """has_extended_thinking_enabled returns True when thinking dict is enabled."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         mock_agno_model.thinking = {"type": "enabled", "budget_tokens": 5000}
 
-        wrapped = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        wrapped = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         assert wrapped.has_extended_thinking_enabled() is True
 
     def test_has_extended_thinking_disabled_with_dict_config(self, mock_agno_model):
         """has_extended_thinking_enabled returns False when thinking dict is disabled."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         mock_agno_model.thinking = {"type": "disabled"}
 
-        wrapped = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        wrapped = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         assert wrapped.has_extended_thinking_enabled() is False
 
     def test_has_extended_thinking_returns_false_when_none(self, mock_agno_model):
         """has_extended_thinking_enabled returns False when thinking is None."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         mock_agno_model.thinking = None
 
-        wrapped = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        wrapped = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         assert wrapped.has_extended_thinking_enabled() is False
 
     def test_has_extended_thinking_returns_false_when_missing(self, mock_agno_model):
         """has_extended_thinking_enabled returns False when thinking attribute missing."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         # Remove thinking attribute if present
         if hasattr(mock_agno_model, "thinking"):
             delattr(mock_agno_model, "thinking")
 
-        wrapped = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        wrapped = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         assert wrapped.has_extended_thinking_enabled() is False
 
     def test_has_extended_thinking_with_truthy_value(self, mock_agno_model):
         """has_extended_thinking_enabled handles non-dict truthy values."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         mock_agno_model.thinking = True
 
-        wrapped = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        wrapped = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         assert wrapped.has_extended_thinking_enabled() is True
 
     def test_has_extended_thinking_with_falsy_value(self, mock_agno_model):
         """has_extended_thinking_enabled handles non-dict falsy values."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         mock_agno_model.thinking = False
 
-        wrapped = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        wrapped = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         assert wrapped.has_extended_thinking_enabled() is False
 
     def test_supports_native_structured_outputs_forwarded(self, mock_agno_model):
         """supports_native_structured_outputs property is forwarded."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         mock_agno_model.supports_native_structured_outputs = True
 
-        wrapped = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        wrapped = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         assert wrapped.supports_native_structured_outputs is True
 
     def test_supports_json_schema_outputs_forwarded(self, mock_agno_model):
         """supports_json_schema_outputs property is forwarded."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         mock_agno_model.supports_json_schema_outputs = True
 
-        wrapped = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        wrapped = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         assert wrapped.supports_json_schema_outputs is True
 
     def test_multiple_capability_properties_forwarded(self, mock_agno_model):
         """Multiple capability properties are forwarded correctly."""
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         mock_agno_model.thinking = {"type": "enabled", "budget_tokens": 10000}
         mock_agno_model.reasoning_effort = "medium"
@@ -785,7 +785,7 @@ class TestReasoningCapabilityForwarding:
         mock_agno_model.supports_json_schema_outputs = False
         mock_agno_model.provider = "Anthropic"
 
-        wrapped = HeadroomAgnoModel(wrapped_model=mock_agno_model)
+        wrapped = CopiumAgnoModel(wrapped_model=mock_agno_model)
 
         assert wrapped.thinking == {"type": "enabled", "budget_tokens": 10000}
         assert wrapped.reasoning_effort == "medium"
@@ -797,10 +797,10 @@ class TestReasoningCapabilityForwarding:
         """Test underlying_model with real Agno OpenAIChat model."""
         from agno.models.openai import OpenAIChat
 
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         base_model = OpenAIChat(id="gpt-4o")
-        wrapped = HeadroomAgnoModel(wrapped_model=base_model)
+        wrapped = CopiumAgnoModel(wrapped_model=base_model)
 
         # Verify underlying_model returns the actual model
         assert wrapped.underlying_model is base_model
@@ -810,7 +810,7 @@ class TestReasoningCapabilityForwarding:
 class TestRealAgnoIntegration:
     """REAL integration tests with actual Agno components.
 
-    These tests verify that HeadroomAgnoModel:
+    These tests verify that CopiumAgnoModel:
     1. Is a proper subclass of agno.models.base.Model
     2. Passes Agno's get_model() validation
     3. Can be used with Agno Agent
@@ -820,133 +820,133 @@ class TestRealAgnoIntegration:
     """
 
     def test_is_subclass_of_agno_model(self):
-        """HeadroomAgnoModel must be a subclass of agno.models.base.Model."""
+        """CopiumAgnoModel must be a subclass of agno.models.base.Model."""
         from agno.models.base import Model
 
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
-        assert issubclass(HeadroomAgnoModel, Model)
+        assert issubclass(CopiumAgnoModel, Model)
 
     def test_passes_agno_get_model_validation(self):
-        """HeadroomAgnoModel must pass Agno's get_model() validation."""
+        """CopiumAgnoModel must pass Agno's get_model() validation."""
         from agno.models.openai import OpenAIChat
         from agno.models.utils import get_model
 
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         # Create a real OpenAIChat model (doesn't need API key for instantiation)
         base_model = OpenAIChat(id="gpt-4o")
-        headroom_model = HeadroomAgnoModel(wrapped_model=base_model)
+        copium_model = CopiumAgnoModel(wrapped_model=base_model)
 
         # This should NOT raise "Model must be a Model instance, string, or None"
-        result = get_model(headroom_model)
+        result = get_model(copium_model)
 
-        assert result is headroom_model
-        assert isinstance(result, HeadroomAgnoModel)
+        assert result is copium_model
+        assert isinstance(result, CopiumAgnoModel)
 
-    def test_agent_accepts_headroom_model(self):
-        """Agno Agent must accept HeadroomAgnoModel as model parameter."""
+    def test_agent_accepts_copium_model(self):
+        """Agno Agent must accept CopiumAgnoModel as model parameter."""
         from agno.agent import Agent
         from agno.models.openai import OpenAIChat
 
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         # Create wrapped model
         base_model = OpenAIChat(id="gpt-4o")
-        headroom_model = HeadroomAgnoModel(wrapped_model=base_model)
+        copium_model = CopiumAgnoModel(wrapped_model=base_model)
 
         # This should NOT raise any validation errors
-        agent = Agent(model=headroom_model, markdown=False)
+        agent = Agent(model=copium_model, markdown=False)
 
-        assert agent.model is headroom_model
+        assert agent.model is copium_model
         assert agent.model.wrapped_model is base_model
 
     def test_model_id_reflects_wrapped_model(self):
-        """HeadroomAgnoModel id should reflect the wrapped model."""
+        """CopiumAgnoModel id should reflect the wrapped model."""
         from agno.models.openai import OpenAIChat
 
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         base_model = OpenAIChat(id="gpt-4o-mini")
-        headroom_model = HeadroomAgnoModel(wrapped_model=base_model)
+        copium_model = CopiumAgnoModel(wrapped_model=base_model)
 
-        assert "gpt-4o-mini" in headroom_model.id
-        assert headroom_model.id.startswith("headroom:")
+        assert "gpt-4o-mini" in copium_model.id
+        assert copium_model.id.startswith("copium:")
 
-    def test_headroom_model_has_required_abstract_methods(self):
-        """HeadroomAgnoModel must implement all required abstract methods."""
+    def test_copium_model_has_required_abstract_methods(self):
+        """CopiumAgnoModel must implement all required abstract methods."""
         from agno.models.openai import OpenAIChat
 
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         base_model = OpenAIChat(id="gpt-4o")
-        headroom_model = HeadroomAgnoModel(wrapped_model=base_model)
+        copium_model = CopiumAgnoModel(wrapped_model=base_model)
 
         # Verify required methods exist and are callable
-        assert hasattr(headroom_model, "invoke")
-        assert callable(headroom_model.invoke)
+        assert hasattr(copium_model, "invoke")
+        assert callable(copium_model.invoke)
 
-        assert hasattr(headroom_model, "ainvoke")
-        assert callable(headroom_model.ainvoke)
+        assert hasattr(copium_model, "ainvoke")
+        assert callable(copium_model.ainvoke)
 
-        assert hasattr(headroom_model, "invoke_stream")
-        assert callable(headroom_model.invoke_stream)
+        assert hasattr(copium_model, "invoke_stream")
+        assert callable(copium_model.invoke_stream)
 
-        assert hasattr(headroom_model, "ainvoke_stream")
-        assert callable(headroom_model.ainvoke_stream)
+        assert hasattr(copium_model, "ainvoke_stream")
+        assert callable(copium_model.ainvoke_stream)
 
-        assert hasattr(headroom_model, "_parse_provider_response")
-        assert callable(headroom_model._parse_provider_response)
+        assert hasattr(copium_model, "_parse_provider_response")
+        assert callable(copium_model._parse_provider_response)
 
-        assert hasattr(headroom_model, "_parse_provider_response_delta")
-        assert callable(headroom_model._parse_provider_response_delta)
+        assert hasattr(copium_model, "_parse_provider_response_delta")
+        assert callable(copium_model._parse_provider_response_delta)
 
     def test_isinstance_check_passes(self):
         """isinstance check with agno.models.base.Model must pass."""
         from agno.models.base import Model
         from agno.models.openai import OpenAIChat
 
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         base_model = OpenAIChat(id="gpt-4o")
-        headroom_model = HeadroomAgnoModel(wrapped_model=base_model)
+        copium_model = CopiumAgnoModel(wrapped_model=base_model)
 
         # This is the exact check that get_model() uses
-        assert isinstance(headroom_model, Model)
+        assert isinstance(copium_model, Model)
 
-    def test_model_with_custom_headroom_config(self):
-        """Test with custom Headroom configuration."""
+    def test_model_with_custom_copium_config(self):
+        """Test with custom Copium configuration."""
         from agno.agent import Agent
         from agno.models.openai import OpenAIChat
 
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
-        config = HeadroomConfig(default_mode=HeadroomMode.AUDIT)
+        config = CopiumConfig(default_mode=CopiumMode.AUDIT)
         base_model = OpenAIChat(id="gpt-4o")
-        headroom_model = HeadroomAgnoModel(
+        copium_model = CopiumAgnoModel(
             wrapped_model=base_model,
-            headroom_config=config,
+            copium_config=config,
         )
 
-        agent = Agent(model=headroom_model, markdown=False)
+        agent = Agent(model=copium_model, markdown=False)
 
-        assert agent.model.headroom_config is config
-        assert agent.model.headroom_config.default_mode == HeadroomMode.AUDIT
+        assert agent.model.copium_config is config
+        assert agent.model.copium_config.default_mode == CopiumMode.AUDIT
 
     def test_response_method_delegates_to_wrapped(self):
         """Test that response() method works with real Agno model structure."""
         from agno.models.openai import OpenAIChat
 
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         base_model = OpenAIChat(id="gpt-4o")
-        headroom_model = HeadroomAgnoModel(wrapped_model=base_model)
+        copium_model = CopiumAgnoModel(wrapped_model=base_model)
 
         # We can't actually call the response method without an API key, but we can verify
         # the method signature matches what Agno expects
         import inspect
 
-        sig = inspect.signature(headroom_model.response)
+        sig = inspect.signature(copium_model.response)
         params = list(sig.parameters.keys())
 
         assert "messages" in params
@@ -955,14 +955,14 @@ class TestRealAgnoIntegration:
         """Test that optimization metrics are tracked properly."""
         from agno.models.openai import OpenAIChat
 
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         base_model = OpenAIChat(id="gpt-4o")
-        headroom_model = HeadroomAgnoModel(wrapped_model=base_model)
+        copium_model = CopiumAgnoModel(wrapped_model=base_model)
 
         # Initially no metrics
-        assert headroom_model.total_tokens_saved == 0
-        assert len(headroom_model.metrics_history) == 0
+        assert copium_model.total_tokens_saved == 0
+        assert len(copium_model.metrics_history) == 0
 
         # Simulate optimization (without actual API call)
         messages = [
@@ -971,11 +971,11 @@ class TestRealAgnoIntegration:
         ]
 
         # Use the internal optimize method to test
-        optimized, metrics = headroom_model._optimize_messages(messages)
+        optimized, metrics = copium_model._optimize_messages(messages)
 
         # Should have tracked metrics
-        assert len(headroom_model.metrics_history) == 1
-        assert headroom_model.total_tokens_saved >= 0
+        assert len(copium_model.metrics_history) == 1
+        assert copium_model.total_tokens_saved >= 0
 
 
 def _ollama_available() -> bool:
@@ -1060,35 +1060,35 @@ class TestOllamaIntegration:
         return model
 
     def test_agent_with_ollama_model(self, ollama_model_name):
-        """Test Agent with HeadroomAgnoModel wrapping real Ollama model."""
+        """Test Agent with CopiumAgnoModel wrapping real Ollama model."""
         from agno.agent import Agent
         from agno.models.ollama import Ollama
 
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         # Create wrapped Ollama model (real, local, no API key needed)
         base_model = Ollama(id=ollama_model_name)
-        headroom_model = HeadroomAgnoModel(wrapped_model=base_model)
+        copium_model = CopiumAgnoModel(wrapped_model=base_model)
 
-        # Create agent - this validates HeadroomAgnoModel works with Agent
-        agent = Agent(model=headroom_model, markdown=False)
+        # Create agent - this validates CopiumAgnoModel works with Agent
+        agent = Agent(model=copium_model, markdown=False)
 
-        assert agent.model is headroom_model
-        assert isinstance(agent.model, HeadroomAgnoModel)
+        assert agent.model is copium_model
+        assert isinstance(agent.model, CopiumAgnoModel)
 
     def test_agent_run_with_ollama(self, ollama_model_name):
         """Actually run an agent with Ollama - full end-to-end test."""
         from agno.agent import Agent
         from agno.models.ollama import Ollama
 
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         # Create wrapped Ollama model
         base_model = Ollama(id=ollama_model_name)
-        headroom_model = HeadroomAgnoModel(wrapped_model=base_model)
+        copium_model = CopiumAgnoModel(wrapped_model=base_model)
 
         # Create and run agent
-        agent = Agent(model=headroom_model, markdown=False)
+        agent = Agent(model=copium_model, markdown=False)
 
         # Actually run the agent - this tests the full pipeline
         response = agent.run("Say 'hello' and nothing else.")
@@ -1098,22 +1098,22 @@ class TestOllamaIntegration:
         assert response.content is not None
         assert len(response.content) > 0
 
-        # Verify Headroom optimization was applied
-        assert len(headroom_model.metrics_history) >= 1
+        # Verify Copium optimization was applied
+        assert len(copium_model.metrics_history) >= 1
 
     def test_agent_with_system_prompt_and_ollama(self, ollama_model_name):
         """Test agent with system prompt using Ollama."""
         from agno.agent import Agent
         from agno.models.ollama import Ollama
 
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         base_model = Ollama(id=ollama_model_name)
-        headroom_model = HeadroomAgnoModel(wrapped_model=base_model)
+        copium_model = CopiumAgnoModel(wrapped_model=base_model)
 
         # Agent with system prompt - tests system message optimization
         agent = Agent(
-            model=headroom_model,
+            model=copium_model,
             description="You are a helpful assistant that always responds with exactly one word.",
             markdown=False,
         )
@@ -1123,39 +1123,39 @@ class TestOllamaIntegration:
         assert response is not None
         assert response.content is not None
 
-        # Headroom should have processed the system prompt
-        assert headroom_model.total_tokens_saved >= 0
+        # Copium should have processed the system prompt
+        assert copium_model.total_tokens_saved >= 0
 
     def test_multiple_turns_with_ollama(self, ollama_model_name):
         """Test multi-turn conversation with Ollama."""
         from agno.agent import Agent
         from agno.models.ollama import Ollama
 
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         base_model = Ollama(id=ollama_model_name)
-        headroom_model = HeadroomAgnoModel(wrapped_model=base_model)
+        copium_model = CopiumAgnoModel(wrapped_model=base_model)
 
-        agent = Agent(model=headroom_model, markdown=False)
+        agent = Agent(model=copium_model, markdown=False)
 
         # Multiple turns
         agent.run("My name is Alice.")
         agent.run("What is my name?")
 
         # Should have tracked multiple optimization passes
-        assert len(headroom_model.metrics_history) >= 2
+        assert len(copium_model.metrics_history) >= 2
 
-    def test_headroom_optimization_reduces_tokens(self, ollama_model_name, large_conversation):
-        """Test that Headroom actually reduces tokens on large conversations."""
+    def test_copium_optimization_reduces_tokens(self, ollama_model_name, large_conversation):
+        """Test that Copium actually reduces tokens on large conversations."""
         from agno.models.ollama import Ollama
 
-        from headroom.integrations.agno import HeadroomAgnoModel
+        from copium.integrations.agno import CopiumAgnoModel
 
         base_model = Ollama(id=ollama_model_name)
-        headroom_model = HeadroomAgnoModel(wrapped_model=base_model)
+        copium_model = CopiumAgnoModel(wrapped_model=base_model)
 
         # Optimize the large conversation
-        optimized, metrics = headroom_model._optimize_messages(large_conversation)
+        optimized, metrics = copium_model._optimize_messages(large_conversation)
 
         # Large conversations should see compression
         assert metrics.tokens_before > 0

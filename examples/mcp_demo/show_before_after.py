@@ -1,6 +1,6 @@
 """Show BEFORE/AFTER code changes for MCP integration.
 
-This demonstrates the minimal code change needed to add Headroom
+This demonstrates the minimal code change needed to add Copium
 compression to MCP tool outputs in your host application.
 
 Run with:
@@ -10,7 +10,7 @@ Run with:
 
 def main():
     print("\n" + "=" * 70)
-    print("HEADROOM MCP INTEGRATION - DEVELOPER EXPERIENCE")
+    print("COPIUM MCP INTEGRATION - DEVELOPER EXPERIENCE")
     print("=" * 70)
 
     # =========================================================================
@@ -29,10 +29,10 @@ messages.append({"role": "tool", "content": result})
 """
     print(before_standalone)
 
-    print("\nAFTER (with Headroom compression):")
+    print("\nAFTER (with Copium compression):")
     print("-" * 40)
     after_standalone = """
-from headroom.integrations.mcp import compress_tool_result  # ADD THIS
+from copium.integrations.mcp import compress_tool_result  # ADD THIS
 
 # Your MCP host application
 result = await mcp_client.call_tool("search_logs", {"service": "api"})
@@ -69,11 +69,11 @@ result = await client.call_tool("search_logs", {"service": "api"})
     print("-" * 40)
     after_wrapper = """
 from mcp import Client
-from headroom.integrations.mcp import HeadroomMCPClientWrapper  # ADD THIS
+from copium.integrations.mcp import CopiumMCPClientWrapper  # ADD THIS
 
 # Create MCP client
 base_client = Client(transport)
-client = HeadroomMCPClientWrapper(base_client)  # WRAP IT (1 line)
+client = CopiumMCPClientWrapper(base_client)  # WRAP IT (1 line)
 
 # Use client normally - compression is automatic!
 result = await client.call_tool("search_logs", {"service": "api"})
@@ -90,7 +90,7 @@ result = await client.call_tool("search_logs", {"service": "api"})
     print("\nCode with metrics tracking:")
     print("-" * 40)
     with_metrics = """
-from headroom.integrations.mcp import compress_tool_result_with_metrics
+from copium.integrations.mcp import compress_tool_result_with_metrics
 
 result = await mcp_client.call_tool("search_logs", {"service": "api"})
 compression = compress_tool_result_with_metrics(

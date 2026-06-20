@@ -1,4 +1,4 @@
-# Headroom Realignment — Index
+# Copium Realignment — Index
 
 **Status:** Drafted 2026-05-01 from a 10-agent deep audit against `~/Downloads/llm-proxy-compression-guide.md`.
 **Owner:** chopratejas
@@ -24,7 +24,7 @@
 ## Conventions
 
 - **Branch name:** `realign-<phase-letter><pr-num>-<slug>`. Example: `realign-A1-icm-passthrough`.
-- **Worktree path:** `~/claude-projects/headroom-worktrees/realign-<phase><num>-<slug>`. Use `git worktree add` so each PR is an isolated checkout.
+- **Worktree path:** `~/claude-projects/copium-worktrees/realign-<phase><num>-<slug>`. Use `git worktree add` so each PR is an isolated checkout.
 - **Commit prefix:** `fix:` for Rust-migration phase commits (per project memory — `feat:` would inflate semantic-release version).
 - **No `Co-Authored-By: Claude` trailer** (per project memory).
 - **Pre-push gate:** `make ci-precheck` per project memory; never push without it.
@@ -57,7 +57,7 @@ These never get violated by any PR:
 7. TOIN never alters request-time decisions; it observes and publishes recommendations between deploys. (§7.1, §11.17)
 8. CCR markers and the `ccr_retrieve` tool are present **on every request** for a session that ever did CCR — never toggled. (§6.3 #2)
 9. `Authorization` header is forwarded byte-faithfully and never logged or persisted unredacted.
-10. Auth mode (PAYG / OAuth / subscription) gates compression policy; subscription mode runs in stealth (no `X-Headroom-*` upstream, no beta drift, no UA mutation, no `accept-encoding` strip).
+10. Auth mode (PAYG / OAuth / subscription) gates compression policy; subscription mode runs in stealth (no `X-Copium-*` upstream, no beta drift, no UA mutation, no `accept-encoding` strip).
 
 ## Preserved primitives (per user direction)
 
@@ -74,9 +74,9 @@ These never get violated by any PR:
 
 - ICM (Python `intelligent_context.py`, Rust `context/manager.rs`)
 - `RollingWindow`, `ProgressiveSummarizer`, `scoring.py`, `tool_crusher.py` (Python)
-- `crates/headroom-core/src/scoring/`, `relevance/`, most of `context/` (Rust)
-- `crates/headroom-proxy/src/compression/icm.rs`
-- `headroom/transforms/cache_aligner.py` rewrite path (keep detector + warning)
-- `headroom/proxy/server.py`, `handlers/anthropic.py`, `handlers/openai.py`, `handlers/streaming.py`, `handlers/gemini.py`, `responses_converter.py`, `memory_handler.py`, `memory_tool_adapter.py`, `semantic_cache.py`, `batch.py` — once Rust hits parity (Phase H)
-- `headroom/backends/litellm.py` Bedrock/Vertex converter — replaced by native envelopes (Phase D)
+- `crates/copium-core/src/scoring/`, `relevance/`, most of `context/` (Rust)
+- `crates/copium-proxy/src/compression/icm.rs`
+- `copium/transforms/cache_aligner.py` rewrite path (keep detector + warning)
+- `copium/proxy/server.py`, `handlers/anthropic.py`, `handlers/openai.py`, `handlers/streaming.py`, `handlers/gemini.py`, `responses_converter.py`, `memory_handler.py`, `memory_tool_adapter.py`, `semantic_cache.py`, `batch.py` — once Rust hits parity (Phase H)
+- `copium/backends/litellm.py` Bedrock/Vertex converter — replaced by native envelopes (Phase D)
 - MessageScorer Rust port (PR #338, #343) — wasted work; deleted in Phase B

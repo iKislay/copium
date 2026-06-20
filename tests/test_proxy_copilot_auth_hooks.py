@@ -11,12 +11,12 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 _ISOLATED_MODULE_NAMES = (
-    "headroom.proxy",
-    "headroom.proxy.handlers",
+    "copium.proxy",
+    "copium.proxy.handlers",
     "httpx",
     "fastapi.responses",
-    "tests.headroom_proxy_handlers_openai",
-    "tests.headroom_proxy_handlers_streaming",
+    "tests.copium_proxy_handlers_openai",
+    "tests.copium_proxy_handlers_streaming",
 )
 
 
@@ -34,13 +34,13 @@ def restore_isolated_modules() -> None:
 
 
 def _load_handler_module(monkeypatch: pytest.MonkeyPatch, module_name: str, relative_path: str):
-    proxy_pkg = types.ModuleType("headroom.proxy")
-    proxy_pkg.__path__ = [str(ROOT / "headroom" / "proxy")]
-    monkeypatch.setitem(sys.modules, "headroom.proxy", proxy_pkg)
+    proxy_pkg = types.ModuleType("copium.proxy")
+    proxy_pkg.__path__ = [str(ROOT / "copium" / "proxy")]
+    monkeypatch.setitem(sys.modules, "copium.proxy", proxy_pkg)
 
-    handlers_pkg = types.ModuleType("headroom.proxy.handlers")
-    handlers_pkg.__path__ = [str(ROOT / "headroom" / "proxy" / "handlers")]
-    monkeypatch.setitem(sys.modules, "headroom.proxy.handlers", handlers_pkg)
+    handlers_pkg = types.ModuleType("copium.proxy.handlers")
+    handlers_pkg.__path__ = [str(ROOT / "copium" / "proxy" / "handlers")]
+    monkeypatch.setitem(sys.modules, "copium.proxy.handlers", handlers_pkg)
 
     httpx_mod = types.ModuleType("httpx")
     httpx_mod.ConnectError = type("ConnectError", (Exception,), {})
@@ -79,8 +79,8 @@ def _load_handler_module(monkeypatch: pytest.MonkeyPatch, module_name: str, rela
 def test_openai_passthrough_applies_copilot_auth(monkeypatch: pytest.MonkeyPatch) -> None:
     openai_mod = _load_handler_module(
         monkeypatch,
-        "tests.headroom_proxy_handlers_openai",
-        "headroom/proxy/handlers/openai.py",
+        "tests.copium_proxy_handlers_openai",
+        "copium/proxy/handlers/openai.py",
     )
 
     seen: dict[str, object] = {}
@@ -112,18 +112,18 @@ def test_openai_passthrough_applies_copilot_auth(monkeypatch: pytest.MonkeyPatch
             return f"req-{self._counter}"
 
         async def _record_request_outcome(self, outcome) -> None:  # noqa: ANN001
-            from headroom.proxy.outcome import emit_request_outcome
+            from copium.proxy.outcome import emit_request_outcome
 
             await emit_request_outcome(self, outcome)
 
         def _extract_tags(self, headers: dict) -> dict[str, str]:
-            # Mirror of HeadroomProxy._extract_tags. The passthrough
+            # Mirror of CopiumProxy._extract_tags. The passthrough
             # handler now extracts tags at entry as part of the
             # outcome-tag invariant lock (PR #480).
             return {
-                k.lower().replace("x-headroom-", ""): v
+                k.lower().replace("x-copium-", ""): v
                 for k, v in headers.items()
-                if k.lower().startswith("x-headroom-")
+                if k.lower().startswith("x-copium-")
             }
 
         async def _request(self, **kwargs):  # noqa: ANN003
@@ -164,8 +164,8 @@ def test_openai_passthrough_applies_copilot_auth(monkeypatch: pytest.MonkeyPatch
 def test_streaming_response_applies_copilot_auth(monkeypatch: pytest.MonkeyPatch) -> None:
     streaming_mod = _load_handler_module(
         monkeypatch,
-        "tests.headroom_proxy_handlers_streaming",
-        "headroom/proxy/handlers/streaming.py",
+        "tests.copium_proxy_handlers_streaming",
+        "copium/proxy/handlers/streaming.py",
     )
 
     seen: dict[str, object] = {}

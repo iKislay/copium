@@ -4,12 +4,12 @@
 
 ## CLI Surface
 
-### `headroom proxy`
+### `copium proxy`
 
-Start the Headroom proxy server.
+Start the Copium proxy server.
 
 ```bash
-headroom proxy [OPTIONS]
+copium proxy [OPTIONS]
 ```
 
 **Options:**
@@ -31,12 +31,12 @@ headroom proxy [OPTIONS]
 
 ---
 
-### `headroom evals`
+### `copium evals`
 
 Run evaluation suite.
 
 ```bash
-headroom evals [OPTIONS]
+copium evals [OPTIONS]
 ```
 
 **Options:**
@@ -47,12 +47,12 @@ headroom evals [OPTIONS]
 
 ---
 
-### `headroom install`
+### `copium install`
 
 Install agent integrations.
 
 ```bash
-headroom install [OPTIONS]
+copium install [OPTIONS]
 ```
 
 **Options:**
@@ -62,38 +62,38 @@ headroom install [OPTIONS]
 
 ---
 
-### `headroom mcp`
+### `copium mcp`
 
-Manage the Headroom MCP server.
+Manage the Copium MCP server.
 
 ```bash
-headroom mcp [OPTIONS] COMMAND [ARGS]...
+copium mcp [OPTIONS] COMMAND [ARGS]...
 ```
 
 **Commands:**
 - `install` — Install the MCP server into detected coding agents
 - `serve` — Start the stdio MCP server
 - `status` — Check configuration status
-- `uninstall` — Remove Headroom MCP config
+- `uninstall` — Remove Copium MCP config
 
 ---
 
-### `headroom perf`
+### `copium perf`
 
 Run performance tests.
 
 ```bash
-headroom perf [OPTIONS]
+copium perf [OPTIONS]
 ```
 
 ---
 
-### `headroom wrap`
+### `copium wrap`
 
-Wrap a command with Headroom proxy.
+Wrap a command with Copium proxy.
 
 ```bash
-headroom wrap [OPTIONS] -- <command> [args...]
+copium wrap [OPTIONS] -- <command> [args...]
 ```
 
 **Options:**
@@ -112,12 +112,12 @@ headroom wrap [OPTIONS] -- <command> [args...]
 
 ---
 
-### `headroom memory`
+### `copium memory`
 
 Memory system management (requires numpy/hnswlib).
 
 ```bash
-headroom memory [OPTIONS]
+copium memory [OPTIONS]
 ```
 
 **Commands:**
@@ -127,12 +127,12 @@ headroom memory [OPTIONS]
 
 ---
 
-### `headroom learn`
+### `copium learn`
 
 Run learn mode analysis.
 
 ```bash
-headroom learn [OPTIONS]
+copium learn [OPTIONS]
 ```
 
 **Options:**
@@ -147,12 +147,12 @@ headroom learn [OPTIONS]
 
 ---
 
-### `headroom stats`
+### `copium stats`
 
 Show savings statistics.
 
 ```bash
-headroom stats [OPTIONS]
+copium stats [OPTIONS]
 ```
 
 **Options:**
@@ -163,12 +163,12 @@ headroom stats [OPTIONS]
 
 ---
 
-### `headroom config`
+### `copium config`
 
 Manage configuration.
 
 ```bash
-headroom config [COMMAND] [OPTIONS]
+copium config [COMMAND] [OPTIONS]
 ```
 
 **Commands:**
@@ -210,9 +210,9 @@ curl -X POST http://localhost:8787/v1/messages \
 
 **Response headers:**
 ```
-X-Headroom-Savings: 0.35
-X-Headroom-Original-Tokens: 8192
-X-Headroom-Compressed-Tokens: 5325
+X-Copium-Savings: 0.35
+X-Copium-Original-Tokens: 8192
+X-Copium-Compressed-Tokens: 5325
 ```
 
 ---
@@ -223,16 +223,16 @@ X-Headroom-Compressed-Tokens: 5325
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `HEADROOM_MODE` | `token` | Proxy optimization mode (`token` or `cache`) |
-| `HEADROOM_PORT` | `8787` | Proxy port |
-| `HEADROOM_HOST` | `127.0.0.1` | Proxy host |
-| `HEADROOM_WORKERS` | `1` | Uvicorn worker count |
-| `HEADROOM_LIMIT_CONCURRENCY` | `1000` | Maximum concurrent connections before 503 |
-| `HEADROOM_MAX_CONNECTIONS` | `500` | Maximum upstream HTTP connections |
-| `HEADROOM_MAX_KEEPALIVE` | `100` | Maximum upstream keep-alive connections |
-| `HEADROOM_BUDGET` | - | Daily budget limit in USD |
-| `HEADROOM_TELEMETRY` | enabled | Set to `off` to disable anonymous telemetry |
-| `HEADROOM_STATELESS` | `false` | Disable filesystem writes |
+| `COPIUM_MODE` | `token` | Proxy optimization mode (`token` or `cache`) |
+| `COPIUM_PORT` | `8787` | Proxy port |
+| `COPIUM_HOST` | `127.0.0.1` | Proxy host |
+| `COPIUM_WORKERS` | `1` | Uvicorn worker count |
+| `COPIUM_LIMIT_CONCURRENCY` | `1000` | Maximum concurrent connections before 503 |
+| `COPIUM_MAX_CONNECTIONS` | `500` | Maximum upstream HTTP connections |
+| `COPIUM_MAX_KEEPALIVE` | `100` | Maximum upstream keep-alive connections |
+| `COPIUM_BUDGET` | - | Daily budget limit in USD |
+| `COPIUM_TELEMETRY` | enabled | Set to `off` to disable anonymous telemetry |
+| `COPIUM_STATELESS` | `false` | Disable filesystem writes |
 
 ### Provider
 
@@ -247,21 +247,21 @@ X-Headroom-Compressed-Tokens: 5325
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `HEADROOM_TELEMETRY` | enabled | Set to `off` to disable telemetry |
-| `HEADROOM_MIN_EVIDENCE` | `5` | Minimum observations before live learning persists a pattern |
-| `HEADROOM_PROXY_EXTENSIONS` | - | Comma-separated proxy extensions to enable |
-| `HEADROOM_STATELESS` | `false` | Disable filesystem writes |
-| `HEADROOM_MODEL_LIMITS` | - | Model limits override as JSON or file path |
+| `COPIUM_TELEMETRY` | enabled | Set to `off` to disable telemetry |
+| `COPIUM_MIN_EVIDENCE` | `5` | Minimum observations before live learning persists a pattern |
+| `COPIUM_PROXY_EXTENSIONS` | - | Comma-separated proxy extensions to enable |
+| `COPIUM_STATELESS` | `false` | Disable filesystem writes |
+| `COPIUM_MODEL_LIMITS` | - | Model limits override as JSON or file path |
 
 ### Compression
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `HEADROOM_MAX_TOKENS` | `4096` | Max tokens per request |
-| `HEADROOM_TARGET_TOKENS` | - | Target tokens after compression |
-| `HEADROOM_OVERLAP_TOKENS` | `512` | Overlap tokens for chunking |
-| `HEADROOM_CONTENT_SENSITIVITY` | `0.5` | Content sensitivity (0-1) |
-| `HEADROOM_PRESERVE_SYSTEM` | `true` | Preserve system messages |
+| `COPIUM_MAX_TOKENS` | `4096` | Max tokens per request |
+| `COPIUM_TARGET_TOKENS` | - | Target tokens after compression |
+| `COPIUM_OVERLAP_TOKENS` | `512` | Overlap tokens for chunking |
+| `COPIUM_CONTENT_SENSITIVITY` | `0.5` | Content sensitivity (0-1) |
+| `COPIUM_PRESERVE_SYSTEM` | `true` | Preserve system messages |
 
 ---
 
@@ -271,8 +271,8 @@ X-Headroom-Compressed-Tokens: 5325
 
 ```python
 from abc import ABC, abstractmethod
-from headroom.learn.base import ConversationScanner, ContextWriter
-from headroom.learn.models import ProjectInfo, SessionData
+from copium.learn.base import ConversationScanner, ContextWriter
+from copium.learn.models import ProjectInfo, SessionData
 
 class LearnPlugin(ConversationScanner):
     """A self-contained learn plugin for a single coding agent."""
@@ -312,11 +312,11 @@ class LearnPlugin(ConversationScanner):
 
 ### Plugin Registration
 
-Plugins are auto-discovered from `headroom/learn/plugins/` directory.
+Plugins are auto-discovered from `copium/learn/plugins/` directory.
 
 **Manual registration:**
 ```python
-from headroom.learn import plugin_registry
+from copium.learn import plugin_registry
 
 plugin_registry.register(MyPlugin())
 ```
@@ -324,7 +324,7 @@ plugin_registry.register(MyPlugin())
 ### Plugin Config
 
 ```yaml
-# ~/.headroom/config.yaml
+# ~/.copium/config.yaml
 learn:
   enabled: true
   plugins:

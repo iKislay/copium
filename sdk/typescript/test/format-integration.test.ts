@@ -8,7 +8,7 @@
  *   - Google Gemini format
  *
  * Requires: proxy running on http://localhost:8787
- * Run with: HEADROOM_INTEGRATION=1 npx vitest run test/format-integration.test.ts
+ * Run with: COPIUM_INTEGRATION=1 npx vitest run test/format-integration.test.ts
  */
 import { describe, it, expect, beforeAll } from "vitest";
 import { config } from "dotenv";
@@ -17,7 +17,7 @@ import { resolve } from "path";
 config({ path: resolve(__dirname, "../../../.env") });
 
 const PROXY_URL = "http://localhost:8787";
-const RUN_INTEGRATION = process.env.HEADROOM_INTEGRATION === "1";
+const RUN_INTEGRATION = process.env.COPIUM_INTEGRATION === "1";
 
 // Realistic large tool output — needs enough content to cross compression threshold
 function bigToolOutput(n: number): string {

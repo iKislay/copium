@@ -1,14 +1,14 @@
 """Coverage for the MCP-events aggregator inside the proxy /stats summary.
 
-``headroom mcp serve`` writes every compress / retrieve invocation to a
+``copium mcp serve`` writes every compress / retrieve invocation to a
 shared file-locked log (``_append_shared_event``). Before this fix,
 ``/stats`` only reported proxy-HTTP-path compressions and silently
 ignored the MCP tool work — which is exactly where Strands-style
 agents spend most of their compression budget when the LLM calls
-``headroom_compress`` directly.
+``copium_compress`` directly.
 
 These tests pin the aggregation logic in
-:func:`headroom.proxy.cost._aggregate_mcp_events`.
+:func:`copium.proxy.cost._aggregate_mcp_events`.
 """
 
 from __future__ import annotations
@@ -16,13 +16,13 @@ from __future__ import annotations
 from typing import Any
 from unittest.mock import patch
 
-from headroom.proxy.cost import _aggregate_mcp_events
+from copium.proxy.cost import _aggregate_mcp_events
 
 
 def _mock_events(events: list[dict[str, Any]]) -> Any:
     """Return a patch target that makes _read_shared_events yield ``events``."""
     return patch(
-        "headroom.ccr.mcp_server._read_shared_events",
+        "copium.ccr.mcp_server._read_shared_events",
         return_value=events,
     )
 
@@ -85,7 +85,7 @@ def test_missing_token_fields_default_to_zero_without_raising() -> None:
 def test_read_failure_yields_zeros() -> None:
     """If the shared-stats reader raises, the aggregator must not crash /stats."""
     with patch(
-        "headroom.ccr.mcp_server._read_shared_events",
+        "copium.ccr.mcp_server._read_shared_events",
         side_effect=OSError("disk on fire"),
     ):
         assert _aggregate_mcp_events() == {

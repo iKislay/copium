@@ -1,4 +1,4 @@
-"""Integration tests for Headroom Memory System.
+"""Integration tests for Copium Memory System.
 
 These tests use REAL API calls - no mocks.
 Tests verify the full flow from LLM tool calls to memory storage.
@@ -55,7 +55,7 @@ class TestMemoryIntegration:
 
     def test_optimized_tools_have_extraction_fields(self):
         """Verify that optimized tools include pre-extraction fields."""
-        from headroom.memory.tools import get_memory_tools, get_memory_tools_optimized
+        from copium.memory.tools import get_memory_tools, get_memory_tools_optimized
 
         # Standard tools should NOT have facts/extracted_entities
         standard_tools = get_memory_tools()
@@ -83,8 +83,8 @@ class TestMemoryIntegration:
 
     def test_wrapper_uses_correct_tools(self, openai_client, temp_db_path, user_id):
         """Verify wrapper uses standard vs optimized tools correctly."""
-        from headroom.memory import with_memory_tools
-        from headroom.memory.backends.local import LocalBackend, LocalBackendConfig
+        from copium.memory import with_memory_tools
+        from copium.memory.backends.local import LocalBackend, LocalBackendConfig
 
         config = LocalBackendConfig(db_path=temp_db_path)
         backend = LocalBackend(config)
@@ -110,9 +110,9 @@ class TestMemoryIntegration:
 
     def test_extraction_prompt_injection(self, openai_client, temp_db_path, user_id):
         """Verify extraction prompt is injected into system message."""
-        from headroom.memory import with_memory_tools
-        from headroom.memory.backends.local import LocalBackend, LocalBackendConfig
-        from headroom.memory.extraction import EXTRACTION_SYSTEM_PROMPT
+        from copium.memory import with_memory_tools
+        from copium.memory.backends.local import LocalBackend, LocalBackendConfig
+        from copium.memory.extraction import EXTRACTION_SYSTEM_PROMPT
 
         config = LocalBackendConfig(db_path=temp_db_path)
         backend = LocalBackend(config)
@@ -157,7 +157,7 @@ class TestMemoryIntegration:
     @pytest.mark.asyncio
     async def test_local_backend_pre_extraction(self, temp_db_path, user_id):
         """Test LocalBackend save_memory with pre-extraction fields."""
-        from headroom.memory.backends.local import LocalBackend, LocalBackendConfig
+        from copium.memory.backends.local import LocalBackend, LocalBackendConfig
 
         config = LocalBackendConfig(db_path=temp_db_path)
         backend = LocalBackend(config)
@@ -211,7 +211,7 @@ class TestMemoryIntegration:
         assert john_entity.entity_type == "person"
 
         # Verify relationships were added by querying via public API
-        from headroom.memory.adapters.graph_models import RelationshipDirection
+        from copium.memory.adapters.graph_models import RelationshipDirection
 
         # Verify John has outgoing relationships
         john_id = john_entity.id
@@ -228,8 +228,8 @@ class TestMemoryIntegration:
 
     def test_e2e_standard_mode_llm_call(self, openai_client, temp_db_path, user_id):
         """Test end-to-end flow with real LLM call in standard mode."""
-        from headroom.memory import with_memory_tools
-        from headroom.memory.backends.local import LocalBackend, LocalBackendConfig
+        from copium.memory import with_memory_tools
+        from copium.memory.backends.local import LocalBackend, LocalBackendConfig
 
         config = LocalBackendConfig(db_path=temp_db_path)
         backend = LocalBackend(config)
@@ -279,8 +279,8 @@ class TestMemoryIntegration:
 
     def test_e2e_optimized_mode_llm_call(self, openai_client, temp_db_path, user_id):
         """Test end-to-end flow with real LLM call in optimized mode."""
-        from headroom.memory import with_memory_tools
-        from headroom.memory.backends.local import LocalBackend, LocalBackendConfig
+        from copium.memory import with_memory_tools
+        from copium.memory.backends.local import LocalBackend, LocalBackendConfig
 
         config = LocalBackendConfig(db_path=temp_db_path)
         backend = LocalBackend(config)
@@ -337,7 +337,7 @@ class TestMemoryIntegration:
     @pytest.mark.asyncio
     async def test_memory_search_after_save(self, temp_db_path, user_id):
         """Test that saved memories can be searched."""
-        from headroom.memory.backends.local import LocalBackend, LocalBackendConfig
+        from copium.memory.backends.local import LocalBackend, LocalBackendConfig
 
         config = LocalBackendConfig(db_path=temp_db_path)
         backend = LocalBackend(config)
@@ -391,7 +391,7 @@ class TestMemoryIntegration:
     @pytest.mark.asyncio
     async def test_include_related_graph_expansion(self, temp_db_path, user_id):
         """Test that include_related expands results via graph."""
-        from headroom.memory.backends.local import LocalBackend, LocalBackendConfig
+        from copium.memory.backends.local import LocalBackend, LocalBackendConfig
 
         config = LocalBackendConfig(db_path=temp_db_path)
         backend = LocalBackend(config)
@@ -468,8 +468,8 @@ class TestMemoryIntegration:
     @pytest.mark.asyncio
     async def test_memory_system_tool_dispatch(self, temp_db_path, user_id):
         """Test MemorySystem processes tool calls correctly."""
-        from headroom.memory.backends.local import LocalBackend, LocalBackendConfig
-        from headroom.memory.system import MemorySystem
+        from copium.memory.backends.local import LocalBackend, LocalBackendConfig
+        from copium.memory.system import MemorySystem
 
         config = LocalBackendConfig(db_path=temp_db_path)
         backend = LocalBackend(config)
@@ -508,8 +508,8 @@ class TestMemoryIntegration:
         """Test complete flow: LLM saves memory, then searches for it."""
         import json
 
-        from headroom.memory import with_memory_tools
-        from headroom.memory.backends.local import LocalBackend, LocalBackendConfig
+        from copium.memory import with_memory_tools
+        from copium.memory.backends.local import LocalBackend, LocalBackendConfig
 
         config = LocalBackendConfig(db_path=temp_db_path)
         backend = LocalBackend(config)
@@ -527,7 +527,7 @@ class TestMemoryIntegration:
             messages=[
                 {
                     "role": "user",
-                    "content": "Remember this: My favorite programming language is Rust and I'm working on a CLI tool called headroom.",
+                    "content": "Remember this: My favorite programming language is Rust and I'm working on a CLI tool called copium.",
                 },
             ],
         )
@@ -569,7 +569,7 @@ class TestExtractionPrompts:
 
     def test_extraction_prompts_exist_and_valid(self):
         """Verify extraction prompts are defined and non-empty."""
-        from headroom.memory.extraction import (
+        from copium.memory.extraction import (
             ENTITY_EXTRACTION_PROMPT,
             EXTRACTION_SYSTEM_PROMPT,
             FACT_EXTRACTION_PROMPT,
@@ -594,7 +594,7 @@ class TestWrapperToolsModule:
 
     def test_wrapper_tools_imports(self):
         """Verify all necessary imports work."""
-        from headroom.memory.wrapper_tools import (
+        from copium.memory.wrapper_tools import (
             MemoryToolsChatCompletions,
             MemoryToolsCompletions,
             MemoryToolsWrapper,
@@ -610,7 +610,7 @@ class TestWrapperToolsModule:
         """Verify with_memory_tools accepts optimized parameter."""
         import inspect
 
-        from headroom.memory.wrapper_tools import with_memory_tools
+        from copium.memory.wrapper_tools import with_memory_tools
 
         sig = inspect.signature(with_memory_tools)
         params = list(sig.parameters.keys())

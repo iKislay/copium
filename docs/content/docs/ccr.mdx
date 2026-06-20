@@ -3,7 +3,7 @@ title: Reversible Compression (CCR)
 description: Compress-Cache-Retrieve architecture that makes compression lossless — the LLM can always get the original data back.
 ---
 
-Headroom's CCR (Compress-Cache-Retrieve) architecture makes compression **reversible**. When content is compressed, the original data is cached locally. If the LLM needs the full data, it retrieves it instantly.
+Copium's CCR (Compress-Cache-Retrieve) architecture makes compression **reversible**. When content is compressed, the original data is cached locally. If the LLM needs the full data, it retrieves it instantly.
 
 <Callout type="info" title="Nothing is ever thrown away">
   Unlike traditional lossy compression, CCR guarantees that every piece of original data remains accessible. You get 70-90% token savings with zero risk of permanent data loss.
@@ -30,7 +30,7 @@ TOOL OUTPUT (1000 items)
 
 LLM PROCESSING
   Option A: LLM solves task with 20 items -> Done (90% savings)
-  Option B: LLM calls headroom_retrieve(hash=abc123)
+  Option B: LLM calls copium_retrieve(hash=abc123)
             -> Response Handler returns full data automatically
 ```
 
@@ -48,12 +48,12 @@ When SmartCrusher compresses tool output:
 
 ## Phase 2: Tool Injection
 
-Headroom injects a `headroom_retrieve` tool into the LLM's available tools:
+Copium injects a `copium_retrieve` tool into the LLM's available tools:
 
 ```json
 {
-  "name": "headroom_retrieve",
-  "description": "Retrieve original uncompressed data from Headroom cache",
+  "name": "copium_retrieve",
+  "description": "Retrieve original uncompressed data from Copium cache",
   "parameters": {
     "hash": "The hash key from the compression marker",
     "query": "Optional: search within the cached data"
@@ -65,14 +65,14 @@ The LLM sees this tool alongside your application's tools and can call it whenev
 
 ## Phase 3: Response Handler
 
-When the LLM calls `headroom_retrieve`:
+When the LLM calls `copium_retrieve`:
 
 1. The Response Handler intercepts the tool call
 2. Data is retrieved from the local cache (around 1ms)
 3. The result is added to the conversation
 4. The API call continues automatically
 
-The client never sees CCR tool calls -- they are handled transparently by Headroom.
+The client never sees CCR tool calls -- they are handled transparently by Copium.
 
 ## Phase 4: Context Tracker
 
@@ -99,7 +99,7 @@ The LLM does not have to retrieve everything. It can search within compressed da
 
 ```json
 {
-  "name": "headroom_retrieve",
+  "name": "copium_retrieve",
   "parameters": {
     "hash": "abc123",
     "query": "authentication errors"
@@ -116,8 +116,8 @@ CCR works automatically through the proxy, but you can also retrieve cached data
 <Tabs groupId="lang" items={['TypeScript', 'Python']}>
 <Tab value="TypeScript">
 ```ts twoslash
-import { compress } from "headroom-ai";
-import type { CCRConfig } from "headroom-ai";
+import { compress } from "copium-ai";
+import type { CCRConfig } from "copium-ai";
 
 // CCR is enabled by default when compressing through the proxy.
 const result = await compress(messages, {
@@ -130,7 +130,7 @@ console.log(result.messages);
 // CCR configuration options
 const ccrConfig: CCRConfig = {
   enabled: true,
-  injectTool: true,             // Inject headroom_retrieve tool
+  injectTool: true,             // Inject copium_retrieve tool
   injectRetrievalMarker: true,  // Add retrieval markers to compressed output
   feedbackEnabled: true,        // Learn from retrieval patterns
   storeMaxEntries: 1000,        // Max cached items
@@ -140,17 +140,17 @@ const ccrConfig: CCRConfig = {
 </Tab>
 <Tab value="Python">
 ```python
-from headroom import HeadroomClient, OpenAIProvider
+from copium import CopiumClient, OpenAIProvider
 from openai import OpenAI
 
-client = HeadroomClient(
+client = CopiumClient(
     original_client=OpenAI(),
     provider=OpenAIProvider(),
     default_mode="optimize",
 )
 
 # CCR happens automatically during chat completions.
-# The LLM calls headroom_retrieve when it needs more data.
+# The LLM calls copium_retrieve when it needs more data.
 response = client.chat.completions.create(
     model="gpt-4o",
     messages=messages,
@@ -165,10 +165,10 @@ response = client.chat.completions.create(
 ## Retention
 
 Proxy CCR originals are kept for 300 seconds by default. For longer autonomous
-agent runs, set `HEADROOM_CCR_TTL_SECONDS` before starting the proxy:
+agent runs, set `COPIUM_CCR_TTL_SECONDS` before starting the proxy:
 
 ```bash
-HEADROOM_CCR_TTL_SECONDS=7200 headroom proxy
+COPIUM_CCR_TTL_SECONDS=7200 copium proxy
 ```
 
 Check the effective setting at `/v1/retrieve/stats` under

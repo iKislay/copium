@@ -7,7 +7,7 @@ Tests cover:
 4. Edge cases
 """
 
-from headroom.transforms.search_compressor import (
+from copium.transforms.search_compressor import (
     FileMatches,
     SearchCompressionResult,
     SearchCompressor,

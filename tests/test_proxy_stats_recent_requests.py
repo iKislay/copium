@@ -3,9 +3,9 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
-from headroom.proxy import server
-from headroom.proxy.models import ProxyConfig
-from headroom.proxy.server import create_app
+from copium.proxy import server
+from copium.proxy.models import ProxyConfig
+from copium.proxy.server import create_app
 
 
 class FakeRequestLogger:
@@ -85,7 +85,7 @@ def test_stats_refreshes_recent_requests_when_cached() -> None:
 
 
 def test_agent_usage_totals_use_proxy_only_savings(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("HEADROOM_REQUIRE_RUST_CORE", "false")
+    monkeypatch.setenv("COPIUM_REQUIRE_RUST_CORE", "false")
     monkeypatch.setattr(
         server,
         "_get_context_tool_stats",

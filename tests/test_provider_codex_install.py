@@ -2,19 +2,19 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from headroom.providers.codex.install import build_provider_section, codex_uses_chatgpt_auth
+from copium.providers.codex.install import build_provider_section, codex_uses_chatgpt_auth
 
 
 def test_codex_provider_section_omits_requires_openai_auth_by_default() -> None:
     """#406: the flag must default off (API-key users), and only on for OAuth.
 
-    Setting requires_openai_auth on a custom [model_providers.headroom] block
-    forces codex to demand OpenAI OAuth login for every headroom-routed request,
+    Setting requires_openai_auth on a custom [model_providers.copium] block
+    forces codex to demand OpenAI OAuth login for every copium-routed request,
     which breaks API-key users; so callers opt in explicitly for ChatGPT users.
     """
-    section = build_provider_section(port=8787, name="OpenAI via Headroom proxy")
+    section = build_provider_section(port=8787, name="OpenAI via Copium proxy")
 
-    assert 'name = "OpenAI via Headroom proxy"' in section
+    assert 'name = "OpenAI via Copium proxy"' in section
     assert 'base_url = "http://127.0.0.1:8787/v1"' in section
     assert "requires_openai_auth" not in section, (
         f"requires_openai_auth must be absent by default; got:\n{section}"
@@ -25,7 +25,7 @@ def test_codex_provider_section_omits_requires_openai_auth_by_default() -> None:
 
 def test_codex_provider_section_emits_requires_openai_auth_when_flagged() -> None:
     section = build_provider_section(
-        port=8787, name="OpenAI via Headroom proxy", requires_openai_auth=True
+        port=8787, name="OpenAI via Copium proxy", requires_openai_auth=True
     )
 
     assert "requires_openai_auth = true" in section
@@ -76,7 +76,7 @@ def test_codex_uses_chatgpt_auth_false_for_empty_object(tmp_path: Path) -> None:
 def test_codex_provider_section_supports_custom_markers() -> None:
     section = build_provider_section(
         port=9100,
-        name="Headroom init proxy",
+        name="Copium init proxy",
         marker_start="# --- start ---",
         marker_end="# --- end ---",
     )

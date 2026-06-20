@@ -8,13 +8,13 @@ services:
       PIP_DISABLE_PIP_VERSION_CHECK: "1"
       PYTHONUNBUFFERED: "1"
       UV_LINK_MODE: copy
-      UV_PROJECT_ENVIRONMENT: /home/vscode/.venvs/headroom-memory
+      UV_PROJECT_ENVIRONMENT: /home/vscode/.venvs/copium-memory
     volumes:
       - ..:/workspaces:cached
       - ../../../../../../../../:/workspaces-host:cached
-      - headroom-venv-memory:/home/vscode/.venvs
-      - headroom-uv-cache:/home/vscode/.cache/uv
-      - headroom-pip-cache:/home/vscode/.cache/pip
+      - copium-venv-memory:/home/vscode/.venvs
+      - copium-uv-cache:/home/vscode/.cache/uv
+      - copium-pip-cache:/home/vscode/.cache/pip
 
   qdrant:
     image: qdrant/qdrant:v1.17.1
@@ -35,8 +35,8 @@ services:
       NEO4J_apoc_import_file_use__neo4j__config: "true"
 
 volumes:
-  headroom-venv-memory:
-  headroom-pip-cache:
-  headroom-uv-cache:
+  copium-venv-memory:
+  copium-pip-cache:
+  copium-uv-cache:
   neo4j-data:
   qdrant-data:

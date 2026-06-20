@@ -6,7 +6,7 @@
 
 ### Passthrough
 
-Headroom forwards requests without modification.
+Copium forwards requests without modification.
 
 **Behavior:**
 - All requests pass through unchanged
@@ -14,7 +14,7 @@ Headroom forwards requests without modification.
 - No compression applied
 - Useful for testing or debugging
 
-**Configuration:** `headroom proxy --no-optimize`
+**Configuration:** `copium proxy --no-optimize`
 
 **Request Flow:**
 ```
@@ -25,7 +25,7 @@ Client → Proxy → Provider API → Response
 
 ### Token Mode
 
-Headroom applies deterministic transforms to requests.
+Copium applies deterministic transforms to requests.
 
 **Behavior:**
 - SmartCrusher compresses JSON tool outputs
@@ -34,7 +34,7 @@ Headroom applies deterministic transforms to requests.
 - CCR caching enabled
 - Token budget enforced
 
-**Configuration:** `HEADROOM_MODE=token` or `headroom proxy --mode token`
+**Configuration:** `COPIUM_MODE=token` or `copium proxy --mode token`
 
 **Request Flow:**
 ```
@@ -47,20 +47,20 @@ Client → Proxy → [SmartCrusher] → [CacheAligner]
 
 ### Cache Mode
 
-Headroom preserves prior turns where possible to maximize provider prefix-cache hit rate.
+Copium preserves prior turns where possible to maximize provider prefix-cache hit rate.
 
 **Behavior:**
 - Freezes provider-confirmed cached prefixes
 - Compresses the mutable tail of the request
 - Trades some token savings for better cache stability
 
-**Configuration:** `HEADROOM_MODE=cache` or `headroom proxy --mode cache`
+**Configuration:** `COPIUM_MODE=cache` or `copium proxy --mode cache`
 
 ---
 
 ## Session Modes
 
-Session modes control how Headroom handles context windows.
+Session modes control how Copium handles context windows.
 
 | Mode | Description | Use Case |
 |------|-------------|----------|
@@ -82,7 +82,7 @@ Session modes control how Headroom handles context windows.
    │
    ▼
 3. Mode determination
-   │  - Check HEADROOM_MODE
+   │  - Check COPIUM_MODE
    │  - Check runtime headers
    │  - Determine active plugins
    │
@@ -118,9 +118,9 @@ Session modes control how Headroom handles context windows.
    │
    ▼
 9. Response returned to client
-      - X-Headroom-Savings header
-      - X-Headroom-Original-Tokens header
-      - X-Headroom-Compressed-Tokens header
+      - X-Copium-Savings header
+      - X-Copium-Original-Tokens header
+      - X-Copium-Compressed-Tokens header
 ```
 
 ---
@@ -150,24 +150,24 @@ class RetryConfig:
 
 ## Response Headers
 
-Headroom adds headers to all compressed responses:
+Copium adds headers to all compressed responses:
 
 ```
-X-Headroom-Savings: 0.35
-X-Headroom-Original-Tokens: 8192
-X-Headroom-Compressed-Tokens: 5325
-X-Headroom-Compression-Type: semantic,summary
-X-Headroom-Request-Id: abc123
-X-Headroom-Cache-Hit: false
+X-Copium-Savings: 0.35
+X-Copium-Original-Tokens: 8192
+X-Copium-Compressed-Tokens: 5325
+X-Copium-Compression-Type: semantic,summary
+X-Copium-Request-Id: abc123
+X-Copium-Cache-Hit: false
 ```
 
 **Header Descriptions:**
-- `X-Headroom-Savings` — Token savings percentage (0.35 = 35%)
-- `X-Headroom-Original-Tokens` — Token count before compression
-- `X-Headroom-Compressed-Tokens` — Token count after compression
-- `X-Headroom-Compression-Type` — Types of compression applied
-- `X-Headroom-Request-Id` — Unique request identifier
-- `X-Headroom-Cache-Hit` — Whether result was from cache
+- `X-Copium-Savings` — Token savings percentage (0.35 = 35%)
+- `X-Copium-Original-Tokens` — Token count before compression
+- `X-Copium-Compressed-Tokens` — Token count after compression
+- `X-Copium-Compression-Type` — Types of compression applied
+- `X-Copium-Request-Id` — Unique request identifier
+- `X-Copium-Cache-Hit` — Whether result was from cache
 
 ---
 

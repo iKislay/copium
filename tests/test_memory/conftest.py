@@ -1,4 +1,4 @@
-"""Test fixtures for Headroom Memory."""
+"""Test fixtures for Copium Memory."""
 
 from __future__ import annotations
 

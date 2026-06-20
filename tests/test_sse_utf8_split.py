@@ -18,7 +18,7 @@ import json
 
 import pytest
 
-from headroom.proxy.helpers import parse_sse_events_from_byte_buffer
+from copium.proxy.helpers import parse_sse_events_from_byte_buffer
 
 
 def _emit_event(name: str, data: str) -> bytes:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from headroom.cache.compression_cache import CompressionCache
+from copium.cache.compression_cache import CompressionCache
 
 
 @pytest.fixture
@@ -644,7 +644,7 @@ class TestCompressionCacheConcurrency:
 
 
 def test_get_compression_cache_returns_same_instance_under_contention() -> None:
-    """`HeadroomProxy._get_compression_cache(session_id)` must return the
+    """`CopiumProxy._get_compression_cache(session_id)` must return the
     SAME `CompressionCache` instance for concurrent calls with the same
     session_id. Pre-lock, two concurrent calls could both see "not in dict"
     and each create a new instance, splitting the cache state across them.
@@ -652,7 +652,7 @@ def test_get_compression_cache_returns_same_instance_under_contention() -> None:
     import threading
 
     pytest.importorskip("fastapi")
-    from headroom.proxy.server import ProxyConfig, create_app
+    from copium.proxy.server import ProxyConfig, create_app
 
     config = ProxyConfig(
         optimize=False,

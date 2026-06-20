@@ -1,4 +1,4 @@
-from headroom.proxy.server import (
+from copium.proxy.server import (
     _agent_label,
     _build_agent_usage_summary,
     _classify_agent_from_log,
@@ -193,7 +193,7 @@ def test_agent_classifier_uses_stack_tag_before_model() -> None:
         {
             "provider": "openai",
             "model": "gpt-5.2-codex",
-            "tags": {"headroom-stack": "openclaw"},
+            "tags": {"copium-stack": "openclaw"},
         }
     )
 

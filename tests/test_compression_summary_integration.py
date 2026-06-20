@@ -89,14 +89,14 @@ class TestSummaryHelpfulness:
 
         # Simulate compression: keep first 10, compress rest with summary
         kept = test_results[:10]
-        from headroom.transforms.compression_summary import summarize_dropped_items
+        from copium.transforms.compression_summary import summarize_dropped_items
 
         summary = summarize_dropped_items(test_results, kept)
 
         compressed_output = json.dumps(kept, indent=2)
         compressed_output += f"\n[90 items compressed to 10. Omitted: {summary}. "
         compressed_output += (
-            'Retrieve specific items: headroom_retrieve(hash="abc123", query="your search")]'
+            'Retrieve specific items: copium_retrieve(hash="abc123", query="your search")]'
         )
 
         messages = [
@@ -179,7 +179,7 @@ class PaymentProcessor:
         # [2 lines omitted]
         pass
 '''
-        from headroom.transforms.compression_summary import summarize_compressed_code
+        from copium.transforms.compression_summary import summarize_compressed_code
 
         # Use AST-based summary (language-agnostic)
         bodies = [

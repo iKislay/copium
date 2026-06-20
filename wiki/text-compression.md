@@ -1,6 +1,6 @@
 # Text Compression Utilities
 
-For coding tasks, Headroom provides **standalone text compression utilities** that applications can use explicitly. These are **opt-in** — they're not applied automatically, giving you full control over when and how to compress text content.
+For coding tasks, Copium provides **standalone text compression utilities** that applications can use explicitly. These are **opt-in** — they're not applied automatically, giving you full control over when and how to compress text content.
 
 > **Design Philosophy**: SmartCrusher compresses JSON automatically because it's structure-preserving and safe. Text compression is lossy and context-dependent, so applications should decide when to use it.
 
@@ -18,7 +18,7 @@ For coding tasks, Headroom provides **standalone text compression utilities** th
 Compresses search results (grep, ripgrep, ag) while preserving relevant matches.
 
 ```python
-from headroom.transforms import SearchCompressor
+from copium.transforms import SearchCompressor
 
 # Your grep/ripgrep output (could be 1000s of lines)
 search_results = """
@@ -49,7 +49,7 @@ print(result.compressed)
 Compresses build and test output while preserving errors, warnings, and summaries.
 
 ```python
-from headroom.transforms import LogCompressor
+from copium.transforms import LogCompressor
 
 # pytest output with 1000s of lines
 build_output = """
@@ -84,7 +84,7 @@ print(f"Compression ratio: {result.compression_ratio:.1%}")
 General-purpose text compression with anchor preservation.
 
 ```python
-from headroom.transforms import TextCompressor
+from copium.transforms import TextCompressor
 
 long_text = """
 ... thousands of lines of documentation ...
@@ -107,7 +107,7 @@ print(result.compressed)
 Automatically detect content type to route to the right compressor.
 
 ```python
-from headroom.transforms import detect_content_type, ContentType
+from copium.transforms import detect_content_type, ContentType
 
 content = "src/main.py:42:def process():"
 
@@ -135,7 +135,7 @@ elif detection.content_type == ContentType.PLAIN_TEXT:
 ## Integration Pattern
 
 ```python
-from headroom.transforms import (
+from copium.transforms import (
     detect_content_type, ContentType,
     SearchCompressor, LogCompressor, TextCompressor
 )
@@ -163,7 +163,7 @@ def compress_tool_output(content: str, context: str = "") -> str:
 Each compressor accepts configuration options:
 
 ```python
-from headroom.transforms import SearchCompressor, SearchCompressorConfig
+from copium.transforms import SearchCompressor, SearchCompressorConfig
 
 config = SearchCompressorConfig(
     max_results=50,           # Keep up to 50 matches

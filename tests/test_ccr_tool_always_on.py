@@ -1,4 +1,4 @@
-"""PR-B7 — `headroom_retrieve` tool always-on once a session has done CCR.
+"""PR-B7 — `copium_retrieve` tool always-on once a session has done CCR.
 
 These tests pin three properties:
 
@@ -11,7 +11,7 @@ These tests pin three properties:
    snapshot deliberately.
 
 Tests target the canonical helper
-`headroom.proxy.helpers.apply_session_sticky_ccr_tool` plus the
+`copium.proxy.helpers.apply_session_sticky_ccr_tool` plus the
 `SessionCcrTracker` semantics. The CCRToolInjector legacy path is
 covered by `tests/test_ccr_tool_injection.py`.
 """
@@ -20,12 +20,12 @@ from __future__ import annotations
 
 import pytest
 
-from headroom.ccr.tool_injection import (
+from copium.ccr.tool_injection import (
     CCR_TOOL_NAME,
     CCRToolInjector,
     create_ccr_tool_definition,
 )
-from headroom.proxy.helpers import (
+from copium.proxy.helpers import (
     SessionCcrTracker,
     _reset_session_ccr_tracker_for_test,
     apply_session_sticky_ccr_tool,
@@ -184,7 +184,7 @@ def test_provider_isolation():
 
 
 def test_existing_ccr_tool_in_client_list_skips_injection():
-    """If client (e.g. via MCP) already provided headroom_retrieve, do not double up."""
+    """If client (e.g. via MCP) already provided copium_retrieve, do not double up."""
     session_id = "sess-with-mcp"
     client_tool = {
         "name": CCR_TOOL_NAME,
@@ -236,7 +236,7 @@ def test_no_session_id_falls_back_to_per_turn_decision():
 # active session's prompt cache (the tool list bytes are part of the
 # cache key).
 _ANTHROPIC_CCR_TOOL_SNAPSHOT_BYTES = (
-    b'{"name":"headroom_retrieve",'
+    b'{"name":"copium_retrieve",'
     b'"description":"Retrieve original uncompressed content that was '
     b"compressed to save tokens. Use this when you need more data than "
     b"what's shown in compressed tool results. The hash is provided in "
@@ -256,7 +256,7 @@ _ANTHROPIC_CCR_TOOL_SNAPSHOT_BYTES = (
 
 _OPENAI_CCR_TOOL_SNAPSHOT_BYTES = (
     b'{"type":"function",'
-    b'"function":{"name":"headroom_retrieve",'
+    b'"function":{"name":"copium_retrieve",'
     b'"description":"Retrieve original uncompressed content that was '
     b"compressed to save tokens. Use this when you need more data than "
     b"what's shown in compressed tool results. The hash is provided in "

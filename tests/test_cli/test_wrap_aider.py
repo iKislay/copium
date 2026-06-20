@@ -1,4 +1,4 @@
-"""Tests for `headroom wrap aider` command."""
+"""Tests for `copium wrap aider` command."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from urllib.parse import quote
 import pytest
 from click.testing import CliRunner
 
-from headroom.cli.main import main
+from copium.cli.main import main
 
 
 def _expected_project_prefix() -> str:
@@ -31,8 +31,8 @@ def test_wrap_aider_sets_provider_envs(
     def fake_launch_tool(**kwargs):  # noqa: ANN003
         captured.update(kwargs)
 
-    with patch("headroom.cli.wrap.shutil.which", return_value="aider"):
-        with patch("headroom.cli.wrap._launch_tool", side_effect=fake_launch_tool):
+    with patch("copium.cli.wrap.shutil.which", return_value="aider"):
+        with patch("copium.cli.wrap._launch_tool", side_effect=fake_launch_tool):
             result = runner.invoke(main, ["wrap", "aider", "--no-rtk", "--", "--model", "gpt-4o"])
 
     assert result.exit_code == 0, result.output

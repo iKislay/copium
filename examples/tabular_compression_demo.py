@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Demo / test harness for tabular + spreadsheet compression.
 
-Generates representative sample data and runs it through Headroom's tabular
+Generates representative sample data and runs it through Copium's tabular
 compressor so you can see where it helps (verbose / redundant tables, and
 query-driven selection) and where it correctly does nothing (compact, all-unique
 data with no signal to compress against).
@@ -11,7 +11,7 @@ Usage:
     python examples/tabular_compression_demo.py --write DIR # also save sample files
 
 The .xlsx scenario requires the spreadsheet extra:
-    pip install headroom-ai[spreadsheet]
+    pip install copium-ai[spreadsheet]
 """
 
 from __future__ import annotations
@@ -20,8 +20,8 @@ import argparse
 import importlib.util
 from pathlib import Path
 
-import headroom
-from headroom.transforms.content_router import ContentRouter
+import copium
+from copium.transforms.content_router import ContentRouter
 
 _HAS_OPENPYXL = importlib.util.find_spec("openpyxl") is not None
 
@@ -69,7 +69,7 @@ def _run_router(label: str, content: str) -> None:
 
 def _run_messages(label: str, content: str) -> None:
     """Compress via the full pipeline (real tokenizer accounting)."""
-    res = headroom.compress(
+    res = copium.compress(
         [{"role": "user", "content": content}],
         compress_user_messages=True,
     )
@@ -81,7 +81,7 @@ def _run_messages(label: str, content: str) -> None:
 
 
 def _run_xlsx(label: str, path: Path) -> None:
-    res = headroom.compress_spreadsheet(str(path))
+    res = copium.compress_spreadsheet(str(path))
     pct = 100 * res.tokens_saved / res.tokens_before if res.tokens_before else 0.0
     print(
         f"{label:24s} tokens    {res.tokens_before:6d} -> "
@@ -135,7 +135,7 @@ def main() -> None:
 
     print("\n=== Binary spreadsheet (.xlsx) ===")
     if not _HAS_OPENPYXL:
-        print("  skipped — install: pip install headroom-ai[spreadsheet]")
+        print("  skipped — install: pip install copium-ai[spreadsheet]")
     else:
         out_dir = Path(args.write) if args.write else Path("/tmp")
         out_dir.mkdir(parents=True, exist_ok=True)

@@ -8,8 +8,8 @@ from types import SimpleNamespace
 
 import pytest
 
-import headroom.reporting as reporting
-from headroom.reporting import generator
+import copium.reporting as reporting
+from copium.reporting import generator
 
 
 @dataclass
@@ -202,7 +202,7 @@ def test_generate_recommendations_for_heavy_waste_and_for_getting_started() -> N
     assert starter == [
         {
             "title": "Get Started",
-            "description": "No optimizations applied yet. Try setting headroom_mode='optimize' "
+            "description": "No optimizations applied yet. Try setting copium_mode='optimize' "
             "on your next request to start seeing token savings.",
         }
     ]

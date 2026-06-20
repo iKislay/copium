@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/chopratejas/headroom/blob/main/tests/parity/fixtures/codex_openai_contracts/codex-openai-interaction.schema.json",
+  "$id": "https://github.com/iKislay/copium/blob/main/tests/parity/fixtures/codex_openai_contracts/codex-openai-interaction.schema.json",
   "title": "Codex <-> OpenAI interaction contracts (PR #794)",
-  "description": "Enshrines the OpenAI interaction expectations this changeset depends on, so drift is detectable. Header values are transported as strings on the wire; the `x-headroom-parsed-type` annotation on each records the semantic type the parser (headroom/subscription/codex_rate_limits.py) coerces them to. Sources: codex_rate_limits.parse_codex_rate_limits (header family + gating), openai._extract_codex_handshake_headers (WS-101 forward filter), streaming.py (SSE forward filter).",
+  "description": "Enshrines the OpenAI interaction expectations this changeset depends on, so drift is detectable. Header values are transported as strings on the wire; the `x-copium-parsed-type` annotation on each records the semantic type the parser (copium/subscription/codex_rate_limits.py) coerces them to. Sources: codex_rate_limits.parse_codex_rate_limits (header family + gating), openai._extract_codex_handshake_headers (WS-101 forward filter), streaming.py (SSE forward filter).",
   "$defs": {
     "OpenAICodexWindowHeaders": {
       "title": "x-codex-*-{primary,secondary} window headers",
@@ -12,36 +12,36 @@
         "x-codex-primary-used-percent": {
           "type": "string",
           "pattern": "^\\d+(?:\\.\\d+)?$",
-          "x-headroom-parsed-type": "float (0-100, NaN-guarded)",
+          "x-copium-parsed-type": "float (0-100, NaN-guarded)",
           "description": "Percent of the primary window consumed. Gates creation of the primary window."
         },
         "x-codex-primary-window-minutes": {
           "type": "string",
           "pattern": "^\\d+$",
-          "x-headroom-parsed-type": "int",
+          "x-copium-parsed-type": "int",
           "description": "Primary window size in minutes."
         },
         "x-codex-primary-reset-at": {
           "type": "string",
           "pattern": "^\\d+$",
-          "x-headroom-parsed-type": "int (Unix epoch seconds)",
+          "x-copium-parsed-type": "int (Unix epoch seconds)",
           "description": "Absolute reset time of the primary window."
         },
         "x-codex-secondary-used-percent": {
           "type": "string",
           "pattern": "^\\d+(?:\\.\\d+)?$",
-          "x-headroom-parsed-type": "float (0-100, NaN-guarded)",
+          "x-copium-parsed-type": "float (0-100, NaN-guarded)",
           "description": "Percent of the secondary window consumed. Gates creation of the secondary window."
         },
         "x-codex-secondary-window-minutes": {
           "type": "string",
           "pattern": "^\\d+$",
-          "x-headroom-parsed-type": "int"
+          "x-copium-parsed-type": "int"
         },
         "x-codex-secondary-reset-at": {
           "type": "string",
           "pattern": "^\\d+$",
-          "x-headroom-parsed-type": "int (Unix epoch seconds)"
+          "x-copium-parsed-type": "int (Unix epoch seconds)"
         }
       },
       "additionalProperties": true
@@ -54,17 +54,17 @@
         "x-codex-credits-has-credits": {
           "type": "string",
           "pattern": "^(?:[Tt][Rr][Uu][Ee]|[Ff][Aa][Ll][Ss][Ee]|[01])$",
-          "x-headroom-parsed-type": "bool (true|false|1|0, case-insensitive)",
+          "x-copium-parsed-type": "bool (true|false|1|0, case-insensitive)",
           "description": "Gates creation of the credits snapshot."
         },
         "x-codex-credits-unlimited": {
           "type": "string",
           "pattern": "^(?:[Tt][Rr][Uu][Ee]|[Ff][Aa][Ll][Ss][Ee]|[01])$",
-          "x-headroom-parsed-type": "bool (defaults false when absent/unparseable)"
+          "x-copium-parsed-type": "bool (defaults false when absent/unparseable)"
         },
         "x-codex-credits-balance": {
           "type": "string",
-          "x-headroom-parsed-type": "str (empty -> null)",
+          "x-copium-parsed-type": "str (empty -> null)",
           "description": "Free-form server string, e.g. \"$5.00\"."
         }
       },
@@ -76,12 +76,12 @@
       "properties": {
         "x-codex-limit-name": {
           "type": "string",
-          "x-headroom-parsed-type": "str (empty -> null)",
+          "x-copium-parsed-type": "str (empty -> null)",
           "description": "Active limit/model label, e.g. \"gpt-5.2-codex-sonic\"."
         },
         "x-codex-promo-message": {
           "type": "string",
-          "x-headroom-parsed-type": "str (empty -> null)",
+          "x-copium-parsed-type": "str (empty -> null)",
           "description": "Server announcement. Also gates snapshot creation when present."
         }
       },
@@ -89,7 +89,7 @@
     },
     "OpenAICodexRateLimitHeaders": {
       "title": "Full x-codex-* header family OpenAI may emit",
-      "description": "Superset of every x-codex-* header headroom reads. parse_codex_rate_limits returns a snapshot iff at least one of: a primary window, a secondary window, a credits snapshot, or a non-empty promo message is present; otherwise null (treated as a non-Codex response). All members are individually optional.",
+      "description": "Superset of every x-codex-* header copium reads. parse_codex_rate_limits returns a snapshot iff at least one of: a primary window, a secondary window, a credits snapshot, or a non-empty promo message is present; otherwise null (treated as a non-Codex response). All members are individually optional.",
       "type": "object",
       "allOf": [
         { "$ref": "#/$defs/OpenAICodexWindowHeaders" },
@@ -209,8 +209,8 @@
       "additionalProperties": true
     },
     "CodexRateLimitStatsOutput": {
-      "title": "headroom /stats output for the codex tracker (CodexRateLimitSnapshot.to_dict)",
-      "description": "Internal (headroom-emitted) shape produced from the headers above; the WS and SSE update_from_headers parity tests assert this is refreshed. Included so drift in our own surface is also caught.",
+      "title": "copium /stats output for the codex tracker (CodexRateLimitSnapshot.to_dict)",
+      "description": "Internal (copium-emitted) shape produced from the headers above; the WS and SSE update_from_headers parity tests assert this is refreshed. Included so drift in our own surface is also caught.",
       "type": "object",
       "properties": {
         "limit_id": { "const": "codex" },

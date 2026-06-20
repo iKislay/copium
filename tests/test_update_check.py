@@ -1,4 +1,4 @@
-"""Tests for headroom.update_check (PyPI probe, cache, banner notice)."""
+"""Tests for copium.update_check (PyPI probe, cache, banner notice)."""
 
 from __future__ import annotations
 
@@ -7,15 +7,15 @@ import time
 
 import pytest
 
-from headroom import update_check as uc
+from copium import update_check as uc
 
 
 @pytest.fixture(autouse=True)
 def _workspace(tmp_path, monkeypatch):
     """Point the workspace (cache) dir at a tmp dir and enable the check."""
-    monkeypatch.setenv("HEADROOM_WORKSPACE_DIR", str(tmp_path))
-    monkeypatch.setenv("HEADROOM_UPDATE_CHECK", "on")
-    monkeypatch.delenv("HEADROOM_STATELESS", raising=False)
+    monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path))
+    monkeypatch.setenv("COPIUM_UPDATE_CHECK", "on")
+    monkeypatch.delenv("COPIUM_STATELESS", raising=False)
     monkeypatch.delenv("CI", raising=False)
     # Treat tests as a non-checkout, non-docker install by default.
     monkeypatch.setattr(uc, "_is_source_checkout", lambda: False)
@@ -32,12 +32,12 @@ def test_enabled_by_default(monkeypatch):
 
 @pytest.mark.parametrize("val", ["off", "false", "0", "no", "disabled"])
 def test_disabled_by_env(monkeypatch, val):
-    monkeypatch.setenv("HEADROOM_UPDATE_CHECK", val)
+    monkeypatch.setenv("COPIUM_UPDATE_CHECK", val)
     assert uc.is_update_check_enabled() is False
 
 
 def test_disabled_in_stateless(monkeypatch):
-    monkeypatch.setenv("HEADROOM_STATELESS", "1")
+    monkeypatch.setenv("COPIUM_STATELESS", "1")
     assert uc.is_update_check_enabled() is False
 
 
@@ -135,7 +135,7 @@ def test_notice_when_newer(monkeypatch):
     uc.write_cache("0.27.0")
     monkeypatch.setattr(uc, "installed_version", lambda: "0.26.0")
     notice = uc.format_update_notice()
-    assert notice and "0.27.0" in notice and "headroom update" in notice
+    assert notice and "0.27.0" in notice and "copium update" in notice
 
 
 def test_no_notice_when_current(monkeypatch):
@@ -154,7 +154,7 @@ def test_no_notice_in_checkout(monkeypatch):
 def test_no_notice_when_disabled(monkeypatch):
     uc.write_cache("0.27.0")
     monkeypatch.setattr(uc, "installed_version", lambda: "0.26.0")
-    monkeypatch.setenv("HEADROOM_UPDATE_CHECK", "off")
+    monkeypatch.setenv("COPIUM_UPDATE_CHECK", "off")
     assert uc.format_update_notice() is None
 
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from headroom.pricing import litellm_pricing
+from copium.pricing import litellm_pricing
 
 
 def test_litellm_helpers_when_dependency_is_unavailable(monkeypatch) -> None:

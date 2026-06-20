@@ -4,11 +4,11 @@
 
 ## System Overview
 
-Headroom is a context compression proxy for LLM applications, featuring intelligent transforms, semantic caching, and CCR (Compress-Cache-Retrieve) architecture.
+Copium is a context compression proxy for LLM applications, featuring intelligent transforms, semantic caching, and CCR (Compress-Cache-Retrieve) architecture.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        Headroom                                  │
+│                        Copium                                  │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌─────────────┐  │
@@ -48,12 +48,12 @@ Headroom is a context compression proxy for LLM applications, featuring intellig
 
 ## Component Specifications
 
-### Proxy Server (`headroom/proxy/server.py`)
+### Proxy Server (`copium/proxy/server.py`)
 
-**`HeadroomProxy` class** — Main proxy server (default port 8787):
+**`CopiumProxy` class** — Main proxy server (default port 8787):
 
 ```python
-class HeadroomProxy:
+class CopiumProxy:
     def __init__(self, config: ProxyConfig) -> None:
         self.config = config
         self.compression_cache = CompressionCache(...)
@@ -66,12 +66,12 @@ class HeadroomProxy:
     async def handle_request(request: Request) -> Response: ...
 ```
 
-**`ProxyConfig` dataclass** (from `headroom/models/config.py`):
+**`ProxyConfig` dataclass** (from `copium/models/config.py`):
 ```python
 @dataclass
 class ProxyConfig:
-    store_url: str = "sqlite:///headroom.db"
-    default_mode: HeadroomMode = HeadroomMode.AUDIT
+    store_url: str = "sqlite:///copium.db"
+    default_mode: CopiumMode = CopiumMode.AUDIT
     tool_crusher: ToolCrusherConfig = field(default_factory=ToolCrusherConfig)
     smart_crusher: SmartCrusherConfig = field(default_factory=SmartCrusherConfig)
     cache_aligner: CacheAlignerConfig = field(default_factory=CacheAlignerConfig)
@@ -81,9 +81,9 @@ class ProxyConfig:
     prefix_freeze: PrefixFreezeConfig = field(default_factory=PrefixFreezeConfig)
 ```
 
-**`HeadroomMode` enum** (actual modes):
+**`CopiumMode` enum** (actual modes):
 ```python
-class HeadroomMode(str, Enum):
+class CopiumMode(str, Enum):
     AUDIT = "audit"       # Observe only, no modifications
     OPTIMIZE = "optimize" # Apply deterministic transforms
     SIMULATE = "simulate" # Return transform plan without API call
@@ -106,11 +106,11 @@ class HeadroomMode(str, Enum):
 
 ---
 
-### Python SDK (`headroom/client.py`)
+### Python SDK (`copium/client.py`)
 
-**`HeadroomClient` class:**
+**`CopiumClient` class:**
 ```python
-class HeadroomClient:
+class CopiumClient:
     def __init__(
         self,
         api_key: str | None = None,
@@ -134,7 +134,7 @@ class HeadroomClient:
 
 ---
 
-### Wrap CLI (`headroom/cli/wrap.py`)
+### Wrap CLI (`copium/cli/wrap.py`)
 
 **Commands (all use default port 8787):**
 - `claude` — Wrap Claude Code
@@ -149,13 +149,13 @@ class HeadroomClient:
 @click.option("--port", "-p", default=8787, help="Proxy port")
 @click.argument("command", nargs=-1, required=True)
 def wrap(command: tuple, port: int) -> None:
-    """Wrap a command with Headroom proxy."""
+    """Wrap a command with Copium proxy."""
     ...
 ```
 
 ---
 
-### CCR MCP Server (`headroom/ccr/mcp_server.py`)
+### CCR MCP Server (`copium/ccr/mcp_server.py`)
 
 Model Context Protocol server for Claude Desktop integration.
 
@@ -167,28 +167,28 @@ class CCRMcpServer:
 ```
 
 **MCP Tools:**
-- `headroom_compress` — Compress messages
-- `headroom_retrieve` — Retrieve cached content
-- `headroom_stats` — Get statistics
+- `copium_compress` — Compress messages
+- `copium_retrieve` — Retrieve cached content
+- `copium_stats` — Get statistics
 
 ---
 
-### ASGI Middleware (`headroom/integrations/asgi.py`)
+### ASGI Middleware (`copium/integrations/asgi.py`)
 
 ASGI-compatible middleware for Python web frameworks.
 
 ```python
-class HeadroomMiddleware:
+class CopiumMiddleware:
     def __init__(
         self,
         app: ASGIApplication,
-        headroom_url: str = "http://localhost:8787",
+        copium_url: str = "http://localhost:8787",
     ) -> None: ...
 ```
 
 ---
 
-### LiteLLM Callback (`headroom/integrations/litellm_callback.py`)
+### LiteLLM Callback (`copium/integrations/litellm_callback.py`)
 
 Callback for LiteLLM proxy integration.
 
@@ -200,9 +200,9 @@ class LiteLLMCallback:
 
 ---
 
-## Compression Layer (`headroom/transforms/`)
+## Compression Layer (`copium/transforms/`)
 
-### SmartCrusher (`headroom/transforms/smart_crusher.py`)
+### SmartCrusher (`copium/transforms/smart_crusher.py`)
 
 Statistical JSON array compression preserving schema.
 
@@ -212,7 +212,7 @@ class SmartCrusher:
     def crush(self, content: str, context: TransformContext) -> TransformResult: ...
 ```
 
-### CacheAligner (`headroom/transforms/cache_aligner.py`)
+### CacheAligner (`copium/transforms/cache_aligner.py`)
 
 Prefix stabilization for provider cache optimization.
 
@@ -222,7 +222,7 @@ class CacheAligner:
     def align(self, messages: list[dict]) -> TransformResult: ...
 ```
 
-### RollingWindow (`headroom/transforms/rolling_window.py`)
+### RollingWindow (`copium/transforms/rolling_window.py`)
 
 Rolling window token cap.
 
@@ -232,7 +232,7 @@ class RollingWindow:
     def apply(self, messages: list[dict]) -> TransformResult: ...
 ```
 
-### ContentRouter (`headroom/transforms/content_router.py`)
+### ContentRouter (`copium/transforms/content_router.py`)
 
 Routes content to appropriate compressor based on type.
 
@@ -243,7 +243,7 @@ class ContentRouter:
 
 ---
 
-## Learn System (`headroom/learn/`)
+## Learn System (`copium/learn/`)
 
 **`LearnPlugin` interface** (actual):
 
@@ -270,7 +270,7 @@ class LearnPlugin(ConversationScanner):
 
 ---
 
-## CCR System (`headroom/ccr/`)
+## CCR System (`copium/ccr/`)
 
 CCR (Compress-Cache-Retrieve) makes compression reversible.
 
@@ -293,7 +293,7 @@ class ContextTracker:
 
 ---
 
-## TOIN (`headroom/telemetry/toin.py`)
+## TOIN (`copium/telemetry/toin.py`)
 
 Tool Output Intelligence Network — telemetry-based compression hints.
 
@@ -305,7 +305,7 @@ class TOINCollector:
 
 ---
 
-## Dashboard (`headroom/dashboard/`)
+## Dashboard (`copium/dashboard/`)
 
 Simple HTML dashboard served by the proxy.
 
@@ -320,7 +320,7 @@ def get_dashboard_html() -> str:
 ## Data Flow
 
 ```
-Client → Headroom Proxy → [ContentRouter] → [SmartCrusher/CacheAligner/RollingWindow]
+Client → Copium Proxy → [ContentRouter] → [SmartCrusher/CacheAligner/RollingWindow]
               │                    │              │
               │              [CCR Store] ←───────────────────────┘
               │

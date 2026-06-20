@@ -15,7 +15,7 @@ import pytest
 click = pytest.importorskip("click")
 from click.testing import CliRunner  # noqa: E402
 
-from headroom.telemetry.beacon import (  # noqa: E402
+from copium.telemetry.beacon import (  # noqa: E402
     format_telemetry_notice,
     is_telemetry_warn_enabled,
 )
@@ -26,20 +26,20 @@ from headroom.telemetry.beacon import (  # noqa: E402
 
 
 class TestIsTelemetryWarnEnabled:
-    """Tests for the HEADROOM_TELEMETRY_WARN feature flag."""
+    """Tests for the COPIUM_TELEMETRY_WARN feature flag."""
 
     def test_enabled_by_default(self, monkeypatch):
-        monkeypatch.delenv("HEADROOM_TELEMETRY_WARN", raising=False)
+        monkeypatch.delenv("COPIUM_TELEMETRY_WARN", raising=False)
         assert is_telemetry_warn_enabled() is True
 
     @pytest.mark.parametrize("value", ["off", "OFF", "false", "0", "no", "disable", "disabled"])
     def test_disabled_by_env_var(self, monkeypatch, value):
-        monkeypatch.setenv("HEADROOM_TELEMETRY_WARN", value)
+        monkeypatch.setenv("COPIUM_TELEMETRY_WARN", value)
         assert is_telemetry_warn_enabled() is False
 
     @pytest.mark.parametrize("value", ["on", "ON", "1", "yes", "true"])
     def test_enabled_by_truthy_env_var(self, monkeypatch, value):
-        monkeypatch.setenv("HEADROOM_TELEMETRY_WARN", value)
+        monkeypatch.setenv("COPIUM_TELEMETRY_WARN", value)
         assert is_telemetry_warn_enabled() is True
 
 
@@ -52,33 +52,33 @@ class TestFormatTelemetryNotice:
     """Tests for format_telemetry_notice()."""
 
     def test_returns_notice_when_telemetry_on(self, monkeypatch):
-        monkeypatch.setenv("HEADROOM_TELEMETRY", "on")
-        monkeypatch.delenv("HEADROOM_TELEMETRY_WARN", raising=False)
+        monkeypatch.setenv("COPIUM_TELEMETRY", "on")
+        monkeypatch.delenv("COPIUM_TELEMETRY_WARN", raising=False)
         notice = format_telemetry_notice()
         assert notice != ""
         assert "ENABLED" in notice
-        assert "HEADROOM_TELEMETRY=off" in notice
+        assert "COPIUM_TELEMETRY=off" in notice
         assert "--no-telemetry" in notice
 
     def test_empty_when_telemetry_off(self, monkeypatch):
-        monkeypatch.setenv("HEADROOM_TELEMETRY", "off")
-        monkeypatch.delenv("HEADROOM_TELEMETRY_WARN", raising=False)
+        monkeypatch.setenv("COPIUM_TELEMETRY", "off")
+        monkeypatch.delenv("COPIUM_TELEMETRY_WARN", raising=False)
         assert format_telemetry_notice() == ""
 
     def test_empty_when_warn_flag_off(self, monkeypatch):
-        monkeypatch.setenv("HEADROOM_TELEMETRY", "on")
-        monkeypatch.setenv("HEADROOM_TELEMETRY_WARN", "off")
+        monkeypatch.setenv("COPIUM_TELEMETRY", "on")
+        monkeypatch.setenv("COPIUM_TELEMETRY_WARN", "off")
         assert format_telemetry_notice() == ""
 
     def test_prefix_is_applied(self, monkeypatch):
-        monkeypatch.setenv("HEADROOM_TELEMETRY", "on")
-        monkeypatch.delenv("HEADROOM_TELEMETRY_WARN", raising=False)
+        monkeypatch.setenv("COPIUM_TELEMETRY", "on")
+        monkeypatch.delenv("COPIUM_TELEMETRY_WARN", raising=False)
         notice = format_telemetry_notice(prefix="  ")
         assert notice.startswith("  ")
 
     def test_no_prefix_by_default(self, monkeypatch):
-        monkeypatch.setenv("HEADROOM_TELEMETRY", "on")
-        monkeypatch.delenv("HEADROOM_TELEMETRY_WARN", raising=False)
+        monkeypatch.setenv("COPIUM_TELEMETRY", "on")
+        monkeypatch.delenv("COPIUM_TELEMETRY_WARN", raising=False)
         notice = format_telemetry_notice()
         # Default prefix is "" so the string should start with "Telemetry"
         assert notice.startswith("Telemetry:")
@@ -97,54 +97,54 @@ class TestProxyCLITelemetryBanner:
         return CliRunner()
 
     def test_banner_shows_telemetry_enabled(self, runner, monkeypatch):
-        monkeypatch.delenv("HEADROOM_TELEMETRY", raising=False)
+        monkeypatch.delenv("COPIUM_TELEMETRY", raising=False)
 
-        from headroom.cli.main import main
+        from copium.cli.main import main
 
-        with patch("headroom.proxy.server.run_server", side_effect=SystemExit(0)):
+        with patch("copium.proxy.server.run_server", side_effect=SystemExit(0)):
             result = runner.invoke(main, ["proxy"])
 
         assert "Telemetry:" in result.output
         assert "ENABLED" in result.output
 
     def test_banner_shows_telemetry_disabled(self, runner, monkeypatch):
-        monkeypatch.setenv("HEADROOM_TELEMETRY", "off")
+        monkeypatch.setenv("COPIUM_TELEMETRY", "off")
 
-        from headroom.cli.main import main
+        from copium.cli.main import main
 
-        with patch("headroom.proxy.server.run_server", side_effect=SystemExit(0)):
+        with patch("copium.proxy.server.run_server", side_effect=SystemExit(0)):
             result = runner.invoke(main, ["proxy"])
 
         assert "Telemetry:" in result.output
         assert "DISABLED" in result.output
 
     def test_no_telemetry_flag_disables(self, runner, monkeypatch):
-        monkeypatch.delenv("HEADROOM_TELEMETRY", raising=False)
+        monkeypatch.delenv("COPIUM_TELEMETRY", raising=False)
 
-        from headroom.cli.main import main
+        from copium.cli.main import main
 
-        with patch("headroom.proxy.server.run_server", side_effect=SystemExit(0)):
+        with patch("copium.proxy.server.run_server", side_effect=SystemExit(0)):
             result = runner.invoke(main, ["proxy", "--no-telemetry"])
 
         assert "Telemetry:" in result.output
         assert "DISABLED" in result.output
 
     def test_banner_shows_opt_out_instructions_when_enabled(self, runner, monkeypatch):
-        monkeypatch.delenv("HEADROOM_TELEMETRY", raising=False)
+        monkeypatch.delenv("COPIUM_TELEMETRY", raising=False)
 
-        from headroom.cli.main import main
+        from copium.cli.main import main
 
-        with patch("headroom.proxy.server.run_server", side_effect=SystemExit(0)):
+        with patch("copium.proxy.server.run_server", side_effect=SystemExit(0)):
             result = runner.invoke(main, ["proxy"])
 
-        assert "HEADROOM_TELEMETRY=off" in result.output or "--no-telemetry" in result.output
+        assert "COPIUM_TELEMETRY=off" in result.output or "--no-telemetry" in result.output
 
     def test_banner_shows_context_tool(self, runner, monkeypatch):
-        monkeypatch.setenv("HEADROOM_CONTEXT_TOOL", "lean-ctx")
+        monkeypatch.setenv("COPIUM_CONTEXT_TOOL", "lean-ctx")
 
-        from headroom.cli.main import main
+        from copium.cli.main import main
 
-        with patch("headroom.proxy.server.run_server", side_effect=SystemExit(0)):
+        with patch("copium.proxy.server.run_server", side_effect=SystemExit(0)):
             result = runner.invoke(main, ["proxy"])
 
         assert result.exit_code == 0
@@ -160,30 +160,30 @@ class TestWrapCLITelemetryNotice:
     """_print_telemetry_notice() is called from wrap commands."""
 
     def test_print_notice_outputs_when_telemetry_on(self, monkeypatch, capsys):
-        monkeypatch.setenv("HEADROOM_TELEMETRY", "on")
-        monkeypatch.delenv("HEADROOM_TELEMETRY_WARN", raising=False)
+        monkeypatch.setenv("COPIUM_TELEMETRY", "on")
+        monkeypatch.delenv("COPIUM_TELEMETRY_WARN", raising=False)
 
-        from headroom.cli.wrap import _print_telemetry_notice
+        from copium.cli.wrap import _print_telemetry_notice
 
         _print_telemetry_notice()
         captured = capsys.readouterr()
         assert "Telemetry" in captured.out
-        assert "HEADROOM_TELEMETRY=off" in captured.out
+        assert "COPIUM_TELEMETRY=off" in captured.out
 
     def test_print_notice_silent_when_telemetry_off(self, monkeypatch, capsys):
-        monkeypatch.setenv("HEADROOM_TELEMETRY", "off")
+        monkeypatch.setenv("COPIUM_TELEMETRY", "off")
 
-        from headroom.cli.wrap import _print_telemetry_notice
+        from copium.cli.wrap import _print_telemetry_notice
 
         _print_telemetry_notice()
         captured = capsys.readouterr()
         assert captured.out == ""
 
     def test_print_notice_silent_when_warn_flag_off(self, monkeypatch, capsys):
-        monkeypatch.setenv("HEADROOM_TELEMETRY", "on")
-        monkeypatch.setenv("HEADROOM_TELEMETRY_WARN", "off")
+        monkeypatch.setenv("COPIUM_TELEMETRY", "on")
+        monkeypatch.setenv("COPIUM_TELEMETRY_WARN", "off")
 
-        from headroom.cli.wrap import _print_telemetry_notice
+        from copium.cli.wrap import _print_telemetry_notice
 
         _print_telemetry_notice()
         captured = capsys.readouterr()
@@ -202,8 +202,8 @@ class TestStatsEndpointTelemetryFlag:
     pytest.importorskip("fastapi")
 
     async def test_stats_includes_anon_telemetry_shipping_true(self, monkeypatch):
-        monkeypatch.delenv("HEADROOM_TELEMETRY", raising=False)
-        from headroom.proxy.server import ProxyConfig, create_app
+        monkeypatch.delenv("COPIUM_TELEMETRY", raising=False)
+        from copium.proxy.server import ProxyConfig, create_app
 
         app = create_app(
             ProxyConfig(
@@ -224,8 +224,8 @@ class TestStatsEndpointTelemetryFlag:
         assert data["anon_telemetry_shipping"] is True
 
     async def test_stats_includes_anon_telemetry_shipping_false(self, monkeypatch):
-        monkeypatch.setenv("HEADROOM_TELEMETRY", "off")
-        from headroom.proxy.server import ProxyConfig, create_app
+        monkeypatch.setenv("COPIUM_TELEMETRY", "off")
+        from copium.proxy.server import ProxyConfig, create_app
 
         app = create_app(
             ProxyConfig(
@@ -252,19 +252,19 @@ class TestStatsEndpointTelemetryFlag:
 
 
 class TestTelemetryModuleExports:
-    """New helpers must be exported from headroom.telemetry."""
+    """New helpers must be exported from copium.telemetry."""
 
     def test_is_telemetry_warn_enabled_exported(self):
-        from headroom.telemetry import is_telemetry_warn_enabled as fn
+        from copium.telemetry import is_telemetry_warn_enabled as fn
 
         assert callable(fn)
 
     def test_is_telemetry_enabled_exported(self):
-        from headroom.telemetry import is_telemetry_enabled as fn
+        from copium.telemetry import is_telemetry_enabled as fn
 
         assert callable(fn)
 
     def test_format_telemetry_notice_exported(self):
-        from headroom.telemetry import format_telemetry_notice as fn
+        from copium.telemetry import format_telemetry_notice as fn
 
         assert callable(fn)

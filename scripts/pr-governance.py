@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Headroom PR template compliance for GitHub Actions."""
+"""Validate Copium PR template compliance for GitHub Actions."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-COMMENT_MARKER = "<!-- headroom-pr-governance -->"
+COMMENT_MARKER = "<!-- copium-pr-governance -->"
 READY_LABEL = "status: ready for review"
 AUTHOR_ACTION_LABEL = "status: needs author action"
 

@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from headroom.transforms.log_compressor import (
+from copium.transforms.log_compressor import (
     LogCompressionResult,
     LogCompressor,
     LogCompressorConfig,
@@ -62,7 +62,7 @@ def test_select_dedupe_add_context_and_format_output(monkeypatch: pytest.MonkeyP
     )
     monkeypatch.setitem(
         __import__("sys").modules,
-        "headroom.transforms.adaptive_sizer",
+        "copium.transforms.adaptive_sizer",
         SimpleNamespace(compute_optimal_k=lambda items, **kwargs: 6),
     )
     log_lines = [
@@ -147,7 +147,7 @@ def test_store_in_ccr_and_result_properties(monkeypatch: pytest.MonkeyPatch) -> 
     compressor = LogCompressor()
     monkeypatch.setitem(
         __import__("sys").modules,
-        "headroom.cache.compression_store",
+        "copium.cache.compression_store",
         SimpleNamespace(
             get_compression_store=lambda: SimpleNamespace(
                 store=lambda original, compressed, original_item_count=0: "stored-log"
@@ -161,7 +161,7 @@ def test_store_in_ccr_and_result_properties(monkeypatch: pytest.MonkeyPatch) -> 
 
     monkeypatch.setitem(
         __import__("sys").modules,
-        "headroom.cache.compression_store",
+        "copium.cache.compression_store",
         SimpleNamespace(get_compression_store=broken_store),
     )
     assert compressor._store_in_ccr("orig", "comp", 10) is None

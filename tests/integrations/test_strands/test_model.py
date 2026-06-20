@@ -1,4 +1,4 @@
-"""Real-world integration tests for Strands HeadroomStrandsModel.
+"""Real-world integration tests for Strands CopiumStrandsModel.
 
 These tests use actual AWS Bedrock API calls with real credentials.
 NO MOCKS - all tests hit the real Bedrock API.
@@ -218,14 +218,14 @@ def math_operation(x: float, y: float, op: str) -> str:
 
 
 # ============================================================================
-# Test Class for HeadroomStrandsModel
+# Test Class for CopiumStrandsModel
 # ============================================================================
 
 
 @pytest.mark.skipif(SKIP_BEDROCK, reason="AWS credentials not available")
 @pytest.mark.skipif(not STRANDS_AVAILABLE, reason="strands-agents not installed")
-class TestHeadroomStrandsModelReal:
-    """Real-world integration tests for HeadroomStrandsModel with Bedrock."""
+class TestCopiumStrandsModelReal:
+    """Real-world integration tests for CopiumStrandsModel with Bedrock."""
 
     @pytest.fixture
     def base_bedrock_model(self):
@@ -238,10 +238,10 @@ class TestHeadroomStrandsModelReal:
 
     @pytest.fixture
     def wrapped_model(self, base_bedrock_model):
-        """Create a HeadroomStrandsModel wrapping the Bedrock model."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        """Create a CopiumStrandsModel wrapping the Bedrock model."""
+        from copium.integrations.strands import CopiumStrandsModel
 
-        return HeadroomStrandsModel(
+        return CopiumStrandsModel(
             wrapped_model=base_bedrock_model,
             auto_detect_provider=True,
         )
@@ -415,7 +415,7 @@ class TestHeadroomStrandsModelReal:
         """Test that wrapped model produces valid responses."""
         agent = Agent(model=wrapped_model)
 
-        result = agent("Say 'Hello, Headroom!' and nothing else.")
+        result = agent("Say 'Hello, Copium!' and nothing else.")
 
         assert result is not None
         content = str(result)
@@ -464,9 +464,9 @@ class TestHeadroomStrandsModelReal:
 
     def test_model_wrapper_attribute_forwarding(self, base_bedrock_model):
         """Test that attributes are forwarded to wrapped model."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        wrapped = HeadroomStrandsModel(
+        wrapped = CopiumStrandsModel(
             wrapped_model=base_bedrock_model,
             auto_detect_provider=True,
         )
@@ -481,22 +481,22 @@ class TestHeadroomStrandsModelReal:
         assert wrapped.wrapped_model is base_bedrock_model
 
     def test_model_wrapper_custom_config(self, base_bedrock_model):
-        """Test that custom HeadroomConfig is applied."""
-        from headroom import HeadroomConfig
-        from headroom.integrations.strands import HeadroomStrandsModel
+        """Test that custom CopiumConfig is applied."""
+        from copium import CopiumConfig
+        from copium.integrations.strands import CopiumStrandsModel
 
-        custom_config = HeadroomConfig()
+        custom_config = CopiumConfig()
         custom_config.smart_crusher.min_tokens_to_crush = 50
         custom_config.smart_crusher.max_items_after_crush = 10
 
-        wrapped = HeadroomStrandsModel(
+        wrapped = CopiumStrandsModel(
             wrapped_model=base_bedrock_model,
             config=custom_config,
             auto_detect_provider=True,
         )
 
-        assert wrapped.headroom_config is custom_config
-        assert wrapped.headroom_config.smart_crusher.min_tokens_to_crush == 50
+        assert wrapped.copium_config is custom_config
+        assert wrapped.copium_config.smart_crusher.min_tokens_to_crush == 50
 
         # The model should still work
         agent = Agent(model=wrapped)
@@ -505,10 +505,10 @@ class TestHeadroomStrandsModelReal:
 
     def test_model_wrapper_provider_detection(self, base_bedrock_model):
         """Test that provider is auto-detected correctly for Bedrock Claude."""
-        from headroom.integrations.strands import HeadroomStrandsModel
-        from headroom.providers import AnthropicProvider
+        from copium.integrations.strands import CopiumStrandsModel
+        from copium.providers import AnthropicProvider
 
-        wrapped = HeadroomStrandsModel(
+        wrapped = CopiumStrandsModel(
             wrapped_model=base_bedrock_model,
             auto_detect_provider=True,
         )
@@ -517,8 +517,8 @@ class TestHeadroomStrandsModelReal:
         _ = wrapped.pipeline
 
         # For Bedrock Claude models, should detect Anthropic provider
-        assert wrapped._headroom_provider is not None
-        assert isinstance(wrapped._headroom_provider, AnthropicProvider)
+        assert wrapped._copium_provider is not None
+        assert isinstance(wrapped._copium_provider, AnthropicProvider)
 
     def test_model_wrapper_handles_large_context(self, wrapped_model):
         """Test that wrapper handles large context appropriately."""
@@ -537,9 +537,9 @@ class TestHeadroomStrandsModelReal:
 
     def test_model_wrapper_empty_messages(self, base_bedrock_model):
         """Test that wrapper handles edge cases gracefully."""
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        wrapped = HeadroomStrandsModel(
+        wrapped = CopiumStrandsModel(
             wrapped_model=base_bedrock_model,
             auto_detect_provider=True,
         )
@@ -555,9 +555,9 @@ class TestHeadroomStrandsModelReal:
         import threading
         import time
 
-        from headroom.integrations.strands import HeadroomStrandsModel
+        from copium.integrations.strands import CopiumStrandsModel
 
-        wrapped = HeadroomStrandsModel(
+        wrapped = CopiumStrandsModel(
             wrapped_model=base_bedrock_model,
             auto_detect_provider=True,
         )
@@ -606,7 +606,7 @@ class TestOptimizeMessagesFunction:
 
     def test_optimize_messages_basic(self):
         """Test basic message optimization."""
-        from headroom.integrations.strands import optimize_messages
+        from copium.integrations.strands import optimize_messages
 
         messages = [
             {"role": "system", "content": "You are a helpful assistant."},
@@ -626,7 +626,7 @@ class TestOptimizeMessagesFunction:
 
     def test_optimize_messages_with_tool_content(self):
         """Test optimization of messages containing tool responses."""
-        from headroom.integrations.strands import optimize_messages
+        from copium.integrations.strands import optimize_messages
 
         # Create messages with large tool output
         large_data = json.dumps([{"id": i, "data": f"value_{i}" * 10} for i in range(100)])
@@ -656,10 +656,10 @@ class TestOptimizeMessagesFunction:
 
     def test_optimize_messages_custom_config(self):
         """Test optimization with custom config."""
-        from headroom import HeadroomConfig
-        from headroom.integrations.strands import optimize_messages
+        from copium import CopiumConfig
+        from copium.integrations.strands import optimize_messages
 
-        config = HeadroomConfig()
+        config = CopiumConfig()
         config.smart_crusher.enabled = True
         config.smart_crusher.min_tokens_to_crush = 10
 

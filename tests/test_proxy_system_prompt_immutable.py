@@ -18,7 +18,7 @@ pytest.importorskip("fastapi")
 
 from fastapi.testclient import TestClient
 
-from headroom.proxy.server import ProxyConfig, create_app
+from copium.proxy.server import ProxyConfig, create_app
 
 
 class _FakePrefixTracker:
@@ -130,7 +130,7 @@ def test_memory_enabled_does_not_mutate_system() -> None:
             headers={
                 "x-api-key": "test-key",
                 "anthropic-version": "2023-06-01",
-                "x-headroom-user-id": "u1",
+                "x-copium-user-id": "u1",
             },
             json={
                 "model": "claude-sonnet-4-6",
@@ -170,7 +170,7 @@ def test_memory_context_appears_in_latest_user_message_tail() -> None:
             headers={
                 "x-api-key": "test-key",
                 "anthropic-version": "2023-06-01",
-                "x-headroom-user-id": "u1",
+                "x-copium-user-id": "u1",
             },
             json={
                 "model": "claude-sonnet-4-6",
@@ -214,7 +214,7 @@ def test_memory_context_byte_deterministic_for_same_query() -> None:
                 headers={
                     "x-api-key": "test-key",
                     "anthropic-version": "2023-06-01",
-                    "x-headroom-user-id": "u1",
+                    "x-copium-user-id": "u1",
                 },
                 json={
                     "model": "claude-sonnet-4-6",
@@ -235,8 +235,8 @@ def test_memory_context_byte_deterministic_for_same_query() -> None:
 
 
 def test_memory_disabled_is_no_op(monkeypatch: pytest.MonkeyPatch) -> None:
-    """``HEADROOM_MEMORY_INJECTION_MODE=disabled`` skips injection."""
-    monkeypatch.setenv("HEADROOM_MEMORY_INJECTION_MODE", "disabled")
+    """``COPIUM_MEMORY_INJECTION_MODE=disabled`` skips injection."""
+    monkeypatch.setenv("COPIUM_MEMORY_INJECTION_MODE", "disabled")
     captured: dict[str, object] = {}
     with _make_proxy_client() as client:
         proxy = client.app.state.proxy
@@ -253,7 +253,7 @@ def test_memory_disabled_is_no_op(monkeypatch: pytest.MonkeyPatch) -> None:
             headers={
                 "x-api-key": "test-key",
                 "anthropic-version": "2023-06-01",
-                "x-headroom-user-id": "u1",
+                "x-copium-user-id": "u1",
             },
             json={
                 "model": "claude-sonnet-4-6",
@@ -274,18 +274,18 @@ def test_invalid_injection_mode_raises() -> None:
     """Unknown values for the env var must fail loudly — no silent fallback."""
     import os
 
-    from headroom.proxy.helpers import get_memory_injection_mode
+    from copium.proxy.helpers import get_memory_injection_mode
 
-    prev = os.environ.get("HEADROOM_MEMORY_INJECTION_MODE")
-    os.environ["HEADROOM_MEMORY_INJECTION_MODE"] = "system_prompt"
+    prev = os.environ.get("COPIUM_MEMORY_INJECTION_MODE")
+    os.environ["COPIUM_MEMORY_INJECTION_MODE"] = "system_prompt"
     try:
-        with pytest.raises(ValueError, match="Invalid HEADROOM_MEMORY_INJECTION_MODE"):
+        with pytest.raises(ValueError, match="Invalid COPIUM_MEMORY_INJECTION_MODE"):
             get_memory_injection_mode()
     finally:
         if prev is None:
-            os.environ.pop("HEADROOM_MEMORY_INJECTION_MODE", None)
+            os.environ.pop("COPIUM_MEMORY_INJECTION_MODE", None)
         else:
-            os.environ["HEADROOM_MEMORY_INJECTION_MODE"] = prev
+            os.environ["COPIUM_MEMORY_INJECTION_MODE"] = prev
 
 
 # ---------------------------------------------------------------------------
@@ -338,7 +338,7 @@ def test_memory_enabled_does_not_mutate_instructions_responses_api() -> None:
             "/v1/responses",
             headers={
                 "authorization": "Bearer sk-test",
-                "x-headroom-user-id": "u1",
+                "x-copium-user-id": "u1",
             },
             json={
                 "model": "gpt-5.4",
@@ -396,7 +396,7 @@ def test_memory_context_appears_in_responses_api_input_tail() -> None:
             "/v1/responses",
             headers={
                 "authorization": "Bearer sk-test",
-                "x-headroom-user-id": "u1",
+                "x-copium-user-id": "u1",
             },
             json={
                 "model": "gpt-5.4",

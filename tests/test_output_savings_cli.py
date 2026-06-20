@@ -6,21 +6,21 @@ import json
 
 from click.testing import CliRunner
 
-from headroom.cli.main import main
-from headroom.proxy.output_savings import SavingsRecorder, stratum_label
+from copium.cli.main import main
+from copium.proxy.output_savings import SavingsRecorder, stratum_label
 
 
 def test_output_savings_empty(tmp_path, monkeypatch):
-    monkeypatch.setenv("HEADROOM_WORKSPACE_DIR", str(tmp_path))
+    monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path))
     result = CliRunner().invoke(main, ["output-savings"])
     assert result.exit_code == 0
     assert "No output-savings data" in result.output
 
 
 def test_output_savings_reports_estimate(tmp_path, monkeypatch):
-    monkeypatch.setenv("HEADROOM_WORKSPACE_DIR", str(tmp_path))
+    monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path))
     # Seed a baseline + treatment observations directly via the ledger.
-    from headroom.proxy.output_savings import SavingsLedger
+    from copium.proxy.output_savings import SavingsLedger
 
     ledger = SavingsLedger()
     for _ in range(50):

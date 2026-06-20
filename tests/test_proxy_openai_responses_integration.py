@@ -22,8 +22,8 @@ pytest.importorskip("httpx")
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from headroom.proxy.loopback_guard import require_loopback  # noqa: E402
-from headroom.proxy.server import ProxyConfig, create_app  # noqa: E402
+from copium.proxy.loopback_guard import require_loopback  # noqa: E402
+from copium.proxy.server import ProxyConfig, create_app  # noqa: E402
 
 
 @pytest.fixture
@@ -270,7 +270,7 @@ class TestOpenAIResponsesCompression:
         assert response.status_code == 200
 
     def test_bypass_header_skips_compression(self, openai_responses_client, api_key):
-        """x-headroom-bypass header skips compression."""
+        """x-copium-bypass header skips compression."""
         items = [
             {"id": i, "name": f"Item {i}", "desc": f"Description for item {i}"} for i in range(100)
         ]
@@ -283,7 +283,7 @@ class TestOpenAIResponsesCompression:
             "/v1/responses",
             headers={
                 "Authorization": f"Bearer {api_key}",
-                "x-headroom-bypass": "true",
+                "x-copium-bypass": "true",
             },
             json={
                 "model": "gpt-4o-mini",

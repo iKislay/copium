@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from headroom.providers.cursor import build_proxy_targets, render_setup_lines
-from headroom.providers.cursor.install import build_install_env
+from copium.providers.cursor import build_proxy_targets, render_setup_lines
+from copium.providers.cursor.install import build_install_env
 
 
-def test_cursor_proxy_targets_use_local_headroom_proxy() -> None:
+def test_cursor_proxy_targets_use_local_copium_proxy() -> None:
     targets = build_proxy_targets(9999)
 
     assert targets.openai_base_url == "http://127.0.0.1:9999/v1"

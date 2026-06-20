@@ -16,12 +16,12 @@ import tempfile
 import numpy as np
 import pytest
 
-from headroom.memory.models import Memory
-from headroom.memory.ports import VectorFilter
+from copium.memory.models import Memory
+from copium.memory.ports import VectorFilter
 
 # Check if sqlite-vec is available
 try:
-    from headroom.memory.adapters.sqlite_vector import is_sqlite_vec_available
+    from copium.memory.adapters.sqlite_vector import is_sqlite_vec_available
 
     SQLITE_VEC_AVAILABLE = is_sqlite_vec_available()
 except ImportError:
@@ -38,7 +38,7 @@ class TestSQLiteVectorIndex:
         with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
             db_path = f.name
 
-        from headroom.memory.adapters.sqlite_vector import SQLiteVectorIndex
+        from copium.memory.adapters.sqlite_vector import SQLiteVectorIndex
 
         index = SQLiteVectorIndex(dimension=384, db_path=db_path)
         yield index
@@ -241,7 +241,7 @@ class TestSQLiteVectorIndexPersistence:
             db_path = f.name
 
         try:
-            from headroom.memory.adapters.sqlite_vector import SQLiteVectorIndex
+            from copium.memory.adapters.sqlite_vector import SQLiteVectorIndex
 
             # Create index and add data
             index1 = SQLiteVectorIndex(dimension=384, db_path=db_path)
@@ -286,7 +286,7 @@ class TestSQLiteVectorIndexMemoryStats:
         with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
             db_path = f.name
 
-        from headroom.memory.adapters.sqlite_vector import SQLiteVectorIndex
+        from copium.memory.adapters.sqlite_vector import SQLiteVectorIndex
 
         index = SQLiteVectorIndex(dimension=384, db_path=db_path, page_cache_size_kb=4096)
         yield index
@@ -351,7 +351,7 @@ class TestSQLiteVectorIndexEdgeCases:
         with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
             db_path = f.name
 
-        from headroom.memory.adapters.sqlite_vector import SQLiteVectorIndex
+        from copium.memory.adapters.sqlite_vector import SQLiteVectorIndex
 
         index = SQLiteVectorIndex(dimension=384, db_path=db_path)
         yield index

@@ -1,11 +1,11 @@
-# headroom-ai examples
+# copium-ai examples
 
-Runnable examples showing how to use the Headroom TypeScript SDK for context compression.
+Runnable examples showing how to use the Copium TypeScript SDK for context compression.
 
 ## Prerequisites
 
 - Node.js 18+
-- A running Headroom proxy (`pip install "headroom-ai[proxy]" && headroom proxy`)
+- A running Copium proxy (`pip install "copium-ai[proxy]" && copium proxy`)
 - `OPENAI_API_KEY` set in your environment (most examples use OpenAI)
 - Optional: `ANTHROPIC_API_KEY` for Anthropic examples
 
@@ -23,11 +23,11 @@ npx tsx examples/<filename>.ts
 
 | Example | Description |
 |---------|-------------|
-| [with-headroom-vercel.ts](with-headroom-vercel.ts) | One-liner `withHeadroom(openai('gpt-4o'))` — simplest integration |
-| [streaming-chat.ts](streaming-chat.ts) | `withHeadroom` + `streamText` for real-time streaming |
+| [with-copium-vercel.ts](with-copium-vercel.ts) | One-liner `withCopium(openai('gpt-4o'))` — simplest integration |
+| [streaming-chat.ts](streaming-chat.ts) | `withCopium` + `streamText` for real-time streaming |
 | [tool-calling-agent.ts](tool-calling-agent.ts) | Multi-step agent with tools, context auto-compressed each step |
 | [structured-output.ts](structured-output.ts) | Extract structured data with `Output.object()` from compressed context |
-| [middleware-composition.ts](middleware-composition.ts) | Stack `headroomMiddleware` with other middlewares (`extractReasoningMiddleware`) |
+| [middleware-composition.ts](middleware-composition.ts) | Stack `copiumMiddleware` with other middlewares (`extractReasoningMiddleware`) |
 | [multi-provider.ts](multi-provider.ts) | Same compression across GPT-4o and GPT-4o-mini |
 
 ### Core SDK
@@ -44,4 +44,4 @@ npx tsx examples/<filename>.ts
 
 | Example | Description |
 |---------|-------------|
-| [openai-anthropic-adapters.ts](openai-anthropic-adapters.ts) | `withHeadroom` for native OpenAI and Anthropic SDKs (no Vercel AI SDK) |
+| [openai-anthropic-adapters.ts](openai-anthropic-adapters.ts) | `withCopium` for native OpenAI and Anthropic SDKs (no Vercel AI SDK) |

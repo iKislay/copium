@@ -24,11 +24,11 @@ import pytest
 def _ensure_binding():
     """Skip if the Rust extension hasn't been built (mirrors existing pattern)."""
     try:
-        from headroom._core import compress_openai_responses_live_zone
+        from copium._core import compress_openai_responses_live_zone
 
         return compress_openai_responses_live_zone
     except ImportError:
-        pytest.skip("headroom._core not built — run scripts/build_rust_extension.sh")
+        pytest.skip("copium._core not built — run scripts/build_rust_extension.sh")
 
 
 class TestBindingExposed:
@@ -99,7 +99,7 @@ class TestAuthModeAccepted:
 
 
 class TestModelDefault:
-    """Empty `model` defaults to `headroom_core`'s `DEFAULT_MODEL`."""
+    """Empty `model` defaults to `copium_core`'s `DEFAULT_MODEL`."""
 
     def test_empty_model_uses_default(self):
         compress = _ensure_binding()
@@ -136,7 +136,7 @@ class TestTelemetryFields:
     Compressed outcomes) and ``transforms_applied`` (deduplicated list
     of compressor strategy names). The Python proxy uses these to
     populate /transformations/feed and the dashboard's per-request log
-    without recounting tokens. See `crates/headroom-core/src/transforms/
+    without recounting tokens. See `crates/copium-core/src/transforms/
     live_zone.rs::CompressionManifest::tokens_saved` /
     `::transforms_applied`."""
 

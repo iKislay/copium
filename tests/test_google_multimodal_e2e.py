@@ -275,8 +275,8 @@ async def test_mixed_conversation(api_key):
 )
 @pytest.mark.asyncio
 async def test_through_proxy(api_key, proxy_url: str = "http://localhost:8080"):
-    """Test multimodal requests through the Headroom proxy."""
-    print(f"\n=== Test 6: Through Headroom Proxy ({proxy_url}) ===")
+    """Test multimodal requests through the Copium proxy."""
+    print(f"\n=== Test 6: Through Copium Proxy ({proxy_url}) ===")
 
     # The proxy expects requests at /v1beta/models/{model}:generateContent
     url = f"{proxy_url}/v1beta/models/gemini-2.0-flash:generateContent"
@@ -316,7 +316,7 @@ async def test_through_proxy(api_key, proxy_url: str = "http://localhost:8080"):
             return False
     except httpx.ConnectError:
         print("⚠️ Proxy not running - skipping proxy test")
-        print("   To test through proxy, start it with: uv run headroom-proxy")
+        print("   To test through proxy, start it with: uv run copium-proxy")
         return None
 
 

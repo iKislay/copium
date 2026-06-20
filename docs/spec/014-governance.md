@@ -4,7 +4,7 @@
 
 ## Project Structure
 
-- **Repository:** `github.com/JerrettDavis/headroom`
+- **Repository:** `github.com/JerrettDavis/copium`
 - **License:** Apache 2.0
 - **Main Languages:** Python (core), TypeScript (SDK/dashboard)
 
@@ -22,7 +22,7 @@
 
 ## Semantic Versioning
 
-Headroom follows semver:
+Copium follows semver:
 
 - **MAJOR:** Breaking changes to API, CLI, or core behavior
 - **MINOR:** New features, backwards-compatible
@@ -51,7 +51,7 @@ Headroom follows semver:
 
 ## Spec-Driven Development
 
-This specification is the **canonical source of truth** for Headroom behavior:
+This specification is the **canonical source of truth** for Copium behavior:
 
 | Rule | Description |
 |------|-------------|
@@ -88,8 +88,8 @@ This specification is the **canonical source of truth** for Headroom behavior:
 
 ```bash
 # Clone repository
-git clone https://github.com/JerrettDavis/headroom.git
-cd headroom
+git clone https://github.com/JerrettDavis/copium.git
+cd copium
 
 # Create virtual environment
 python -m venv venv

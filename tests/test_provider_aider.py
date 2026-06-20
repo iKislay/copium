@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from headroom.providers.aider.install import build_install_env
-from headroom.providers.aider.runtime import build_launch_env
+from copium.providers.aider.install import build_install_env
+from copium.providers.aider.runtime import build_launch_env
 
 
 def test_aider_build_launch_env_sets_proxy_urls_without_mutating_input() -> None:

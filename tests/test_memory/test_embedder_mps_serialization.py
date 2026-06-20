@@ -15,7 +15,7 @@ import pytest
 torch = pytest.importorskip("torch")
 pytest.importorskip("sentence_transformers")
 
-from headroom.memory.adapters.embedders import LocalEmbedder  # noqa: E402
+from copium.memory.adapters.embedders import LocalEmbedder  # noqa: E402
 
 _HAS_MPS = bool(getattr(torch.backends, "mps", None)) and torch.backends.mps.is_available()
 

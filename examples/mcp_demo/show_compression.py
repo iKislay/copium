@@ -1,4 +1,4 @@
-"""Demonstrate Headroom MCP compression on real-world tool outputs.
+"""Demonstrate Copium MCP compression on real-world tool outputs.
 
 Run with:
     PYTHONPATH=. python -m examples.mcp_demo.show_compression
@@ -6,10 +6,10 @@ Run with:
 
 import random
 
-from headroom.integrations.mcp import (
+from copium.integrations.mcp import (
     compress_tool_result_with_metrics,
 )
-from headroom.providers import OpenAIProvider
+from copium.providers import OpenAIProvider
 
 from .mock_mcp_servers import (
     generate_database_query_results,
@@ -23,7 +23,7 @@ def main():
     random.seed(42)
 
     print("\n" + "=" * 70)
-    print("HEADROOM MCP INTEGRATION - COMPRESSION DEMO")
+    print("COPIUM MCP INTEGRATION - COMPRESSION DEMO")
     print("=" * 70)
 
     # Get token counter

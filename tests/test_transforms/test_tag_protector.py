@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from headroom.transforms.tag_protector import (
+from copium.transforms.tag_protector import (
     KNOWN_HTML_TAGS,
     _is_html_tag,
     protect_tags,
@@ -173,7 +173,7 @@ class TestRestoreTags:
         "append at the trailing edge" fallback produced silently
         malformed XML (orphan opening tag with no closing tag) on
         ~350 production requests over 9 days; that bug is gone."""
-        protected = [("{{HEADROOM_TAG_0}}", "<tag>data</tag>")]
+        protected = [("{{COPIUM_TAG_0}}", "<tag>data</tag>")]
         compressed = "text without placeholder"
         result = restore_tags(compressed, protected)
         # Compressed text returned unchanged; original tag NOT injected.
@@ -186,9 +186,9 @@ class TestRestoreTags:
         """Invariant: if every placeholder is missing from compressed,
         restore_tags returns compressed byte-for-byte unchanged."""
         protected = [
-            ("{{HEADROOM_TAG_0}}", "<a>1</a>"),
-            ("{{HEADROOM_TAG_1}}", "<b>2</b>"),
-            ("{{HEADROOM_TAG_2}}", "<c>3</c>"),
+            ("{{COPIUM_TAG_0}}", "<a>1</a>"),
+            ("{{COPIUM_TAG_1}}", "<b>2</b>"),
+            ("{{COPIUM_TAG_2}}", "<c>3</c>"),
         ]
         compressed = "compressor stripped every placeholder"
         assert restore_tags(compressed, protected) == compressed
@@ -198,10 +198,10 @@ class TestRestoreTags:
         Surviving ones get substituted; lost ones are discarded with
         zero orphan-tag injection."""
         protected = [
-            ("{{HEADROOM_TAG_0}}", "<a>1</a>"),
-            ("{{HEADROOM_TAG_1}}", "<lost>x</lost>"),
+            ("{{COPIUM_TAG_0}}", "<a>1</a>"),
+            ("{{COPIUM_TAG_1}}", "<lost>x</lost>"),
         ]
-        result = restore_tags("head {{HEADROOM_TAG_0}} tail", protected)
+        result = restore_tags("head {{COPIUM_TAG_0}} tail", protected)
         assert result == "head <a>1</a> tail"
         assert "<lost" not in result
         assert "</lost>" not in result
@@ -264,16 +264,16 @@ class TestBugFixesPhase3e4:
         assert restore_tags(cleaned, protected) == text
 
     def test_fixed_in_3e4_placeholder_collision_avoided(self):
-        """Bug #5: input contains a literal `{{HEADROOM_TAG_…}}`
+        """Bug #5: input contains a literal `{{COPIUM_TAG_…}}`
         substring. Python silently used the same prefix and let the
         collision break restoration. Rust salts the prefix when this
         happens."""
         text = (
-            "User wrote {{HEADROOM_TAG_0}} on purpose. <system-reminder>real one</system-reminder>"
+            "User wrote {{COPIUM_TAG_0}} on purpose. <system-reminder>real one</system-reminder>"
         )
         cleaned, protected = protect_tags(text)
         assert len(protected) == 1
         # Placeholder picked must NOT collide with the user's literal.
-        assert protected[0][0] != "{{HEADROOM_TAG_0}}"
+        assert protected[0][0] != "{{COPIUM_TAG_0}}"
         # Roundtrip is exact (the user's literal stays intact).
         assert restore_tags(cleaned, protected) == text

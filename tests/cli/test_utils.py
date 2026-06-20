@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import click
 import pytest
 
-from headroom.cli._utils import (
+from copium.cli._utils import (
     format_age,
     format_bytes,
     parse_duration,

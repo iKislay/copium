@@ -1,4 +1,4 @@
-"""LangChain Integration Evals: Comprehensive evaluation of Headroom with LangChain agents.
+"""LangChain Integration Evals: Comprehensive evaluation of Copium with LangChain agents.
 
 These evals test real-world scenarios to ensure:
 1. 100% preservation of critical items (errors, anomalies)
@@ -15,10 +15,10 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from headroom.config import SmartCrusherConfig
-from headroom.providers import OpenAIProvider
-from headroom.transforms import SmartCrusher
-from headroom.transforms.smart_crusher import strip_ccr_sentinels
+from copium.config import SmartCrusherConfig
+from copium.providers import OpenAIProvider
+from copium.transforms import SmartCrusher
+from copium.transforms.smart_crusher import strip_ccr_sentinels
 
 
 # Test fixtures for realistic data

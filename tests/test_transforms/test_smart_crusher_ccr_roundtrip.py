@@ -1,6 +1,6 @@
 """End-to-end CCR roundtrip via the Python bridge.
 
-The Rust core integration test (`crates/headroom-core/tests/ccr_roundtrip.rs`)
+The Rust core integration test (`crates/copium-core/tests/ccr_roundtrip.rs`)
 already pins the contract from the Rust side. These tests verify the same
 guarantee is reachable from Python — i.e. the Rust-side CCR store is
 exposed correctly through PyO3, the runtime can read originals back via
@@ -20,10 +20,10 @@ import pytest
 
 def _build_extension() -> None:
     try:
-        from headroom._core import SmartCrusher  # noqa: F401
+        from copium._core import SmartCrusher  # noqa: F401
     except ImportError:
         pytest.skip(
-            "headroom._core not built — run `bash scripts/build_rust_extension.sh`",
+            "copium._core not built — run `bash scripts/build_rust_extension.sh`",
             allow_module_level=True,
         )
 
@@ -34,7 +34,7 @@ _build_extension()
 def _force_lossy_config():
     """Force the lossy path: lossless threshold above 1.0 means no
     rendering can ever clear it, so `crush_array` falls through."""
-    from headroom._core import SmartCrusherConfig
+    from copium._core import SmartCrusherConfig
 
     return SmartCrusherConfig(lossless_min_savings_ratio=0.99)
 
@@ -45,7 +45,7 @@ def _force_lossy_config():
 def test_native_default_crusher_has_a_store() -> None:
     """Default constructor wires up the in-memory CCR store. Empty
     until we crush something."""
-    from headroom._core import SmartCrusher
+    from copium._core import SmartCrusher
 
     crusher = SmartCrusher()
     assert crusher.ccr_len() == 0
@@ -55,7 +55,7 @@ def test_native_default_crusher_has_a_store() -> None:
 def test_native_lossy_crush_stores_original() -> None:
     """The cornerstone roundtrip: lossy crush → store entry → retrieve
     → original payload comes back intact."""
-    from headroom._core import SmartCrusher
+    from copium._core import SmartCrusher
 
     crusher = SmartCrusher(_force_lossy_config())
     items = [{"id": i, "status": "ok"} for i in range(50)]
@@ -74,7 +74,7 @@ def test_native_lossy_crush_stores_original() -> None:
 def test_native_ccr_get_recovers_original_array() -> None:
     """Pull the hash out of the marker that ends up in the strategy
     string and verify the store actually returns the original list."""
-    from headroom._core import SmartCrusher
+    from copium._core import SmartCrusher
 
     crusher = SmartCrusher(_force_lossy_config())
     items = [{"id": i, "status": "ok"} for i in range(50)]
@@ -96,7 +96,7 @@ def test_native_ccr_get_recovers_original_array() -> None:
 
 def test_native_passthrough_does_not_grow_store() -> None:
     """Below adaptive_k → no drop → no store write."""
-    from headroom._core import SmartCrusher
+    from copium._core import SmartCrusher
 
     crusher = SmartCrusher()
     pre = crusher.ccr_len()
@@ -115,8 +115,8 @@ def test_native_passthrough_does_not_grow_store() -> None:
 
 
 def test_shim_exposes_ccr_get_and_ccr_len() -> None:
-    from headroom.config import SmartCrusherConfig as PyConfig
-    from headroom.transforms.smart_crusher import SmartCrusher
+    from copium.config import SmartCrusherConfig as PyConfig
+    from copium.transforms.smart_crusher import SmartCrusher
 
     crusher = SmartCrusher(PyConfig(), with_compaction=False)
     assert crusher.ccr_len() == 0
@@ -125,10 +125,10 @@ def test_shim_exposes_ccr_get_and_ccr_len() -> None:
 
 def test_shim_lossy_crush_populates_store() -> None:
     """Same roundtrip as the native test but driven through the
-    `headroom.transforms.smart_crusher.SmartCrusher` shim — the path
+    `copium.transforms.smart_crusher.SmartCrusher` shim — the path
     the proxy actually uses."""
-    from headroom.config import SmartCrusherConfig as PyConfig
-    from headroom.transforms.smart_crusher import SmartCrusher
+    from copium.config import SmartCrusherConfig as PyConfig
+    from copium.transforms.smart_crusher import SmartCrusher
 
     # The shim doesn't currently surface `lossless_min_savings_ratio`
     # in `PyConfig`. Use `with_compaction=False` to skip lossless
@@ -156,7 +156,7 @@ def test_shim_lossy_crush_populates_store() -> None:
 def test_explicit_before_after_roundtrip_native() -> None:
     """Full story: payload → crush → grab hash from result → ccr_get
     → parse → byte-compare with original input."""
-    from headroom._core import SmartCrusher, SmartCrusherConfig
+    from copium._core import SmartCrusher, SmartCrusherConfig
 
     # Force the lossy path so the CCR store actually gets a write.
     cfg = SmartCrusherConfig(lossless_min_savings_ratio=0.99)
@@ -194,8 +194,8 @@ def test_explicit_before_after_roundtrip_native() -> None:
 def test_explicit_before_after_roundtrip_shim() -> None:
     """Same story, but through the Python shim (the proxy's actual
     entry point). Pins that nothing gets lost across the bridge."""
-    from headroom.config import SmartCrusherConfig as PyConfig
-    from headroom.transforms.smart_crusher import SmartCrusher
+    from copium.config import SmartCrusherConfig as PyConfig
+    from copium.transforms.smart_crusher import SmartCrusher
 
     crusher = SmartCrusher(PyConfig(), with_compaction=False)
 
@@ -222,7 +222,7 @@ def test_kept_subset_is_subset_of_original() -> None:
     """The compressed view (what the LLM sees inline) is a proper
     subset of the original. Combined with `ccr_get` returning the
     full original, this proves: nothing is invented, nothing is lost."""
-    from headroom._core import SmartCrusher, SmartCrusherConfig
+    from copium._core import SmartCrusher, SmartCrusherConfig
 
     crusher = SmartCrusher(SmartCrusherConfig(lossless_min_savings_ratio=0.99))
     original = [{"id": i, "status": "ok"} for i in range(50)]
@@ -242,7 +242,7 @@ def test_kept_subset_is_subset_of_original() -> None:
 def test_marker_visible_in_crush_output_native() -> None:
     """PR8 cornerstone: the public crush() output now carries the
     `<<ccr:HASH ...>>` marker so the LLM sees the retrieval pointer."""
-    from headroom._core import SmartCrusher, SmartCrusherConfig
+    from copium._core import SmartCrusher, SmartCrusherConfig
 
     crusher = SmartCrusher(SmartCrusherConfig(lossless_min_savings_ratio=0.99))
     items = [{"id": i, "status": "ok"} for i in range(50)]
@@ -264,7 +264,7 @@ def test_marker_visible_in_crush_output_native() -> None:
 def test_opaque_blob_in_object_emits_marker_and_stores_native() -> None:
     """A long base64-ish blob in a field becomes a CCR marker AND the
     original gets stashed."""
-    from headroom._core import SmartCrusher
+    from copium._core import SmartCrusher
 
     crusher = SmartCrusher()
     big = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=" * 8
@@ -286,7 +286,7 @@ def test_opaque_blob_in_object_emits_marker_and_stores_native() -> None:
 
 def test_compact_document_json_via_pyo3() -> None:
     """The walker is reachable from Python and writes to the same store."""
-    from headroom._core import SmartCrusher
+    from copium._core import SmartCrusher
 
     crusher = SmartCrusher()
     starting = crusher.ccr_len()
@@ -307,8 +307,8 @@ def test_compact_document_json_via_pyo3() -> None:
 
 def test_compact_document_via_shim() -> None:
     """Same path via the Python shim."""
-    from headroom.config import SmartCrusherConfig as PyConfig
-    from headroom.transforms.smart_crusher import SmartCrusher
+    from copium.config import SmartCrusherConfig as PyConfig
+    from copium.transforms.smart_crusher import SmartCrusher
 
     crusher = SmartCrusher(PyConfig())
     items = [{"id": i, "status": "ok", "tag": "alpha"} for i in range(30)]
@@ -323,7 +323,7 @@ def test_compact_document_via_shim() -> None:
 def test_distinct_payloads_have_distinct_hashes_and_separate_storage() -> None:
     """Two different payloads → two different hashes → both
     independently retrievable. Pins the per-payload isolation."""
-    from headroom._core import SmartCrusher, SmartCrusherConfig
+    from copium._core import SmartCrusher, SmartCrusherConfig
 
     crusher = SmartCrusher(SmartCrusherConfig(lossless_min_savings_ratio=0.99))
 

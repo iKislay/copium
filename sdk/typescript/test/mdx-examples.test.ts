@@ -3,7 +3,7 @@
  *
  * If these pass, the examples in the docs are correct.
  *
- * Run: HEADROOM_INTEGRATION=1 npx vitest run test/mdx-examples.test.ts
+ * Run: COPIUM_INTEGRATION=1 npx vitest run test/mdx-examples.test.ts
  */
 import { describe, it, expect, beforeAll } from "vitest";
 import { config } from "dotenv";
@@ -12,16 +12,16 @@ import { resolve } from "path";
 config({ path: resolve(__dirname, "../../../.env") });
 
 const PROXY_URL = "http://localhost:8787";
-const RUN = process.env.HEADROOM_INTEGRATION === "1";
+const RUN = process.env.COPIUM_INTEGRATION === "1";
 
-describe.skipIf(!RUN)("MDX Examples: 51-headroom.mdx", () => {
+describe.skipIf(!RUN)("MDX Examples: 51-copium.mdx", () => {
   beforeAll(async () => {
     const res = await fetch(`${PROXY_URL}/health`);
     if (!res.ok) throw new Error("Proxy not running");
   });
 
   // =====================================================
-  // Example 1 from 51-headroom.mdx: "Compress messages before calling the model"
+  // Example 1 from 51-copium.mdx: "Compress messages before calling the model"
   // =====================================================
   it("compress() with AI SDK format messages → generateText()", { timeout: 30000 }, async () => {
     const { compress } = await import("../src/compress.js");
@@ -97,10 +97,10 @@ describe.skipIf(!RUN)("MDX Examples: 51-headroom.mdx", () => {
   });
 
   // =====================================================
-  // Example 2 from 51-headroom.mdx: "Use as middleware"
+  // Example 2 from 51-copium.mdx: "Use as middleware"
   // =====================================================
-  it("headroomMiddleware() with wrapLanguageModel → generateText()", { timeout: 30000 }, async () => {
-    const { headroomMiddleware } = await import("../src/adapters/vercel-ai.js");
+  it("copiumMiddleware() with wrapLanguageModel → generateText()", { timeout: 30000 }, async () => {
+    const { copiumMiddleware } = await import("../src/adapters/vercel-ai.js");
     const { wrapLanguageModel, generateText } = await import("ai");
     const { createOpenAI } = await import("@ai-sdk/openai");
 
@@ -109,7 +109,7 @@ describe.skipIf(!RUN)("MDX Examples: 51-headroom.mdx", () => {
     // EXACT pattern from MDX
     const model = wrapLanguageModel({
       model: openai("gpt-4o-mini"),
-      middleware: headroomMiddleware({ baseUrl: PROXY_URL }),
+      middleware: copiumMiddleware({ baseUrl: PROXY_URL }),
     });
 
     // Feed it a big prompt that will get compressed
@@ -133,7 +133,7 @@ describe.skipIf(!RUN)("MDX Examples: 51-headroom.mdx", () => {
   });
 
   // =====================================================
-  // Example 3 from 51-headroom.mdx: "Works with any provider" (Anthropic)
+  // Example 3 from 51-copium.mdx: "Works with any provider" (Anthropic)
   // =====================================================
   it("compress() → Anthropic via AI SDK", { timeout: 30000 }, async () => {
     if (!process.env.ANTHROPIC_API_KEY) {

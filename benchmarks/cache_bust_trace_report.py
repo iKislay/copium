@@ -69,7 +69,7 @@ def _trace_branch(
     recent_turns_per_session: int,
     max_events_per_mode: int = 10,
 ) -> list[BustEvent]:
-    worktree_root = Path(tempfile.mkdtemp(prefix="headroom-bust-trace-"))
+    worktree_root = Path(tempfile.mkdtemp(prefix="copium-bust-trace-"))
     worktree_dir = worktree_root / _ref_slug(label)
     _run_git(["worktree", "add", "--detach", str(worktree_dir), ref], repo_root)
     try:
@@ -101,7 +101,7 @@ load_session_replay = mod.load_session_replay
 select_session_files = mod.select_session_files
 trim_replay_to_recent_turns = mod.trim_replay_to_recent_turns
 _make_proxy = mod._make_proxy
-from headroom.cache.compression_cache import CompressionCache
+from copium.cache.compression_cache import CompressionCache
 
 ROOT = Path.home() / '.claude' / 'projects'
 TTL = timedelta(minutes=5)

@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-IMAGE="${HEADROOM_DOCKER_IMAGE:?set HEADROOM_DOCKER_IMAGE to a built test image}"
+IMAGE="${COPIUM_DOCKER_IMAGE:?set COPIUM_DOCKER_IMAGE to a built test image}"
 PROFILE="ci-smoke"
 TMP_HOME="$(mktemp -d)"
 PORT="$(python3 - <<'PY'
@@ -16,7 +16,7 @@ PY
 )"
 
 cleanup() {
-  docker rm -f "headroom-${PROFILE}" >/dev/null 2>&1 || true
+  docker rm -f "copium-${PROFILE}" >/dev/null 2>&1 || true
   rm -rf "${TMP_HOME}"
 }
 trap cleanup EXIT
@@ -24,11 +24,11 @@ trap cleanup EXIT
 mkdir -p "${TMP_HOME}/.local"
 export HOME="${TMP_HOME}"
 export PATH="${HOME}/.local/bin:${PATH}"
-export HEADROOM_DOCKER_IMAGE="${IMAGE}"
+export COPIUM_DOCKER_IMAGE="${IMAGE}"
 
 bash "${ROOT_DIR}/scripts/install.sh"
 
-WRAPPER="${HOME}/.local/bin/headroom"
+WRAPPER="${HOME}/.local/bin/copium"
 [[ -x "${WRAPPER}" ]]
 
 "${WRAPPER}" install -? | grep -Fq "persistent-docker preset only"
@@ -54,7 +54,7 @@ home = Path(sys.argv[1])
 profile = sys.argv[2]
 port = int(sys.argv[3])
 health = json.loads(sys.argv[4])
-manifest = json.loads((home / ".headroom" / "deploy" / profile / "manifest.json").read_text())
+manifest = json.loads((home / ".copium" / "deploy" / profile / "manifest.json").read_text())
 assert manifest["preset"] == "persistent-docker"
 assert manifest["port"] == port
 assert manifest["telemetry_enabled"] is False
@@ -73,19 +73,19 @@ grep -Fq "does not support provider/user/system mutation flags" <<<"${apply_erro
 # running container. Unit tests lock install-time forwarding; this asserts
 # the runtime view. We inspect before stopping because `install stop` tears
 # the container down.
-CONTAINER_NAME="headroom-${PROFILE}"
-expected_workspace_dir="/tmp/headroom-home/.headroom"
-expected_config_dir="/tmp/headroom-home/.headroom/config"
+CONTAINER_NAME="copium-${PROFILE}"
+expected_workspace_dir="/tmp/copium-home/.copium"
+expected_config_dir="/tmp/copium-home/.copium/config"
 
 container_env="$(docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "${CONTAINER_NAME}")"
 printf '%s\n' "${container_env}"
 
-if ! grep -Fxq "HEADROOM_WORKSPACE_DIR=${expected_workspace_dir}" <<<"${container_env}"; then
-  echo "HEADROOM_WORKSPACE_DIR missing from ${CONTAINER_NAME} env (expected=${expected_workspace_dir})" >&2
+if ! grep -Fxq "COPIUM_WORKSPACE_DIR=${expected_workspace_dir}" <<<"${container_env}"; then
+  echo "COPIUM_WORKSPACE_DIR missing from ${CONTAINER_NAME} env (expected=${expected_workspace_dir})" >&2
   exit 1
 fi
-if ! grep -Fxq "HEADROOM_CONFIG_DIR=${expected_config_dir}" <<<"${container_env}"; then
-  echo "HEADROOM_CONFIG_DIR missing from ${CONTAINER_NAME} env (expected=${expected_config_dir})" >&2
+if ! grep -Fxq "COPIUM_CONFIG_DIR=${expected_config_dir}" <<<"${container_env}"; then
+  echo "COPIUM_CONFIG_DIR missing from ${CONTAINER_NAME} env (expected=${expected_config_dir})" >&2
   exit 1
 fi
 
@@ -93,12 +93,12 @@ fi
 # visible to a process running inside the container (not just in the static
 # Config.Env snapshot).
 exec_env="$(docker exec "${CONTAINER_NAME}" env)"
-if ! grep -Fxq "HEADROOM_WORKSPACE_DIR=${expected_workspace_dir}" <<<"${exec_env}"; then
-  echo "HEADROOM_WORKSPACE_DIR not visible to docker exec in ${CONTAINER_NAME}" >&2
+if ! grep -Fxq "COPIUM_WORKSPACE_DIR=${expected_workspace_dir}" <<<"${exec_env}"; then
+  echo "COPIUM_WORKSPACE_DIR not visible to docker exec in ${CONTAINER_NAME}" >&2
   exit 1
 fi
-if ! grep -Fxq "HEADROOM_CONFIG_DIR=${expected_config_dir}" <<<"${exec_env}"; then
-  echo "HEADROOM_CONFIG_DIR not visible to docker exec in ${CONTAINER_NAME}" >&2
+if ! grep -Fxq "COPIUM_CONFIG_DIR=${expected_config_dir}" <<<"${exec_env}"; then
+  echo "COPIUM_CONFIG_DIR not visible to docker exec in ${CONTAINER_NAME}" >&2
   exit 1
 fi
 
@@ -117,4 +117,4 @@ curl --fail --silent "http://127.0.0.1:${PORT}/readyz" >/dev/null
 curl --fail --silent "http://127.0.0.1:${PORT}/readyz" >/dev/null
 
 "${WRAPPER}" install remove --profile "${PROFILE}"
-[[ ! -e "${HOME}/.headroom/deploy/${PROFILE}" ]]
+[[ ! -e "${HOME}/.copium/deploy/${PROFILE}" ]]

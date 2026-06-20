@@ -21,7 +21,7 @@ import httpx
 REPO_ROOT = Path("/workspace")
 PLUGIN_DIR = REPO_ROOT / "plugins" / "openclaw"
 SDK_DIR = REPO_ROOT / "sdk" / "typescript"
-RTK_MARKER = "<!-- headroom:rtk-instructions -->"
+RTK_MARKER = "<!-- copium:rtk-instructions -->"
 PROXY_PORT = 28887
 CODEX_PORT = 28888
 AIDER_PORT = 28889
@@ -217,7 +217,7 @@ def create_shims(shim_dir: Path) -> None:
         from pathlib import Path
 
         tool = Path(sys.argv[0]).name
-        log_dir = Path(os.environ["HEADROOM_E2E_LOG_DIR"])
+        log_dir = Path(os.environ["COPIUM_E2E_LOG_DIR"])
         log_dir.mkdir(parents=True, exist_ok=True)
         record = {
             "tool": tool,
@@ -268,7 +268,7 @@ def create_shims(shim_dir: Path) -> None:
         from pathlib import Path
 
         tool = Path(sys.argv[0]).name
-        log_dir = Path(os.environ["HEADROOM_E2E_LOG_DIR"])
+        log_dir = Path(os.environ["COPIUM_E2E_LOG_DIR"])
         log_dir.mkdir(parents=True, exist_ok=True)
         record = {
             "tool": tool,
@@ -307,7 +307,7 @@ def create_shims(shim_dir: Path) -> None:
             )
             probes.append({"url": f"{openai_base.rstrip('/')}/models", "status": models_status})
 
-            model_name = "headroom-wrap-e2e"
+            model_name = "copium-wrap-e2e"
             chat_status, chat_body = request_json(
                 f"{openai_base.rstrip('/')}/chat/completions",
                 payload={
@@ -315,7 +315,7 @@ def create_shims(shim_dir: Path) -> None:
                     "messages": [
                         {
                             "role": "user",
-                            "content": "Confirm Headroom received this wrapped Codex message.",
+                            "content": "Confirm Copium received this wrapped Codex message.",
                         }
                     ],
                 },
@@ -333,10 +333,10 @@ def create_shims(shim_dir: Path) -> None:
             probes.append({"url": stats_url, "status": stats_status})
             requests = stats_body.get("requests", {})
             by_model = requests.get("by_model", {}) if isinstance(requests, dict) else {}
-            record["headroom_request_total"] = (
+            record["copium_request_total"] = (
                 requests.get("total") if isinstance(requests, dict) else None
             )
-            record["headroom_model_count"] = (
+            record["copium_model_count"] = (
                 by_model.get(model_name) if isinstance(by_model, dict) else None
             )
 
@@ -376,9 +376,9 @@ def start_mock_server(port: int) -> tuple[MockOpenAIServer, threading.Thread]:
 
 
 def start_proxy(port: int, env: dict[str, str]) -> subprocess.Popen[str]:
-    log(f"Starting headroom proxy on port {port}")
+    log(f"Starting copium proxy on port {port}")
     proc = subprocess.Popen(
-        ["headroom", "proxy", "--host", "127.0.0.1", "--port", str(port)],
+        ["copium", "proxy", "--host", "127.0.0.1", "--port", str(port)],
         env=env,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
@@ -464,9 +464,9 @@ def stop_openclaw_gateway(env: dict[str, str], cwd: Path) -> None:
 
 def verify_installs() -> None:
     log("Verifying installed packages and binaries")
-    for tool in ("headroom", "codex", "aider", "openclaw"):
+    for tool in ("copium", "codex", "aider", "openclaw"):
         assert_true(shutil.which(tool) is not None, f"Expected '{tool}' on PATH")
-    run(["headroom", "--help"], timeout=30)
+    run(["copium", "--help"], timeout=30)
     run(["npm", "list", "-g", "--depth=0", "@openai/codex", "openclaw"], timeout=60)
     run(["/opt/aider-venv/bin/python", "-m", "pip", "show", "aider-chat"], timeout=60)
 
@@ -491,7 +491,7 @@ def prepare_local_openclaw_plugin(base_env: dict[str, str], tmp_dir: Path) -> Pa
 
     package_json_path = plugin_dir / "package.json"
     package_json = json.loads(package_json_path.read_text(encoding="utf-8"))
-    package_json["dependencies"]["headroom-ai"] = f"file:{tarball_path.as_posix()}"
+    package_json["dependencies"]["copium-ai"] = f"file:{tarball_path.as_posix()}"
     package_json_path.write_text(f"{json.dumps(package_json, indent=2)}\n", encoding="utf-8")
 
     return plugin_dir
@@ -543,7 +543,7 @@ def verify_codex_wrap(
 ) -> None:
     port = CODEX_PORT
     run(
-        ["headroom", "wrap", "codex", "--port", str(port), "--", "--help"],
+        ["copium", "wrap", "codex", "--port", str(port), "--", "--help"],
         env=base_env,
         cwd=project_dir,
         timeout=120,
@@ -566,16 +566,16 @@ def verify_codex_wrap(
     )
     assert_true(
         f'base_url = "http://127.0.0.1:{port}/v1"' in config,
-        "Codex wrap should inject the headroom provider base_url",
+        "Codex wrap should inject the copium provider base_url",
     )
     assert_true(
         'env_key = "OPENAI_API_KEY"' not in config,
         "Codex wrap should preserve OAuth and never inject env_key",
     )
-    # Bug 3 (#406): requires_openai_auth must be absent from headroom provider blocks.
+    # Bug 3 (#406): requires_openai_auth must be absent from copium provider blocks.
     assert_true(
         "requires_openai_auth" not in config,
-        "Codex wrap must NOT inject requires_openai_auth into the headroom provider block",
+        "Codex wrap must NOT inject requires_openai_auth into the copium provider block",
     )
     assert_true(
         "supports_websockets = true" in config, "Codex wrap missing 'supports_websockets = true'"
@@ -595,31 +595,31 @@ def verify_codex_wrap(
             {"url": f"http://127.0.0.1:{port}/v1/chat/completions", "status": 200},
             {"url": f"http://127.0.0.1:{port}/stats", "status": 200},
         ],
-        "Codex shim should prove OPENAI_BASE_URL points at a live proxy and that Headroom logged the wrapped message",
+        "Codex shim should prove OPENAI_BASE_URL points at a live proxy and that Copium logged the wrapped message",
     )
     assert_true(
         entries[-1].get("chat_completion") == "mock completion from upstream",
-        "Codex wrap should receive the mock upstream completion through Headroom",
+        "Codex wrap should receive the mock upstream completion through Copium",
     )
     assert_true(
-        entries[-1].get("headroom_model_count", 0) >= 1,
-        "Codex wrap should appear in Headroom request stats",
+        entries[-1].get("copium_model_count", 0) >= 1,
+        "Codex wrap should appear in Copium request stats",
     )
     assert_true(
         any(
             item["path"] == "/v1/chat/completions"
             and isinstance(item.get("body"), dict)
-            and item["body"].get("model") == "headroom-wrap-e2e"
+            and item["body"].get("model") == "copium-wrap-e2e"
             for item in mock_server.requests
         ),
-        "Codex wrap should forward the wrapped message upstream through Headroom",
+        "Codex wrap should forward the wrapped message upstream through Copium",
     )
 
 
 def verify_claude_wrap(base_env: dict[str, str], project_dir: Path, log_dir: Path) -> None:
     port = PROXY_PORT + 10
     run(
-        ["headroom", "wrap", "claude", "--port", str(port), "--", "--help"],
+        ["copium", "wrap", "claude", "--port", str(port), "--", "--help"],
         env=base_env,
         cwd=project_dir,
         timeout=120,
@@ -640,7 +640,7 @@ def verify_claude_wrap(base_env: dict[str, str], project_dir: Path, log_dir: Pat
 def verify_aider_wrap(base_env: dict[str, str], project_dir: Path, log_dir: Path) -> None:
     port = AIDER_PORT
     run(
-        ["headroom", "wrap", "aider", "--port", str(port), "--", "--help"],
+        ["copium", "wrap", "aider", "--port", str(port), "--", "--help"],
         env=base_env,
         cwd=project_dir,
         timeout=120,
@@ -680,7 +680,7 @@ def verify_aider_wrap(base_env: dict[str, str], project_dir: Path, log_dir: Path
 def verify_cursor_wrap(base_env: dict[str, str], project_dir: Path) -> None:
     port = CURSOR_PORT
     proc = subprocess.Popen(
-        ["headroom", "wrap", "cursor", "--port", str(port)],
+        ["copium", "wrap", "cursor", "--port", str(port)],
         env=base_env,
         cwd=str(project_dir),
         stdout=subprocess.PIPE,
@@ -715,7 +715,7 @@ def verify_cursor_wrap(base_env: dict[str, str], project_dir: Path) -> None:
 def verify_cline_wrap(base_env: dict[str, str], project_dir: Path) -> None:
     """Smoke test: `wrap cline --prepare-only` writes RTK guidance to .clinerules."""
     run(
-        ["headroom", "wrap", "cline", "--prepare-only", "--port", str(CLINE_PORT)],
+        ["copium", "wrap", "cline", "--prepare-only", "--port", str(CLINE_PORT)],
         env=base_env,
         cwd=project_dir,
         timeout=60,
@@ -731,7 +731,7 @@ def verify_cline_wrap(base_env: dict[str, str], project_dir: Path) -> None:
 def verify_continue_wrap(base_env: dict[str, str], project_dir: Path) -> None:
     """Smoke test: `wrap continue --prepare-only` injects RTK into .continue/config.json."""
     run(
-        ["headroom", "wrap", "continue", "--prepare-only", "--port", str(CONTINUE_PORT)],
+        ["copium", "wrap", "continue", "--prepare-only", "--port", str(CONTINUE_PORT)],
         env=base_env,
         cwd=project_dir,
         timeout=60,
@@ -749,7 +749,7 @@ def verify_continue_wrap(base_env: dict[str, str], project_dir: Path) -> None:
 def verify_goose_wrap(base_env: dict[str, str], project_dir: Path) -> None:
     """Smoke test: `wrap goose --prepare-only` writes RTK guidance to .goosehints."""
     run(
-        ["headroom", "wrap", "goose", "--prepare-only", "--port", str(GOOSE_PORT)],
+        ["copium", "wrap", "goose", "--prepare-only", "--port", str(GOOSE_PORT)],
         env=base_env,
         cwd=project_dir,
         timeout=60,
@@ -770,7 +770,7 @@ def verify_openhands_wrap(base_env: dict[str, str], project_dir: Path) -> None:
     setup path. The env-var wiring is covered by the unit tests.
     """
     run(
-        ["headroom", "wrap", "openhands", "--prepare-only", "--port", str(OPENHANDS_PORT)],
+        ["copium", "wrap", "openhands", "--prepare-only", "--port", str(OPENHANDS_PORT)],
         env=base_env,
         cwd=project_dir,
         timeout=60,
@@ -786,7 +786,7 @@ def verify_openclaw_wrap(
     gateway_proc: subprocess.Popen[str] | None = None
     run(
         [
-            "headroom",
+            "copium",
             "wrap",
             "openclaw",
             "--plugin-path",
@@ -847,7 +847,7 @@ def verify_openclaw_wrap(
                     gateway_output = gateway_proc.stdout.read()
                 raise RuntimeError(f"{exc}\nGateway output:\n{gateway_output}") from exc
 
-        entry = state["plugins"]["entries"]["headroom"]
+        entry = state["plugins"]["entries"]["copium"]
         assert_true(entry["enabled"] is True, "OpenClaw wrap should enable the plugin")
         assert_true(entry["config"]["proxyPort"] == port, "OpenClaw wrap should set proxy port")
         assert_true(
@@ -859,7 +859,7 @@ def verify_openclaw_wrap(
             "OpenClaw e2e bootstrap should set gateway.mode=local",
         )
         assert_true(
-            state["plugins"]["slots"]["contextEngine"] == "headroom",
+            state["plugins"]["slots"]["contextEngine"] == "copium",
             "OpenClaw wrap should set the context engine slot",
         )
     finally:
@@ -867,7 +867,7 @@ def verify_openclaw_wrap(
             stop_process(gateway_proc)
         stop_openclaw_gateway(base_env, project_dir)
 
-    run(["headroom", "unwrap", "openclaw"], env=base_env, cwd=project_dir, timeout=120)
+    run(["copium", "unwrap", "openclaw"], env=base_env, cwd=project_dir, timeout=120)
     state = json.loads(config_path.read_text(encoding="utf-8"))
     assert_true(
         state["plugins"]["slots"]["contextEngine"] == "legacy",
@@ -878,7 +878,7 @@ def verify_openclaw_wrap(
 def main() -> None:
     verify_installs()
     with tempfile.TemporaryDirectory(
-        prefix="headroom-wrap-e2e-", ignore_cleanup_errors=True
+        prefix="copium-wrap-e2e-", ignore_cleanup_errors=True
     ) as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         home_dir = tmp_dir / "home"
@@ -896,7 +896,7 @@ def main() -> None:
             {
                 "HOME": str(home_dir),
                 "PATH": f"{shim_dir}{os.pathsep}{base_env['PATH']}",
-                "HEADROOM_E2E_LOG_DIR": str(log_dir),
+                "COPIUM_E2E_LOG_DIR": str(log_dir),
                 "OPENAI_TARGET_API_URL": "http://127.0.0.1:19001/v1",
             }
         )

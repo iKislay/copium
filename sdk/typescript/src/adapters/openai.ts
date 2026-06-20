@@ -20,17 +20,17 @@ interface OpenAILike {
  *
  * @example
  * ```typescript
- * import { withHeadroom } from 'headroom-ai/openai';
+ * import { withCopium } from 'copium-ai/openai';
  * import OpenAI from 'openai';
  *
- * const client = withHeadroom(new OpenAI());
+ * const client = withCopium(new OpenAI());
  * const response = await client.chat.completions.create({
  *   model: 'gpt-4o',
  *   messages: longConversation,
  * });
  * ```
  */
-export function withHeadroom<T extends OpenAILike>(
+export function withCopium<T extends OpenAILike>(
   client: T,
   options: CompressOptions = {},
 ): T {

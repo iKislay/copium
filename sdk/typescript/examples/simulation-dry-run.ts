@@ -6,7 +6,7 @@
  *
  * Run: npx tsx examples/06-simulation-dry-run.ts
  */
-import { simulate } from "headroom-ai";
+import { simulate } from "copium-ai";
 
 // Different types of content to analyze
 const logEntries = Array.from({ length: 100 }, (_, i) => ({

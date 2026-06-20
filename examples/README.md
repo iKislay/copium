@@ -1,6 +1,6 @@
-# Headroom Examples
+# Copium Examples
 
-This directory contains examples demonstrating Headroom's capabilities.
+This directory contains examples demonstrating Copium's capabilities.
 
 ## Quick Start Examples
 
@@ -99,10 +99,10 @@ PYTHONPATH=. python -m examples.mcp_demo.run_agent_eval
 
 ### strands_bedrock_demo.py
 
-AWS Strands Agents + Bedrock integration demo. Showcases two Headroom integration patterns:
+AWS Strands Agents + Bedrock integration demo. Showcases two Copium integration patterns:
 
-1. **HeadroomHookProvider** - Compresses tool outputs in real-time
-2. **HeadroomStrandsModel** - Optimizes entire conversation context
+1. **CopiumHookProvider** - Compresses tool outputs in real-time
+2. **CopiumStrandsModel** - Optimizes entire conversation context
 
 ```bash
 # Configure AWS credentials
@@ -133,7 +133,7 @@ and displays compression statistics with visual comparisons.
 **Requirements:**
 - AWS account with Bedrock enabled
 - Claude 3 Haiku model access in your region
-- `pip install strands-agents headroom-ai[strands]`
+- `pip install strands-agents copium-ai[strands]`
 
 ## Running Examples
 
@@ -159,7 +159,7 @@ python examples/<example_name>.py
 
 ## Troubleshooting
 
-**ModuleNotFoundError: No module named 'headroom'**
+**ModuleNotFoundError: No module named 'copium'**
 
 Run from the repository root with PYTHONPATH:
 

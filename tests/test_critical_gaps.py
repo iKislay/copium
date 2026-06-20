@@ -14,19 +14,19 @@ from pathlib import Path
 
 import pytest
 
-from headroom.cache.compression_feedback import (
+from copium.cache.compression_feedback import (
     CompressionFeedback,
     get_compression_feedback,
     reset_compression_feedback,
 )
-from headroom.cache.compression_store import (
+from copium.cache.compression_store import (
     CompressionStore,
     RetrievalEvent,
     get_compression_store,
     reset_compression_store,
 )
-from headroom.telemetry.models import ToolSignature
-from headroom.telemetry.toin import (
+from copium.telemetry.models import ToolSignature
+from copium.telemetry.toin import (
     TOINConfig,
     ToolIntelligenceNetwork,
     ToolPattern,
@@ -987,7 +987,7 @@ class TestMediumPriorityToolSignatureFixes:
 
     def test_max_depth_calculated_not_hardcoded(self):
         """MEDIUM FIX #12: max_depth should be calculated from actual item structure."""
-        from headroom.telemetry.models import ToolSignature
+        from copium.telemetry.models import ToolSignature
 
         # Simple flat structure - depth = 2 (list item -> dict fields)
         flat_items = [{"id": 1, "name": "test"}]
@@ -1006,7 +1006,7 @@ class TestMediumPriorityToolSignatureFixes:
 
     def test_multiple_items_analyzed_for_structure(self):
         """MEDIUM FIX #13: Should analyze multiple items to get representative structure."""
-        from headroom.telemetry.models import ToolSignature
+        from copium.telemetry.models import ToolSignature
 
         # Items with varying structures
         varying_items = [
@@ -1029,7 +1029,7 @@ class TestMediumPriorityToolSignatureFixes:
 
     def test_id_pattern_word_boundary_matching(self):
         """MEDIUM FIX #14: ID pattern detection should use word boundaries."""
-        from headroom.telemetry.models import ToolSignature
+        from copium.telemetry.models import ToolSignature
 
         # Field named "id" should be detected as ID
         items_with_id = [{"id": "abc123", "data": "value"}]
@@ -1055,7 +1055,7 @@ class TestMediumPriorityToolSignatureFixes:
 
     def test_hash_uses_96_bits(self):
         """MEDIUM FIX #15: Hash should use 24 chars (96 bits) for collision resistance."""
-        from headroom.telemetry.models import ToolSignature
+        from copium.telemetry.models import ToolSignature
 
         items = [{"id": 1, "name": "test", "value": 42}]
         sig = ToolSignature.from_items(items)
@@ -1069,8 +1069,8 @@ class TestMediumPriorityTOINFixes:
 
     def test_query_pattern_frequency_tracking(self):
         """MEDIUM FIX #10: Query patterns should be ranked by frequency, not just recency."""
-        from headroom.telemetry.models import ToolSignature
-        from headroom.telemetry.toin import TOINConfig, ToolIntelligenceNetwork
+        from copium.telemetry.models import ToolSignature
+        from copium.telemetry.toin import TOINConfig, ToolIntelligenceNetwork
 
         toin = ToolIntelligenceNetwork(TOINConfig(enabled=True))
         sig = ToolSignature.from_items([{"id": 1, "status": "active"}])
@@ -1123,8 +1123,8 @@ class TestMediumPriorityTOINFixes:
 
     def test_common_queries_bounded(self):
         """Verify common_queries list is bounded."""
-        from headroom.telemetry.models import ToolSignature
-        from headroom.telemetry.toin import TOINConfig, ToolIntelligenceNetwork
+        from copium.telemetry.models import ToolSignature
+        from copium.telemetry.toin import TOINConfig, ToolIntelligenceNetwork
 
         toin = ToolIntelligenceNetwork(TOINConfig(enabled=True))
         sig = ToolSignature.from_items([{"id": 1}])
@@ -1158,7 +1158,7 @@ class TestLowPriorityFixes:
 
     def test_exists_does_not_delete_by_default(self):
         """LOW FIX #20: exists() should be a pure check by default."""
-        from headroom.cache.compression_store import CompressionStore
+        from copium.cache.compression_store import CompressionStore
 
         store = CompressionStore(default_ttl=1)  # 1 second TTL
 
@@ -1192,7 +1192,7 @@ class TestLowPriorityFixes:
 
     def test_toin_confidence_threshold_configurable(self):
         """LOW FIX #21: TOIN confidence threshold should be configurable."""
-        from headroom.config import SmartCrusherConfig
+        from copium.config import SmartCrusherConfig
 
         # Default value (lowered from 0.5 to 0.3 for faster TOIN learning)
         config = SmartCrusherConfig()
@@ -1204,8 +1204,8 @@ class TestLowPriorityFixes:
 
     def test_toin_metrics_callback(self):
         """LOW FIX #22: TOIN should emit metrics via callback."""
-        from headroom.telemetry.models import ToolSignature
-        from headroom.telemetry.toin import TOINConfig, ToolIntelligenceNetwork
+        from copium.telemetry.models import ToolSignature
+        from copium.telemetry.toin import TOINConfig, ToolIntelligenceNetwork
 
         metrics_events = []
 
@@ -1250,7 +1250,7 @@ class TestMediumPriorityCompressionStoreFixes:
         """MEDIUM FIX #16: Eviction heap should evict oldest entries first."""
         import time
 
-        from headroom.cache.compression_store import CompressionStore
+        from copium.cache.compression_store import CompressionStore
 
         # Small store to trigger eviction
         store = CompressionStore(max_entries=3)
@@ -1304,7 +1304,7 @@ class TestMediumPriorityCompressionStoreFixes:
 
     def test_get_retrieval_events_returns_copy(self):
         """MEDIUM FIX #17: get_retrieval_events should return a copy."""
-        from headroom.cache.compression_store import CompressionStore
+        from copium.cache.compression_store import CompressionStore
 
         store = CompressionStore()
 

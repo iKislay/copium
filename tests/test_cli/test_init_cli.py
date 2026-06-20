@@ -20,19 +20,19 @@ from click.testing import CliRunner
 
 
 def _load_init_module(monkeypatch):
-    monkeypatch.delitem(sys.modules, "headroom.cli.init", raising=False)
-    monkeypatch.delitem(sys.modules, "headroom.cli.main", raising=False)
-    fake_main_module = types.ModuleType("headroom.cli.main")
+    monkeypatch.delitem(sys.modules, "copium.cli.init", raising=False)
+    monkeypatch.delitem(sys.modules, "copium.cli.main", raising=False)
+    fake_main_module = types.ModuleType("copium.cli.main")
 
     @click.group()
     def fake_main() -> None:
         pass
 
     fake_main_module.main = fake_main
-    monkeypatch.setitem(sys.modules, "headroom.cli.main", fake_main_module)
+    monkeypatch.setitem(sys.modules, "copium.cli.main", fake_main_module)
     importlib.invalidate_caches()
-    init_cli = importlib.import_module("headroom.cli.init")
-    monkeypatch.delitem(sys.modules, "headroom.cli.init", raising=False)
+    init_cli = importlib.import_module("copium.cli.init")
+    monkeypatch.delitem(sys.modules, "copium.cli.init", raising=False)
     return init_cli, fake_main
 
 
@@ -52,7 +52,7 @@ def test_init_auto_detects_targets(monkeypatch) -> None:
 
 
 def test_init_fails_when_auto_detection_empty(monkeypatch) -> None:
-    """Bare ``headroom init`` with no agents on PATH prints a guided error.
+    """Bare ``copium init`` with no agents on PATH prints a guided error.
 
     Regression guard for issue #245: the error must list every target that
     was probed, confirm that -g / --global is a valid flag, and show the
@@ -73,7 +73,7 @@ def test_init_fails_when_auto_detection_empty(monkeypatch) -> None:
         assert target in result.output
     # The user is told that -g is still valid and given a concrete next step.
     assert "-g" in result.output
-    assert "headroom init -g claude" in result.output
+    assert "copium init -g claude" in result.output
 
 
 def test_format_empty_detection_error_local_scope(monkeypatch) -> None:
@@ -87,10 +87,10 @@ def test_format_empty_detection_error_local_scope(monkeypatch) -> None:
     assert "local-scope agents" in message
     assert "claude" in message and "codex" in message
     # Copilot / openclaw are global-only; must not be suggested for local.
-    assert "headroom init copilot" not in message
-    assert "headroom init openclaw" not in message
-    assert "headroom init claude" in message
-    assert "headroom init codex" in message
+    assert "copium init copilot" not in message
+    assert "copium init openclaw" not in message
+    assert "copium init claude" in message
+    assert "copium init codex" in message
 
 
 def test_format_empty_detection_error_reports_found_paths(monkeypatch, tmp_path) -> None:
@@ -112,7 +112,7 @@ def test_format_empty_detection_error_reports_found_paths(monkeypatch, tmp_path)
 
 
 def test_init_verbose_enables_debug_logging_on_stderr(monkeypatch) -> None:
-    """``headroom init -v`` should emit diagnostic lines to stderr.
+    """``copium init -v`` should emit diagnostic lines to stderr.
 
     Different Click 8.x versions expose stderr on ``CliRunner`` results
     differently (``mix_stderr`` was removed in 8.2, and ``result.stderr``
@@ -135,7 +135,7 @@ def test_init_verbose_enables_debug_logging_on_stderr(monkeypatch) -> None:
         stderr = result.output
 
     assert result.exit_code != 0, f"output: {result.output!r}"
-    assert "[headroom init]" in stderr
+    assert "[copium init]" in stderr
     assert "detect_init_targets" in stderr
     assert "global_scope=True" in stderr
     for target in ("claude", "codex", "copilot", "openclaw"):
@@ -226,7 +226,7 @@ def test_init_codex_creates_hooks_feature_flag_on_first_init(
 
     content = (tmp_path / ".codex" / "config.toml").read_text(encoding="utf-8")
     parsed = tomllib.loads(content)
-    assert parsed["model_provider"] == "headroom"
+    assert parsed["model_provider"] == "copium"
     assert parsed["features"]["hooks"] is True
     assert "codex_hooks" not in content
 
@@ -299,7 +299,7 @@ def test_init_openclaw_delegates_to_wrap(monkeypatch) -> None:
     class _Result:
         returncode = 0
 
-    monkeypatch.setattr(init_cli, "resolve_headroom_command", lambda: ["headroom"])
+    monkeypatch.setattr(init_cli, "resolve_copium_command", lambda: ["copium"])
     monkeypatch.setattr(
         init_cli.subprocess,
         "run",
@@ -308,7 +308,7 @@ def test_init_openclaw_delegates_to_wrap(monkeypatch) -> None:
 
     init_cli._init_openclaw(global_scope=True, port=9999)
 
-    assert calls == [["headroom", "wrap", "openclaw", "--proxy-port", "9999"]]
+    assert calls == [["copium", "wrap", "openclaw", "--proxy-port", "9999"]]
 
 
 def test_detect_init_targets_respects_scope(monkeypatch) -> None:
@@ -325,7 +325,7 @@ def test_detect_init_targets_respects_scope(monkeypatch) -> None:
 
 def test_marketplace_source_prefers_env_override(monkeypatch) -> None:
     init_cli, _ = _load_init_module(monkeypatch)
-    monkeypatch.setenv("HEADROOM_MARKETPLACE_SOURCE", "custom/source")
+    monkeypatch.setenv("COPIUM_MARKETPLACE_SOURCE", "custom/source")
 
     assert init_cli._marketplace_source() == "custom/source"
 
@@ -348,7 +348,7 @@ def test_command_string_and_matcher_on_windows(monkeypatch) -> None:
     monkeypatch.setattr(init_cli, "os", SimpleNamespace(name="nt"))
     monkeypatch.setattr(init_cli.subprocess, "list2cmdline", lambda parts: "joined-command")
 
-    assert init_cli._command_string(["headroom", "init"]) == "joined-command"
+    assert init_cli._command_string(["copium", "init"]) == "joined-command"
     assert init_cli._powershell_matcher() == "Bash|PowerShell"
 
 
@@ -358,10 +358,10 @@ def test_command_string_normalizes_backslashes_on_windows(monkeypatch) -> None:
     monkeypatch.setattr(init_cli, "os", SimpleNamespace(name="nt"))
 
     result = init_cli._command_string(
-        ["C:\\Users\\user\\.local\\bin\\headroom.exe", "init", "hook", "ensure"]
+        ["C:\\Users\\user\\.local\\bin\\copium.exe", "init", "hook", "ensure"]
     )
     assert "\\" not in result
-    assert "C:/Users/user/.local/bin/headroom.exe" in result
+    assert "C:/Users/user/.local/bin/copium.exe" in result
 
 
 def test_command_string_quotes_spaces_after_normalization(monkeypatch) -> None:
@@ -370,10 +370,10 @@ def test_command_string_quotes_spaces_after_normalization(monkeypatch) -> None:
     monkeypatch.setattr(init_cli, "os", SimpleNamespace(name="nt"))
 
     result = init_cli._command_string(
-        ["C:\\Program Files\\headroom\\headroom.exe", "init", "hook", "ensure"]
+        ["C:\\Program Files\\copium\\copium.exe", "init", "hook", "ensure"]
     )
     assert "\\" not in result
-    assert '"C:/Program Files/headroom/headroom.exe"' in result
+    assert '"C:/Program Files/copium/copium.exe"' in result
 
 
 def test_json_file_handles_missing_empty_and_non_mapping(monkeypatch, tmp_path: Path) -> None:
@@ -409,7 +409,7 @@ def test_ensure_claude_hooks_rewrites_existing_entries(monkeypatch, tmp_path: Pa
                             "hooks": [
                                 {
                                     "type": "command",
-                                    "command": "headroom init hook ensure --marker headroom-init-claude",
+                                    "command": "copium init hook ensure --marker copium-init-claude",
                                 }
                             ],
                         },
@@ -419,7 +419,7 @@ def test_ensure_claude_hooks_rewrites_existing_entries(monkeypatch, tmp_path: Pa
         ),
         encoding="utf-8",
     )
-    monkeypatch.setattr(init_cli, "_hook_command", lambda *parts: "headroom init hook ensure")
+    monkeypatch.setattr(init_cli, "_hook_command", lambda *parts: "copium init hook ensure")
 
     init_cli._ensure_claude_hooks(settings_path, "init-local-demo", 9001)
 
@@ -433,7 +433,7 @@ def test_ensure_claude_hooks_rewrites_existing_entries(monkeypatch, tmp_path: Pa
     assert session_entries[0] == "not-a-dict"
     assert session_entries[1] == {"hooks": "not-a-list"}
     assert session_entries[2]["hooks"][0]["command"] == "echo keep-me"
-    assert session_entries[-1]["hooks"][0]["command"].endswith("--marker headroom-init-claude")
+    assert session_entries[-1]["hooks"][0]["command"].endswith("--marker copium-init-claude")
 
 
 def test_ensure_copilot_hooks_replaces_existing_marker(monkeypatch, tmp_path: Path) -> None:
@@ -447,7 +447,7 @@ def test_ensure_copilot_hooks_replaces_existing_marker(monkeypatch, tmp_path: Pa
                         {"type": "command", "command": "echo keep"},
                         {
                             "type": "command",
-                            "command": "headroom init hook ensure --marker headroom-init-copilot",
+                            "command": "copium init hook ensure --marker copium-init-copilot",
                         },
                     ]
                 }
@@ -455,13 +455,13 @@ def test_ensure_copilot_hooks_replaces_existing_marker(monkeypatch, tmp_path: Pa
         ),
         encoding="utf-8",
     )
-    monkeypatch.setattr(init_cli, "_hook_command", lambda *parts: "headroom init hook ensure")
+    monkeypatch.setattr(init_cli, "_hook_command", lambda *parts: "copium init hook ensure")
 
     init_cli._ensure_copilot_hooks(config_path, "init-user")
 
     payload = json.loads(config_path.read_text(encoding="utf-8"))
     commands = [entry["command"] for entry in payload["hooks"]["SessionStart"]]
-    assert commands == ["echo keep", "headroom init hook ensure --marker headroom-init-copilot"]
+    assert commands == ["echo keep", "copium init hook ensure --marker copium-init-copilot"]
 
 
 def test_replace_marker_block_replaces_existing_block(monkeypatch) -> None:
@@ -497,7 +497,7 @@ def test_ensure_codex_provider_keeps_root_keys_above_existing_table(
 
     Appending the block after a trailing [features] table scoped model_provider
     under it, so Codex refused to start with
-    'invalid type: string "headroom", expected a boolean in features'.
+    'invalid type: string "copium", expected a boolean in features'.
     """
     init_cli, _ = _load_init_module(monkeypatch)
     path = tmp_path / "config.toml"
@@ -507,12 +507,12 @@ def test_ensure_codex_provider_keeps_root_keys_above_existing_table(
 
     parsed = tomllib.loads(path.read_text(encoding="utf-8"))
     # model_provider belongs at the document root, not under [features].
-    assert parsed["model_provider"] == "headroom"
+    assert parsed["model_provider"] == "copium"
     assert "model_provider" not in parsed["features"]
     assert "openai_base_url" not in parsed["features"]
     # The user's existing table is preserved.
     assert parsed["features"]["hooks"] is True
-    assert parsed["model_providers"]["headroom"]["base_url"] == "http://127.0.0.1:8787/v1"
+    assert parsed["model_providers"]["copium"]["base_url"] == "http://127.0.0.1:8787/v1"
 
 
 def test_ensure_codex_provider_replaces_existing_model_provider(
@@ -529,7 +529,7 @@ def test_ensure_codex_provider_replaces_existing_model_provider(
     init_cli._ensure_codex_provider(path, 8787)
 
     parsed = tomllib.loads(path.read_text(encoding="utf-8"))  # raises on a duplicate key
-    assert parsed["model_provider"] == "headroom"
+    assert parsed["model_provider"] == "copium"
     assert parsed["features"]["hooks"] is True
 
 
@@ -959,7 +959,7 @@ def test_resolve_copilot_env_supports_anthropic(monkeypatch) -> None:
 
 def test_marketplace_source_prefers_repo_checkout(monkeypatch) -> None:
     init_cli, _ = _load_init_module(monkeypatch)
-    monkeypatch.delenv("HEADROOM_MARKETPLACE_SOURCE", raising=False)
+    monkeypatch.delenv("COPIUM_MARKETPLACE_SOURCE", raising=False)
 
     assert init_cli._marketplace_source() == str(Path(init_cli.__file__).resolve().parents[2])
 
@@ -1002,7 +1002,7 @@ def test_install_claude_marketplace_runs_expected_commands(monkeypatch) -> None:
     assert calls == [
         (["claude", "plugin", "marketplace", "add", "repo/source"], "claude marketplace add"),
         (
-            ["claude", "plugin", "install", "headroom@headroom-marketplace", "--scope", "user"],
+            ["claude", "plugin", "install", "copium@copium-marketplace", "--scope", "user"],
             "claude plugin install",
         ),
     ]
@@ -1030,7 +1030,7 @@ def test_install_copilot_marketplace_runs_expected_commands(monkeypatch) -> None
     assert calls == [
         (["copilot", "plugin", "marketplace", "add", "repo/source"], "copilot marketplace add"),
         (
-            ["copilot", "plugin", "install", "headroom@headroom-marketplace"],
+            ["copilot", "plugin", "install", "copium@copium-marketplace"],
             "copilot plugin install",
         ),
     ]
@@ -1253,7 +1253,7 @@ def test_init_openclaw_propagates_nonzero_exit(monkeypatch) -> None:
     class _Result:
         returncode = 9
 
-    monkeypatch.setattr(init_cli, "resolve_headroom_command", lambda: ["headroom"])
+    monkeypatch.setattr(init_cli, "resolve_copium_command", lambda: ["copium"])
     monkeypatch.setattr(init_cli.subprocess, "run", lambda command: _Result())
 
     with pytest.raises(SystemExit) as exc:
@@ -1375,7 +1375,7 @@ def test_init_hook_ensure_uses_explicit_profile(monkeypatch) -> None:
 
 def test_init_codex_writes_openai_base_url(monkeypatch, tmp_path: Path) -> None:
     """_ensure_codex_provider must write openai_base_url at the top level so that
-    subscription (ChatGPT plan) users are routed through headroom even when the
+    subscription (ChatGPT plan) users are routed through copium even when the
     init entry point is used instead of wrap."""
     init_cli, _ = _load_init_module(monkeypatch)
     path = tmp_path / ".codex" / "config.toml"
@@ -1426,7 +1426,7 @@ def test_init_codex_strip_removes_openai_base_url(monkeypatch, tmp_path: Path) -
     orphan_content = (
         'model = "gpt-4o"\n'
         'openai_base_url = "http://127.0.0.1:8787/v1"\n'
-        'model_provider = "headroom"\n'
+        'model_provider = "copium"\n'
     )
     orphan_stripped = init_cli._strip_codex_init_block(orphan_content)
     assert "openai_base_url" not in orphan_stripped, (

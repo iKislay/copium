@@ -1,11 +1,11 @@
-"""Adversarial backward-compatibility stress tests for ``headroom.paths``.
+"""Adversarial backward-compatibility stress tests for ``copium.paths``.
 
 These three scenarios codify the cross-cutting guarantees the filesystem
 contract must honor so that issue-175 stays strictly additive:
 
-1. A legacy-only user (only ``HEADROOM_SAVINGS_PATH`` set) must keep getting
+1. A legacy-only user (only ``COPIUM_SAVINGS_PATH`` set) must keep getting
    their legacy path, byte-for-byte, with the new canonical vars unset.
-2. A canonical-only user (only ``HEADROOM_WORKSPACE_DIR`` set) must see every
+2. A canonical-only user (only ``COPIUM_WORKSPACE_DIR`` set) must see every
    workspace-bucket resource relocate under the new root with the correct
    filenames.
 3. A user who set both a legacy per-resource env var *and* the new canonical
@@ -19,16 +19,16 @@ from pathlib import Path
 
 import pytest
 
-from headroom import paths
+from copium import paths
 
 CANONICAL_ENV_VARS = (
-    paths.HEADROOM_CONFIG_DIR_ENV,
-    paths.HEADROOM_WORKSPACE_DIR_ENV,
+    paths.COPIUM_CONFIG_DIR_ENV,
+    paths.COPIUM_WORKSPACE_DIR_ENV,
 )
 LEGACY_ENV_VARS = (
-    paths.HEADROOM_SAVINGS_PATH_ENV,
-    paths.HEADROOM_TOIN_PATH_ENV,
-    paths.HEADROOM_SUBSCRIPTION_STATE_PATH_ENV,
+    paths.COPIUM_SAVINGS_PATH_ENV,
+    paths.COPIUM_TOIN_PATH_ENV,
+    paths.COPIUM_SUBSCRIPTION_STATE_PATH_ENV,
 )
 
 
@@ -51,13 +51,13 @@ def test_legacy_only_user_savings_unchanged(
 ) -> None:
     """Scenario 1: legacy-only user keeps byte-for-byte legacy semantics.
 
-    Only ``HEADROOM_SAVINGS_PATH`` is set. The canonical workspace/config
+    Only ``COPIUM_SAVINGS_PATH`` is set. The canonical workspace/config
     vars are unset. The helper must return the exact legacy value as
     supplied.
     """
 
     legacy_value = str(tmp_path / "oldstyle" / "savings.json")
-    clean_env.setenv(paths.HEADROOM_SAVINGS_PATH_ENV, legacy_value)
+    clean_env.setenv(paths.COPIUM_SAVINGS_PATH_ENV, legacy_value)
 
     # Byte-for-byte equality (after Path-roundtrip) — no silent rewriting.
     result = paths.savings_path()
@@ -65,8 +65,8 @@ def test_legacy_only_user_savings_unchanged(
     assert str(result) == legacy_value
 
     # The rest of the world is unaffected: defaults still flow through home.
-    assert paths.workspace_dir() == fake_home / ".headroom"
-    assert paths.config_dir() == fake_home / ".headroom" / "config"
+    assert paths.workspace_dir() == fake_home / ".copium"
+    assert paths.config_dir() == fake_home / ".copium" / "config"
 
 
 def test_canonical_only_user_workspace_bucket_relocates(
@@ -75,7 +75,7 @@ def test_canonical_only_user_workspace_bucket_relocates(
     """Scenario 2: canonical-only user sees every workspace resource move."""
 
     alt_ws = tmp_path / "mnt" / "alt"
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, str(alt_ws))
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, str(alt_ws))
 
     # Root + every workspace-bucket helper relocates with the correct name.
     assert paths.workspace_dir() == alt_ws
@@ -107,8 +107,8 @@ def test_both_set_legacy_wins_over_canonical(
 ) -> None:
     """Scenario 3: legacy per-resource env wins over canonical root env.
 
-    When both ``HEADROOM_SAVINGS_PATH=/old/...`` and
-    ``HEADROOM_WORKSPACE_DIR=/new/...`` are set, ``savings_path()`` must
+    When both ``COPIUM_SAVINGS_PATH=/old/...`` and
+    ``COPIUM_WORKSPACE_DIR=/new/...`` are set, ``savings_path()`` must
     return the legacy value. This is the core backward-compat guarantee:
     adding the canonical env var never quietly steals a user's existing
     override.
@@ -116,8 +116,8 @@ def test_both_set_legacy_wins_over_canonical(
 
     legacy = tmp_path / "old" / "savings.json"
     new_ws = tmp_path / "new" / "ws"
-    clean_env.setenv(paths.HEADROOM_SAVINGS_PATH_ENV, str(legacy))
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, str(new_ws))
+    clean_env.setenv(paths.COPIUM_SAVINGS_PATH_ENV, str(legacy))
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, str(new_ws))
 
     # Savings legacy wins.
     assert paths.savings_path() == legacy
@@ -139,10 +139,10 @@ def test_all_three_legacy_vars_win_simultaneously(
     sub_legacy = tmp_path / "sb.json"
     new_ws = tmp_path / "ws"
 
-    clean_env.setenv(paths.HEADROOM_WORKSPACE_DIR_ENV, str(new_ws))
-    clean_env.setenv(paths.HEADROOM_SAVINGS_PATH_ENV, str(savings_legacy))
-    clean_env.setenv(paths.HEADROOM_TOIN_PATH_ENV, str(toin_legacy))
-    clean_env.setenv(paths.HEADROOM_SUBSCRIPTION_STATE_PATH_ENV, str(sub_legacy))
+    clean_env.setenv(paths.COPIUM_WORKSPACE_DIR_ENV, str(new_ws))
+    clean_env.setenv(paths.COPIUM_SAVINGS_PATH_ENV, str(savings_legacy))
+    clean_env.setenv(paths.COPIUM_TOIN_PATH_ENV, str(toin_legacy))
+    clean_env.setenv(paths.COPIUM_SUBSCRIPTION_STATE_PATH_ENV, str(sub_legacy))
 
     assert paths.savings_path() == savings_legacy
     assert paths.toin_path() == toin_legacy

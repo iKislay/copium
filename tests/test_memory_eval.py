@@ -1,7 +1,7 @@
 """Tests for the memory evaluation framework."""
 
-from headroom.evals.memory.judge import _parse_judge_response, simple_judge
-from headroom.evals.memory.locomo import (
+from copium.evals.memory.judge import _parse_judge_response, simple_judge
+from copium.evals.memory.locomo import (
     LOCOMO_CATEGORIES,
     DialogueTurn,
     LoCoMoCase,
@@ -216,7 +216,7 @@ class TestMemoryEvalConfig:
 
     def test_default_config(self):
         """Test default configuration."""
-        from headroom.evals.memory import MemoryEvalConfig
+        from copium.evals.memory import MemoryEvalConfig
 
         config = MemoryEvalConfig()
 
@@ -228,7 +228,7 @@ class TestMemoryEvalConfig:
 
     def test_custom_config(self):
         """Test custom configuration."""
-        from headroom.evals.memory import MemoryEvalConfig
+        from copium.evals.memory import MemoryEvalConfig
 
         config = MemoryEvalConfig(
             n_conversations=5,
@@ -250,7 +250,7 @@ class TestMemoryEvalResult:
 
     def test_eval_result_to_dict(self):
         """Test result serialization."""
-        from headroom.evals.memory.runner import MemoryEvalResult
+        from copium.evals.memory.runner import MemoryEvalResult
 
         case = LoCoMoCase(
             question="What color?",
@@ -279,7 +279,7 @@ class TestMemoryEvalResult:
 
     def test_suite_result_summary(self):
         """Test suite result summary generation."""
-        from headroom.evals.memory.runner import MemoryEvalSuiteResult
+        from copium.evals.memory.runner import MemoryEvalSuiteResult
 
         suite_result = MemoryEvalSuiteResult(
             total_cases=100,

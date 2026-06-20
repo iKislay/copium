@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from headroom.transforms.content_detector import (
+from copium.transforms.content_detector import (
     ContentType,
     _try_detect_code,
     _try_detect_diff,
@@ -11,7 +11,7 @@ from headroom.transforms.content_detector import (
     detect_content_type,
     is_json_array_of_dicts,
 )
-from headroom.transforms.error_detection import (
+from copium.transforms.error_detection import (
     ERROR_INDICATOR_KEYWORDS,
     ERROR_KEYWORDS,
     ERROR_PATTERN,

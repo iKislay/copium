@@ -1,8 +1,8 @@
-"""Tests for ``headroom.proxy.helpers.compute_turn_id``."""
+"""Tests for ``copium.proxy.helpers.compute_turn_id``."""
 
 from __future__ import annotations
 
-from headroom.proxy.helpers import compute_turn_id
+from copium.proxy.helpers import compute_turn_id
 
 MODEL = "claude-sonnet-4-5"
 SYSTEM = "You are helpful."

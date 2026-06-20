@@ -1,4 +1,4 @@
-# Headroom SDK: A Complete Explanation
+# Copium SDK: A Complete Explanation
 
 ## Architecture Overview
 
@@ -6,7 +6,7 @@
 flowchart TB
     subgraph Entry["Entry Points"]
         Proxy["Proxy Mode<br/><i>Zero code changes</i>"]
-        SDK["SDK Mode<br/><i>HeadroomClient</i>"]
+        SDK["SDK Mode<br/><i>CopiumClient</i>"]
         Integrations["Integrations<br/><i>LangChain / Agno</i>"]
     end
 
@@ -46,7 +46,7 @@ flowchart TB
 
 ---
 
-## What Problem Does Headroom Solve?
+## What Problem Does Copium Solve?
 
 When you use AI models like GPT-4 or Claude, you pay for **tokens** - the pieces of text you send (input) and receive (output). The problem is:
 
@@ -55,11 +55,11 @@ When you use AI models like GPT-4 or Claude, you pay for **tokens** - the pieces
 3. **You're paying for waste**: Every token costs money and adds latency
 4. **Context windows fill up**: Models have limits (128K tokens), and bloated tool outputs eat into your available space
 
-**Headroom creates "headroom"** - it intelligently compresses your input tokens so you have more room (and budget) for what matters.
+**Copium creates "copium"** - it intelligently compresses your input tokens so you have more room (and budget) for what matters.
 
 ---
 
-## How Headroom Works: The Big Picture
+## How Copium Works: The Big Picture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -68,7 +68,7 @@ When you use AI models like GPT-4 or Claude, you pay for **tokens** - the pieces
                                │
                                ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                      HEADROOM CLIENT                             │
+│                      COPIUM CLIENT                             │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
 │  │   ANALYZE   │→ │  TRANSFORM  │→ │    CALL     │             │
 │  │  (Parser)   │  │  (Pipeline) │  │   (API)     │             │
@@ -89,7 +89,7 @@ When you use AI models like GPT-4 or Claude, you pay for **tokens** - the pieces
 
 ## The Core Components (In Simple Terms)
 
-### 1. HeadroomClient (`client.py`) - The Wrapper
+### 1. CopiumClient (`client.py`) - The Wrapper
 
 This is what you interact with. It wraps your existing OpenAI or Anthropic client:
 
@@ -98,9 +98,9 @@ This is what you interact with. It wraps your existing OpenAI or Anthropic clien
 client = OpenAI(api_key="...")
 response = client.chat.completions.create(model="gpt-4o", messages=[...])
 
-# After (with Headroom)
+# After (with Copium)
 base = OpenAI(api_key="...")
-client = HeadroomClient(original_client=base, provider=OpenAIProvider())
+client = CopiumClient(original_client=base, provider=OpenAIProvider())
 response = client.chat.completions.create(model="gpt-4o", messages=[...])
 ```
 
@@ -133,13 +133,13 @@ class AnthropicProvider:
     # Different pricing structure
 ```
 
-**Why this matters:** Token counting is model-specific. GPT-4 uses different tokenization than Claude. Headroom needs accurate counts to know how much to compress.
+**Why this matters:** Token counting is model-specific. GPT-4 uses different tokenization than Claude. Copium needs accurate counts to know how much to compress.
 
 ---
 
 ### 3. Parser (`parser.py`) - Understanding Your Messages
 
-Before optimizing, Headroom needs to understand what's in your messages:
+Before optimizing, Copium needs to understand what's in your messages:
 
 ```python
 messages = [
@@ -168,7 +168,7 @@ blocks = [
 
 ### 4. Transforms (`transforms/`) - The Compression Magic
 
-This is where the real work happens. Headroom has 4 transforms that run in sequence:
+This is where the real work happens. Copium has 4 transforms that run in sequence:
 
 #### Transform 1: Cache Aligner
 
@@ -221,8 +221,8 @@ analysis = {
 
 # Smart compression:
 {
-    "__headroom_constants": {"host": "prod-1"},  # Factor out
-    "__headroom_summary": "items 0-44: cpu stable at ~45",  # Summarize boring part
+    "__copium_constants": {"host": "prod-1"},  # Factor out
+    "__copium_summary": "items 0-44: cpu stable at ~45",  # Summarize boring part
     "data": [
         {"ts": 45, "cpu": 92},  # Keep the spike!
         {"ts": 46, "cpu": 95},
@@ -245,11 +245,11 @@ analysis = {
 
 The proxy ships an opt-in ML compression path backed by **Kompress**
 (ModernBERT-based token classifier). Install with `pip install
-'headroom-ai[ml]'`; see `wiki/transforms.md` for current configuration.
+'copium-ai[ml]'`; see `wiki/transforms.md` for current configuration.
 
 **Note:** The earlier LLMLingua-2 integration (`--llmlingua` flag, the
-`headroom-ai[llmlingua]` extra, and the `LLMLinguaCompressor` class) was
-retired and replaced by Kompress. `pip install 'headroom-ai[llmlingua]'`
+`copium-ai[llmlingua]` extra, and the `LLMLinguaCompressor` class) was
+retired and replaced by Kompress. `pip install 'copium-ai[llmlingua]'`
 no longer resolves; use `[ml]` instead.
 
 ---
@@ -344,8 +344,8 @@ CREATE TABLE requests (
     timestamp TEXT,
     model TEXT,
     mode TEXT,  -- audit or optimize
-    tokens_input_before INTEGER,  -- Before Headroom
-    tokens_input_after INTEGER,   -- After Headroom
+    tokens_input_before INTEGER,  -- Before Copium
+    tokens_input_after INTEGER,   -- After Copium
     tokens_saved INTEGER,         -- The win!
     transforms_applied TEXT,      -- What we did
     ...
@@ -374,11 +374,11 @@ response = client.chat.completions.create(
         {"role": "tool", "content": "{60 metric points...}"},  # 5000 tokens!
         {"role": "user", "content": "What's wrong?"},
     ],
-    headroom_mode="optimize",
+    copium_mode="optimize",
 )
 ```
 
-### Step 2: HeadroomClient intercepts
+### Step 2: CopiumClient intercepts
 ```python
 # In client.py:
 def _create(self, messages, ...):
@@ -404,7 +404,7 @@ def apply(self, messages, ...):
     # - Compresses to 17 points (preserving spike)
     # - Factors out constant "host" field
 
-    # Transform 3: Kompress ML compressor (opt-in via headroom-ai[ml])
+    # Transform 3: Kompress ML compressor (opt-in via copium-ai[ml])
     # - ModernBERT-based compression on remaining long text
     # - Auto-detects content type for optimal rate
     # - Stores original in CCR for retrieval
@@ -525,7 +525,7 @@ def compress(items, analysis):
                          │
                          ▼
 ┌──────────────────────────────────────────────────────────────────┐
-│  HEADROOM CCR LAYER                                               │
+│  COPIUM CCR LAYER                                               │
 │                                                                   │
 │  1. COMPRESS: Keep 20 items (errors, anomalies, relevant)        │
 │  2. CACHE: Store full 1000 items in fast local cache             │
@@ -557,7 +557,7 @@ def compress(items, analysis):
 
 ### CCR Phase 1: Compression Store
 
-**Location:** `headroom/cache/compression_store.py`
+**Location:** `copium/cache/compression_store.py`
 
 When SmartCrusher compresses, the original content is stored for on-demand retrieval:
 
@@ -643,7 +643,7 @@ results = store.search(hash_key, "user query")
 
 ### CCR Phase 3: Tool Injection
 
-When compression happens, Headroom injects retrieval instructions into the LLM context.
+When compression happens, Copium injects retrieval instructions into the LLM context.
 
 **Method A: System Message Injection**
 ```
@@ -655,11 +655,11 @@ Available: hash=abc123 (1000→20 items from search_api)
 ```
 
 **Method B: MCP Tool Registration (Hybrid)**
-When running as MCP server, Headroom exposes retrieval as a tool:
+When running as MCP server, Copium exposes retrieval as a tool:
 
 ```json
 {
-    "name": "headroom_retrieve",
+    "name": "copium_retrieve",
     "description": "Retrieve more items from compressed tool output",
     "inputSchema": {
         "type": "object",
@@ -675,9 +675,9 @@ When running as MCP server, Headroom exposes retrieval as a tool:
 Compressed content includes retrieval markers:
 ```json
 {
-    "__headroom_compressed": true,
-    "__headroom_hash": "abc123def456",
-    "__headroom_stats": {
+    "__copium_compressed": true,
+    "__copium_hash": "abc123def456",
+    "__copium_stats": {
         "original_items": 1000,
         "kept_items": 20,
         "errors_preserved": 5
@@ -690,7 +690,7 @@ Compressed content includes retrieval markers:
 
 ### CCR Phase 4: Feedback Loop
 
-**Location:** `headroom/cache/compression_feedback.py`
+**Location:** `copium/cache/compression_feedback.py`
 
 The feedback system learns from retrieval patterns to improve future compression.
 
@@ -772,9 +772,9 @@ if self.config.use_feedback_hints and tool_name:
 
 ### CCR Phase 5: Response Handler (Automatic Tool Call Handling)
 
-**Location:** `headroom/ccr/response_handler.py`
+**Location:** `copium/ccr/response_handler.py`
 
-**The Problem:** When the proxy injects the `headroom_retrieve` tool, the LLM might call it. But who handles that tool call? Without response handling, the tool call would go back to the client unhandled.
+**The Problem:** When the proxy injects the `copium_retrieve` tool, the LLM might call it. But who handles that tool call? Without response handling, the tool call would go back to the client unhandled.
 
 **The Solution:** The Response Handler intercepts LLM responses, detects CCR tool calls, executes retrievals automatically, and continues the conversation until the LLM produces a final response.
 
@@ -783,7 +783,7 @@ if self.config.use_feedback_hints and tool_name:
 │  RESPONSE HANDLER FLOW                                           │
 │                                                                   │
 │  1. LLM Response arrives                                         │
-│     └─ Contains: tool_use(headroom_retrieve, hash=abc123)       │
+│     └─ Contains: tool_use(copium_retrieve, hash=abc123)       │
 │                                                                   │
 │  2. Handler detects CCR tool call                                │
 │     └─ Extracts hash and optional query                         │
@@ -852,7 +852,7 @@ class StreamingCCRHandler:
 
 ### CCR Phase 6: Context Tracker (Multi-Turn Awareness)
 
-**Location:** `headroom/ccr/context_tracker.py`
+**Location:** `copium/ccr/context_tracker.py`
 
 **The Problem:** In multi-turn conversations, earlier compressed data might become relevant later. Without tracking, the LLM has "context amnesia" - it can't reference data that was compressed in turn 1 when answering a question in turn 5.
 
@@ -949,7 +949,7 @@ class ContextTrackerConfig:
 
 ## Image Compression Architecture
 
-Vision models charge by the token, and images are expensive (765-2900 tokens for a typical image). Headroom's image compression uses a **trained ML router** to automatically select the optimal compression technique.
+Vision models charge by the token, and images are expensive (765-2900 tokens for a typical image). Copium's image compression uses a **trained ML router** to automatically select the optimal compression technique.
 
 ### The Key Insight
 
@@ -1032,7 +1032,7 @@ This ensures images are compressed first, then text compression (CCR, SmartCrush
 ### Code Location
 
 ```
-headroom/
+copium/
 ├── image/
 │   ├── __init__.py         # Public API
 │   ├── compressor.py       # ImageCompressor class
@@ -1046,9 +1046,9 @@ headroom/
 ## File Structure Explained
 
 ```
-headroom/
+copium/
 ├── __init__.py          # Public exports
-├── client.py            # HeadroomClient - the main wrapper
+├── client.py            # CopiumClient - the main wrapper
 ├── config.py            # All configuration dataclasses
 ├── parser.py            # Message → Block decomposition
 ├── tokenizer.py         # Token counting abstraction
@@ -1142,7 +1142,7 @@ This means:
 ## What Makes This Different?
 
 ### vs. Summarization (LLM-based compression)
-| Headroom | Summarization |
+| Copium | Summarization |
 |----------|---------------|
 | Deterministic | Non-deterministic |
 | ~10ms overhead | ~2-5 seconds overhead |
@@ -1151,7 +1151,7 @@ This means:
 | Can't hallucinate | Can hallucinate |
 
 ### vs. Simple Truncation
-| Headroom | Truncation |
+| Copium | Truncation |
 |----------|------------|
 | Keeps important data | Loses end of data |
 | Statistical analysis | No analysis |
@@ -1178,7 +1178,7 @@ The model could still:
 
 ## Summary
 
-**Headroom is a Context Budget Controller that:**
+**Copium is a Context Budget Controller that:**
 
 1. **Wraps** your existing LLM client
 2. **Analyzes** your messages to find waste

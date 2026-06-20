@@ -7,8 +7,8 @@ from unittest.mock import AsyncMock, call, patch
 import httpx
 from fastapi.testclient import TestClient
 
-from headroom.pipeline import PipelineStage
-from headroom.proxy.server import ProxyConfig, create_app
+from copium.pipeline import PipelineStage
+from copium.proxy.server import ProxyConfig, create_app
 
 
 class _RecordingExtension:
@@ -30,7 +30,7 @@ class _DummyTokenizer:
 def _assert_compressed_event_carries_originals(events: list) -> None:
     """INPUT_COMPRESSED must expose the pre-compression messages to extensions.
 
-    The probe recorder (headroom.proxy.probe_recorder) depends on this
+    The probe recorder (copium.proxy.probe_recorder) depends on this
     metadata contract; dropping it silently disables session recording.
     """
     compressed = [event for event in events if event.stage is PipelineStage.INPUT_COMPRESSED]
@@ -80,8 +80,8 @@ def test_proxy_shutdown_unloads_image_models() -> None:
 
     quota_registry = SimpleNamespace(stop_all=AsyncMock())
     with (
-        patch("headroom.proxy.server.get_quota_registry", return_value=quota_registry),
-        patch("headroom.models.ml_models.MLModelRegistry.unload_prefix") as unload_prefix,
+        patch("copium.proxy.server.get_quota_registry", return_value=quota_registry),
+        patch("copium.models.ml_models.MLModelRegistry.unload_prefix") as unload_prefix,
     ):
         asyncio.run(proxy.shutdown())
 
@@ -128,7 +128,7 @@ def test_openai_chat_pipeline_events_cover_proxy_lifecycle(monkeypatch) -> None:
             has_memory_tool_calls=lambda response, provider: False,
         )
 
-        monkeypatch.setattr("headroom.tokenizers.get_tokenizer", lambda model: _DummyTokenizer())
+        monkeypatch.setattr("copium.tokenizers.get_tokenizer", lambda model: _DummyTokenizer())
 
         async def _fake_retry(method, url, headers, body, stream=False, **kwargs):  # noqa: ANN001
             return httpx.Response(
@@ -145,7 +145,7 @@ def test_openai_chat_pipeline_events_cover_proxy_lifecycle(monkeypatch) -> None:
 
         response = client.post(
             "/v1/chat/completions",
-            headers={"Authorization": "Bearer sk-test", "x-headroom-user-id": "user-1"},
+            headers={"Authorization": "Bearer sk-test", "x-copium-user-id": "user-1"},
             json={
                 "model": "gpt-5.4",
                 "messages": [{"role": "user", "content": "hello"}],
@@ -194,7 +194,7 @@ def test_anthropic_messages_pipeline_events_cover_proxy_lifecycle(monkeypatch) -
             has_memory_tool_calls=lambda response, provider: False,
         )
 
-        monkeypatch.setattr("headroom.tokenizers.get_tokenizer", lambda model: _DummyTokenizer())
+        monkeypatch.setattr("copium.tokenizers.get_tokenizer", lambda model: _DummyTokenizer())
 
         async def _fake_retry(method, url, headers, body, stream=False, **kwargs):  # noqa: ANN001
             return httpx.Response(
@@ -220,7 +220,7 @@ def test_anthropic_messages_pipeline_events_cover_proxy_lifecycle(monkeypatch) -
             headers={
                 "x-api-key": "test-key",
                 "anthropic-version": "2023-06-01",
-                "x-headroom-user-id": "user-1",
+                "x-copium-user-id": "user-1",
             },
             json={
                 "model": "claude-sonnet-4-6",

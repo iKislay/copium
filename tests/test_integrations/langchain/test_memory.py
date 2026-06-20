@@ -1,7 +1,7 @@
 """Tests for LangChain memory integration with automatic compression.
 
 Tests cover:
-1. HeadroomChatMessageHistory - Wrapper for chat message history with compression
+1. CopiumChatMessageHistory - Wrapper for chat message history with compression
 2. Message conversion to/from OpenAI format
 3. Rolling window compression behavior
 4. Token counting and threshold detection
@@ -60,15 +60,15 @@ def sample_langchain_messages():
     ]
 
 
-class TestHeadroomChatMessageHistoryInit:
-    """Tests for HeadroomChatMessageHistory initialization."""
+class TestCopiumChatMessageHistoryInit:
+    """Tests for CopiumChatMessageHistory initialization."""
 
     def test_init_defaults(self, mock_base_history):
         """Initialize with default settings."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
-        with patch("headroom.integrations.langchain.memory.OpenAIProvider"):
-            history = HeadroomChatMessageHistory(mock_base_history)
+        with patch("copium.integrations.langchain.memory.OpenAIProvider"):
+            history = CopiumChatMessageHistory(mock_base_history)
 
             assert history._base is mock_base_history
             assert history._threshold == 4000
@@ -79,9 +79,9 @@ class TestHeadroomChatMessageHistoryInit:
 
     def test_init_custom_threshold(self, mock_base_history, mock_provider):
         """Initialize with custom compression threshold."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
-        history = HeadroomChatMessageHistory(
+        history = CopiumChatMessageHistory(
             mock_base_history,
             compress_threshold_tokens=8000,
             keep_recent_turns=10,
@@ -95,16 +95,16 @@ class TestHeadroomChatMessageHistoryInit:
         assert history._provider is mock_provider
 
 
-class TestHeadroomChatMessageHistoryMessages:
+class TestCopiumChatMessageHistoryMessages:
     """Tests for message access and compression."""
 
     def test_messages_returns_empty_when_no_messages(self, mock_base_history, mock_provider):
         """messages property returns empty list when no messages."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
         mock_base_history.messages = []
 
-        history = HeadroomChatMessageHistory(mock_base_history, provider=mock_provider)
+        history = CopiumChatMessageHistory(mock_base_history, provider=mock_provider)
         messages = history.messages
 
         assert messages == []
@@ -113,11 +113,11 @@ class TestHeadroomChatMessageHistoryMessages:
         self, mock_base_history, mock_provider, sample_langchain_messages
     ):
         """messages returns uncompressed when below token threshold."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
         mock_base_history.messages = sample_langchain_messages
 
-        history = HeadroomChatMessageHistory(
+        history = CopiumChatMessageHistory(
             mock_base_history,
             compress_threshold_tokens=10000,  # High threshold
             provider=mock_provider,
@@ -131,7 +131,7 @@ class TestHeadroomChatMessageHistoryMessages:
 
     def test_messages_compresses_when_over_threshold(self, mock_base_history, mock_provider):
         """messages applies compression when over token threshold."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
         # Create messages that exceed threshold
         mock_base_history.messages = [
@@ -140,7 +140,7 @@ class TestHeadroomChatMessageHistoryMessages:
             AIMessage(content="Assistant " * 100),
         ]
 
-        history = HeadroomChatMessageHistory(
+        history = CopiumChatMessageHistory(
             mock_base_history,
             compress_threshold_tokens=10,  # Very low threshold
             provider=mock_provider,
@@ -159,7 +159,7 @@ class TestHeadroomChatMessageHistoryMessages:
 
     def test_messages_tracks_tokens_saved(self, mock_base_history, mock_provider):
         """Compression tracks tokens saved."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
         # Create messages that exceed threshold
         mock_base_history.messages = [
@@ -167,7 +167,7 @@ class TestHeadroomChatMessageHistoryMessages:
             HumanMessage(content="Word " * 50),
         ]
 
-        history = HeadroomChatMessageHistory(
+        history = CopiumChatMessageHistory(
             mock_base_history,
             compress_threshold_tokens=10,  # Very low threshold
             provider=mock_provider,
@@ -185,14 +185,14 @@ class TestHeadroomChatMessageHistoryMessages:
             assert history._total_tokens_saved > 0
 
 
-class TestHeadroomChatMessageHistoryAddMessage:
+class TestCopiumChatMessageHistoryAddMessage:
     """Tests for add_message methods."""
 
     def test_add_message(self, mock_base_history, mock_provider):
         """add_message delegates to base history."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
-        history = HeadroomChatMessageHistory(mock_base_history, provider=mock_provider)
+        history = CopiumChatMessageHistory(mock_base_history, provider=mock_provider)
 
         msg = HumanMessage(content="Hello")
         history.add_message(msg)
@@ -201,9 +201,9 @@ class TestHeadroomChatMessageHistoryAddMessage:
 
     def test_add_user_message(self, mock_base_history, mock_provider):
         """add_user_message delegates to base history."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
-        history = HeadroomChatMessageHistory(mock_base_history, provider=mock_provider)
+        history = CopiumChatMessageHistory(mock_base_history, provider=mock_provider)
 
         history.add_user_message("Hello")
 
@@ -211,9 +211,9 @@ class TestHeadroomChatMessageHistoryAddMessage:
 
     def test_add_ai_message(self, mock_base_history, mock_provider):
         """add_ai_message delegates to base history."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
-        history = HeadroomChatMessageHistory(mock_base_history, provider=mock_provider)
+        history = CopiumChatMessageHistory(mock_base_history, provider=mock_provider)
 
         history.add_ai_message("Response")
 
@@ -221,23 +221,23 @@ class TestHeadroomChatMessageHistoryAddMessage:
 
     def test_clear(self, mock_base_history, mock_provider):
         """clear delegates to base history."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
-        history = HeadroomChatMessageHistory(mock_base_history, provider=mock_provider)
+        history = CopiumChatMessageHistory(mock_base_history, provider=mock_provider)
 
         history.clear()
 
         mock_base_history.clear.assert_called_once()
 
 
-class TestHeadroomChatMessageHistoryConversion:
+class TestCopiumChatMessageHistoryConversion:
     """Tests for message format conversion."""
 
     def test_convert_to_openai_system_message(self, mock_base_history, mock_provider):
         """Convert SystemMessage to OpenAI format."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
-        history = HeadroomChatMessageHistory(mock_base_history, provider=mock_provider)
+        history = CopiumChatMessageHistory(mock_base_history, provider=mock_provider)
 
         messages = [SystemMessage(content="You are helpful.")]
         result = history._convert_to_openai(messages)
@@ -248,9 +248,9 @@ class TestHeadroomChatMessageHistoryConversion:
 
     def test_convert_to_openai_human_message(self, mock_base_history, mock_provider):
         """Convert HumanMessage to OpenAI format."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
-        history = HeadroomChatMessageHistory(mock_base_history, provider=mock_provider)
+        history = CopiumChatMessageHistory(mock_base_history, provider=mock_provider)
 
         messages = [HumanMessage(content="Hello")]
         result = history._convert_to_openai(messages)
@@ -260,9 +260,9 @@ class TestHeadroomChatMessageHistoryConversion:
 
     def test_convert_to_openai_ai_message(self, mock_base_history, mock_provider):
         """Convert AIMessage to OpenAI format."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
-        history = HeadroomChatMessageHistory(mock_base_history, provider=mock_provider)
+        history = CopiumChatMessageHistory(mock_base_history, provider=mock_provider)
 
         messages = [AIMessage(content="I can help.")]
         result = history._convert_to_openai(messages)
@@ -272,9 +272,9 @@ class TestHeadroomChatMessageHistoryConversion:
 
     def test_convert_to_openai_ai_message_with_tool_calls(self, mock_base_history, mock_provider):
         """Convert AIMessage with tool_calls to OpenAI format."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
-        history = HeadroomChatMessageHistory(mock_base_history, provider=mock_provider)
+        history = CopiumChatMessageHistory(mock_base_history, provider=mock_provider)
 
         messages = [
             AIMessage(
@@ -290,9 +290,9 @@ class TestHeadroomChatMessageHistoryConversion:
 
     def test_convert_to_openai_tool_message(self, mock_base_history, mock_provider):
         """Convert ToolMessage to OpenAI format."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
-        history = HeadroomChatMessageHistory(mock_base_history, provider=mock_provider)
+        history = CopiumChatMessageHistory(mock_base_history, provider=mock_provider)
 
         messages = [ToolMessage(content='{"result": "data"}', tool_call_id="call_1")]
         result = history._convert_to_openai(messages)
@@ -303,9 +303,9 @@ class TestHeadroomChatMessageHistoryConversion:
 
     def test_convert_from_openai_system(self, mock_base_history, mock_provider):
         """Convert OpenAI system message back to LangChain."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
-        history = HeadroomChatMessageHistory(mock_base_history, provider=mock_provider)
+        history = CopiumChatMessageHistory(mock_base_history, provider=mock_provider)
 
         openai_msgs = [{"role": "system", "content": "System prompt"}]
         result = history._convert_from_openai(openai_msgs)
@@ -316,9 +316,9 @@ class TestHeadroomChatMessageHistoryConversion:
 
     def test_convert_from_openai_user(self, mock_base_history, mock_provider):
         """Convert OpenAI user message back to LangChain."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
-        history = HeadroomChatMessageHistory(mock_base_history, provider=mock_provider)
+        history = CopiumChatMessageHistory(mock_base_history, provider=mock_provider)
 
         openai_msgs = [{"role": "user", "content": "Hello"}]
         result = history._convert_from_openai(openai_msgs)
@@ -328,9 +328,9 @@ class TestHeadroomChatMessageHistoryConversion:
 
     def test_convert_from_openai_assistant(self, mock_base_history, mock_provider):
         """Convert OpenAI assistant message back to LangChain."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
-        history = HeadroomChatMessageHistory(mock_base_history, provider=mock_provider)
+        history = CopiumChatMessageHistory(mock_base_history, provider=mock_provider)
 
         openai_msgs = [{"role": "assistant", "content": "Response"}]
         result = history._convert_from_openai(openai_msgs)
@@ -340,9 +340,9 @@ class TestHeadroomChatMessageHistoryConversion:
 
     def test_convert_from_openai_assistant_with_tool_calls(self, mock_base_history, mock_provider):
         """Convert OpenAI assistant message with tool_calls back to LangChain."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
-        history = HeadroomChatMessageHistory(mock_base_history, provider=mock_provider)
+        history = CopiumChatMessageHistory(mock_base_history, provider=mock_provider)
 
         openai_msgs = [
             {
@@ -362,9 +362,9 @@ class TestHeadroomChatMessageHistoryConversion:
 
     def test_convert_from_openai_tool(self, mock_base_history, mock_provider):
         """Convert OpenAI tool message back to LangChain."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
-        history = HeadroomChatMessageHistory(mock_base_history, provider=mock_provider)
+        history = CopiumChatMessageHistory(mock_base_history, provider=mock_provider)
 
         openai_msgs = [{"role": "tool", "tool_call_id": "call_1", "content": '{"data": 1}'}]
         result = history._convert_from_openai(openai_msgs)
@@ -374,14 +374,14 @@ class TestHeadroomChatMessageHistoryConversion:
         assert result[0].content == '{"data": 1}'
 
 
-class TestHeadroomChatMessageHistoryTokenCounting:
+class TestCopiumChatMessageHistoryTokenCounting:
     """Tests for token counting."""
 
     def test_count_tokens(self, mock_base_history, mock_provider):
         """Count tokens using provider's tokenizer."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
-        history = HeadroomChatMessageHistory(
+        history = CopiumChatMessageHistory(
             mock_base_history,
             provider=mock_provider,
             model="gpt-4o",
@@ -399,14 +399,14 @@ class TestHeadroomChatMessageHistoryTokenCounting:
         mock_provider.get_token_counter.assert_called_with("gpt-4o")
 
 
-class TestHeadroomChatMessageHistoryStats:
+class TestCopiumChatMessageHistoryStats:
     """Tests for compression statistics."""
 
     def test_get_compression_stats_initial(self, mock_base_history, mock_provider):
         """Get initial compression stats."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
-        history = HeadroomChatMessageHistory(
+        history = CopiumChatMessageHistory(
             mock_base_history,
             compress_threshold_tokens=4000,
             keep_recent_turns=5,
@@ -422,14 +422,14 @@ class TestHeadroomChatMessageHistoryStats:
 
     def test_get_compression_stats_after_compression(self, mock_base_history, mock_provider):
         """Get compression stats after compression."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
         mock_base_history.messages = [
             SystemMessage(content="Word " * 100),
             HumanMessage(content="Word " * 100),
         ]
 
-        history = HeadroomChatMessageHistory(
+        history = CopiumChatMessageHistory(
             mock_base_history,
             compress_threshold_tokens=10,
             provider=mock_provider,
@@ -447,14 +447,14 @@ class TestHeadroomChatMessageHistoryStats:
         assert stats["total_tokens_saved"] > 0
 
 
-class TestHeadroomChatMessageHistoryCompression:
+class TestCopiumChatMessageHistoryCompression:
     """Tests for rolling window compression."""
 
     def test_apply_compression_calls_pipeline(self, mock_base_history, mock_provider):
         """_apply_compression uses TransformPipeline."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
-        history = HeadroomChatMessageHistory(
+        history = CopiumChatMessageHistory(
             mock_base_history,
             compress_threshold_tokens=1000,
             keep_recent_turns=5,
@@ -466,7 +466,7 @@ class TestHeadroomChatMessageHistoryCompression:
             AIMessage(content="Hi there"),
         ]
 
-        with patch("headroom.integrations.langchain.memory.TransformPipeline") as MockPipeline:
+        with patch("copium.integrations.langchain.memory.TransformPipeline") as MockPipeline:
             mock_instance = MagicMock()
             mock_result = MagicMock()
             mock_result.messages = [
@@ -490,7 +490,7 @@ class TestLangChainNotAvailable:
 
     def test_check_raises_import_error(self):
         """_check_langchain_available raises ImportError when not available."""
-        from headroom.integrations.langchain.memory import _check_langchain_available
+        from copium.integrations.langchain.memory import _check_langchain_available
 
         # When LangChain IS available, should not raise
         try:

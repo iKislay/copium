@@ -2,12 +2,12 @@
 set -euo pipefail
 
 profile="${1:-default}"
-project_env="${UV_PROJECT_ENVIRONMENT:-/home/vscode/.venvs/headroom}"
+project_env="${UV_PROJECT_ENVIRONMENT:-/home/vscode/.venvs/copium}"
 project_env_root="$(dirname "$project_env")"
 cache_root="${HOME}/.cache"
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 workspace_root="$(cd "$script_dir/.." && pwd)"
-git_profile_script="/etc/profile.d/headroom-worktree-git.sh"
+git_profile_script="/etc/profile.d/copium-worktree-git.sh"
 sync_extras=(--extra dev)
 
 if [[ "$profile" == "memory-stack" ]]; then
@@ -72,12 +72,12 @@ else
   echo "Skipping pre-commit install because git metadata is not available inside this container."
 fi
 
-echo "Headroom devcontainer is ready."
+echo "Copium devcontainer is ready."
 if [[ "$profile" == "memory-stack" ]]; then
   echo "Memory stack sidecars are available at qdrant:6333 and neo4j://neo4j:7687."
 fi
 echo "Run checks with:"
 echo "  uv run ruff check ."
 echo "  uv run ruff format --check ."
-echo "  uv run mypy headroom --ignore-missing-imports"
+echo "  uv run mypy copium --ignore-missing-imports"
 echo "  uv run pytest -v --tb=short"

@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from headroom import copilot_macos_keychain
+from copium import copilot_macos_keychain
 
 
 def test_read_copilot_oauth_token_uses_security(

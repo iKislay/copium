@@ -6,8 +6,8 @@
  *
  * Run: npx tsx examples/11-openai-anthropic-adapters.ts
  */
-import { withHeadroom as withHeadroomOpenAI } from "headroom-ai/openai";
-import { withHeadroom as withHeadroomAnthropic } from "headroom-ai/anthropic";
+import { withCopium as withCopiumOpenAI } from "copium-ai/openai";
+import { withCopium as withCopiumAnthropic } from "copium-ai/anthropic";
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 
@@ -34,7 +34,7 @@ async function main() {
   // === OpenAI with compression ===
   if (process.env.OPENAI_API_KEY) {
     console.log("=== OpenAI (compressed) ===");
-    const openai = withHeadroomOpenAI(new OpenAI());
+    const openai = withCopiumOpenAI(new OpenAI());
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -50,7 +50,7 @@ async function main() {
   // === Anthropic with compression ===
   if (process.env.ANTHROPIC_API_KEY) {
     console.log("=== Anthropic (compressed) ===");
-    const anthropic = withHeadroomAnthropic(new Anthropic());
+    const anthropic = withCopiumAnthropic(new Anthropic());
 
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-5-20250929",

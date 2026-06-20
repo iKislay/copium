@@ -6,9 +6,9 @@ import asyncio
 
 import pytest
 
-from headroom.observability import reset_headroom_tracing, reset_otel_metrics
-from headroom.proxy.cost import CostTracker, build_prefix_cache_stats
-from headroom.proxy.prometheus_metrics import PrometheusMetrics
+from copium.observability import reset_copium_tracing, reset_otel_metrics
+from copium.proxy.cost import CostTracker, build_prefix_cache_stats
+from copium.proxy.prometheus_metrics import PrometheusMetrics
 
 
 def test_prometheus_metrics_tracks_observed_ttl_buckets() -> None:
@@ -105,18 +105,18 @@ def test_prometheus_metrics_export_includes_extended_fields() -> None:
 
     exported = asyncio.run(metrics.export())
 
-    assert "headroom_latency_ms_count 1" in exported
-    assert 'headroom_transform_timing_ms_sum{transform="router"} 4.5' in exported
-    assert 'headroom_waste_signal_tokens_total{signal="json_bloat"} 7' in exported
-    assert 'headroom_cache_write_ttl_tokens_total{provider="anthropic",ttl="5m"} 10' in exported
-    assert 'headroom_provider_cache_hit_requests_total{provider="anthropic"} 1' in exported
-    assert "headroom_cache_bust_tokens_lost_total 11" in exported
+    assert "copium_latency_ms_count 1" in exported
+    assert 'copium_transform_timing_ms_sum{transform="router"} 4.5' in exported
+    assert 'copium_waste_signal_tokens_total{signal="json_bloat"} 7' in exported
+    assert 'copium_cache_write_ttl_tokens_total{provider="anthropic",ttl="5m"} 10' in exported
+    assert 'copium_provider_cache_hit_requests_total{provider="anthropic"} 1' in exported
+    assert "copium_cache_bust_tokens_lost_total 11" in exported
 
 
 def test_streaming_parser_extracts_anthropic_ttl_bucket_usage() -> None:
-    from headroom.proxy.server import HeadroomProxy, ProxyConfig
+    from copium.proxy.server import CopiumProxy, ProxyConfig
 
-    proxy = HeadroomProxy(
+    proxy = CopiumProxy(
         ProxyConfig(
             optimize=False,
             cache_enabled=False,
@@ -145,7 +145,7 @@ def test_stats_endpoint_reports_observed_ttl_buckets() -> None:
     pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
 
-    from headroom.proxy.server import ProxyConfig, create_app
+    from copium.proxy.server import ProxyConfig, create_app
 
     app = create_app(
         ProxyConfig(
@@ -186,11 +186,11 @@ def test_stats_endpoint_reports_otel_configuration(monkeypatch: pytest.MonkeyPat
     pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
 
-    from headroom.proxy.server import ProxyConfig, create_app
+    from copium.proxy.server import ProxyConfig, create_app
 
     reset_otel_metrics()
-    monkeypatch.setenv("HEADROOM_OTEL_METRICS_ENABLED", "1")
-    monkeypatch.setenv("HEADROOM_OTEL_METRICS_EXPORTER", "console")
+    monkeypatch.setenv("COPIUM_OTEL_METRICS_ENABLED", "1")
+    monkeypatch.setenv("COPIUM_OTEL_METRICS_EXPORTER", "console")
 
     app = create_app(
         ProxyConfig(
@@ -212,7 +212,7 @@ def test_stats_endpoint_reports_otel_configuration(monkeypatch: pytest.MonkeyPat
     otel = response.json()["otel"]
     assert otel["configured"] is True
     assert otel["enabled"] is True
-    assert otel["service_name"] == "headroom-proxy"
+    assert otel["service_name"] == "copium-proxy"
     assert otel["exporter"] == "console"
 
 
@@ -220,10 +220,10 @@ def test_stats_endpoint_reports_langfuse_configuration(monkeypatch: pytest.Monke
     pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
 
-    from headroom.proxy.server import ProxyConfig, create_app
+    from copium.proxy.server import ProxyConfig, create_app
 
-    reset_headroom_tracing()
-    monkeypatch.setenv("HEADROOM_LANGFUSE_ENABLED", "1")
+    reset_copium_tracing()
+    monkeypatch.setenv("COPIUM_LANGFUSE_ENABLED", "1")
     monkeypatch.setenv("LANGFUSE_PUBLIC_KEY", "pk-lf-test")
     monkeypatch.setenv("LANGFUSE_SECRET_KEY", "sk-lf-test")
     monkeypatch.setenv("LANGFUSE_BASE_URL", "https://cloud.langfuse.com")
@@ -248,5 +248,5 @@ def test_stats_endpoint_reports_langfuse_configuration(monkeypatch: pytest.Monke
     langfuse = response.json()["langfuse"]
     assert langfuse["configured"] is True
     assert langfuse["enabled"] is True
-    assert langfuse["service_name"] == "headroom-proxy"
+    assert langfuse["service_name"] == "copium-proxy"
     assert langfuse["endpoint"] == "https://cloud.langfuse.com/api/public/otel/v1/traces"

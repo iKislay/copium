@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, ".")
 
 from examples.context_compression_demo import build_retriever_chunks
-from headroom import compress
+from copium import compress
 
 
 def main():

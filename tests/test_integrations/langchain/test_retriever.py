@@ -2,7 +2,7 @@
 
 Tests cover:
 1. CompressionMetrics - Dataclass for document compression metrics
-2. HeadroomDocumentCompressor - LangChain BaseDocumentCompressor implementation
+2. CopiumDocumentCompressor - LangChain BaseDocumentCompressor implementation
 3. BM25-style relevance scoring
 4. Diverse document selection (MMR-style)
 5. Compression statistics tracking
@@ -56,7 +56,7 @@ class TestCompressionMetrics:
 
     def test_create_metrics(self):
         """Create compression metrics with all fields."""
-        from headroom.integrations.langchain.retriever import CompressionMetrics
+        from copium.integrations.langchain.retriever import CompressionMetrics
 
         metrics = CompressionMetrics(
             documents_before=50,
@@ -72,20 +72,20 @@ class TestCompressionMetrics:
 
     def test_metrics_required_fields(self):
         """All fields are required."""
-        from headroom.integrations.langchain.retriever import CompressionMetrics
+        from copium.integrations.langchain.retriever import CompressionMetrics
 
         with pytest.raises(TypeError):
             CompressionMetrics()  # type: ignore[call-arg]
 
 
-class TestHeadroomDocumentCompressorInit:
-    """Tests for HeadroomDocumentCompressor initialization."""
+class TestCopiumDocumentCompressorInit:
+    """Tests for CopiumDocumentCompressor initialization."""
 
     def test_init_defaults(self):
         """Initialize with default settings."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor()
+        compressor = CopiumDocumentCompressor()
 
         assert compressor.max_documents == 10
         assert compressor.min_relevance == 0.0
@@ -94,9 +94,9 @@ class TestHeadroomDocumentCompressorInit:
 
     def test_init_custom_settings(self):
         """Initialize with custom settings."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor(
+        compressor = CopiumDocumentCompressor(
             max_documents=20,
             min_relevance=0.5,
             prefer_diverse=True,
@@ -107,14 +107,14 @@ class TestHeadroomDocumentCompressorInit:
         assert compressor.prefer_diverse is True
 
 
-class TestHeadroomDocumentCompressorCompress:
+class TestCopiumDocumentCompressorCompress:
     """Tests for compress_documents method."""
 
     def test_compress_empty_documents(self):
         """Compress empty list returns empty list."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor()
+        compressor = CopiumDocumentCompressor()
 
         result = compressor.compress_documents([], "query")
 
@@ -124,9 +124,9 @@ class TestHeadroomDocumentCompressorCompress:
 
     def test_compress_fewer_than_max_documents(self, sample_documents):
         """Compress when documents fewer than max returns all."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor(max_documents=10)  # More than 5 docs
+        compressor = CopiumDocumentCompressor(max_documents=10)  # More than 5 docs
 
         result = compressor.compress_documents(sample_documents, "Python")
 
@@ -135,9 +135,9 @@ class TestHeadroomDocumentCompressorCompress:
 
     def test_compress_more_than_max_documents(self, many_documents):
         """Compress when documents exceed max returns max_documents."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor(max_documents=10)
+        compressor = CopiumDocumentCompressor(max_documents=10)
 
         result = compressor.compress_documents(many_documents, "topic 1")
 
@@ -148,9 +148,9 @@ class TestHeadroomDocumentCompressorCompress:
 
     def test_compress_orders_by_relevance(self, sample_documents):
         """Compressed documents are ordered by relevance."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor(max_documents=3)
+        compressor = CopiumDocumentCompressor(max_documents=3)
 
         result = compressor.compress_documents(sample_documents, "Python programming")
 
@@ -161,14 +161,14 @@ class TestHeadroomDocumentCompressorCompress:
 
     def test_compress_with_min_relevance_filter(self):
         """Documents below min_relevance are filtered out."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
         documents = [
             Document(page_content="Very relevant Python tutorial"),
             Document(page_content="Completely unrelated topic XYZ"),
         ]
 
-        compressor = HeadroomDocumentCompressor(
+        compressor = CopiumDocumentCompressor(
             max_documents=10,
             min_relevance=0.3,  # Require some relevance
         )
@@ -182,9 +182,9 @@ class TestHeadroomDocumentCompressorCompress:
 
     def test_compress_tracks_relevance_scores(self, sample_documents):
         """Compression tracks relevance scores."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor(max_documents=3)
+        compressor = CopiumDocumentCompressor(max_documents=3)
 
         compressor.compress_documents(sample_documents, "Python")
 
@@ -195,14 +195,14 @@ class TestHeadroomDocumentCompressorCompress:
         assert scores == sorted(scores, reverse=True)
 
 
-class TestHeadroomDocumentCompressorScoring:
+class TestCopiumDocumentCompressorScoring:
     """Tests for document relevance scoring."""
 
     def test_score_document_exact_match_boost(self):
         """Exact phrase match gets relevance boost."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor()
+        compressor = CopiumDocumentCompressor()
 
         doc_exact = Document(page_content="What is Python programming?")
         doc_partial = Document(page_content="Programming in various languages")
@@ -215,9 +215,9 @@ class TestHeadroomDocumentCompressorScoring:
 
     def test_score_document_term_frequency(self):
         """Higher term frequency increases score."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor()
+        compressor = CopiumDocumentCompressor()
 
         doc_many = Document(page_content="Python Python Python is great")
         doc_one = Document(page_content="Python is a language")
@@ -230,9 +230,9 @@ class TestHeadroomDocumentCompressorScoring:
 
     def test_score_document_empty_query(self):
         """Empty query returns zero score."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor()
+        compressor = CopiumDocumentCompressor()
 
         doc = Document(page_content="Some content")
 
@@ -242,9 +242,9 @@ class TestHeadroomDocumentCompressorScoring:
 
     def test_score_document_empty_content(self):
         """Empty document content returns zero score."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor()
+        compressor = CopiumDocumentCompressor()
 
         doc = Document(page_content="")
 
@@ -254,9 +254,9 @@ class TestHeadroomDocumentCompressorScoring:
 
     def test_score_document_case_insensitive(self):
         """Scoring is case insensitive."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor()
+        compressor = CopiumDocumentCompressor()
 
         doc = Document(page_content="PYTHON is GREAT")
 
@@ -265,14 +265,14 @@ class TestHeadroomDocumentCompressorScoring:
         assert score > 0.0
 
 
-class TestHeadroomDocumentCompressorTokenize:
+class TestCopiumDocumentCompressorTokenize:
     """Tests for text tokenization."""
 
     def test_tokenize_basic(self):
         """Tokenize basic text."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor()
+        compressor = CopiumDocumentCompressor()
 
         tokens = compressor._tokenize("Hello world")
 
@@ -280,9 +280,9 @@ class TestHeadroomDocumentCompressorTokenize:
 
     def test_tokenize_with_punctuation(self):
         """Tokenize text with punctuation."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor()
+        compressor = CopiumDocumentCompressor()
 
         tokens = compressor._tokenize("Hello, world! How are you?")
 
@@ -293,9 +293,9 @@ class TestHeadroomDocumentCompressorTokenize:
 
     def test_tokenize_filters_short_tokens(self):
         """Tokenize filters tokens with length 1."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor()
+        compressor = CopiumDocumentCompressor()
 
         tokens = compressor._tokenize("I am a developer")
 
@@ -306,12 +306,12 @@ class TestHeadroomDocumentCompressorTokenize:
         assert "developer" in tokens
 
 
-class TestHeadroomDocumentCompressorDiversity:
+class TestCopiumDocumentCompressorDiversity:
     """Tests for diverse document selection (MMR-style)."""
 
     def test_compress_with_diversity(self):
         """Diverse selection avoids redundant documents."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
         # Create similar documents
         documents = [
@@ -322,7 +322,7 @@ class TestHeadroomDocumentCompressorDiversity:
             Document(page_content="Machine learning with TensorFlow."),  # Very different
         ]
 
-        compressor = HeadroomDocumentCompressor(
+        compressor = CopiumDocumentCompressor(
             max_documents=3,
             prefer_diverse=True,
         )
@@ -334,9 +334,9 @@ class TestHeadroomDocumentCompressorDiversity:
 
     def test_select_diverse_empty(self):
         """Diverse selection with empty input."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor(prefer_diverse=True)
+        compressor = CopiumDocumentCompressor(prefer_diverse=True)
 
         result = compressor._select_diverse([], "query")
 
@@ -344,9 +344,9 @@ class TestHeadroomDocumentCompressorDiversity:
 
     def test_document_similarity_identical(self):
         """Identical documents have similarity 1.0."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor()
+        compressor = CopiumDocumentCompressor()
 
         doc1 = Document(page_content="Hello world")
         doc2 = Document(page_content="Hello world")
@@ -357,9 +357,9 @@ class TestHeadroomDocumentCompressorDiversity:
 
     def test_document_similarity_different(self):
         """Different documents have low similarity."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor()
+        compressor = CopiumDocumentCompressor()
 
         doc1 = Document(page_content="Python programming tutorial")
         doc2 = Document(page_content="Cooking recipes for dinner")
@@ -370,9 +370,9 @@ class TestHeadroomDocumentCompressorDiversity:
 
     def test_document_similarity_partial_overlap(self):
         """Partially overlapping documents have medium similarity."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor()
+        compressor = CopiumDocumentCompressor()
 
         doc1 = Document(page_content="Python programming tutorial")
         doc2 = Document(page_content="Python data science tutorial")
@@ -383,9 +383,9 @@ class TestHeadroomDocumentCompressorDiversity:
 
     def test_document_similarity_empty_content(self):
         """Empty content documents have zero similarity."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor()
+        compressor = CopiumDocumentCompressor()
 
         doc1 = Document(page_content="")
         doc2 = Document(page_content="Some content")
@@ -395,22 +395,22 @@ class TestHeadroomDocumentCompressorDiversity:
         assert similarity == 0.0
 
 
-class TestHeadroomDocumentCompressorStats:
+class TestCopiumDocumentCompressorStats:
     """Tests for compression statistics."""
 
     def test_last_metrics_none_initially(self):
         """last_metrics is None before any compression."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor()
+        compressor = CopiumDocumentCompressor()
 
         assert compressor.last_metrics is None
 
     def test_last_metrics_updated_after_compression(self, sample_documents):
         """last_metrics is updated after compression."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor(max_documents=3)
+        compressor = CopiumDocumentCompressor(max_documents=3)
 
         compressor.compress_documents(sample_documents, "Python")
 
@@ -420,9 +420,9 @@ class TestHeadroomDocumentCompressorStats:
 
     def test_get_compression_stats_empty(self):
         """get_compression_stats returns empty dict before compression."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor()
+        compressor = CopiumDocumentCompressor()
 
         stats = compressor.get_compression_stats()
 
@@ -430,9 +430,9 @@ class TestHeadroomDocumentCompressorStats:
 
     def test_get_compression_stats_with_data(self, many_documents):
         """get_compression_stats returns stats after compression."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor(max_documents=10)
+        compressor = CopiumDocumentCompressor(max_documents=10)
 
         compressor.compress_documents(many_documents, "topic")
 
@@ -446,9 +446,9 @@ class TestHeadroomDocumentCompressorStats:
 
     def test_get_compression_stats_average_relevance(self, sample_documents):
         """get_compression_stats calculates average relevance correctly."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor(max_documents=2)
+        compressor = CopiumDocumentCompressor(max_documents=2)
 
         compressor.compress_documents(sample_documents, "Python")
 
@@ -461,14 +461,14 @@ class TestHeadroomDocumentCompressorStats:
         assert abs(stats["average_relevance"] - expected_avg) < 0.001
 
 
-class TestHeadroomDocumentCompressorCallbacks:
+class TestCopiumDocumentCompressorCallbacks:
     """Tests for LangChain callbacks integration."""
 
     def test_compress_ignores_callbacks(self, sample_documents):
         """compress_documents accepts but ignores callbacks parameter."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor(max_documents=3)
+        compressor = CopiumDocumentCompressor(max_documents=3)
 
         # Pass a mock callback - should not raise
         mock_callback = MagicMock()
@@ -484,7 +484,7 @@ class TestLangChainNotAvailable:
 
     def test_check_raises_import_error(self):
         """_check_langchain_available raises ImportError when not available."""
-        from headroom.integrations.langchain.retriever import _check_langchain_available
+        from copium.integrations.langchain.retriever import _check_langchain_available
 
         # When LangChain IS available, should not raise
         try:

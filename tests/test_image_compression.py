@@ -12,7 +12,7 @@ import io
 import pytest
 
 # Tile optimizer is pure math — always available
-from headroom.image.tile_optimizer import (
+from copium.image.tile_optimizer import (
     estimate_anthropic_tokens,
     estimate_openai_tokens,
     find_optimal_anthropic_dimensions,
@@ -226,7 +226,7 @@ class TestOnnxRouter:
 
     def test_query_classification(self):
         """ONNX router classifies queries into techniques."""
-        from headroom.image.onnx_router import OnnxTechniqueRouter, Technique
+        from copium.image.onnx_router import OnnxTechniqueRouter, Technique
 
         router = OnnxTechniqueRouter(use_siglip=False)
 
@@ -240,7 +240,7 @@ class TestOnnxRouter:
 
     def test_preserve_for_detail_queries(self):
         """Queries needing detail should route to PRESERVE or FULL_LOW."""
-        from headroom.image.onnx_router import OnnxTechniqueRouter, Technique
+        from copium.image.onnx_router import OnnxTechniqueRouter, Technique
 
         router = OnnxTechniqueRouter(use_siglip=False)
 
@@ -249,7 +249,7 @@ class TestOnnxRouter:
 
     def test_full_classify_with_image(self):
         """Full classification with query + image analysis."""
-        from headroom.image.onnx_router import OnnxTechniqueRouter
+        from copium.image.onnx_router import OnnxTechniqueRouter
 
         router = OnnxTechniqueRouter(use_siglip=True)
 
@@ -275,7 +275,7 @@ class TestOnnxRouter:
 class TestFullPipeline:
     def test_compressor_with_openai_image(self):
         """Full compressor pipeline on OpenAI format."""
-        from headroom.image import ImageCompressor
+        from copium.image import ImageCompressor
 
         compressor = ImageCompressor(use_siglip=False)
         msgs = _make_openai_image_message(1920, 1080)
@@ -287,7 +287,7 @@ class TestFullPipeline:
 
     def test_compressor_no_images(self):
         """Compressor is no-op when no images present."""
-        from headroom.image import ImageCompressor
+        from copium.image import ImageCompressor
 
         compressor = ImageCompressor(use_siglip=False)
         msgs = [{"role": "user", "content": "Hello, no images here"}]
@@ -297,7 +297,7 @@ class TestFullPipeline:
 
     def test_has_images_openai(self):
         """Detects images in OpenAI format."""
-        from headroom.image import ImageCompressor
+        from copium.image import ImageCompressor
 
         compressor = ImageCompressor()
         msgs = _make_openai_image_message(100, 100)
@@ -305,7 +305,7 @@ class TestFullPipeline:
 
     def test_has_images_anthropic(self):
         """Detects images in Anthropic format."""
-        from headroom.image import ImageCompressor
+        from copium.image import ImageCompressor
 
         compressor = ImageCompressor()
         msgs = _make_anthropic_image_message(100, 100)
@@ -313,7 +313,7 @@ class TestFullPipeline:
 
     def test_no_images_detected(self):
         """No false positives on text-only messages."""
-        from headroom.image import ImageCompressor
+        from copium.image import ImageCompressor
 
         compressor = ImageCompressor()
         msgs = [{"role": "user", "content": "Just text"}]
@@ -350,7 +350,7 @@ class TestOcrRouting:
 
     def test_ocr_extracts_text(self):
         """OCR should extract text from a text-heavy image."""
-        from headroom.image import ImageCompressor
+        from copium.image import ImageCompressor
 
         compressor = ImageCompressor(use_siglip=False)
         image_data = self._make_text_image(
@@ -367,7 +367,7 @@ class TestOcrRouting:
 
     def test_ocr_returns_none_for_blank_image(self):
         """OCR should return None for a blank image (no text)."""
-        from headroom.image import ImageCompressor
+        from copium.image import ImageCompressor
 
         compressor = ImageCompressor(use_siglip=False)
         from PIL import Image
@@ -380,7 +380,7 @@ class TestOcrRouting:
 
     def test_ocr_confidence_threshold(self):
         """Low-confidence OCR should return None (fallback to image)."""
-        from headroom.image import ImageCompressor
+        from copium.image import ImageCompressor
 
         compressor = ImageCompressor(use_siglip=False)
         # Very noisy image — OCR should have low confidence
@@ -398,8 +398,8 @@ class TestOcrRouting:
 
     def test_transcode_replaces_image_with_text(self):
         """Full pipeline: transcode technique should replace image with OCR text."""
-        from headroom.image import ImageCompressor
-        from headroom.image.trained_router import Technique
+        from copium.image import ImageCompressor
+        from copium.image.trained_router import Technique
 
         compressor = ImageCompressor(use_siglip=False)
 

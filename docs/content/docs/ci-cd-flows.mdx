@@ -5,7 +5,7 @@ description: Visual decision trees for pull requests, release publishing, Docker
 
 ## Purpose
 
-This page is the quick visual map for Headroom automation. Use it when opening a PR, reviewing a PR, cutting a release, or deciding which workflow owns a failure.
+This page is the quick visual map for Copium automation. Use it when opening a PR, reviewing a PR, cutting a release, or deciding which workflow owns a failure.
 
 The short version:
 
@@ -158,7 +158,7 @@ flowchart TD
 flowchart TD
     A[Docker workflow starts] --> B[Matrix: variant x architecture]
     B --> C[Build each platform image by digest only]
-    C --> D[Smoke-test image imports pydantic_core and headroom._core]
+    C --> D[Smoke-test image imports pydantic_core and copium._core]
     D --> E{Smoke test green?}
     E -- no --> F[Stop before tag manifest]
     E -- yes --> G[Upload digest marker]
@@ -229,9 +229,9 @@ act workflow_dispatch -W .github/workflows/release.yml -e .github/act/dry-run.js
 | `.github/workflows/pr-health.yml` | PR body governance, readiness labels, rebase/conflict/failing-check labels |
 | `.github/workflows/ci.yml` | Python lint, type checks, wheel build, test shards, package smoke, workflow validation |
 | `.github/workflows/rust.yml` | Rust workspace quality gates and native wheel smoke artifacts |
-| `.github/workflows/init-e2e.yml` | Dockerized `headroom init` behavior |
-| `.github/workflows/wrap-e2e.yml` | Dockerized `headroom wrap` behavior |
-| `.github/workflows/init-native-e2e.yml` | Host-specific `headroom init -g` smoke tests |
+| `.github/workflows/init-e2e.yml` | Dockerized `copium init` behavior |
+| `.github/workflows/wrap-e2e.yml` | Dockerized `copium wrap` behavior |
+| `.github/workflows/init-native-e2e.yml` | Host-specific `copium init -g` smoke tests |
 | `.github/workflows/install-native-e2e.yml` | Host-specific install CLI smoke tests |
 | `.github/workflows/wrap-native-e2e.yml` | Host-specific wrap prepare-only smoke tests |
 | `.github/workflows/devcontainers.yml` | Devcontainer startup and linked worktree compatibility |

@@ -7,7 +7,7 @@ Tests cover:
 4. Edge cases
 """
 
-from headroom.transforms.log_compressor import (
+from copium.transforms.log_compressor import (
     LogCompressionResult,
     LogCompressor,
     LogCompressorConfig,

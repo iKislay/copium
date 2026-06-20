@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'headroom/**'
+      - 'copium/**'
       - 'crates/**'
       - 'docker/**'
       - 'Dockerfile'
@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Build wrap e2e image
-        run: docker build -f e2e/wrap/Dockerfile -t headroom-wrap-e2e .
+        run: docker build -f e2e/wrap/Dockerfile -t copium-wrap-e2e .
 
       - name: Run wrap e2e container
-        run: docker run --rm headroom-wrap-e2e
+        run: docker run --rm copium-wrap-e2e

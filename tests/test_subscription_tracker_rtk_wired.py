@@ -1,15 +1,15 @@
 """Tests for PR-G2 — RTK ``tokens_saved`` data-plane wiring.
 
-Phase G of the Headroom realignment retires the dead ``tokens_saved_rtk``
+Phase G of the Copium realignment retires the dead ``tokens_saved_rtk``
 field by sourcing it from RTK's own stats endpoint (``rtk gain --format
-json`` via :func:`headroom.proxy.helpers._get_rtk_stats`) and writing the
-per-call delta into ``HeadroomContribution.tokens_saved_rtk``.
+json`` via :func:`copium.proxy.helpers._get_rtk_stats`) and writing the
+per-call delta into ``CopiumContribution.tokens_saved_rtk``.
 
 PR-G2 remediation (C1): the tracker reads the SESSION-incremental
 ``session.tokens_saved`` field of the helper payload, NOT the raw
 ``lifetime_tokens_saved`` counter. The helper de-baselines per proxy
 session at startup, so the first poll after process startup correctly
-reads 0 instead of the entire pre-Headroom RTK history.
+reads 0 instead of the entire pre-Copium RTK history.
 
 These tests pin the wiring:
 
@@ -27,7 +27,7 @@ Realignment build constraints honored:
 
 - No silent fallback: a transient ``_get_rtk_stats()`` exception is
   structured-logged and yields ``tokens_saved_rtk = 0`` (test 4).
-- Configurable: ``HEADROOM_RTK_WIRING=disabled`` opts the polling out and
+- Configurable: ``COPIUM_RTK_WIRING=disabled`` opts the polling out and
   produces a clean zero, exercised by ``test_disabled_env_returns_zero``.
 - Structured logs: each failure path emits a ``event=…`` line; the
   ``caplog`` assertions below pin the log payload so the "no silent
@@ -41,8 +41,8 @@ from typing import Any
 
 import pytest
 
-import headroom.subscription.tracker as tracker_module
-from headroom.subscription.tracker import SubscriptionTracker
+import copium.subscription.tracker as tracker_module
+from copium.subscription.tracker import SubscriptionTracker
 
 
 def _build_tracker(monkeypatch: pytest.MonkeyPatch) -> SubscriptionTracker:
@@ -65,7 +65,7 @@ def _session_payload(tokens_saved: int, *, lifetime: int | None = None) -> dict[
     """
 
     if lifetime is None:
-        lifetime = tokens_saved + 50_000  # arbitrary pre-Headroom history
+        lifetime = tokens_saved + 50_000  # arbitrary pre-Copium history
     return {
         "tokens_saved": tokens_saved,  # session-incremental (canonical)
         "lifetime_tokens_saved": lifetime,
@@ -93,7 +93,7 @@ def _stub_rtk_stats(
         return payloads[idx]
 
     monkeypatch.setattr(
-        "headroom.proxy.helpers._get_rtk_stats",
+        "copium.proxy.helpers._get_rtk_stats",
         fake_get_rtk_stats,
     )
     return call_count
@@ -110,7 +110,7 @@ def test_tokens_saved_rtk_populated_from_session_field(
     """First call seeds the baseline at the session counter, not lifetime.
 
     PR-G2 remediation (C1): previously the tracker read
-    ``lifetime_tokens_saved`` and emitted the entire pre-Headroom RTK
+    ``lifetime_tokens_saved`` and emitted the entire pre-Copium RTK
     history as a phantom delta on the first poll. After the C1 fix the
     tracker reads ``session.tokens_saved`` which the helper has already
     de-baselined per proxy session.
@@ -156,7 +156,7 @@ def test_first_poll_zero_when_session_baseline_fresh(
     _stub_rtk_stats(
         monkeypatch,
         [
-            # Pre-Headroom lifetime = 50 000 tokens. Helper rebaselines at
+            # Pre-Copium lifetime = 50 000 tokens. Helper rebaselines at
             # startup so session = 0.
             _session_payload(tokens_saved=0, lifetime=50_000),
         ],
@@ -165,7 +165,7 @@ def test_first_poll_zero_when_session_baseline_fresh(
     tracker.update_contribution()
 
     assert tracker._state.contribution.tokens_saved_rtk == 0, (
-        "first poll must NOT emit pre-Headroom RTK history as a phantom delta"
+        "first poll must NOT emit pre-Copium RTK history as a phantom delta"
     )
     assert tracker._last_rtk_tokens_saved == 0
 
@@ -305,9 +305,9 @@ def test_rtk_stats_exception_zero_delta_no_throw_with_log(
     def boom() -> dict[str, Any] | None:
         raise RuntimeError("transient subprocess failure")
 
-    monkeypatch.setattr("headroom.proxy.helpers._get_rtk_stats", boom)
+    monkeypatch.setattr("copium.proxy.helpers._get_rtk_stats", boom)
 
-    caplog.set_level(logging.WARNING, logger="headroom.subscription.tracker")
+    caplog.set_level(logging.WARNING, logger="copium.subscription.tracker")
 
     # Must not raise.
     tracker.update_contribution()
@@ -325,7 +325,7 @@ def test_rtk_stats_exception_zero_delta_no_throw_with_log(
 
 
 def test_disabled_env_returns_zero(monkeypatch: pytest.MonkeyPatch) -> None:
-    """``HEADROOM_RTK_WIRING=disabled`` skips the poll entirely."""
+    """``COPIUM_RTK_WIRING=disabled`` skips the poll entirely."""
 
     tracker = _build_tracker(monkeypatch)
     monkeypatch.setenv(tracker_module._RTK_WIRING_ENV, "disabled")
@@ -388,7 +388,7 @@ def test_cli_filtering_no_longer_mirrors_rtk(monkeypatch: pytest.MonkeyPatch) ->
 
 
 # ---------------------------------------------------------------------------
-# Test 8 (H1) — invalid HEADROOM_RTK_WIRING fails loudly at startup
+# Test 8 (H1) — invalid COPIUM_RTK_WIRING fails loudly at startup
 # ---------------------------------------------------------------------------
 
 
@@ -404,7 +404,7 @@ def test_garbage_wiring_env_raises_at_startup(monkeypatch: pytest.MonkeyPatch) -
     # Reset the singleton so configure() actually runs the validator.
     monkeypatch.setattr(tracker_module, "_tracker_instance", None)
 
-    with pytest.raises(ValueError, match="HEADROOM_RTK_WIRING"):
+    with pytest.raises(ValueError, match="COPIUM_RTK_WIRING"):
         tracker_module.configure_subscription_tracker(enabled=True)
 
 
@@ -423,7 +423,7 @@ def test_garbage_wiring_env_logs_loudly_at_runtime(
     # Set garbage AFTER tracker construction so the constructor doesn't see it.
     monkeypatch.setenv(tracker_module._RTK_WIRING_ENV, "garbage")
 
-    caplog.set_level(logging.ERROR, logger="headroom.subscription.tracker")
+    caplog.set_level(logging.ERROR, logger="copium.subscription.tracker")
 
     tracker.update_contribution()
 
@@ -431,7 +431,7 @@ def test_garbage_wiring_env_logs_loudly_at_runtime(
     assert any(
         rec.levelno >= logging.ERROR and "event=subscription_rtk_invalid_env" in rec.getMessage()
         for rec in caplog.records
-    ), "expected ERROR-level structured log on invalid HEADROOM_RTK_WIRING"
+    ), "expected ERROR-level structured log on invalid COPIUM_RTK_WIRING"
 
 
 # ---------------------------------------------------------------------------
@@ -530,7 +530,7 @@ def test_legacy_state_migrates_rtk_from_cli_filtering(
         )
     )
 
-    caplog.set_level(logging.INFO, logger="headroom.subscription.tracker")
+    caplog.set_level(logging.INFO, logger="copium.subscription.tracker")
 
     tracker = SubscriptionTracker(persist_path=persist_path, enabled=True)
 
@@ -557,7 +557,7 @@ def test_rtk_subprocess_failure_logs_structured_warning(
     indistinguishable at the tracker layer.
 
     Implementation note: earlier attempts used pytest's ``caplog`` fixture
-    (both scoped to ``logger="headroom.proxy"`` and root-level capture).
+    (both scoped to ``logger="copium.proxy"`` and root-level capture).
     Both passed locally but failed in CI — likely a logger-propagation /
     handler-config difference in the CI test harness. The robust approach
     is to mock ``_helpers.logger.warning`` directly: when the production
@@ -567,13 +567,13 @@ def test_rtk_subprocess_failure_logs_structured_warning(
 
     from unittest.mock import MagicMock
 
-    import headroom.rtk as _rtk
-    from headroom.proxy import helpers as _helpers
+    import copium.rtk as _rtk
+    from copium.proxy import helpers as _helpers
 
     # Point get_rtk_path at a definitely-nonexistent absolute path so the
     # real ``subprocess.run`` raises FileNotFoundError → except branch
     # fires the structured warning.
-    monkeypatch.setattr(_rtk, "get_rtk_path", lambda: "/nonexistent/headroom-test-rtk")
+    monkeypatch.setattr(_rtk, "get_rtk_path", lambda: "/nonexistent/copium-test-rtk")
 
     mock_warning = MagicMock()
     monkeypatch.setattr(_helpers.logger, "warning", mock_warning)

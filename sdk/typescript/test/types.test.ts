@@ -11,16 +11,16 @@ import type {
   OpenAIMessage,
   CompressOptions,
   CompressResult,
-  HeadroomClientOptions,
-  HeadroomClientInterface,
+  CopiumClientOptions,
+  CopiumClientInterface,
   ProxyCompressResponse,
   ProxyErrorResponse,
 } from "../src/types.js";
 import {
-  HeadroomError,
-  HeadroomConnectionError,
-  HeadroomAuthError,
-  HeadroomCompressError,
+  CopiumError,
+  CopiumConnectionError,
+  CopiumAuthError,
+  CopiumCompressError,
 } from "../src/types.js";
 
 describe("Message types", () => {
@@ -115,7 +115,7 @@ describe("CompressOptions", () => {
       number | undefined
     >();
     expectTypeOf<CompressOptions["client"]>().toEqualTypeOf<
-      HeadroomClientInterface | undefined
+      CopiumClientInterface | undefined
     >();
   });
 });
@@ -136,84 +136,84 @@ describe("CompressResult", () => {
   });
 });
 
-describe("HeadroomClientOptions", () => {
+describe("CopiumClientOptions", () => {
   it("all fields are optional", () => {
-    expectTypeOf<HeadroomClientOptions>().toMatchTypeOf<{}>();
+    expectTypeOf<CopiumClientOptions>().toMatchTypeOf<{}>();
   });
 
   it("has expected optional fields", () => {
-    expectTypeOf<HeadroomClientOptions["baseUrl"]>().toEqualTypeOf<
+    expectTypeOf<CopiumClientOptions["baseUrl"]>().toEqualTypeOf<
       string | undefined
     >();
-    expectTypeOf<HeadroomClientOptions["apiKey"]>().toEqualTypeOf<
+    expectTypeOf<CopiumClientOptions["apiKey"]>().toEqualTypeOf<
       string | undefined
     >();
-    expectTypeOf<HeadroomClientOptions["timeout"]>().toEqualTypeOf<
+    expectTypeOf<CopiumClientOptions["timeout"]>().toEqualTypeOf<
       number | undefined
     >();
-    expectTypeOf<HeadroomClientOptions["fallback"]>().toEqualTypeOf<
+    expectTypeOf<CopiumClientOptions["fallback"]>().toEqualTypeOf<
       boolean | undefined
     >();
-    expectTypeOf<HeadroomClientOptions["retries"]>().toEqualTypeOf<
+    expectTypeOf<CopiumClientOptions["retries"]>().toEqualTypeOf<
       number | undefined
     >();
   });
 });
 
-describe("HeadroomClientInterface", () => {
+describe("CopiumClientInterface", () => {
   it("has compress method", () => {
-    expectTypeOf<HeadroomClientInterface>().toHaveProperty("compress");
+    expectTypeOf<CopiumClientInterface>().toHaveProperty("compress");
   });
 
   it("compress returns Promise<CompressResult>", () => {
-    expectTypeOf<HeadroomClientInterface["compress"]>().returns.toEqualTypeOf<
+    expectTypeOf<CopiumClientInterface["compress"]>().returns.toEqualTypeOf<
       Promise<CompressResult>
     >();
   });
 
   it("compress accepts messages and optional options", () => {
-    expectTypeOf<HeadroomClientInterface["compress"]>().parameters.toEqualTypeOf<
+    expectTypeOf<CopiumClientInterface["compress"]>().parameters.toEqualTypeOf<
       [OpenAIMessage[], ({ model?: string } | undefined)?]
     >();
   });
 });
 
 describe("Error classes", () => {
-  it("HeadroomError extends Error", () => {
-    expectTypeOf<HeadroomError>().toMatchTypeOf<Error>();
+  it("CopiumError extends Error", () => {
+    expectTypeOf<CopiumError>().toMatchTypeOf<Error>();
   });
 
-  it("HeadroomConnectionError extends HeadroomError", () => {
-    expectTypeOf<HeadroomConnectionError>().toMatchTypeOf<HeadroomError>();
+  it("CopiumConnectionError extends CopiumError", () => {
+    expectTypeOf<CopiumConnectionError>().toMatchTypeOf<CopiumError>();
   });
 
-  it("HeadroomAuthError extends HeadroomError", () => {
-    expectTypeOf<HeadroomAuthError>().toMatchTypeOf<HeadroomError>();
+  it("CopiumAuthError extends CopiumError", () => {
+    expectTypeOf<CopiumAuthError>().toMatchTypeOf<CopiumError>();
   });
 
-  it("HeadroomCompressError extends HeadroomError", () => {
-    expectTypeOf<HeadroomCompressError>().toMatchTypeOf<HeadroomError>();
+  it("CopiumCompressError extends CopiumError", () => {
+    expectTypeOf<CopiumCompressError>().toMatchTypeOf<CopiumError>();
   });
 
-  it("HeadroomCompressError has statusCode and errorType", () => {
-    expectTypeOf<HeadroomCompressError>().toHaveProperty("statusCode");
-    expectTypeOf<HeadroomCompressError["statusCode"]>().toBeNumber();
-    expectTypeOf<HeadroomCompressError>().toHaveProperty("errorType");
-    expectTypeOf<HeadroomCompressError["errorType"]>().toBeString();
+  it("CopiumCompressError has statusCode and errorType", () => {
+    expectTypeOf<CopiumCompressError>().toHaveProperty("statusCode");
+    expectTypeOf<CopiumCompressError["statusCode"]>().toBeNumber();
+    expectTypeOf<CopiumCompressError>().toHaveProperty("errorType");
+    expectTypeOf<CopiumCompressError["errorType"]>().toBeString();
   });
 
   it("error classes are constructable", () => {
-    const err = new HeadroomError("test");
+    const err = new CopiumError("test");
     expectTypeOf(err).toMatchTypeOf<Error>();
 
-    const connErr = new HeadroomConnectionError("test");
-    expectTypeOf(connErr).toMatchTypeOf<HeadroomError>();
+    const connErr = new CopiumConnectionError("test");
+    expectTypeOf(connErr).toMatchTypeOf<CopiumError>();
 
-    const authErr = new HeadroomAuthError("test");
-    expectTypeOf(authErr).toMatchTypeOf<HeadroomError>();
+    const authErr = new CopiumAuthError("test");
+    expectTypeOf(authErr).toMatchTypeOf<CopiumError>();
 
-    const compressErr = new HeadroomCompressError(500, "server_error", "test");
-    expectTypeOf(compressErr).toMatchTypeOf<HeadroomError>();
+    const compressErr = new CopiumCompressError(500, "server_error", "test");
+    expectTypeOf(compressErr).toMatchTypeOf<CopiumError>();
     expectTypeOf(compressErr.statusCode).toBeNumber();
     expectTypeOf(compressErr.errorType).toBeString();
   });

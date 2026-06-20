@@ -1,17 +1,17 @@
 #!/usr/bin/env python
-"""Export a Kompress PyTorch checkpoint to ONNX INT8 for Headroom's light path.
+"""Export a Kompress PyTorch checkpoint to ONNX INT8 for Copium's light path.
 
 Why this exists
 ---------------
-Headroom's ``[proxy]`` extra ships ``onnxruntime`` but **not** torch — the
+Copium's ``[proxy]`` extra ships ``onnxruntime`` but **not** torch — the
 proxy runs Kompress text compression on ONNX Runtime alone. The loader
-(``headroom/transforms/kompress_compressor.py``) downloads
+(``copium/transforms/kompress_compressor.py``) downloads
 ``onnx/kompress-int8.onnx`` from the model repo and runs it through
 ``_OnnxModel``, which expects a single graph output named ``final_scores``
 (per-token importance in ``[0, 1]``, kept when ``> 0.5``).
 
 ``chopratejas/kompress-v2-base`` ships only PyTorch weights
-(``model.safetensors`` / ``merged.pt``) — no ONNX. So pointing Headroom at v2
+(``model.safetensors`` / ``merged.pt``) — no ONNX. So pointing Copium at v2
 without an ONNX export would silently force the heavier ``[ml]`` (torch) path
 on every proxy install. This script reproduces v1's exact ONNX contract from
 the v2 PyTorch checkpoint, so a default swap stays zero-cost for light installs.
@@ -22,7 +22,7 @@ trace the real module from ``kompress_compressor._get_model_class()``.
 
 Requires
 --------
-    pip install headroom-ai[ml] onnxruntime    # torch + transformers + onnxruntime
+    pip install copium-ai[ml] onnxruntime    # torch + transformers + onnxruntime
 
 Usage
 -----
@@ -49,11 +49,11 @@ DEFAULT_MODEL_ID = "chopratejas/kompress-v2-base"
 
 
 def _build_core(model_id: str):
-    """Instantiate HeadroomCompressorModel and load the merged v2 weights.
+    """Instantiate CopiumCompressorModel and load the merged v2 weights.
 
     The v2 repo's ``model.safetensors`` is the *unmerged* PEFT structure
     (``encoder.base_model.model...`` with separate ``base_layer`` + LoRA
-    adapters), which does not map onto ``HeadroomCompressorModel``. The
+    adapters), which does not map onto ``CopiumCompressorModel``. The
     canonical artifact is ``merged.pt`` — a structured checkpoint with already
     LoRA-merged sub-state-dicts:
 
@@ -65,7 +65,7 @@ def _build_core(model_id: str):
     import torch
     from huggingface_hub import hf_hub_download
 
-    from headroom.transforms.kompress_compressor import _get_model_class
+    from copium.transforms.kompress_compressor import _get_model_class
 
     ckpt_path = hf_hub_download(model_id, "merged.pt")
     ckpt = torch.load(ckpt_path, map_location="cpu")
@@ -228,9 +228,9 @@ def upload(model_id: str, out_path: Path) -> None:
         path_or_fileobj=str(out_path),
         path_in_repo=repo_path,
         repo_id=model_id,
-        commit_message="Add ONNX export for Headroom lightweight (no-torch) path",
+        commit_message="Add ONNX export for Copium lightweight (no-torch) path",
     )
-    logger.info("Uploaded. Headroom's ONNX loader will now find it on next cold start.")
+    logger.info("Uploaded. Copium's ONNX loader will now find it on next cold start.")
 
 
 def main() -> int:

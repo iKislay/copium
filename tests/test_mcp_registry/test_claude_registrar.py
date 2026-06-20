@@ -9,8 +9,8 @@ from unittest.mock import patch
 
 import pytest
 
-from headroom.mcp_registry.base import RegisterStatus, ServerSpec
-from headroom.mcp_registry.claude import ClaudeRegistrar
+from copium.mcp_registry.base import RegisterStatus, ServerSpec
+from copium.mcp_registry.claude import ClaudeRegistrar
 
 
 def _make_registrar(
@@ -24,8 +24,8 @@ def _make_registrar(
 
 def _spec() -> ServerSpec:
     return ServerSpec(
-        name="headroom",
-        command="headroom",
+        name="copium",
+        command="copium",
         args=("mcp", "serve"),
         env={},
     )
@@ -59,7 +59,7 @@ def test_detect_false_when_neither_present(tmp_path: Path) -> None:
 
 def test_get_server_returns_none_when_unregistered(tmp_path: Path) -> None:
     reg = _make_registrar(tmp_path, cli=None)
-    assert reg.get_server("headroom") is None
+    assert reg.get_server("copium") is None
 
 
 def test_get_server_reads_modern_config(tmp_path: Path) -> None:
@@ -69,33 +69,33 @@ def test_get_server_reads_modern_config(tmp_path: Path) -> None:
         json.dumps(
             {
                 "mcpServers": {
-                    "headroom": {
-                        "command": "headroom",
+                    "copium": {
+                        "command": "copium",
                         "args": ["mcp", "serve"],
-                        "env": {"HEADROOM_PROXY_URL": "http://127.0.0.1:9000"},
+                        "env": {"COPIUM_PROXY_URL": "http://127.0.0.1:9000"},
                     }
                 }
             }
         )
     )
     reg = _make_registrar(tmp_path, cli=None)
-    got = reg.get_server("headroom")
+    got = reg.get_server("copium")
     assert got is not None
-    assert got.command == "headroom"
+    assert got.command == "copium"
     assert got.args == ("mcp", "serve")
-    assert got.env == {"HEADROOM_PROXY_URL": "http://127.0.0.1:9000"}
+    assert got.env == {"COPIUM_PROXY_URL": "http://127.0.0.1:9000"}
 
 
 def test_get_server_falls_back_to_legacy(tmp_path: Path) -> None:
     cfg = tmp_path / ".claude" / "mcp.json"
     cfg.parent.mkdir()
     cfg.write_text(
-        json.dumps({"mcpServers": {"headroom": {"command": "headroom", "args": ["mcp", "serve"]}}})
+        json.dumps({"mcpServers": {"copium": {"command": "copium", "args": ["mcp", "serve"]}}})
     )
     reg = _make_registrar(tmp_path, cli=None)
-    got = reg.get_server("headroom")
+    got = reg.get_server("copium")
     assert got is not None
-    assert got.command == "headroom"
+    assert got.command == "copium"
     assert got.args == ("mcp", "serve")
     assert got.env == {}
 
@@ -105,13 +105,13 @@ def test_get_server_reads_claude_config_dir(
 ) -> None:
     cfg = tmp_path / ".claude.json"
     cfg.write_text(
-        json.dumps({"mcpServers": {"headroom": {"command": "headroom", "args": ["mcp", "serve"]}}})
+        json.dumps({"mcpServers": {"copium": {"command": "copium", "args": ["mcp", "serve"]}}})
     )
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path))
     reg = ClaudeRegistrar(claude_cli=None)
-    got = reg.get_server("headroom")
+    got = reg.get_server("copium")
     assert got is not None
-    assert got.command == "headroom"
+    assert got.command == "copium"
     assert got.args == ("mcp", "serve")
 
 
@@ -132,13 +132,13 @@ def test_register_via_cli_calls_claude_mcp_add(tmp_path: Path) -> None:
         "/usr/local/bin/claude",
         "mcp",
         "add",
-        "headroom",
+        "copium",
         "-s",
         "user",
     ]
-    assert add_cmd[-3:] == ["--", "headroom", "mcp"] or add_cmd[-4:] == [
+    assert add_cmd[-3:] == ["--", "copium", "mcp"] or add_cmd[-4:] == [
         "--",
-        "headroom",
+        "copium",
         "mcp",
         "serve",
     ]
@@ -146,10 +146,10 @@ def test_register_via_cli_calls_claude_mcp_add(tmp_path: Path) -> None:
 
 def test_register_via_cli_includes_env(tmp_path: Path) -> None:
     spec = ServerSpec(
-        name="headroom",
-        command="headroom",
+        name="copium",
+        command="copium",
         args=("mcp", "serve"),
-        env={"HEADROOM_PROXY_URL": "http://127.0.0.1:9000"},
+        env={"COPIUM_PROXY_URL": "http://127.0.0.1:9000"},
     )
     reg = _make_registrar(tmp_path, cli="/usr/local/bin/claude")
     fake_result = subprocess.CompletedProcess(args=[], returncode=0, stdout="", stderr="")
@@ -158,7 +158,7 @@ def test_register_via_cli_includes_env(tmp_path: Path) -> None:
     add_cmd = next(c for c in [call.args[0] for call in run_mock.call_args_list] if "add" in c)
     assert "-e" in add_cmd
     e_idx = add_cmd.index("-e")
-    assert add_cmd[e_idx + 1] == "HEADROOM_PROXY_URL=http://127.0.0.1:9000"
+    assert add_cmd[e_idx + 1] == "COPIUM_PROXY_URL=http://127.0.0.1:9000"
 
 
 def test_register_writes_file_when_no_cli(tmp_path: Path) -> None:
@@ -167,9 +167,9 @@ def test_register_writes_file_when_no_cli(tmp_path: Path) -> None:
     assert result.status == RegisterStatus.REGISTERED
     cfg = tmp_path / ".claude" / ".claude.json"
     data = json.loads(cfg.read_text())
-    assert "headroom" in data["mcpServers"]
-    assert data["mcpServers"]["headroom"]["command"] == "headroom"
-    assert data["mcpServers"]["headroom"]["args"] == ["mcp", "serve"]
+    assert "copium" in data["mcpServers"]
+    assert data["mcpServers"]["copium"]["command"] == "copium"
+    assert data["mcpServers"]["copium"]["args"] == ["mcp", "serve"]
 
 
 def test_register_writes_to_legacy_when_only_legacy_exists(tmp_path: Path) -> None:
@@ -180,7 +180,7 @@ def test_register_writes_to_legacy_when_only_legacy_exists(tmp_path: Path) -> No
     result = reg.register_server(_spec())
     assert result.status == RegisterStatus.REGISTERED
     data = json.loads(legacy.read_text())
-    assert "headroom" in data["mcpServers"]
+    assert "copium" in data["mcpServers"]
     # Modern config should NOT have been created.
     assert not (tmp_path / ".claude" / ".claude.json").exists()
 
@@ -194,7 +194,7 @@ def test_register_writes_to_claude_config_dir(
     assert result.status == RegisterStatus.REGISTERED
     cfg = tmp_path / ".claude.json"
     data = json.loads(cfg.read_text())
-    assert data["mcpServers"]["headroom"]["command"] == "headroom"
+    assert data["mcpServers"]["copium"]["command"] == "copium"
     assert not (tmp_path / ".claude" / ".claude.json").exists()
 
 
@@ -207,7 +207,7 @@ def test_register_already_when_spec_matches(tmp_path: Path) -> None:
     cfg = tmp_path / ".claude" / ".claude.json"
     cfg.parent.mkdir()
     cfg.write_text(
-        json.dumps({"mcpServers": {"headroom": {"command": "headroom", "args": ["mcp", "serve"]}}})
+        json.dumps({"mcpServers": {"copium": {"command": "copium", "args": ["mcp", "serve"]}}})
     )
     reg = _make_registrar(tmp_path, cli="/usr/local/bin/claude")
     with patch("subprocess.run") as run_mock:
@@ -223,10 +223,10 @@ def test_register_mismatch_when_spec_differs_no_force(tmp_path: Path) -> None:
         json.dumps(
             {
                 "mcpServers": {
-                    "headroom": {
-                        "command": "headroom",
+                    "copium": {
+                        "command": "copium",
                         "args": ["mcp", "serve"],
-                        "env": {"HEADROOM_PROXY_URL": "http://127.0.0.1:9999"},
+                        "env": {"COPIUM_PROXY_URL": "http://127.0.0.1:9999"},
                     }
                 }
             }
@@ -247,8 +247,8 @@ def test_register_force_overwrites_mismatch(tmp_path: Path) -> None:
         json.dumps(
             {
                 "mcpServers": {
-                    "headroom": {
-                        "command": "headroom-old",
+                    "copium": {
+                        "command": "copium-old",
                         "args": ["mcp", "serve"],
                     }
                 }
@@ -280,7 +280,7 @@ def test_register_cli_failure_falls_back_to_file(tmp_path: Path) -> None:
     cfg = tmp_path / ".claude" / ".claude.json"
     assert cfg.exists()
     data = json.loads(cfg.read_text())
-    assert "headroom" in data["mcpServers"]
+    assert "copium" in data["mcpServers"]
 
 
 # ----------------------------------------------------------------------
@@ -292,9 +292,9 @@ def test_unregister_via_cli(tmp_path: Path) -> None:
     reg = _make_registrar(tmp_path, cli="/usr/local/bin/claude")
     ok = subprocess.CompletedProcess(args=[], returncode=0, stdout="", stderr="")
     with patch("subprocess.run", return_value=ok) as run_mock:
-        assert reg.unregister_server("headroom") is True
+        assert reg.unregister_server("copium") is True
     cmd = run_mock.call_args_list[0].args[0]
-    assert cmd[:5] == ["/usr/local/bin/claude", "mcp", "remove", "headroom", "-s"]
+    assert cmd[:5] == ["/usr/local/bin/claude", "mcp", "remove", "copium", "-s"]
     assert cmd[5] == "user"
 
 
@@ -305,22 +305,22 @@ def test_unregister_via_file_when_no_cli(tmp_path: Path) -> None:
         json.dumps(
             {
                 "mcpServers": {
-                    "headroom": {"command": "headroom", "args": ["mcp", "serve"]},
+                    "copium": {"command": "copium", "args": ["mcp", "serve"]},
                     "other": {"command": "other"},
                 }
             }
         )
     )
     reg = _make_registrar(tmp_path, cli=None)
-    assert reg.unregister_server("headroom") is True
+    assert reg.unregister_server("copium") is True
     data = json.loads(cfg.read_text())
-    assert "headroom" not in data["mcpServers"]
+    assert "copium" not in data["mcpServers"]
     assert "other" in data["mcpServers"]
 
 
 def test_unregister_returns_false_when_absent(tmp_path: Path) -> None:
     reg = _make_registrar(tmp_path, cli=None)
-    assert reg.unregister_server("headroom") is False
+    assert reg.unregister_server("copium") is False
 
 
 def test_unregister_removes_from_claude_config_dir(
@@ -331,7 +331,7 @@ def test_unregister_removes_from_claude_config_dir(
         json.dumps(
             {
                 "mcpServers": {
-                    "headroom": {"command": "headroom", "args": ["mcp", "serve"]},
+                    "copium": {"command": "copium", "args": ["mcp", "serve"]},
                     "other": {"command": "other"},
                 }
             }
@@ -339,9 +339,9 @@ def test_unregister_removes_from_claude_config_dir(
     )
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path))
     reg = ClaudeRegistrar(claude_cli=None)
-    assert reg.unregister_server("headroom") is True
+    assert reg.unregister_server("copium") is True
     data = json.loads(cfg.read_text())
-    assert "headroom" not in data["mcpServers"]
+    assert "copium" not in data["mcpServers"]
     assert "other" in data["mcpServers"]
 
 
@@ -356,4 +356,4 @@ def test_get_server_robust_to_bad_json(tmp_path: Path, contents: str) -> None:
     cfg.parent.mkdir()
     cfg.write_text(contents)
     reg = _make_registrar(tmp_path, cli=None)
-    assert reg.get_server("headroom") is None
+    assert reg.get_server("copium") is None

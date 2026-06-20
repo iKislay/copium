@@ -20,18 +20,18 @@ from typing import Any
 
 import pytest
 
-from headroom.cache.backends import CompressionStoreBackend, InMemoryBackend
-from headroom.cache.compression_store import (
+from copium.cache.backends import CompressionStoreBackend, InMemoryBackend
+from copium.cache.compression_store import (
     CompressionStore,
     clear_request_compression_store,
     get_compression_store,
     reset_compression_store,
     set_request_compression_store,
 )
-from headroom.storage import Storage, create_storage
-from headroom.telemetry.backends import FileSystemTOINBackend, TOINBackend
-from headroom.telemetry.models import ToolSignature
-from headroom.telemetry.toin import (
+from copium.storage import Storage, create_storage
+from copium.telemetry.backends import FileSystemTOINBackend, TOINBackend
+from copium.telemetry.models import ToolSignature
+from copium.telemetry.toin import (
     TOINConfig,
     ToolIntelligenceNetwork,
     _create_default_toin_backend,
@@ -258,34 +258,34 @@ class TestTOINEntryPointLoading:
     """Verify _create_default_toin_backend() env-based loading."""
 
     def test_no_env_returns_none(self, monkeypatch):
-        """No HEADROOM_TOIN_BACKEND env → returns None (use default)."""
-        monkeypatch.delenv("HEADROOM_TOIN_BACKEND", raising=False)
+        """No COPIUM_TOIN_BACKEND env → returns None (use default)."""
+        monkeypatch.delenv("COPIUM_TOIN_BACKEND", raising=False)
         assert _create_default_toin_backend() is None
 
     def test_empty_env_returns_none(self, monkeypatch):
-        """Empty HEADROOM_TOIN_BACKEND → returns None."""
-        monkeypatch.setenv("HEADROOM_TOIN_BACKEND", "")
+        """Empty COPIUM_TOIN_BACKEND → returns None."""
+        monkeypatch.setenv("COPIUM_TOIN_BACKEND", "")
         assert _create_default_toin_backend() is None
 
     def test_filesystem_env_returns_none(self, monkeypatch):
-        """HEADROOM_TOIN_BACKEND=filesystem → returns None (use default)."""
-        monkeypatch.setenv("HEADROOM_TOIN_BACKEND", "filesystem")
+        """COPIUM_TOIN_BACKEND=filesystem → returns None (use default)."""
+        monkeypatch.setenv("COPIUM_TOIN_BACKEND", "filesystem")
         assert _create_default_toin_backend() is None
 
     def test_unknown_backend_returns_none(self, monkeypatch):
         """Unknown backend name with no entry point → returns None with warning."""
-        monkeypatch.setenv("HEADROOM_TOIN_BACKEND", "nonexistent_backend_xyz")
+        monkeypatch.setenv("COPIUM_TOIN_BACKEND", "nonexistent_backend_xyz")
         result = _create_default_toin_backend()
         assert result is None
 
     def test_get_toin_respects_env_backend(self, monkeypatch, tmp_toin_path):
         """get_toin() uses _create_default_toin_backend() on first call."""
-        monkeypatch.delenv("HEADROOM_TOIN_BACKEND", raising=False)
-        monkeypatch.setenv("HEADROOM_TOIN_PATH", tmp_toin_path)
+        monkeypatch.delenv("COPIUM_TOIN_BACKEND", raising=False)
+        monkeypatch.setenv("COPIUM_TOIN_PATH", tmp_toin_path)
 
         toin = get_toin()
         assert toin is not None
-        # Should use FileSystemTOINBackend since no HEADROOM_TOIN_BACKEND set
+        # Should use FileSystemTOINBackend since no COPIUM_TOIN_BACKEND set
         assert toin._backend is not None
 
 
@@ -386,27 +386,27 @@ class TestCCREntryPointLoading:
     """Verify _create_default_ccr_backend() env-based loading."""
 
     def test_no_env_returns_sqlite(self, monkeypatch, tmp_path):
-        """No HEADROOM_CCR_BACKEND → SQLiteBackend (the persistent default;
+        """No COPIUM_CCR_BACKEND → SQLiteBackend (the persistent default;
         restart survival + cross-worker sharing for the 30-min TTL)."""
-        monkeypatch.delenv("HEADROOM_CCR_BACKEND", raising=False)
-        monkeypatch.setenv("HEADROOM_CCR_SQLITE_PATH", str(tmp_path / "ccr.db"))
-        from headroom.cache.compression_store import _create_default_ccr_backend
+        monkeypatch.delenv("COPIUM_CCR_BACKEND", raising=False)
+        monkeypatch.setenv("COPIUM_CCR_SQLITE_PATH", str(tmp_path / "ccr.db"))
+        from copium.cache.compression_store import _create_default_ccr_backend
 
         backend = _create_default_ccr_backend()
         assert backend is not None
         assert backend.get_stats()["backend_type"] == "sqlite"
 
     def test_memory_env_returns_none(self, monkeypatch):
-        """HEADROOM_CCR_BACKEND=memory → returns None (use default)."""
-        monkeypatch.setenv("HEADROOM_CCR_BACKEND", "memory")
-        from headroom.cache.compression_store import _create_default_ccr_backend
+        """COPIUM_CCR_BACKEND=memory → returns None (use default)."""
+        monkeypatch.setenv("COPIUM_CCR_BACKEND", "memory")
+        from copium.cache.compression_store import _create_default_ccr_backend
 
         assert _create_default_ccr_backend() is None
 
     def test_unknown_backend_returns_none(self, monkeypatch):
         """Unknown backend with no entry point → returns None."""
-        monkeypatch.setenv("HEADROOM_CCR_BACKEND", "nonexistent_backend_xyz")
-        from headroom.cache.compression_store import _create_default_ccr_backend
+        monkeypatch.setenv("COPIUM_CCR_BACKEND", "nonexistent_backend_xyz")
+        from copium.cache.compression_store import _create_default_ccr_backend
 
         assert _create_default_ccr_backend() is None
 
@@ -426,21 +426,21 @@ class TestStorageEntryPointLoading:
 
     def test_sqlite_scheme(self, tmp_path):
         """sqlite:// scheme creates SQLiteStorage."""
-        from headroom.storage.sqlite import SQLiteStorage
+        from copium.storage.sqlite import SQLiteStorage
 
         store = create_storage(f"sqlite:///{tmp_path}/test.db")
         assert isinstance(store, SQLiteStorage)
 
     def test_jsonl_scheme(self, tmp_path):
         """jsonl:// scheme creates JSONLStorage."""
-        from headroom.storage.jsonl import JSONLStorage
+        from copium.storage.jsonl import JSONLStorage
 
         store = create_storage(f"jsonl:///{tmp_path}/test.jsonl")
         assert isinstance(store, JSONLStorage)
 
     def test_unknown_scheme_without_entry_point(self, tmp_path):
         """Unknown scheme without entry point falls back to SQLiteStorage."""
-        from headroom.storage.sqlite import SQLiteStorage
+        from copium.storage.sqlite import SQLiteStorage
 
         # This should fall back to SQLite (legacy behavior)
         store = create_storage(str(tmp_path / "test.db"))

@@ -1,8 +1,8 @@
-"""Tests for headroom.proxy.output_savings — the counterfactual estimator."""
+"""Tests for copium.proxy.output_savings — the counterfactual estimator."""
 
 from __future__ import annotations
 
-from headroom.proxy.output_savings import (
+from copium.proxy.output_savings import (
     BaselineModel,
     SavingsLedger,
     assign_arm,

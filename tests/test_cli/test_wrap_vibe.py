@@ -1,4 +1,4 @@
-"""Tests for `headroom wrap vibe` command."""
+"""Tests for `copium wrap vibe` command."""
 
 from __future__ import annotations
 
@@ -10,8 +10,8 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 
-from headroom.cli import wrap as wrap_mod
-from headroom.cli.main import main
+from copium.cli import wrap as wrap_mod
+from copium.cli.main import main
 
 
 @pytest.fixture
@@ -26,7 +26,7 @@ def test_wrap_vibe_launch(
 ) -> None:
     """Vibe launches with correct configuration."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
 
     captured: dict[str, Any] = {}
 
@@ -57,7 +57,7 @@ def test_wrap_vibe_with_project_name(
     project_dir = tmp_path / "my-project"
     project_dir.mkdir()
     monkeypatch.chdir(project_dir)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
 
     captured: dict[str, Any] = {}
 
@@ -83,7 +83,7 @@ def test_wrap_vibe_not_found(
 ) -> None:
     """Error message when vibe binary is not found."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
 
     with patch.object(wrap_mod.shutil, "which", return_value=None):
         result = runner.invoke(main, ["wrap", "vibe"])
@@ -100,7 +100,7 @@ def test_wrap_vibe_custom_port(
 ) -> None:
     """Custom --port is passed to _launch_tool and appears in VIBE_PROVIDERS."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
 
     captured: dict[str, Any] = {}
 
@@ -126,7 +126,7 @@ def test_wrap_vibe_no_proxy(
 ) -> None:
     """--no-proxy flag prevents proxy startup."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
 
     captured: dict[str, Any] = {}
 
@@ -149,7 +149,7 @@ def test_wrap_vibe_code_graph(
 ) -> None:
     """--code-graph flag is passed to _launch_tool."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
 
     captured: dict[str, Any] = {}
 
@@ -172,7 +172,7 @@ def test_wrap_vibe_learn_memory(
 ) -> None:
     """--learn and --memory flags are passed to _launch_tool."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
 
     captured: dict[str, Any] = {}
 
@@ -196,7 +196,7 @@ def test_wrap_vibe_verbose(
 ) -> None:
     """--verbose flag is accepted by vibe command."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
 
     captured: dict[str, Any] = {}
 
@@ -218,7 +218,7 @@ def test_wrap_vibe_providers_json_structure(
 ) -> None:
     """VIBE_PROVIDERS env var has correct JSON structure."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
 
     captured: dict[str, Any] = {}
 
@@ -252,7 +252,7 @@ def test_wrap_vibe_no_context_tool(
 ) -> None:
     """--no-context-tool and --no-rtk flags are accepted and not passed to vibe."""
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HEADROOM_CONTEXT_TOOL", raising=False)
+    monkeypatch.delenv("COPIUM_CONTEXT_TOOL", raising=False)
 
     captured: dict[str, Any] = {}
 

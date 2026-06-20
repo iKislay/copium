@@ -36,22 +36,22 @@
 
 ```bash
 # Full backup
-tar -czf headroom-backup-$(date +%Y%m%d).tar.gz ~/.headroom/
+tar -czf copium-backup-$(date +%Y%m%d).tar.gz ~/.copium/
 
 # Incremental (last 24h)
-sqlite3 ~/.headroom/headroom_memory.db ".backup /tmp/headroom_incremental.db"
+sqlite3 ~/.copium/copium_memory.db ".backup /tmp/copium_incremental.db"
 ```
 
 ### Automated Backup
 
 ```bash
 # Cron job (daily at 2am)
-0 2 * * * tar -czf /backup/headroom-$(date +\%Y\%m\%d).tar.gz ~/.headroom/
+0 2 * * * tar -czf /backup/copium-$(date +\%Y\%m\%d).tar.gz ~/.copium/
 ```
 
 ### External Storage
 
-> **Note:** External PostgreSQL/Redis storage is not yet implemented. Headroom uses SQLite at `~/.headroom/` (configurable via `HEADROOM_WORKSPACE_DIR`). The `HEADROOM_DB_URL` and `HEADROOM_CACHE_BACKEND` vars do not exist.
+> **Note:** External PostgreSQL/Redis storage is not yet implemented. Copium uses SQLite at `~/.copium/` (configurable via `COPIUM_WORKSPACE_DIR`). The `COPIUM_DB_URL` and `COPIUM_CACHE_BACKEND` vars do not exist.
 
 ---
 
@@ -62,10 +62,10 @@ sqlite3 ~/.headroom/headroom_memory.db ".backup /tmp/headroom_incremental.db"
 1. **Restart proxy:**
 ```bash
 # Docker
-docker-compose restart headroom
+docker-compose restart copium
 
 # Native
-pkill headroom && headroom proxy &
+pkill copium && copium proxy &
 ```
 
 2. **Check health:**
@@ -78,15 +78,15 @@ curl http://localhost:8787/readyz
 
 1. **Restore from backup:**
 ```bash
-# Stop headroom
-pkill headroom
+# Stop copium
+pkill copium
 
 # Restore SQLite
-rm ~/.headroom/headroom_memory.db
-tar -xzf headroom-backup-20260416.tar.gz -C ~/
+rm ~/.copium/copium_memory.db
+tar -xzf copium-backup-20260416.tar.gz -C ~/
 
-# Restart headroom
-headroom proxy &
+# Restart copium
+copium proxy &
 ```
 
 2. **Verify data:**
@@ -130,13 +130,13 @@ curl -X POST http://localhost:8787/api/v1/import \
 
 ```yaml
 services:
-  headroom-1:
-    image: headroom-ai/headroom:latest
+  copium-1:
+    image: copium-ai/copium:latest
     ports:
       - "8787:8787"
 
-  headroom-2:
-    image: headroom-ai/headroom:latest
+  copium-2:
+    image: copium-ai/copium:latest
     ports:
       - "8788:8787"
 

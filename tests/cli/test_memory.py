@@ -11,9 +11,9 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
-from headroom.cli.main import main
-from headroom.memory.adapters.sqlite import SQLiteMemoryStore
-from headroom.memory.models import Memory
+from copium.cli.main import main
+from copium.memory.adapters.sqlite import SQLiteMemoryStore
+from copium.memory.models import Memory
 
 
 @pytest.fixture
@@ -115,7 +115,7 @@ def populated_db(temp_db: str) -> str:
 
 
 class TestMemoryList:
-    """Tests for 'headroom memory list' command."""
+    """Tests for 'copium memory list' command."""
 
     def test_list_all(self, runner: CliRunner, populated_db: str) -> None:
         """List all memories."""
@@ -150,7 +150,7 @@ class TestMemoryList:
 
 
 class TestMemoryShow:
-    """Tests for 'headroom memory show' command."""
+    """Tests for 'copium memory show' command."""
 
     def test_show_by_id(self, runner: CliRunner, populated_db: str) -> None:
         """Show memory by full ID."""
@@ -185,7 +185,7 @@ class TestMemoryShow:
 
 
 class TestMemoryStats:
-    """Tests for 'headroom memory stats' command."""
+    """Tests for 'copium memory stats' command."""
 
     def test_stats(self, runner: CliRunner, populated_db: str) -> None:
         """Show stats for populated database."""
@@ -203,7 +203,7 @@ class TestMemoryStats:
 
 
 class TestMemoryEdit:
-    """Tests for 'headroom memory edit' command."""
+    """Tests for 'copium memory edit' command."""
 
     def test_edit_content(self, runner: CliRunner, populated_db: str) -> None:
         """Edit memory content."""
@@ -251,7 +251,7 @@ class TestMemoryEdit:
 
 
 class TestMemoryDelete:
-    """Tests for 'headroom memory delete' command."""
+    """Tests for 'copium memory delete' command."""
 
     def test_delete_single(self, runner: CliRunner, populated_db: str) -> None:
         """Delete single memory with force."""
@@ -300,7 +300,7 @@ class TestMemoryDelete:
 
 
 class TestMemoryPrune:
-    """Tests for 'headroom memory prune' command."""
+    """Tests for 'copium memory prune' command."""
 
     def test_prune_dry_run(self, runner: CliRunner, populated_db: str) -> None:
         """Prune with dry-run shows what would be deleted."""
@@ -344,7 +344,7 @@ class TestMemoryPrune:
 
 
 class TestMemoryPurge:
-    """Tests for 'headroom memory purge' command."""
+    """Tests for 'copium memory purge' command."""
 
     def test_purge_requires_confirm_flag(self, runner: CliRunner, populated_db: str) -> None:
         """Purge requires --confirm flag."""

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { withHeadroom } from "../../src/adapters/anthropic.js";
+import { withCopium } from "../../src/adapters/anthropic.js";
 
 const mockFetch = vi.fn();
 vi.stubGlobal("fetch", mockFetch);
@@ -21,7 +21,7 @@ function mockCompressSuccess(
   );
 }
 
-describe("withHeadroom (Anthropic)", () => {
+describe("withCopium (Anthropic)", () => {
   beforeEach(() => {
     mockFetch.mockReset();
   });
@@ -38,7 +38,7 @@ describe("withHeadroom (Anthropic)", () => {
       completions: { create: vi.fn() },
     };
 
-    const wrapped = withHeadroom(fakeClient as any, {
+    const wrapped = withCopium(fakeClient as any, {
       baseUrl: "http://localhost:8787",
     });
 
@@ -66,7 +66,7 @@ describe("withHeadroom (Anthropic)", () => {
       beta: { something: vi.fn() },
     };
 
-    const wrapped = withHeadroom(fakeClient as any, {
+    const wrapped = withCopium(fakeClient as any, {
       baseUrl: "http://localhost:8787",
     });
 
@@ -89,7 +89,7 @@ describe("withHeadroom (Anthropic)", () => {
     const mockCreate = vi.fn().mockResolvedValue(expectedResponse);
     const fakeClient = { messages: { create: mockCreate } };
 
-    const wrapped = withHeadroom(fakeClient as any, {
+    const wrapped = withCopium(fakeClient as any, {
       baseUrl: "http://localhost:8787",
     });
 
@@ -108,7 +108,7 @@ describe("withHeadroom (Anthropic)", () => {
     const mockCreate = vi.fn().mockResolvedValue({});
     const fakeClient = { messages: { create: mockCreate } };
 
-    const wrapped = withHeadroom(fakeClient as any, {
+    const wrapped = withCopium(fakeClient as any, {
       baseUrl: "http://localhost:8787",
     });
 
@@ -156,7 +156,7 @@ describe("withHeadroom (Anthropic)", () => {
     const mockCreate = vi.fn().mockResolvedValue({});
     const fakeClient = { messages: { create: mockCreate } };
 
-    const wrapped = withHeadroom(fakeClient as any, {
+    const wrapped = withCopium(fakeClient as any, {
       baseUrl: "http://localhost:8787",
     });
 
@@ -198,7 +198,7 @@ describe("withHeadroom (Anthropic)", () => {
     const mockCreate = vi.fn().mockResolvedValue({});
     const fakeClient = { messages: { create: mockCreate } };
 
-    const wrapped = withHeadroom(fakeClient as any, {
+    const wrapped = withCopium(fakeClient as any, {
       baseUrl: "http://localhost:8787",
       fallback: true,
     });

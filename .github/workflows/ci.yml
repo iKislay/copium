@@ -50,7 +50,7 @@ jobs:
         with:
           filters: |
             code:
-              - 'headroom/**'
+              - 'copium/**'
               - 'crates/**'
               - '**/*.rs'
               - 'pyproject.toml'
@@ -59,7 +59,7 @@ jobs:
               - 'tests/**'
               - 'scripts/**'
             e2e:
-              - 'headroom/**'
+              - 'copium/**'
               - 'crates/**'
               - 'docker/**'
               - 'Dockerfile'
@@ -91,7 +91,7 @@ jobs:
       - name: ruff format --check
         run: ruff format --check .
       - name: mypy
-        run: mypy headroom --ignore-missing-imports
+        run: mypy copium --ignore-missing-imports
 
   build-wheel:
     needs: changes
@@ -113,7 +113,7 @@ jobs:
           maturin build --profile ci --out dist --interpreter "python${PY_VERSION}"
       - uses: actions/upload-artifact@v7
         with:
-          name: headroom-wheel
+          name: copium-wheel
           path: dist/*.whl
           retention-days: 1
 
@@ -179,7 +179,7 @@ jobs:
       - name: Download prebuilt wheel
         uses: actions/download-artifact@v8
         with:
-          name: headroom-wheel
+          name: copium-wheel
           path: dist
 
       - name: Install (CPU torch + prebuilt wheel + dev deps, no cargo rebuild)
@@ -188,11 +188,11 @@ jobs:
           pip install torch --index-url https://download.pytorch.org/whl/cpu
           WHEEL="$(ls dist/*.whl)"
           pip install "${WHEEL}[dev]" pytest-split
-          # cwd's ./headroom source tree shadows the installed wheel; copy the
+          # cwd's ./copium source tree shadows the installed wheel; copy the
           # compiled extension in so tests import it (no second cargo build).
           SITE="$(python -c 'import sysconfig; print(sysconfig.get_path("platlib"))')"
-          cp "${SITE}/headroom/"_core*.so headroom/
-          python -c "from headroom._core import DiffCompressor; print('headroom._core OK')"
+          cp "${SITE}/copium/"_core*.so copium/
+          python -c "from copium._core import DiffCompressor; print('copium._core OK')"
 
       # Coverage upload: without this, codecov only receives reports from
       # the two native-e2e workflows (3 CLI test files total), so head
@@ -203,7 +203,7 @@ jobs:
         run: |
           pytest tests scripts/tests \
             --splits 4 --group ${{ matrix.shard }} \
-            --cov=headroom --cov-branch \
+            --cov=copium --cov-branch \
             --cov-report=xml:coverage-${{ matrix.shard }}.xml \
             --cov-report= \
             --tb=short -q
@@ -247,7 +247,7 @@ jobs:
       - name: Download prebuilt wheel
         uses: actions/download-artifact@v8
         with:
-          name: headroom-wheel
+          name: copium-wheel
           path: dist
       - name: Install (CPU torch + wheel[dev,relevance])
         run: |
@@ -256,8 +256,8 @@ jobs:
           WHEEL="$(ls dist/*.whl)"
           pip install "${WHEEL}[dev,relevance]"
           SITE="$(python -c 'import sysconfig; print(sysconfig.get_path("platlib"))')"
-          cp "${SITE}/headroom/"_core*.so headroom/
-          python -c "from headroom._core import SmartCrusher; print('headroom._core OK')"
+          cp "${SITE}/copium/"_core*.so copium/
+          python -c "from copium._core import SmartCrusher; print('copium._core OK')"
       - name: Pre-fetch fastembed model (authenticated, resilient)
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -289,7 +289,7 @@ jobs:
       - name: Download prebuilt wheel
         uses: actions/download-artifact@v8
         with:
-          name: headroom-wheel
+          name: copium-wheel
           path: dist
       - name: Install (CPU torch + wheel[dev,agno])
         run: |
@@ -298,7 +298,7 @@ jobs:
           WHEEL="$(ls dist/*.whl)"
           pip install "${WHEEL}[dev,agno]"
           SITE="$(python -c 'import sysconfig; print(sysconfig.get_path("platlib"))')"
-          cp "${SITE}/headroom/"_core*.so headroom/
+          cp "${SITE}/copium/"_core*.so copium/
       - name: Run agno tests
         run: pytest tests/test_integrations/agno/ -v
 
@@ -315,7 +315,7 @@ jobs:
       - name: Download prebuilt wheel
         uses: actions/download-artifact@v8
         with:
-          name: headroom-wheel
+          name: copium-wheel
           path: dist
       - name: Install (CPU torch + wheel[dev] + playwright)
         run: |
@@ -324,7 +324,7 @@ jobs:
           WHEEL="$(ls dist/*.whl)"
           pip install "${WHEEL}[dev]" playwright
           SITE="$(python -c 'import sysconfig; print(sysconfig.get_path("platlib"))')"
-          cp "${SITE}/headroom/"_core*.so headroom/
+          cp "${SITE}/copium/"_core*.so copium/
       - name: Install chromium
         run: playwright install --with-deps chromium
       - name: Run dashboard playwright tests
@@ -333,7 +333,7 @@ jobs:
         # localhost:8787 and stays excluded; the main shards keep skipping
         # these via importorskip since playwright is not installed there.
         env:
-          HEADROOM_PLAYWRIGHT_ARTIFACT_DIR: ${{ runner.temp }}/playwright-artifacts
+          COPIUM_PLAYWRIGHT_ARTIFACT_DIR: ${{ runner.temp }}/playwright-artifacts
         run: pytest tests/test_dashboard_*_playwright.py -v
       - name: Upload dashboard screenshots
         if: always()
@@ -432,19 +432,19 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
-      - name: Build local Headroom image
-        run: docker build -t headroom-native-e2e:latest .
+      - name: Build local Copium image
+        run: docker build -t copium-native-e2e:latest .
       - name: Run Docker-native installer e2e
         env:
-          HEADROOM_DOCKER_IMAGE: headroom-native-e2e:latest
+          COPIUM_DOCKER_IMAGE: copium-native-e2e:latest
         run: bash e2e/docker-native-install.sh
       - name: Run Docker-native compose smoke test
         env:
-          HEADROOM_IMAGE: headroom-native-e2e:latest
-          HEADROOM_HOST_HOME: ${{ github.workspace }}
-          HEADROOM_WORKSPACE: ${{ github.workspace }}
+          COPIUM_IMAGE: copium-native-e2e:latest
+          COPIUM_HOST_HOME: ${{ github.workspace }}
+          COPIUM_WORKSPACE: ${{ github.workspace }}
         run: |
-          mkdir -p .headroom .claude .codex .gemini
+          mkdir -p .copium .claude .codex .gemini
           trap 'docker compose -f docker/docker-compose.native.yml down -v' EXIT
           docker compose -f docker/docker-compose.native.yml up -d proxy
           for attempt in $(seq 1 30); do
@@ -459,12 +459,12 @@ jobs:
           done
       - name: Run Docker-native wrap e2e
         run: |
-          docker build -f e2e/wrap/Dockerfile -t headroom-wrap-e2e .
-          docker run --rm headroom-wrap-e2e
+          docker build -f e2e/wrap/Dockerfile -t copium-wrap-e2e .
+          docker run --rm copium-wrap-e2e
       - name: Run Docker-native init e2e
         run: |
-          docker build -f e2e/init/Dockerfile -t headroom-init-e2e .
-          docker run --rm headroom-init-e2e
+          docker build -f e2e/init/Dockerfile -t copium-init-e2e .
+          docker run --rm copium-init-e2e
 
   windows-native-wrapper:
     needs: changes

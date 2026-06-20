@@ -11,7 +11,7 @@ Verifies that:
 
 from __future__ import annotations
 
-from headroom.proxy.server import HeadroomProxy, ProxyConfig
+from copium.proxy.server import CopiumProxy, ProxyConfig
 
 # =============================================================================
 # ProxyConfig Flag Resolution Tests
@@ -68,19 +68,19 @@ class TestProxyConfigFlags:
 # =============================================================================
 
 
-class TestHeadroomProxyTrafficLearner:
-    """Test that HeadroomProxy correctly initializes (or doesn't) the traffic learner."""
+class TestCopiumProxyTrafficLearner:
+    """Test that CopiumProxy correctly initializes (or doesn't) the traffic learner."""
 
     def test_no_traffic_learner_by_default(self):
         """Default proxy has no traffic learner."""
         config = ProxyConfig()
-        proxy = HeadroomProxy(config)
+        proxy = CopiumProxy(config)
         assert proxy.traffic_learner is None
 
     def test_no_traffic_learner_with_memory_only(self):
         """--memory alone does NOT create traffic learner."""
         config = ProxyConfig(memory_enabled=True)
-        proxy = HeadroomProxy(config)
+        proxy = CopiumProxy(config)
         assert proxy.traffic_learner is None
 
     def test_traffic_learner_created_with_learn(self):
@@ -89,7 +89,7 @@ class TestHeadroomProxyTrafficLearner:
             memory_enabled=True,
             traffic_learning_enabled=True,
         )
-        proxy = HeadroomProxy(config)
+        proxy = CopiumProxy(config)
         assert proxy.traffic_learner is not None
 
     def test_traffic_learner_starts_without_backend(self):
@@ -98,7 +98,7 @@ class TestHeadroomProxyTrafficLearner:
             memory_enabled=True,
             traffic_learning_enabled=True,
         )
-        proxy = HeadroomProxy(config)
+        proxy = CopiumProxy(config)
         assert proxy.traffic_learner is not None
         assert proxy.traffic_learner._backend is None
 
@@ -109,7 +109,7 @@ class TestHeadroomProxyTrafficLearner:
             traffic_learning_enabled=True,
         )
         assert config.traffic_learning_min_evidence == 5
-        proxy = HeadroomProxy(config)
+        proxy = CopiumProxy(config)
         assert proxy.traffic_learner is not None
         assert proxy.traffic_learner._min_evidence == 5
 
@@ -120,7 +120,7 @@ class TestHeadroomProxyTrafficLearner:
             traffic_learning_enabled=True,
             traffic_learning_min_evidence=10,
         )
-        proxy = HeadroomProxy(config)
+        proxy = CopiumProxy(config)
         assert proxy.traffic_learner is not None
         assert proxy.traffic_learner._min_evidence == 10
 
@@ -205,7 +205,7 @@ class TestCompressAPIIsolation:
 
     def test_compress_has_no_memory_dependency(self):
         """compress() module does not import memory modules."""
-        from headroom import compress
+        from copium import compress
 
         # compress is a function, not a class with state
         assert callable(compress)
@@ -214,7 +214,7 @@ class TestCompressAPIIsolation:
         """compress() signature has no memory/learn parameters."""
         import inspect
 
-        from headroom import compress
+        from copium import compress
 
         sig = inspect.signature(compress)
         param_names = set(sig.parameters.keys())
@@ -240,7 +240,7 @@ class TestWrapCLILearnFlag:
         # We can't actually run the proxy, but we can check the function signature
         import inspect
 
-        from headroom.cli.wrap import _start_proxy
+        from copium.cli.wrap import _start_proxy
 
         sig = inspect.signature(_start_proxy)
         assert "learn" in sig.parameters
@@ -249,7 +249,7 @@ class TestWrapCLILearnFlag:
         """_ensure_proxy accepts learn kwarg."""
         import inspect
 
-        from headroom.cli.wrap import _ensure_proxy
+        from copium.cli.wrap import _ensure_proxy
 
         sig = inspect.signature(_ensure_proxy)
         assert "learn" in sig.parameters
@@ -258,7 +258,7 @@ class TestWrapCLILearnFlag:
         """_launch_tool accepts learn kwarg."""
         import inspect
 
-        from headroom.cli.wrap import _launch_tool
+        from copium.cli.wrap import _launch_tool
 
         sig = inspect.signature(_launch_tool)
         assert "learn" in sig.parameters

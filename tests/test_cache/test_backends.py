@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from headroom.cache.backends import CompressionStoreBackend, InMemoryBackend
-from headroom.cache.compression_store import CompressionEntry
+from copium.cache.backends import CompressionStoreBackend, InMemoryBackend
+from copium.cache.compression_store import CompressionEntry
 
 if TYPE_CHECKING:
     from collections.abc import Callable

@@ -5,8 +5,8 @@ import threading
 from dataclasses import dataclass
 from types import MethodType, SimpleNamespace
 
-from headroom.proxy.handlers.openai import OpenAIHandlerMixin
-from headroom.transforms.content_router import (
+from copium.proxy.handlers.openai import OpenAIHandlerMixin
+from copium.transforms.content_router import (
     CompressionStrategy,
     ContentRouter,
     RouterCompressionResult,
@@ -21,7 +21,7 @@ class T3FailureCase:
     unit_count: int
 
 
-# T3 provider logs keep the Headroom 413 metadata, not the raw /v1/responses
+# T3 provider logs keep the Copium 413 metadata, not the raw /v1/responses
 # body. These cases recreate the failing byte scale and Responses item shape.
 T3_FAILED_CASES = (
     T3FailureCase(
@@ -96,7 +96,7 @@ def _json_bytes(value: object) -> int:
 
 
 def test_t3_failed_size_responses_payload_parallelizes_uncached_tool_outputs(monkeypatch):
-    monkeypatch.setenv("HEADROOM_TOOL_OUTPUT_COMPRESSION_PARALLELISM", "4")
+    monkeypatch.setenv("COPIUM_TOOL_OUTPUT_COMPRESSION_PARALLELISM", "4")
     case = T3_FAILED_CASES[0]
     router = ContentRouter()
     lock = threading.Lock()

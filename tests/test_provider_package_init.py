@@ -5,9 +5,9 @@ import types
 
 import pytest
 
-import headroom.providers as providers
-from headroom.install.models import ManagedMutation
-from headroom.providers import install_registry
+import copium.providers as providers
+from copium.install.models import ManagedMutation
+from copium.providers import install_registry
 
 
 def test_providers_package_resolves_exports_lazily_and_caches_them(monkeypatch) -> None:
@@ -25,7 +25,7 @@ def test_providers_package_resolves_exports_lazily_and_caches_them(monkeypatch) 
     try:
         assert module.OpenAIProvider is sentinel
         assert module.OpenAIProvider is sentinel
-        assert import_calls == ["headroom.providers.openai"]
+        assert import_calls == ["copium.providers.openai"]
         assert "OpenAIProvider" in module.__dir__()
     finally:
         module.__dict__.pop("OpenAIProvider", None)

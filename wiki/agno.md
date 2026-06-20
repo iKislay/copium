@@ -1,16 +1,16 @@
 # Agno Integration
 
-Headroom integrates with [Agno](https://github.com/agno-agi/agno) (formerly Phidata) to provide automatic context optimization for AI agents. This guide covers model wrapping, observability hooks, and multi-provider support.
+Copium integrates with [Agno](https://github.com/agno-agi/agno) (formerly Phidata) to provide automatic context optimization for AI agents. This guide covers model wrapping, observability hooks, and multi-provider support.
 
 ---
 
 ## Installation
 
 ```bash
-pip install "headroom-ai[agno]"
+pip install "copium-ai[agno]"
 ```
 
-This installs Headroom with Agno support. You'll also need Agno itself:
+This installs Copium with Agno support. You'll also need Agno itself:
 
 ```bash
 pip install agno
@@ -23,10 +23,10 @@ pip install agno
 ```python
 from agno.agent import Agent
 from agno.models.openai import OpenAIChat
-from headroom.integrations.agno import HeadroomAgnoModel
+from copium.integrations.agno import CopiumAgnoModel
 
 # Wrap your model
-model = HeadroomAgnoModel(OpenAIChat(id="gpt-4o"))
+model = CopiumAgnoModel(OpenAIChat(id="gpt-4o"))
 
 # Create agent as usual
 agent = Agent(model=model)
@@ -46,23 +46,23 @@ print(model.get_savings_summary())
 
 ### 1. Basic Model Wrapping
 
-The simplest integration - wrap any Agno model with `HeadroomAgnoModel`:
+The simplest integration - wrap any Agno model with `CopiumAgnoModel`:
 
 ```python
 from agno.models.openai import OpenAIChat
 from agno.models.anthropic import Claude
 from agno.models.google import Gemini
-from headroom.integrations.agno import HeadroomAgnoModel
+from copium.integrations.agno import CopiumAgnoModel
 
 # Works with any Agno model
-openai_model = HeadroomAgnoModel(OpenAIChat(id="gpt-4o"))
-claude_model = HeadroomAgnoModel(Claude(id="claude-3-5-sonnet-20241022"))
-gemini_model = HeadroomAgnoModel(Gemini(id="gemini-2.0-flash"))
+openai_model = CopiumAgnoModel(OpenAIChat(id="gpt-4o"))
+claude_model = CopiumAgnoModel(Claude(id="claude-3-5-sonnet-20241022"))
+gemini_model = CopiumAgnoModel(Gemini(id="gemini-2.0-flash"))
 
 # Each automatically uses the correct provider for accurate token counting
 ```
 
-**Why this matters**: Headroom automatically detects the underlying provider and applies the correct tokenizer for accurate optimization metrics.
+**Why this matters**: Copium automatically detects the underlying provider and applies the correct tokenizer for accurate optimization metrics.
 
 ### 2. Agent with Observability Hooks
 
@@ -71,18 +71,18 @@ Use hooks for detailed tracking without modifying your model:
 ```python
 from agno.agent import Agent
 from agno.models.openai import OpenAIChat
-from headroom.integrations.agno import (
-    HeadroomAgnoModel,
-    HeadroomPreHook,
-    HeadroomPostHook,
+from copium.integrations.agno import (
+    CopiumAgnoModel,
+    CopiumPreHook,
+    CopiumPostHook,
 )
 
 # Model wrapper for optimization
-model = HeadroomAgnoModel(OpenAIChat(id="gpt-4o"))
+model = CopiumAgnoModel(OpenAIChat(id="gpt-4o"))
 
 # Hooks for observability
-pre_hook = HeadroomPreHook()
-post_hook = HeadroomPostHook(token_alert_threshold=10000)
+pre_hook = CopiumPreHook()
+post_hook = CopiumPostHook(token_alert_threshold=10000)
 
 agent = Agent(
     model=model,
@@ -105,12 +105,12 @@ print(f"Alerts triggered: {post_hook.alerts}")
 
 ### 3. Convenience Hook Factory
 
-Use `create_headroom_hooks()` to create matched hook pairs:
+Use `create_copium_hooks()` to create matched hook pairs:
 
 ```python
-from headroom.integrations.agno import create_headroom_hooks
+from copium.integrations.agno import create_copium_hooks
 
-pre_hook, post_hook = create_headroom_hooks(
+pre_hook, post_hook = create_copium_hooks(
     token_alert_threshold=5000,
     log_level="DEBUG",
 )
@@ -124,18 +124,18 @@ agent = Agent(
 
 ### 4. Custom Configuration
 
-Pass a `HeadroomConfig` for fine-grained control:
+Pass a `CopiumConfig` for fine-grained control:
 
 ```python
-from headroom import HeadroomConfig, HeadroomMode
-from headroom.integrations.agno import HeadroomAgnoModel
+from copium import CopiumConfig, CopiumMode
+from copium.integrations.agno import CopiumAgnoModel
 
-config = HeadroomConfig(
-    default_mode=HeadroomMode.OPTIMIZE,
+config = CopiumConfig(
+    default_mode=CopiumMode.OPTIMIZE,
     # Add other configuration options as needed
 )
 
-model = HeadroomAgnoModel(
+model = CopiumAgnoModel(
     wrapped_model=OpenAIChat(id="gpt-4o"),
     config=config,
 )
@@ -146,7 +146,7 @@ model = HeadroomAgnoModel(
 Optimize messages without wrapping a model:
 
 ```python
-from headroom.integrations.agno import optimize_messages
+from copium.integrations.agno import optimize_messages
 
 messages = [
     {"role": "system", "content": "You are a helpful assistant."},
@@ -165,10 +165,10 @@ Full async support for high-throughput applications:
 
 ```python
 import asyncio
-from headroom.integrations.agno import HeadroomAgnoModel
+from copium.integrations.agno import CopiumAgnoModel
 
 async def process_async():
-    model = HeadroomAgnoModel(OpenAIChat(id="gpt-4o"))
+    model = CopiumAgnoModel(OpenAIChat(id="gpt-4o"))
 
     # Async response
     response = await model.aresponse(messages)
@@ -192,10 +192,10 @@ asyncio.run(process_async())
 from agno.agent import Agent
 from agno.models.openai import OpenAIChat
 from agno.tools.duckduckgo import DuckDuckGoTools
-from headroom.integrations.agno import HeadroomAgnoModel
+from copium.integrations.agno import CopiumAgnoModel
 
 # Wrap model for optimization
-model = HeadroomAgnoModel(OpenAIChat(id="gpt-4o"))
+model = CopiumAgnoModel(OpenAIChat(id="gpt-4o"))
 
 # Agent with search tools
 agent = Agent(
@@ -217,11 +217,11 @@ print(model.get_savings_summary())
 ```python
 from agno.models.openai import OpenAIChat
 from agno.models.anthropic import Claude
-from headroom.integrations.agno import HeadroomAgnoModel
+from copium.integrations.agno import CopiumAgnoModel
 
 # Different models for different tasks
-fast_model = HeadroomAgnoModel(OpenAIChat(id="gpt-4o-mini"))
-powerful_model = HeadroomAgnoModel(Claude(id="claude-3-5-sonnet-20241022"))
+fast_model = CopiumAgnoModel(OpenAIChat(id="gpt-4o-mini"))
+powerful_model = CopiumAgnoModel(Claude(id="claude-3-5-sonnet-20241022"))
 
 # Use fast model for simple tasks
 simple_agent = Agent(model=fast_model)
@@ -238,13 +238,13 @@ print(f"Powerful model saved: {powerful_model.total_tokens_saved}")
 
 ```python
 from agno.agent import Agent
-from headroom.integrations.agno import (
-    HeadroomAgnoModel,
-    create_headroom_hooks,
+from copium.integrations.agno import (
+    CopiumAgnoModel,
+    create_copium_hooks,
 )
 
-model = HeadroomAgnoModel(OpenAIChat(id="gpt-4o"))
-pre_hook, post_hook = create_headroom_hooks(
+model = CopiumAgnoModel(OpenAIChat(id="gpt-4o"))
+pre_hook, post_hook = create_copium_hooks(
     token_alert_threshold=50000,  # Alert on large requests
     log_level="WARNING",
 )
@@ -274,7 +274,7 @@ print(f"Average tokens: {summary['average_tokens']}")
 ### Example 4: Reset for New Sessions
 
 ```python
-model = HeadroomAgnoModel(OpenAIChat(id="gpt-4o"))
+model = CopiumAgnoModel(OpenAIChat(id="gpt-4o"))
 
 # Session 1
 agent.run("First conversation...")
@@ -292,7 +292,7 @@ print(f"Session 2 savings: {model.get_savings_summary()}")
 
 ## Supported Providers
 
-HeadroomAgnoModel automatically detects the provider from the wrapped model:
+CopiumAgnoModel automatically detects the provider from the wrapped model:
 
 | Provider | Agno Models | Auto-Detected |
 |----------|-------------|---------------|
@@ -308,7 +308,7 @@ HeadroomAgnoModel automatically detects the provider from the wrapped model:
 To disable auto-detection:
 
 ```python
-model = HeadroomAgnoModel(
+model = CopiumAgnoModel(
     wrapped_model=some_model,
     auto_detect_provider=False,  # Falls back to OpenAI tokenizer
 )
@@ -320,7 +320,7 @@ model = HeadroomAgnoModel(
 
 ### What's Optimized
 
-HeadroomAgnoModel optimizes messages at the LLM call boundary. This covers:
+CopiumAgnoModel optimizes messages at the LLM call boundary. This covers:
 
 | Feature | Optimized | Notes |
 |---------|-----------|-------|
@@ -360,18 +360,18 @@ We're tracking these potential enhancements:
 - **Tool schema deduplication** — Cache and reference repeated tool definitions
 - **Team-level optimization** — Shared context compression across agent teams
 
-Contributions welcome! See [CONTRIBUTING.md](https://github.com/chopratejas/headroom/blob/main/CONTRIBUTING.md).
+Contributions welcome! See [CONTRIBUTING.md](https://github.com/iKislay/copium/blob/main/CONTRIBUTING.md).
 
 ---
 
 ## Configuration Reference
 
-### HeadroomAgnoModel
+### CopiumAgnoModel
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `wrapped_model` | Any | Required | The Agno model to wrap |
-| `config` | `HeadroomConfig` | `None` | Custom configuration |
+| `config` | `CopiumConfig` | `None` | Custom configuration |
 | `auto_detect_provider` | `bool` | `True` | Auto-detect provider for token counting |
 
 **Properties:**
@@ -387,14 +387,14 @@ Contributions welcome! See [CONTRIBUTING.md](https://github.com/chopratejas/head
 - `get_savings_summary()` - Returns dict with stats
 - `reset()` - Clear all metrics
 
-### HeadroomPreHook
+### CopiumPreHook
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `config` | `HeadroomConfig` | `None` | Configuration (for future use) |
+| `config` | `CopiumConfig` | `None` | Configuration (for future use) |
 | `model` | `str` | `"gpt-4o"` | Model name for estimation |
 
-### HeadroomPostHook
+### CopiumPostHook
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -409,16 +409,16 @@ Contributions welcome! See [CONTRIBUTING.md](https://github.com/chopratejas/head
 - `get_summary()` - Returns dict with request stats
 - `reset()` - Clear history and alerts
 
-### create_headroom_hooks()
+### create_copium_hooks()
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `config` | `HeadroomConfig` | `None` | Config for pre-hook |
+| `config` | `CopiumConfig` | `None` | Config for pre-hook |
 | `model` | `str` | `"gpt-4o"` | Model for pre-hook |
 | `log_level` | `str` | `"INFO"` | Log level for post-hook |
 | `token_alert_threshold` | `int` | `None` | Alert threshold for post-hook |
 
-Returns: `tuple[HeadroomPreHook, HeadroomPostHook]`
+Returns: `tuple[CopiumPreHook, CopiumPostHook]`
 
 ---
 
@@ -426,25 +426,25 @@ Returns: `tuple[HeadroomPreHook, HeadroomPostHook]`
 
 ```python
 # Main integration
-from headroom.integrations.agno import HeadroomAgnoModel
+from copium.integrations.agno import CopiumAgnoModel
 
 # Hooks
-from headroom.integrations.agno import HeadroomPreHook
-from headroom.integrations.agno import HeadroomPostHook
-from headroom.integrations.agno import create_headroom_hooks
+from copium.integrations.agno import CopiumPreHook
+from copium.integrations.agno import CopiumPostHook
+from copium.integrations.agno import create_copium_hooks
 
 # Utilities
-from headroom.integrations.agno import optimize_messages
-from headroom.integrations.agno import agno_available
-from headroom.integrations.agno import get_headroom_provider
-from headroom.integrations.agno import get_model_name_from_agno
+from copium.integrations.agno import optimize_messages
+from copium.integrations.agno import agno_available
+from copium.integrations.agno import get_copium_provider
+from copium.integrations.agno import get_model_name_from_agno
 
 # Or import everything from parent
-from headroom.integrations import (
-    HeadroomAgnoModel,
-    HeadroomPreHook,
-    HeadroomPostHook,
-    create_headroom_hooks,
+from copium.integrations import (
+    CopiumAgnoModel,
+    CopiumPreHook,
+    CopiumPostHook,
+    create_copium_hooks,
 )
 ```
 
@@ -455,10 +455,10 @@ from headroom.integrations import (
 ### Check if Agno is Available
 
 ```python
-from headroom.integrations.agno import agno_available
+from copium.integrations.agno import agno_available
 
 if agno_available():
-    from headroom.integrations.agno import HeadroomAgnoModel
+    from copium.integrations.agno import CopiumAgnoModel
 else:
     print("Install agno: pip install agno")
 ```
@@ -468,10 +468,10 @@ else:
 If auto-detection fails, check the detected provider:
 
 ```python
-from headroom.integrations.agno import get_headroom_provider, get_model_name_from_agno
+from copium.integrations.agno import get_copium_provider, get_model_name_from_agno
 
 model = OpenAIChat(id="gpt-4o")
-provider = get_headroom_provider(model)
+provider = get_copium_provider(model)
 model_name = get_model_name_from_agno(model)
 
 print(f"Detected provider: {type(provider).__name__}")

@@ -13,8 +13,8 @@ import time
 
 import pytest
 
-from headroom.cache.backends.sqlite import SQLiteBackend
-from headroom.cache.compression_store import CompressionEntry, CompressionStore
+from copium.cache.backends.sqlite import SQLiteBackend
+from copium.cache.compression_store import CompressionEntry, CompressionStore
 
 
 def make_entry(hash_key: str = "h1", content: str = "x" * 600, ttl: int = 1800) -> CompressionEntry:
@@ -93,7 +93,7 @@ class TestSQLiteBackend:
         assert b.count() == 0
 
     def test_unknown_json_fields_tolerated(self, db_path):
-        """Forward-compat: entries written by a newer headroom version
+        """Forward-compat: entries written by a newer copium version
         (extra fields) must still load."""
         b = SQLiteBackend(db_path)
         b.set("h1", make_entry())
@@ -197,29 +197,29 @@ class TestMultiWorkerSafety:
 class TestDefaults:
     def test_session_scale_ttl_lockstep(self):
         """CCRConfig, CompressionEntry, and CompressionStore must agree."""
-        from headroom.config import CCRConfig
+        from copium.config import CCRConfig
 
         assert CCRConfig().store_ttl_seconds == 1800
         assert CompressionEntry.__dataclass_fields__["ttl"].default == 1800
         assert CompressionStore()._default_ttl == 1800
 
     def test_default_backend_is_sqlite(self, monkeypatch, tmp_path):
-        from headroom.cache.compression_store import _create_default_ccr_backend
+        from copium.cache.compression_store import _create_default_ccr_backend
 
-        monkeypatch.delenv("HEADROOM_CCR_BACKEND", raising=False)
-        monkeypatch.setenv("HEADROOM_CCR_SQLITE_PATH", str(tmp_path / "d.db"))
+        monkeypatch.delenv("COPIUM_CCR_BACKEND", raising=False)
+        monkeypatch.setenv("COPIUM_CCR_SQLITE_PATH", str(tmp_path / "d.db"))
         backend = _create_default_ccr_backend()
         assert backend is not None
         assert backend.get_stats()["backend_type"] == "sqlite"
 
     def test_memory_opt_out(self, monkeypatch):
-        from headroom.cache.compression_store import _create_default_ccr_backend
+        from copium.cache.compression_store import _create_default_ccr_backend
 
-        monkeypatch.setenv("HEADROOM_CCR_BACKEND", "memory")
+        monkeypatch.setenv("COPIUM_CCR_BACKEND", "memory")
         assert _create_default_ccr_backend() is None
 
     def test_miss_message_is_actionable(self):
-        from headroom.cache.compression_store import CCR_MISS_MESSAGE
+        from copium.cache.compression_store import CCR_MISS_MESSAGE
 
         assert "re-read" in CCR_MISS_MESSAGE
         assert "re-run" in CCR_MISS_MESSAGE

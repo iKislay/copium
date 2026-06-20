@@ -5,7 +5,7 @@ generic `recorder.py` only captures one positional arg; this script
 captures all three so the Rust comparator gets the same inputs.
 
 Fixture schema (consumed by `SmartCrusherComparator` in
-`crates/headroom-parity/src/lib.rs`):
+`crates/copium-parity/src/lib.rs`):
 
 ```
 {
@@ -38,7 +38,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from headroom.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
+from copium.transforms.smart_crusher import SmartCrusher, SmartCrusherConfig
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 _FIXTURES_DIR = _REPO_ROOT / "tests" / "parity" / "fixtures" / "smart_crusher"

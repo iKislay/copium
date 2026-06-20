@@ -8,9 +8,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from headroom.learn.models import ProjectInfo, Recommendation, RecommendationTarget
-from headroom.learn.scanner import GeminiScanner
-from headroom.learn.writer import GeminiWriter
+from copium.learn.models import ProjectInfo, Recommendation, RecommendationTarget
+from copium.learn.scanner import GeminiScanner
+from copium.learn.writer import GeminiWriter
 
 # =============================================================================
 # Helpers
@@ -453,7 +453,7 @@ class TestJsonlSessionParsing:
 
 class TestToolNameNormalization:
     def test_all_known_names(self):
-        from headroom.learn._shared import normalize_tool_name
+        from copium.learn._shared import normalize_tool_name
 
         assert normalize_tool_name("run_shell_command") == "Bash"
         assert normalize_tool_name("shell") == "Bash"
@@ -472,7 +472,7 @@ class TestToolNameNormalization:
         assert normalize_tool_name("list_directory") == "Glob"
 
     def test_unknown_name_preserved(self):
-        from headroom.learn._shared import normalize_tool_name
+        from copium.learn._shared import normalize_tool_name
 
         assert normalize_tool_name("custom_tool") == "custom_tool"
 

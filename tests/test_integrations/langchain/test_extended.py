@@ -2,9 +2,9 @@
 
 Tests cover:
 1. langchain_providers - Provider auto-detection
-2. langchain_memory - HeadroomChatMessageHistory
-3. langchain_retriever - HeadroomDocumentCompressor
-4. langchain_agents - HeadroomToolWrapper
+2. langchain_memory - CopiumChatMessageHistory
+3. langchain_retriever - CopiumDocumentCompressor
+4. langchain_agents - CopiumToolWrapper
 5. langchain_langsmith - LangSmith integration
 6. langchain_streaming - Streaming metrics
 """
@@ -33,7 +33,7 @@ class TestProviderDetection:
 
     def test_detect_openai_provider(self):
         """Detect OpenAI from ChatOpenAI class."""
-        from headroom.integrations.langchain.providers import detect_provider
+        from copium.integrations.langchain.providers import detect_provider
 
         mock_model = MagicMock()
         mock_model.__class__.__name__ = "ChatOpenAI"
@@ -44,7 +44,7 @@ class TestProviderDetection:
 
     def test_detect_anthropic_provider(self):
         """Detect Anthropic from ChatAnthropic class."""
-        from headroom.integrations.langchain.providers import detect_provider
+        from copium.integrations.langchain.providers import detect_provider
 
         mock_model = MagicMock()
         mock_model.__class__.__name__ = "ChatAnthropic"
@@ -55,7 +55,7 @@ class TestProviderDetection:
 
     def test_detect_google_provider(self):
         """Detect Google from ChatGoogleGenerativeAI class."""
-        from headroom.integrations.langchain.providers import detect_provider
+        from copium.integrations.langchain.providers import detect_provider
 
         mock_model = MagicMock()
         mock_model.__class__.__name__ = "ChatGoogleGenerativeAI"
@@ -66,7 +66,7 @@ class TestProviderDetection:
 
     def test_detect_fallback_to_openai(self):
         """Fall back to OpenAI for unknown models."""
-        from headroom.integrations.langchain.providers import detect_provider
+        from copium.integrations.langchain.providers import detect_provider
 
         mock_model = MagicMock()
         mock_model.__class__.__name__ = "CustomChatModel"
@@ -77,7 +77,7 @@ class TestProviderDetection:
 
     def test_detect_from_model_name_claude(self):
         """Detect Anthropic from model name containing 'claude'."""
-        from headroom.integrations.langchain.providers import detect_provider
+        from copium.integrations.langchain.providers import detect_provider
 
         mock_model = MagicMock()
         mock_model.__class__.__name__ = "CustomModel"
@@ -87,33 +87,33 @@ class TestProviderDetection:
         provider = detect_provider(mock_model)
         assert provider == "anthropic"
 
-    def test_get_headroom_provider_openai(self):
+    def test_get_copium_provider_openai(self):
         """Get OpenAIProvider for OpenAI model."""
-        from headroom.integrations.langchain.providers import get_headroom_provider
-        from headroom.providers import OpenAIProvider
+        from copium.integrations.langchain.providers import get_copium_provider
+        from copium.providers import OpenAIProvider
 
         mock_model = MagicMock()
         mock_model.__class__.__name__ = "ChatOpenAI"
         mock_model.__class__.__module__ = "langchain_openai"
 
-        provider = get_headroom_provider(mock_model)
+        provider = get_copium_provider(mock_model)
         assert isinstance(provider, OpenAIProvider)
 
-    def test_get_headroom_provider_anthropic(self):
+    def test_get_copium_provider_anthropic(self):
         """Get AnthropicProvider for Anthropic model."""
-        from headroom.integrations.langchain.providers import get_headroom_provider
-        from headroom.providers import AnthropicProvider
+        from copium.integrations.langchain.providers import get_copium_provider
+        from copium.providers import AnthropicProvider
 
         mock_model = MagicMock()
         mock_model.__class__.__name__ = "ChatAnthropic"
         mock_model.__class__.__module__ = "langchain_anthropic"
 
-        provider = get_headroom_provider(mock_model)
+        provider = get_copium_provider(mock_model)
         assert isinstance(provider, AnthropicProvider)
 
     def test_get_model_name_from_langchain(self):
         """Extract model name from LangChain model."""
-        from headroom.integrations.langchain.providers import get_model_name_from_langchain
+        from copium.integrations.langchain.providers import get_model_name_from_langchain
 
         mock_model = MagicMock()
         mock_model.model_name = "gpt-4o"
@@ -123,7 +123,7 @@ class TestProviderDetection:
 
     def test_get_model_name_fallback(self):
         """Fall back when model name not available."""
-        from headroom.integrations.langchain.providers import get_model_name_from_langchain
+        from copium.integrations.langchain.providers import get_model_name_from_langchain
 
         mock_model = MagicMock(spec=[])
         mock_model.__class__.__name__ = "ChatOpenAI"
@@ -132,17 +132,17 @@ class TestProviderDetection:
         assert name == "gpt-4o"  # Default for OpenAI
 
 
-class TestHeadroomChatMessageHistory:
-    """Tests for HeadroomChatMessageHistory memory wrapper."""
+class TestCopiumChatMessageHistory:
+    """Tests for CopiumChatMessageHistory memory wrapper."""
 
     def test_init(self):
         """Initialize with base history."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
         mock_history = MagicMock()
         mock_history.messages = []
 
-        wrapper = HeadroomChatMessageHistory(
+        wrapper = CopiumChatMessageHistory(
             mock_history,
             compress_threshold_tokens=4000,
             keep_recent_turns=5,
@@ -154,7 +154,7 @@ class TestHeadroomChatMessageHistory:
 
     def test_messages_passthrough_under_threshold(self):
         """Messages pass through when under threshold."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
         mock_history = MagicMock()
         mock_history.messages = [
@@ -162,7 +162,7 @@ class TestHeadroomChatMessageHistory:
             AIMessage(content="Hi there!"),
         ]
 
-        wrapper = HeadroomChatMessageHistory(
+        wrapper = CopiumChatMessageHistory(
             mock_history,
             compress_threshold_tokens=10000,  # High threshold
         )
@@ -173,12 +173,12 @@ class TestHeadroomChatMessageHistory:
 
     def test_add_message_delegates(self):
         """add_message delegates to base history."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
         mock_history = MagicMock()
         mock_history.messages = []
 
-        wrapper = HeadroomChatMessageHistory(mock_history)
+        wrapper = CopiumChatMessageHistory(mock_history)
         message = HumanMessage(content="Test")
         wrapper.add_message(message)
 
@@ -186,24 +186,24 @@ class TestHeadroomChatMessageHistory:
 
     def test_clear_delegates(self):
         """clear delegates to base history."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
         mock_history = MagicMock()
         mock_history.messages = []
 
-        wrapper = HeadroomChatMessageHistory(mock_history)
+        wrapper = CopiumChatMessageHistory(mock_history)
         wrapper.clear()
 
         mock_history.clear.assert_called_once()
 
     def test_get_compression_stats(self):
         """Get compression statistics."""
-        from headroom.integrations.langchain.memory import HeadroomChatMessageHistory
+        from copium.integrations.langchain.memory import CopiumChatMessageHistory
 
         mock_history = MagicMock()
         mock_history.messages = []
 
-        wrapper = HeadroomChatMessageHistory(mock_history)
+        wrapper = CopiumChatMessageHistory(mock_history)
         stats = wrapper.get_compression_stats()
 
         assert "compression_count" in stats
@@ -211,14 +211,14 @@ class TestHeadroomChatMessageHistory:
         assert stats["compression_count"] == 0
 
 
-class TestHeadroomDocumentCompressor:
-    """Tests for HeadroomDocumentCompressor retriever integration."""
+class TestCopiumDocumentCompressor:
+    """Tests for CopiumDocumentCompressor retriever integration."""
 
     def test_init(self):
         """Initialize with defaults."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor()
+        compressor = CopiumDocumentCompressor()
 
         assert compressor.max_documents == 10
         assert compressor.min_relevance == 0.0
@@ -226,9 +226,9 @@ class TestHeadroomDocumentCompressor:
 
     def test_init_custom(self):
         """Initialize with custom settings."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor(
+        compressor = CopiumDocumentCompressor(
             max_documents=5,
             min_relevance=0.5,
             prefer_diverse=True,
@@ -240,9 +240,9 @@ class TestHeadroomDocumentCompressor:
 
     def test_compress_passthrough_under_limit(self):
         """Pass through when under max_documents."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor(max_documents=10)
+        compressor = CopiumDocumentCompressor(max_documents=10)
 
         docs = [
             Document(page_content="Python is a programming language."),
@@ -255,9 +255,9 @@ class TestHeadroomDocumentCompressor:
 
     def test_compress_reduces_to_max(self):
         """Compress when over max_documents."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor(max_documents=2)
+        compressor = CopiumDocumentCompressor(max_documents=2)
 
         docs = [
             Document(page_content="Python is a programming language."),
@@ -272,9 +272,9 @@ class TestHeadroomDocumentCompressor:
 
     def test_compress_prefers_relevant(self):
         """Keep most relevant documents."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor(max_documents=1)
+        compressor = CopiumDocumentCompressor(max_documents=1)
 
         docs = [
             Document(page_content="Weather today is sunny."),
@@ -289,9 +289,9 @@ class TestHeadroomDocumentCompressor:
 
     def test_metrics_tracked(self):
         """Compression metrics are tracked."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor(max_documents=2)
+        compressor = CopiumDocumentCompressor(max_documents=2)
 
         docs = [
             Document(page_content="Doc 1"),
@@ -309,9 +309,9 @@ class TestHeadroomDocumentCompressor:
 
     def test_get_compression_stats(self):
         """Get compression statistics."""
-        from headroom.integrations.langchain.retriever import HeadroomDocumentCompressor
+        from copium.integrations.langchain.retriever import CopiumDocumentCompressor
 
-        compressor = HeadroomDocumentCompressor(max_documents=1)
+        compressor = CopiumDocumentCompressor(max_documents=1)
         docs = [Document(page_content="A"), Document(page_content="B")]
 
         compressor.compress_documents(docs, "A")
@@ -322,39 +322,39 @@ class TestHeadroomDocumentCompressor:
         assert "average_relevance" in stats
 
 
-class TestHeadroomToolWrapper:
-    """Tests for HeadroomToolWrapper agent integration."""
+class TestCopiumToolWrapper:
+    """Tests for CopiumToolWrapper agent integration."""
 
     def test_init(self):
         """Initialize wrapper."""
-        from headroom.integrations.langchain.agents import HeadroomToolWrapper
+        from copium.integrations.langchain.agents import CopiumToolWrapper
 
         mock_tool = MagicMock()
         mock_tool.name = "test_tool"
         mock_tool.description = "A test tool"
 
-        wrapper = HeadroomToolWrapper(mock_tool)
+        wrapper = CopiumToolWrapper(mock_tool)
 
         assert wrapper.name == "test_tool"
         assert wrapper.description == "A test tool"
 
     def test_call_passthrough_small_output(self):
         """Small outputs pass through without compression."""
-        from headroom.integrations.langchain.agents import HeadroomToolWrapper
+        from copium.integrations.langchain.agents import CopiumToolWrapper
 
         mock_tool = MagicMock()
         mock_tool.name = "test"
         mock_tool.description = "test"
         mock_tool.invoke.return_value = "small result"
 
-        wrapper = HeadroomToolWrapper(mock_tool, min_chars_to_compress=1000)
+        wrapper = CopiumToolWrapper(mock_tool, min_chars_to_compress=1000)
         result = wrapper("query")
 
         assert result == "small result"
 
     def test_call_compresses_large_json(self):
         """Large JSON outputs get compressed."""
-        from headroom.integrations.langchain.agents import HeadroomToolWrapper
+        from copium.integrations.langchain.agents import CopiumToolWrapper
 
         mock_tool = MagicMock()
         mock_tool.name = "search"
@@ -364,7 +364,7 @@ class TestHeadroomToolWrapper:
         large_output = json.dumps([{"id": i, "data": "x" * 100} for i in range(50)])
         mock_tool.invoke.return_value = large_output
 
-        wrapper = HeadroomToolWrapper(mock_tool, min_chars_to_compress=100)
+        wrapper = CopiumToolWrapper(mock_tool, min_chars_to_compress=100)
         result = wrapper("query")
 
         # Should be smaller after compression
@@ -372,22 +372,22 @@ class TestHeadroomToolWrapper:
 
     def test_as_langchain_tool(self):
         """Convert to LangChain tool."""
-        from headroom.integrations.langchain.agents import HeadroomToolWrapper
+        from copium.integrations.langchain.agents import CopiumToolWrapper
 
         mock_tool = MagicMock()
         mock_tool.name = "test"
         mock_tool.description = "test tool"
         mock_tool.invoke.return_value = "result"
 
-        wrapper = HeadroomToolWrapper(mock_tool)
+        wrapper = CopiumToolWrapper(mock_tool)
         lc_tool = wrapper.as_langchain_tool()
 
         assert isinstance(lc_tool, StructuredTool)
         assert lc_tool.name == "test"
 
-    def test_wrap_tools_with_headroom(self):
+    def test_wrap_tools_with_copium(self):
         """Wrap multiple tools at once."""
-        from headroom.integrations.langchain.agents import wrap_tools_with_headroom
+        from copium.integrations.langchain.agents import wrap_tools_with_copium
 
         tools = []
         for i in range(3):
@@ -397,15 +397,15 @@ class TestHeadroomToolWrapper:
             mock.invoke.return_value = "result"
             tools.append(mock)
 
-        wrapped = wrap_tools_with_headroom(tools)
+        wrapped = wrap_tools_with_copium(tools)
 
         assert len(wrapped) == 3
         assert all(isinstance(t, StructuredTool) for t in wrapped)
 
     def test_metrics_collector(self):
         """Tool metrics are collected."""
-        from headroom.integrations.langchain.agents import (
-            HeadroomToolWrapper,
+        from copium.integrations.langchain.agents import (
+            CopiumToolWrapper,
             ToolMetricsCollector,
         )
 
@@ -416,36 +416,36 @@ class TestHeadroomToolWrapper:
         mock_tool.description = "test"
         mock_tool.invoke.return_value = "result"
 
-        wrapper = HeadroomToolWrapper(mock_tool, metrics_collector=collector)
+        wrapper = CopiumToolWrapper(mock_tool, metrics_collector=collector)
         wrapper("query")
 
         assert len(collector.metrics) == 1
         assert collector.metrics[0].tool_name == "test"
 
 
-class TestHeadroomLangSmithCallbackHandler:
+class TestCopiumLangSmithCallbackHandler:
     """Tests for LangSmith integration."""
 
     def test_init(self):
         """Initialize handler."""
-        from headroom.integrations.langchain.langsmith import (
-            HeadroomLangSmithCallbackHandler,
+        from copium.integrations.langchain.langsmith import (
+            CopiumLangSmithCallbackHandler,
         )
 
-        handler = HeadroomLangSmithCallbackHandler(auto_update_runs=False)
+        handler = CopiumLangSmithCallbackHandler(auto_update_runs=False)
 
         assert handler._auto_update is False
         assert handler._pending_metrics == {}
 
-    def test_set_headroom_metrics(self):
+    def test_set_copium_metrics(self):
         """Set metrics for a run."""
-        from headroom.integrations.langchain.langsmith import (
-            HeadroomLangSmithCallbackHandler,
+        from copium.integrations.langchain.langsmith import (
+            CopiumLangSmithCallbackHandler,
         )
 
-        handler = HeadroomLangSmithCallbackHandler(auto_update_runs=False)
+        handler = CopiumLangSmithCallbackHandler(auto_update_runs=False)
 
-        handler.set_headroom_metrics(
+        handler.set_copium_metrics(
             run_id="test-run-123",
             tokens_before=1000,
             tokens_after=800,
@@ -461,26 +461,26 @@ class TestHeadroomLangSmithCallbackHandler:
 
     def test_get_run_metrics(self):
         """Get metrics for a specific run."""
-        from headroom.integrations.langchain.langsmith import (
-            HeadroomLangSmithCallbackHandler,
+        from copium.integrations.langchain.langsmith import (
+            CopiumLangSmithCallbackHandler,
         )
 
-        handler = HeadroomLangSmithCallbackHandler(auto_update_runs=False)
-        handler._run_metrics["run-1"] = {"headroom.tokens_saved": 100}
+        handler = CopiumLangSmithCallbackHandler(auto_update_runs=False)
+        handler._run_metrics["run-1"] = {"copium.tokens_saved": 100}
 
         metrics = handler.get_run_metrics("run-1")
-        assert metrics["headroom.tokens_saved"] == 100
+        assert metrics["copium.tokens_saved"] == 100
 
     def test_get_summary(self):
         """Get summary statistics."""
-        from headroom.integrations.langchain.langsmith import (
-            HeadroomLangSmithCallbackHandler,
+        from copium.integrations.langchain.langsmith import (
+            CopiumLangSmithCallbackHandler,
         )
 
-        handler = HeadroomLangSmithCallbackHandler(auto_update_runs=False)
+        handler = CopiumLangSmithCallbackHandler(auto_update_runs=False)
         handler._run_metrics = {
-            "run-1": {"headroom.tokens_saved": 100, "headroom.savings_percent": 20},
-            "run-2": {"headroom.tokens_saved": 200, "headroom.savings_percent": 30},
+            "run-1": {"copium.tokens_saved": 100, "copium.savings_percent": 20},
+            "run-2": {"copium.tokens_saved": 200, "copium.savings_percent": 30},
         }
 
         summary = handler.get_summary()
@@ -490,11 +490,11 @@ class TestHeadroomLangSmithCallbackHandler:
 
     def test_reset(self):
         """Reset clears all metrics."""
-        from headroom.integrations.langchain.langsmith import (
-            HeadroomLangSmithCallbackHandler,
+        from copium.integrations.langchain.langsmith import (
+            CopiumLangSmithCallbackHandler,
         )
 
-        handler = HeadroomLangSmithCallbackHandler(auto_update_runs=False)
+        handler = CopiumLangSmithCallbackHandler(auto_update_runs=False)
         handler._run_metrics = {"run-1": {}}
         handler._pending_metrics = {"run-2": MagicMock()}
 
@@ -509,7 +509,7 @@ class TestStreamingMetricsTracker:
 
     def test_init(self):
         """Initialize tracker."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(model="gpt-4o")
 
@@ -519,7 +519,7 @@ class TestStreamingMetricsTracker:
 
     def test_add_chunk_string(self):
         """Add string chunks."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker()
         tracker.add_chunk("Hello ")
@@ -530,7 +530,7 @@ class TestStreamingMetricsTracker:
 
     def test_add_chunk_with_content_attr(self):
         """Add chunks with content attribute."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker()
 
@@ -546,7 +546,7 @@ class TestStreamingMetricsTracker:
 
     def test_output_tokens(self):
         """Count output tokens."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker(model="gpt-4o")
         tracker.add_chunk("Hello world, this is a test message.")
@@ -556,7 +556,7 @@ class TestStreamingMetricsTracker:
 
     def test_finish(self):
         """Finish tracking and get metrics."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker()
         tracker.add_chunk("Test content")
@@ -569,7 +569,7 @@ class TestStreamingMetricsTracker:
 
     def test_reset(self):
         """Reset tracker for reuse."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsTracker
+        from copium.integrations.langchain.streaming import StreamingMetricsTracker
 
         tracker = StreamingMetricsTracker()
         tracker.add_chunk("Content")
@@ -582,7 +582,7 @@ class TestStreamingMetricsTracker:
 
     def test_streaming_metrics_callback(self):
         """Test context manager interface."""
-        from headroom.integrations.langchain.streaming import StreamingMetricsCallback
+        from copium.integrations.langchain.streaming import StreamingMetricsCallback
 
         with StreamingMetricsCallback(model="gpt-4o") as tracker:
             tracker.add_chunk("Hello")
@@ -593,7 +593,7 @@ class TestStreamingMetricsTracker:
 
     def test_track_streaming_response(self):
         """Track a complete streaming response."""
-        from headroom.integrations.langchain.streaming import track_streaming_response
+        from copium.integrations.langchain.streaming import track_streaming_response
 
         chunks = ["Hello ", "world", "!"]
         content, metrics = track_streaming_response(iter(chunks), model="gpt-4o")
@@ -603,11 +603,11 @@ class TestStreamingMetricsTracker:
 
 
 class TestAutoDetectProviderInChatModel:
-    """Tests for auto_detect_provider in HeadroomChatModel."""
+    """Tests for auto_detect_provider in CopiumChatModel."""
 
     def test_auto_detect_enabled_by_default(self):
         """auto_detect_provider is True by default."""
-        from headroom.integrations import HeadroomChatModel
+        from copium.integrations import CopiumChatModel
 
         mock_model = MagicMock()
         mock_model._llm_type = "test"
@@ -615,24 +615,24 @@ class TestAutoDetectProviderInChatModel:
         mock_model.__class__.__name__ = "ChatOpenAI"
         mock_model.__class__.__module__ = "langchain_openai"
 
-        model = HeadroomChatModel(mock_model)
+        model = CopiumChatModel(mock_model)
         assert model.auto_detect_provider is True
 
     def test_auto_detect_can_be_disabled(self):
         """auto_detect_provider can be set to False."""
-        from headroom.integrations import HeadroomChatModel
+        from copium.integrations import CopiumChatModel
 
         mock_model = MagicMock()
         mock_model._llm_type = "test"
         mock_model._identifying_params = {}
 
-        model = HeadroomChatModel(mock_model, auto_detect_provider=False)
+        model = CopiumChatModel(mock_model, auto_detect_provider=False)
         assert model.auto_detect_provider is False
 
     def test_pipeline_uses_detected_provider(self):
         """Pipeline uses auto-detected provider."""
-        from headroom.integrations import HeadroomChatModel
-        from headroom.providers import AnthropicProvider
+        from copium.integrations import CopiumChatModel
+        from copium.providers import AnthropicProvider
 
         mock_model = MagicMock()
         mock_model._llm_type = "test"
@@ -640,7 +640,7 @@ class TestAutoDetectProviderInChatModel:
         mock_model.__class__.__name__ = "ChatAnthropic"
         mock_model.__class__.__module__ = "langchain_anthropic"
 
-        model = HeadroomChatModel(mock_model)
+        model = CopiumChatModel(mock_model)
         _ = model.pipeline  # Force lazy init
 
         assert isinstance(model._provider, AnthropicProvider)

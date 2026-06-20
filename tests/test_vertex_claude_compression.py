@@ -1,6 +1,6 @@
 """Turnkey Claude Code + Vertex compression wiring.
 
-Covers the fixes that let `headroom wrap claude` + Vertex actually deliver
+Covers the fixes that let `copium wrap claude` + Vertex actually deliver
 compression:
 
 - `litellm-vertex` -> `vertex_ai` provider alias (registry),
@@ -21,9 +21,9 @@ from typing import Any
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
-from headroom.providers import proxy_routes, registry
-from headroom.providers.registry import DEFAULT_VERTEX_API_URL
-from headroom.proxy.server import HeadroomProxy, ProxyConfig, create_app
+from copium.providers import proxy_routes, registry
+from copium.providers.registry import DEFAULT_VERTEX_API_URL
+from copium.proxy.server import CopiumProxy, ProxyConfig, create_app
 
 
 # --------------------------------------------------------------------------
@@ -123,7 +123,7 @@ def test_vertex_rawpredict_anthropic_runs_compression_handler(monkeypatch) -> No
         captured.update(base_url=str(base_url), provider=str(provider), model=str(model))
         return JSONResponse({"ok": True})
 
-    monkeypatch.setattr(HeadroomProxy, "handle_anthropic_messages", fake)
+    monkeypatch.setattr(CopiumProxy, "handle_anthropic_messages", fake)
 
     with TestClient(_default_vertex_app()) as client:
         resp = client.post(

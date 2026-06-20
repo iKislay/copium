@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { HeadroomClient } from "../src/client.js";
+import { CopiumClient } from "../src/client.js";
 import type { OpenAIMessage } from "../src/types.js";
 import {
-  HeadroomConnectionError,
-  HeadroomAuthError,
-  HeadroomCompressError,
+  CopiumConnectionError,
+  CopiumAuthError,
+  CopiumCompressError,
 } from "../src/types.js";
 
 const mockFetch = vi.fn();
@@ -39,7 +39,7 @@ const sampleProxyResponse = {
   ccr_hashes: [],
 };
 
-describe("HeadroomClient", () => {
+describe("CopiumClient", () => {
   beforeEach(() => {
     mockFetch.mockReset();
   });
@@ -47,7 +47,7 @@ describe("HeadroomClient", () => {
   it("sends POST to /v1/compress with messages and model", async () => {
     mockFetch.mockResolvedValueOnce(okResponse(sampleProxyResponse));
 
-    const client = new HeadroomClient({ baseUrl: "http://localhost:8787" });
+    const client = new CopiumClient({ baseUrl: "http://localhost:8787" });
     await client.compress(sampleMessages, { model: "gpt-4o" });
 
     expect(mockFetch).toHaveBeenCalledOnce();
@@ -72,7 +72,7 @@ describe("HeadroomClient", () => {
       }),
     );
 
-    const client = new HeadroomClient({ baseUrl: "http://localhost:8787" });
+    const client = new CopiumClient({ baseUrl: "http://localhost:8787" });
     const result = await client.compress(sampleMessages, { model: "gpt-4o" });
 
     expect(result.tokensBefore).toBe(100);
@@ -87,7 +87,7 @@ describe("HeadroomClient", () => {
   it("sends apiKey as Authorization bearer header", async () => {
     mockFetch.mockResolvedValueOnce(okResponse(sampleProxyResponse));
 
-    const client = new HeadroomClient({
+    const client = new CopiumClient({
       baseUrl: "http://localhost:8787",
       apiKey: "hr_test123",
     });
@@ -100,7 +100,7 @@ describe("HeadroomClient", () => {
   it("does not send Authorization header when no apiKey", async () => {
     mockFetch.mockResolvedValueOnce(okResponse(sampleProxyResponse));
 
-    const client = new HeadroomClient({ baseUrl: "http://localhost:8787" });
+    const client = new CopiumClient({ baseUrl: "http://localhost:8787" });
     await client.compress(sampleMessages, { model: "gpt-4o" });
 
     const [, opts] = mockFetch.mock.calls[0];
@@ -110,7 +110,7 @@ describe("HeadroomClient", () => {
   it("strips trailing slashes from baseUrl", async () => {
     mockFetch.mockResolvedValueOnce(okResponse(sampleProxyResponse));
 
-    const client = new HeadroomClient({
+    const client = new CopiumClient({
       baseUrl: "http://localhost:8787///",
     });
     await client.compress(sampleMessages, { model: "gpt-4o" });
@@ -119,44 +119,44 @@ describe("HeadroomClient", () => {
     expect(url).toBe("http://localhost:8787/v1/compress");
   });
 
-  it("throws HeadroomAuthError on 401 (always, even with fallback)", async () => {
+  it("throws CopiumAuthError on 401 (always, even with fallback)", async () => {
     mockFetch.mockResolvedValueOnce(
       errorResponse(401, {
         error: { type: "authentication_error", message: "Invalid API key" },
       }),
     );
 
-    const client = new HeadroomClient({
+    const client = new CopiumClient({
       baseUrl: "http://localhost:8787",
       fallback: true, // fallback doesn't apply to auth errors
     });
 
     await expect(
       client.compress(sampleMessages, { model: "gpt-4o" }),
-    ).rejects.toThrow(HeadroomAuthError);
+    ).rejects.toThrow(CopiumAuthError);
   });
 
-  it("throws HeadroomCompressError on 400 (always, even with fallback)", async () => {
+  it("throws CopiumCompressError on 400 (always, even with fallback)", async () => {
     mockFetch.mockResolvedValueOnce(
       errorResponse(400, {
         error: { type: "invalid_request", message: "Missing model" },
       }),
     );
 
-    const client = new HeadroomClient({
+    const client = new CopiumClient({
       baseUrl: "http://localhost:8787",
       fallback: true, // fallback doesn't apply to client errors
     });
 
     await expect(
       client.compress(sampleMessages, { model: "gpt-4o" }),
-    ).rejects.toThrow(HeadroomCompressError);
+    ).rejects.toThrow(CopiumCompressError);
   });
 
   it("falls back to uncompressed on network error when fallback=true", async () => {
     mockFetch.mockRejectedValueOnce(new TypeError("fetch failed"));
 
-    const client = new HeadroomClient({
+    const client = new CopiumClient({
       baseUrl: "http://localhost:8787",
       fallback: true,
     });
@@ -167,10 +167,10 @@ describe("HeadroomClient", () => {
     expect(result.tokensSaved).toBe(0);
   });
 
-  it("throws HeadroomConnectionError on network error when fallback=false", async () => {
+  it("throws CopiumConnectionError on network error when fallback=false", async () => {
     mockFetch.mockRejectedValueOnce(new TypeError("fetch failed"));
 
-    const client = new HeadroomClient({
+    const client = new CopiumClient({
       baseUrl: "http://localhost:8787",
       fallback: false,
       retries: 0,
@@ -178,7 +178,7 @@ describe("HeadroomClient", () => {
 
     await expect(
       client.compress(sampleMessages, { model: "gpt-4o" }),
-    ).rejects.toThrow(HeadroomConnectionError);
+    ).rejects.toThrow(CopiumConnectionError);
   });
 
   it("falls back on 503 when fallback=true", async () => {
@@ -188,7 +188,7 @@ describe("HeadroomClient", () => {
       }),
     );
 
-    const client = new HeadroomClient({
+    const client = new CopiumClient({
       baseUrl: "http://localhost:8787",
       fallback: true,
       retries: 0,
@@ -204,7 +204,7 @@ describe("HeadroomClient", () => {
       .mockRejectedValueOnce(new TypeError("fetch failed"))
       .mockResolvedValueOnce(okResponse(sampleProxyResponse));
 
-    const client = new HeadroomClient({
+    const client = new CopiumClient({
       baseUrl: "http://localhost:8787",
       retries: 1,
     });
@@ -223,7 +223,7 @@ describe("HeadroomClient", () => {
       )
       .mockResolvedValueOnce(okResponse(sampleProxyResponse));
 
-    const client = new HeadroomClient({
+    const client = new CopiumClient({
       baseUrl: "http://localhost:8787",
       retries: 1,
       fallback: false,
@@ -241,7 +241,7 @@ describe("HeadroomClient", () => {
       }),
     );
 
-    const client = new HeadroomClient({
+    const client = new CopiumClient({
       baseUrl: "http://localhost:8787",
       retries: 3,
       fallback: false,
@@ -249,7 +249,7 @@ describe("HeadroomClient", () => {
 
     await expect(
       client.compress(sampleMessages, { model: "gpt-4o" }),
-    ).rejects.toThrow(HeadroomCompressError);
+    ).rejects.toThrow(CopiumCompressError);
 
     expect(mockFetch).toHaveBeenCalledTimes(1); // no retries
   });
@@ -257,7 +257,7 @@ describe("HeadroomClient", () => {
   it("defaults model to gpt-4o when not provided", async () => {
     mockFetch.mockResolvedValueOnce(okResponse(sampleProxyResponse));
 
-    const client = new HeadroomClient({ baseUrl: "http://localhost:8787" });
+    const client = new CopiumClient({ baseUrl: "http://localhost:8787" });
     await client.compress(sampleMessages); // no model option
 
     const body = JSON.parse(mockFetch.mock.calls[0][1].body);

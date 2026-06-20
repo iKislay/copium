@@ -11,7 +11,7 @@ from tests._dotenv import importorskip_no_env_leak
 
 importorskip_no_env_leak("litellm")
 
-from headroom.backends.litellm import (  # noqa: E402  (must follow importorskip)
+from copium.backends.litellm import (  # noqa: E402  (must follow importorskip)
     LiteLLMBackend,
     _bedrock_profiles_cache,
     _bedrock_region_prefix,
@@ -152,7 +152,7 @@ class TestFetchBedrockInferenceProfiles:
         )
         mock_boto3.client.return_value = mock_client
 
-        with patch("headroom.backends.litellm.boto3", mock_boto3, create=True):
+        with patch("copium.backends.litellm.boto3", mock_boto3, create=True):
             # Patch the import inside the function
             _fetch_bedrock_inference_profiles.__code__  # noqa: B018
             _bedrock_profiles_cache.clear()
@@ -234,7 +234,7 @@ class TestBedrockModelMapping:
     def test_eu_region_maps_correctly(self):
         """EU region should produce eu.anthropic.* model IDs."""
         with patch(
-            "headroom.backends.litellm._fetch_bedrock_inference_profiles",
+            "copium.backends.litellm._fetch_bedrock_inference_profiles",
             return_value={
                 "claude-sonnet-4-20250514": "bedrock/eu.anthropic.claude-sonnet-4-20250514-v1:0",
             },
@@ -246,7 +246,7 @@ class TestBedrockModelMapping:
     def test_us_region_maps_correctly(self):
         """US region should produce us.anthropic.* model IDs."""
         with patch(
-            "headroom.backends.litellm._fetch_bedrock_inference_profiles",
+            "copium.backends.litellm._fetch_bedrock_inference_profiles",
             return_value={
                 "claude-sonnet-4-20250514": "bedrock/us.anthropic.claude-sonnet-4-20250514-v1:0",
             },
@@ -258,7 +258,7 @@ class TestBedrockModelMapping:
     def test_fallback_for_unknown_model_in_eu(self):
         """Unknown models in EU should get eu.anthropic.* fallback, not bare 'bedrock/claude-...'."""
         with patch(
-            "headroom.backends.litellm._fetch_bedrock_inference_profiles",
+            "copium.backends.litellm._fetch_bedrock_inference_profiles",
             return_value={},
         ):
             backend = LiteLLMBackend(provider="bedrock", region="eu-west-1")
@@ -268,7 +268,7 @@ class TestBedrockModelMapping:
     def test_fallback_for_unknown_model_in_ap(self):
         """Unknown models in AP should get apac.anthropic.* fallback."""
         with patch(
-            "headroom.backends.litellm._fetch_bedrock_inference_profiles",
+            "copium.backends.litellm._fetch_bedrock_inference_profiles",
             return_value={},
         ):
             backend = LiteLLMBackend(provider="bedrock", region="ap-southeast-1")
@@ -278,7 +278,7 @@ class TestBedrockModelMapping:
     def test_bedrock_format_passthrough(self):
         """Already-formatted Bedrock IDs should pass through unchanged."""
         with patch(
-            "headroom.backends.litellm._fetch_bedrock_inference_profiles",
+            "copium.backends.litellm._fetch_bedrock_inference_profiles",
             return_value={},
         ):
             backend = LiteLLMBackend(provider="bedrock", region="eu-central-1")
@@ -289,7 +289,7 @@ class TestBedrockModelMapping:
     def test_anthropic_dot_format_normalized(self):
         """Raw Bedrock IDs like 'anthropic.claude-...-v1:0' should normalize and map."""
         with patch(
-            "headroom.backends.litellm._fetch_bedrock_inference_profiles",
+            "copium.backends.litellm._fetch_bedrock_inference_profiles",
             return_value={
                 "claude-sonnet-4-20250514": "bedrock/eu.anthropic.claude-sonnet-4-20250514-v1:0",
             },
@@ -301,7 +301,7 @@ class TestBedrockModelMapping:
     def test_region_prefixed_format_normalized(self):
         """'eu.anthropic.claude-...-v1:0' should normalize and map."""
         with patch(
-            "headroom.backends.litellm._fetch_bedrock_inference_profiles",
+            "copium.backends.litellm._fetch_bedrock_inference_profiles",
             return_value={
                 "claude-sonnet-4-20250514": "bedrock/eu.anthropic.claude-sonnet-4-20250514-v1:0",
             },

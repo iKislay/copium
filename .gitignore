@@ -195,10 +195,10 @@ benchmark_results/
 # DeepEval cache
 .deepeval/
 
-# Headroom specific
-.headroom/
-headroom.db
-headroom_*.db
+# Copium specific
+.copium/
+copium.db
+copium_*.db
 *.jsonl
 !tests/fixtures/*.jsonl
 docker/differential-network-capture/captures/
@@ -233,7 +233,7 @@ CLAUDE.md
 # docs/spec/           (lives in git - git-versioned living specification)
 
 # Managed platform (separate private repo)
-headroom-managed/
+copium-managed/
 
 # Local act testing (never commit test tokens)
 /.env.act
@@ -246,9 +246,9 @@ headroom-managed/
 uv.lock
 
 # Rust extension `.so` symlinks placed by `scripts/build_rust_extension.sh`
-# into the `headroom/` package dir for local development. The real binary
-# lives in `crates/headroom-py/python/headroom/`; this is the dev overlay
-# that lets `import headroom._core` resolve when the source `headroom/`
+# into the `copium/` package dir for local development. The real binary
+# lives in `crates/copium-py/python/copium/`; this is the dev overlay
+# that lets `import copium._core` resolve when the source `copium/`
 # package shadows the maturin overlay on sys.path.
-/headroom/_core.*.so
-/headroom/_core.so
+/copium/_core.*.so
+/copium/_core.so

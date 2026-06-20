@@ -1,4 +1,4 @@
-"""Tests for headroom.telemetry.context (install_mode + headroom_stack detection)."""
+"""Tests for copium.telemetry.context (install_mode + copium_stack detection)."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from headroom.telemetry.context import (
+from copium.telemetry.context import (
     MAX_DISTINCT_STACKS,
     detect_install_mode,
     detect_stack,
@@ -18,61 +18,61 @@ from headroom.telemetry.context import (
 def _clean_env(monkeypatch):
     """Every test starts without our env vars set."""
 
-    monkeypatch.delenv("HEADROOM_STACK", raising=False)
-    monkeypatch.delenv("HEADROOM_AGENT_TYPE", raising=False)
+    monkeypatch.delenv("COPIUM_STACK", raising=False)
+    monkeypatch.delenv("COPIUM_AGENT_TYPE", raising=False)
     yield
 
 
 class TestDetectInstallMode:
     def test_wrapped_when_agent_type_set(self, monkeypatch):
-        monkeypatch.setenv("HEADROOM_AGENT_TYPE", "claude")
+        monkeypatch.setenv("COPIUM_AGENT_TYPE", "claude")
         assert detect_install_mode(8787) == "wrapped"
 
     def test_on_demand_when_no_env_and_no_manifest(self, monkeypatch):
-        monkeypatch.setattr("headroom.install.state.list_manifests", lambda: [])
+        monkeypatch.setattr("copium.install.state.list_manifests", lambda: [])
         assert detect_install_mode(8787) == "on_demand"
 
     def test_persistent_when_manifest_matches_port(self, monkeypatch):
         manifest = SimpleNamespace(port=8787, profile="default")
-        monkeypatch.setattr("headroom.install.state.list_manifests", lambda: [manifest])
+        monkeypatch.setattr("copium.install.state.list_manifests", lambda: [manifest])
         assert detect_install_mode(8787) == "persistent"
 
     def test_on_demand_when_manifest_port_mismatches(self, monkeypatch):
         manifest = SimpleNamespace(port=9000, profile="other")
-        monkeypatch.setattr("headroom.install.state.list_manifests", lambda: [manifest])
+        monkeypatch.setattr("copium.install.state.list_manifests", lambda: [manifest])
         assert detect_install_mode(8787) == "on_demand"
 
     def test_wrapped_takes_precedence_over_manifest(self, monkeypatch):
-        monkeypatch.setenv("HEADROOM_AGENT_TYPE", "codex")
+        monkeypatch.setenv("COPIUM_AGENT_TYPE", "codex")
         manifest = SimpleNamespace(port=8787, profile="default")
-        monkeypatch.setattr("headroom.install.state.list_manifests", lambda: [manifest])
+        monkeypatch.setattr("copium.install.state.list_manifests", lambda: [manifest])
         assert detect_install_mode(8787) == "wrapped"
 
     def test_manifest_crash_falls_back_to_on_demand(self, monkeypatch):
         def _boom():
             raise RuntimeError("disk gone")
 
-        monkeypatch.setattr("headroom.install.state.list_manifests", _boom)
+        monkeypatch.setattr("copium.install.state.list_manifests", _boom)
         # install_mode should not raise; graceful fallback
         assert detect_install_mode(8787) == "on_demand"
 
 
 class TestDetectStack:
     def test_explicit_env_wins(self, monkeypatch):
-        monkeypatch.setenv("HEADROOM_STACK", "custom_slug")
+        monkeypatch.setenv("COPIUM_STACK", "custom_slug")
         assert detect_stack() == "custom_slug"
 
     def test_explicit_env_overrides_agent_type(self, monkeypatch):
-        monkeypatch.setenv("HEADROOM_STACK", "proxy")
-        monkeypatch.setenv("HEADROOM_AGENT_TYPE", "claude")
+        monkeypatch.setenv("COPIUM_STACK", "proxy")
+        monkeypatch.setenv("COPIUM_AGENT_TYPE", "claude")
         assert detect_stack() == "proxy"
 
     def test_wrap_slug_from_agent_type(self, monkeypatch):
-        monkeypatch.setenv("HEADROOM_AGENT_TYPE", "claude")
+        monkeypatch.setenv("COPIUM_AGENT_TYPE", "claude")
         assert detect_stack() == "wrap_claude"
 
     def test_unknown_agent_type_rejected(self, monkeypatch):
-        monkeypatch.setenv("HEADROOM_AGENT_TYPE", "somebespoke")
+        monkeypatch.setenv("COPIUM_AGENT_TYPE", "somebespoke")
         assert detect_stack() == "unknown"
 
     def test_default_is_proxy(self):
@@ -94,18 +94,18 @@ class TestDetectStack:
         assert detect_stack(stats) == "adapter_ts_openai"
 
     def test_env_beats_stats(self, monkeypatch):
-        monkeypatch.setenv("HEADROOM_STACK", "wrap_claude")
+        monkeypatch.setenv("COPIUM_STACK", "wrap_claude")
         stats = {"requests": {"by_stack": {"adapter_ts_openai": 100}}}
         assert detect_stack(stats) == "wrap_claude"
 
     def test_invalid_env_falls_through_to_proxy(self, monkeypatch):
         # Garbage env var → normalize_stack rejects → falls back to default
-        monkeypatch.setenv("HEADROOM_STACK", "bad slug with spaces!")
+        monkeypatch.setenv("COPIUM_STACK", "bad slug with spaces!")
         assert detect_stack() == "proxy"
 
     def test_invalid_env_allows_agent_type_fallback(self, monkeypatch):
-        monkeypatch.setenv("HEADROOM_STACK", "Has-Dashes-And-Caps")
-        monkeypatch.setenv("HEADROOM_AGENT_TYPE", "claude")
+        monkeypatch.setenv("COPIUM_STACK", "Has-Dashes-And-Caps")
+        monkeypatch.setenv("COPIUM_AGENT_TYPE", "claude")
         assert detect_stack() == "wrap_claude"
 
 
@@ -139,7 +139,7 @@ class TestRecordStackValidation:
     respect the cardinality cap."""
 
     def _metrics(self):
-        from headroom.proxy.prometheus_metrics import PrometheusMetrics
+        from copium.proxy.prometheus_metrics import PrometheusMetrics
 
         return PrometheusMetrics()
 

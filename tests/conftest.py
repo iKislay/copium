@@ -1,4 +1,4 @@
-"""Shared pytest fixtures for Headroom tests."""
+"""Shared pytest fixtures for Copium tests."""
 
 # CRITICAL: Must be set before ANY imports that could trigger sentence_transformers
 # The Rust tokenizers use parallelism that deadlocks with pytest-asyncio
@@ -46,20 +46,20 @@ def pytest_runtest_call(item):
 
 
 @pytest.fixture(autouse=True)
-def _reset_headroom_logger_propagation():
-    """Keep `headroom.*` log records flowing to pytest's caplog handler.
+def _reset_copium_logger_propagation():
+    """Keep `copium.*` log records flowing to pytest's caplog handler.
 
-    `headroom.proxy.helpers._setup_file_logging` sets
-    ``logging.getLogger("headroom").propagate = False`` once any test
+    `copium.proxy.helpers._setup_file_logging` sets
+    ``logging.getLogger("copium").propagate = False`` once any test
     triggers a proxy startup with `--log-file`. After that, every
-    subsequent test's `caplog` fixture stops capturing `headroom.*`
+    subsequent test's `caplog` fixture stops capturing `copium.*`
     log records (caplog attaches to root, propagation is now blocked
-    at the headroom-logger boundary). Reset before every test so the
+    at the copium-logger boundary). Reset before every test so the
     capture is deterministic regardless of run order.
     """
     import logging as _logging
 
-    _logging.getLogger("headroom").propagate = True
+    _logging.getLogger("copium").propagate = True
     yield
 
 
@@ -203,7 +203,7 @@ def temp_jsonl_file():
 @pytest.fixture
 def openai_provider():
     """OpenAI provider instance."""
-    from headroom.providers.openai import OpenAIProvider
+    from copium.providers.openai import OpenAIProvider
 
     return OpenAIProvider()
 
@@ -211,7 +211,7 @@ def openai_provider():
 @pytest.fixture
 def openai_tokenizer():
     """OpenAI token counter for gpt-4o."""
-    from headroom.providers.openai import OpenAITokenCounter
+    from copium.providers.openai import OpenAITokenCounter
 
     return OpenAITokenCounter("gpt-4o")
 
@@ -219,16 +219,16 @@ def openai_tokenizer():
 # Config fixtures
 @pytest.fixture
 def default_config():
-    """Default HeadroomConfig."""
-    from headroom.config import HeadroomConfig
+    """Default CopiumConfig."""
+    from copium.config import CopiumConfig
 
-    return HeadroomConfig()
+    return CopiumConfig()
 
 
 @pytest.fixture
 def smart_crusher_config():
     """SmartCrusher config for testing."""
-    from headroom.config import SmartCrusherConfig
+    from copium.config import SmartCrusherConfig
 
     return SmartCrusherConfig(
         enabled=True,
@@ -242,7 +242,7 @@ def smart_crusher_config():
 @pytest.fixture
 def sample_request_metrics():
     """Sample RequestMetrics for storage tests."""
-    from headroom.config import RequestMetrics
+    from copium.config import RequestMetrics
 
     return RequestMetrics(
         request_id="test-123",

@@ -4,13 +4,13 @@ import time
 
 import pytest
 
-from headroom.cache import (
+from copium.cache import (
     AnthropicCacheOptimizer,
     OptimizationContext,
     SemanticCache,
     SemanticCacheLayer,
 )
-from headroom.cache.semantic import SemanticCacheConfig
+from copium.cache.semantic import SemanticCacheConfig
 
 
 class TestSemanticCacheConfig:

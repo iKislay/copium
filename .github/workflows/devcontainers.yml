@@ -35,7 +35,7 @@ jobs:
       # The memory-stack devcontainer brings up Neo4j + Postgres +
       # Redis + Qdrant on top of the Docker base. PR #495 surfaced
       # that the GitHub-hosted runner now ships with too little
-      # headroom for that stack: the runner's diagnostic log writer
+      # copium for that stack: the runner's diagnostic log writer
       # hit "No space left on device" mid-smoke-test, killing the
       # job before `devcontainer exec` could finish. The default
       # devcontainer is light enough to pass on the same image.
@@ -74,9 +74,9 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ matrix.name }}" == "memory-stack" ]]; then
-            devcontainer exec --workspace-folder . --config ${{ matrix.config }} bash -lc 'git rev-parse --show-toplevel >/dev/null && uv --version && node --version && gh --version >/dev/null && uv run python -c "import socket; socket.create_connection((\"qdrant\", 6333), 5).close(); socket.create_connection((\"neo4j\", 7687), 5).close(); from mem0 import Memory; from qdrant_client import QdrantClient; import neo4j; import headroom; print(\"memory-stack smoke test passed\")"'
+            devcontainer exec --workspace-folder . --config ${{ matrix.config }} bash -lc 'git rev-parse --show-toplevel >/dev/null && uv --version && node --version && gh --version >/dev/null && uv run python -c "import socket; socket.create_connection((\"qdrant\", 6333), 5).close(); socket.create_connection((\"neo4j\", 7687), 5).close(); from mem0 import Memory; from qdrant_client import QdrantClient; import neo4j; import copium; print(\"memory-stack smoke test passed\")"'
           else
-            devcontainer exec --workspace-folder . --config ${{ matrix.config }} bash -lc 'git rev-parse --show-toplevel >/dev/null && uv --version && node --version && gh --version >/dev/null && uv run python -c "import headroom; print(\"default smoke test passed\")"'
+            devcontainer exec --workspace-folder . --config ${{ matrix.config }} bash -lc 'git rev-parse --show-toplevel >/dev/null && uv --version && node --version && gh --version >/dev/null && uv run python -c "import copium; print(\"default smoke test passed\")"'
           fi
 
   validate-worktree:
@@ -102,7 +102,7 @@ jobs:
           swap-storage: false
 
       - name: Create linked worktree
-        run: git worktree add "$RUNNER_TEMP/headroom-worktree" HEAD
+        run: git worktree add "$RUNNER_TEMP/copium-worktree" HEAD
 
       - name: Set up Node
         uses: actions/setup-node@v6
@@ -116,7 +116,7 @@ jobs:
         run: npm install -g @devcontainers/cli@0.85.0
 
       - name: Start linked worktree devcontainer
-        run: devcontainer up --workspace-folder "$RUNNER_TEMP/headroom-worktree" --config "$RUNNER_TEMP/headroom-worktree/.devcontainer/devcontainer.json" --remove-existing-container
+        run: devcontainer up --workspace-folder "$RUNNER_TEMP/copium-worktree" --config "$RUNNER_TEMP/copium-worktree/.devcontainer/devcontainer.json" --remove-existing-container
 
       - name: Smoke test linked worktree
-        run: devcontainer exec --workspace-folder "$RUNNER_TEMP/headroom-worktree" --config "$RUNNER_TEMP/headroom-worktree/.devcontainer/devcontainer.json" bash -lc 'git rev-parse --show-toplevel && uv run python -c "import headroom; print(\"worktree smoke test passed\")"'
+        run: devcontainer exec --workspace-folder "$RUNNER_TEMP/copium-worktree" --config "$RUNNER_TEMP/copium-worktree/.devcontainer/devcontainer.json" bash -lc 'git rev-parse --show-toplevel && uv run python -c "import copium; print(\"worktree smoke test passed\")"'

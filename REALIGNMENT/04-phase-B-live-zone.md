@@ -11,7 +11,7 @@
 ## PR-B1 — The big delete: retire ICM and its dependencies
 
 **Branch:** `realign-B1-delete-icm-and-deps`
-**Worktree:** `~/claude-projects/headroom-worktrees/realign-B1-delete-icm-and-deps`
+**Worktree:** `~/claude-projects/copium-worktrees/realign-B1-delete-icm-and-deps`
 **Risk:** **MEDIUM** (large diff, but most code became unreachable after Phase A PR-A1)
 **LOC:** **-10,000 / +50** (the big retirement)
 
@@ -21,35 +21,35 @@ Delete the wrong-mental-model machinery wholesale. After Phase A PR-A1 made the 
 ### Files
 
 **Delete (Python):**
-- `headroom/transforms/intelligent_context.py` (1077 LOC)
-- `headroom/transforms/rolling_window.py` (395 LOC)
-- `headroom/transforms/progressive_summarizer.py` (508 LOC)
-- `headroom/transforms/scoring.py` (459 LOC)
-- `headroom/transforms/tool_crusher.py` (338 LOC)
+- `copium/transforms/intelligent_context.py` (1077 LOC)
+- `copium/transforms/rolling_window.py` (395 LOC)
+- `copium/transforms/progressive_summarizer.py` (508 LOC)
+- `copium/transforms/scoring.py` (459 LOC)
+- `copium/transforms/tool_crusher.py` (338 LOC)
 
 **Delete (Rust):**
-- `crates/headroom-core/src/context/manager.rs`
-- `crates/headroom-core/src/context/config.rs`
-- `crates/headroom-core/src/context/workspace.rs`
-- `crates/headroom-core/src/context/candidate.rs`
-- `crates/headroom-core/src/context/ccr_drop.rs`
-- `crates/headroom-core/src/context/strategy/mod.rs`
-- `crates/headroom-core/src/context/strategy/drop_by_score.rs`
-- All of `crates/headroom-core/src/scoring/*.rs` (~1500 LOC)
-- All of `crates/headroom-core/src/relevance/*.rs` (~1600 LOC)
-- `crates/headroom-core/.fastembed_cache/` directory and its `bge-small-en-v1.5` ONNX artifacts (~50 MB)
+- `crates/copium-core/src/context/manager.rs`
+- `crates/copium-core/src/context/config.rs`
+- `crates/copium-core/src/context/workspace.rs`
+- `crates/copium-core/src/context/candidate.rs`
+- `crates/copium-core/src/context/ccr_drop.rs`
+- `crates/copium-core/src/context/strategy/mod.rs`
+- `crates/copium-core/src/context/strategy/drop_by_score.rs`
+- All of `crates/copium-core/src/scoring/*.rs` (~1500 LOC)
+- All of `crates/copium-core/src/relevance/*.rs` (~1600 LOC)
+- `crates/copium-core/.fastembed_cache/` directory and its `bge-small-en-v1.5` ONNX artifacts (~50 MB)
 
 **Move:**
-- `crates/headroom-core/src/context/safety.rs` → `crates/headroom-core/src/transforms/safety.rs`. Update all callers' `use` paths. The tool-pair atomicity logic is preserved verbatim (it's correct and live-zone code needs it).
+- `crates/copium-core/src/context/safety.rs` → `crates/copium-core/src/transforms/safety.rs`. Update all callers' `use` paths. The tool-pair atomicity logic is preserved verbatim (it's correct and live-zone code needs it).
 
 **Modify:**
-- `crates/headroom-core/src/lib.rs` — remove `pub mod context;`, `pub mod scoring;`, `pub mod relevance;`. Add `pub use transforms::safety;`.
-- `crates/headroom-core/src/context/mod.rs` — delete (empty after move).
-- `crates/headroom-proxy/src/lib.rs` — no changes (already doesn't reach into deleted modules after PR-A1).
-- `crates/headroom-py/src/lib.rs` — remove any PyO3 exports of `MessageScorer`, `IntelligentContextManager`, etc. (per agent reports, MessageScorer was exposed in PR #338/#343).
-- `headroom/transforms/__init__.py` — remove imports of deleted modules.
-- `headroom/proxy/handlers/anthropic.py` — remove all imports / call sites of `IntelligentContextManager`. (Agent C found these at multiple locations; track via `grep -n IntelligentContextManager headroom/`.)
-- `headroom/proxy/server.py` — remove ICM import and instantiation.
+- `crates/copium-core/src/lib.rs` — remove `pub mod context;`, `pub mod scoring;`, `pub mod relevance;`. Add `pub use transforms::safety;`.
+- `crates/copium-core/src/context/mod.rs` — delete (empty after move).
+- `crates/copium-proxy/src/lib.rs` — no changes (already doesn't reach into deleted modules after PR-A1).
+- `crates/copium-py/src/lib.rs` — remove any PyO3 exports of `MessageScorer`, `IntelligentContextManager`, etc. (per agent reports, MessageScorer was exposed in PR #338/#343).
+- `copium/transforms/__init__.py` — remove imports of deleted modules.
+- `copium/proxy/handlers/anthropic.py` — remove all imports / call sites of `IntelligentContextManager`. (Agent C found these at multiple locations; track via `grep -n IntelligentContextManager copium/`.)
+- `copium/proxy/server.py` — remove ICM import and instantiation.
 - `Cargo.toml` workspace dependencies — drop `fastembed`, `tantivy`, `ort` (if only used by relevance), and any other deps that become orphaned.
 
 **Tests deleted:**
@@ -58,7 +58,7 @@ Delete the wrong-mental-model machinery wholesale. After Phase A PR-A1 made the 
 - All `tests/test_progressive_summarizer*.py`
 - All `tests/test_scoring*.py`
 - All `tests/test_tool_crusher*.py`
-- `crates/headroom-core/tests/scoring_*.rs`, `relevance_*.rs`, `context_*.rs` (other than safety)
+- `crates/copium-core/tests/scoring_*.rs`, `relevance_*.rs`, `context_*.rs` (other than safety)
 - Parity comparator for `message_scorer` (PR #338/#343 work) — delete the comparator and the fixtures it consumed.
 - Parity fixtures `tests/parity/fixtures/message_scorer/` (13 fixtures per Agent F report).
 
@@ -69,7 +69,7 @@ Delete the wrong-mental-model machinery wholesale. After Phase A PR-A1 made the 
 - `make ci-precheck` green.
 - `pytest -x` green.
 - Workspace builds **without** the fastembed cache dir.
-- `git grep -i "IntelligentContextManager\|MessageScorer\|RollingWindow\|ProgressiveSummarizer\|ToolCrusher\|DropByScoreStrategy"` returns nothing in `crates/`, `headroom/`, `tests/` except comments referencing the deletion.
+- `git grep -i "IntelligentContextManager\|MessageScorer\|RollingWindow\|ProgressiveSummarizer\|ToolCrusher\|DropByScoreStrategy"` returns nothing in `crates/`, `copium/`, `tests/` except comments referencing the deletion.
 
 ### Blocked by
 
@@ -87,14 +87,14 @@ PR-B2 (live-zone block dispatcher fills the void).
 
 - **MessageScorer Rust port retirement:** PR #338 and #343 (April 2026) ported MessageScorer to Rust. That work becomes deletable here. Sunk cost stays sunk. The fixtures and the parity-harness scaffolding learnings carry forward to live-zone work.
 - **`bge-small-en-v1.5` ONNX cache:** ~50 MB. Removing it is reversible (re-fetched on next fastembed init if anyone re-adds the dep). Document in CHANGELOG.
-- **`anchor_selector.py`** — Agent G suspected it might be ICM-only. Check: `git grep AnchorSelector headroom/ crates/`. If only consumed by ICM/scoring/SmartCrusher, delete; if consumed by SmartCrusher's anchor logic, keep. Current Rust has `crates/headroom-core/src/transforms/anchor_selector.rs` which is consumed by SmartCrusher — keep that one, delete the Python one if ICM was its only caller.
+- **`anchor_selector.py`** — Agent G suspected it might be ICM-only. Check: `git grep AnchorSelector copium/ crates/`. If only consumed by ICM/scoring/SmartCrusher, delete; if consumed by SmartCrusher's anchor logic, keep. Current Rust has `crates/copium-core/src/transforms/anchor_selector.rs` which is consumed by SmartCrusher — keep that one, delete the Python one if ICM was its only caller.
 
 ---
 
 ## PR-B2 — Live-zone block dispatcher in Rust
 
 **Branch:** `realign-B2-live-zone-dispatcher`
-**Worktree:** `~/claude-projects/headroom-worktrees/realign-B2-live-zone-dispatcher`
+**Worktree:** `~/claude-projects/copium-worktrees/realign-B2-live-zone-dispatcher`
 **Risk:** **MEDIUM-HIGH** (new architecture; the central piece)
 **LOC:** +800
 
@@ -104,7 +104,7 @@ Build the new compressor: a function that takes an Anthropic `/v1/messages` body
 ### Files
 
 **Add:**
-- `crates/headroom-core/src/transforms/live_zone.rs` — the dispatcher. Public API:
+- `crates/copium-core/src/transforms/live_zone.rs` — the dispatcher. Public API:
   ```rust
   pub fn compress_live_zone(
       body_raw: &serde_json::value::RawValue,
@@ -130,22 +130,22 @@ Build the new compressor: a function that takes an Anthropic `/v1/messages` body
   5. Return `Modified` only if any block was actually mutated; otherwise `NoChange` and the caller forwards original bytes.
 
 **Modify:**
-- `crates/headroom-proxy/src/compression/mod.rs` — add `pub mod live_zone_anthropic;` and route `/v1/messages` to it (replacing the no-op stub from PR-A1).
-- `crates/headroom-proxy/src/compression/live_zone_anthropic.rs` (new) — calls `compress_live_zone` with `frozen_count = compute_frozen_count(parsed)` (from PR-A4).
-- `crates/headroom-proxy/src/compression/anthropic.rs` — delete (replaced by `live_zone_anthropic.rs`).
+- `crates/copium-proxy/src/compression/mod.rs` — add `pub mod live_zone_anthropic;` and route `/v1/messages` to it (replacing the no-op stub from PR-A1).
+- `crates/copium-proxy/src/compression/live_zone_anthropic.rs` (new) — calls `compress_live_zone` with `frozen_count = compute_frozen_count(parsed)` (from PR-A4).
+- `crates/copium-proxy/src/compression/anthropic.rs` — delete (replaced by `live_zone_anthropic.rs`).
 
 **Tests added:**
-- `crates/headroom-core/tests/live_zone_skeleton.rs::dispatches_only_to_latest_user_message`
-- `crates/headroom-core/tests/live_zone_skeleton.rs::respects_frozen_message_count`
-- `crates/headroom-core/tests/live_zone_skeleton.rs::no_change_when_no_block_mutated_returns_original`
-- `crates/headroom-core/tests/live_zone_skeleton.rs::modified_messages_byte_equal_outside_block`
-- `crates/headroom-core/tests/live_zone_skeleton.rs::system_and_tools_byte_equal_always`
-- `crates/headroom-proxy/tests/integration_live_zone.rs::end_to_end_live_zone_passthrough`
+- `crates/copium-core/tests/live_zone_skeleton.rs::dispatches_only_to_latest_user_message`
+- `crates/copium-core/tests/live_zone_skeleton.rs::respects_frozen_message_count`
+- `crates/copium-core/tests/live_zone_skeleton.rs::no_change_when_no_block_mutated_returns_original`
+- `crates/copium-core/tests/live_zone_skeleton.rs::modified_messages_byte_equal_outside_block`
+- `crates/copium-core/tests/live_zone_skeleton.rs::system_and_tools_byte_equal_always`
+- `crates/copium-proxy/tests/integration_live_zone.rs::end_to_end_live_zone_passthrough`
 
 ### Acceptance criteria
 
-- `cargo test -p headroom-core` green.
-- `cargo test -p headroom-proxy` green.
+- `cargo test -p copium-core` green.
+- `cargo test -p copium-proxy` green.
 - All Phase A SHA-256 tests still pass (live-zone with no-op compressors is byte-identical).
 
 ### Blocked by
@@ -170,7 +170,7 @@ PR-B3, PR-B4, PR-B7.
 ## PR-B3 — Wire type-aware compressors into live-zone dispatcher
 
 **Branch:** `realign-B3-wire-type-aware-compressors`
-**Worktree:** `~/claude-projects/headroom-worktrees/realign-B3-wire-type-aware-compressors`
+**Worktree:** `~/claude-projects/copium-worktrees/realign-B3-wire-type-aware-compressors`
 **Risk:** **MEDIUM** (existing compressors are battle-tested)
 **LOC:** +600
 
@@ -180,7 +180,7 @@ Wire `SmartCrusher`, `LogCompressor`, `SearchCompressor`, `DiffCompressor`, `Cod
 ### Files
 
 **Modify:**
-- `crates/headroom-core/src/transforms/live_zone.rs` — replace no-op compressors with real dispatch:
+- `crates/copium-core/src/transforms/live_zone.rs` — replace no-op compressors with real dispatch:
   ```rust
   fn compress_block(block: &mut Block, content_type: ContentType) -> Result<Option<CompressionResult>> {
       match content_type {
@@ -194,14 +194,14 @@ Wire `SmartCrusher`, `LogCompressor`, `SearchCompressor`, `DiffCompressor`, `Cod
       }
   }
   ```
-- `crates/headroom-core/src/transforms/content_detector.rs` — extend `ContentType` enum with the variants above. Use existing `Magika` + `unidiff-rs` + heuristic detectors.
+- `crates/copium-core/src/transforms/content_detector.rs` — extend `ContentType` enum with the variants above. Use existing `Magika` + `unidiff-rs` + heuristic detectors.
 
 **Tests added:**
-- `crates/headroom-core/tests/live_zone_dispatch.rs::json_tool_result_routes_to_smart_crusher`
-- `crates/headroom-core/tests/live_zone_dispatch.rs::log_tool_result_routes_to_log_compressor`
-- `crates/headroom-core/tests/live_zone_dispatch.rs::diff_tool_result_routes_to_diff_compressor`
-- `crates/headroom-core/tests/live_zone_dispatch.rs::source_code_tool_result_routes_to_code_compressor`
-- `crates/headroom-core/tests/live_zone_dispatch.rs::unknown_content_type_no_op`
+- `crates/copium-core/tests/live_zone_dispatch.rs::json_tool_result_routes_to_smart_crusher`
+- `crates/copium-core/tests/live_zone_dispatch.rs::log_tool_result_routes_to_log_compressor`
+- `crates/copium-core/tests/live_zone_dispatch.rs::diff_tool_result_routes_to_diff_compressor`
+- `crates/copium-core/tests/live_zone_dispatch.rs::source_code_tool_result_routes_to_code_compressor`
+- `crates/copium-core/tests/live_zone_dispatch.rs::unknown_content_type_no_op`
 
 ### Acceptance criteria
 
@@ -226,7 +226,7 @@ PR-B4 (token validation gate), PR-B7 (CCR injection).
 ## PR-B4 — Token validation gate with fallback; per-content-type byte thresholds
 
 **Branch:** `realign-B4-token-validation-gate`
-**Worktree:** `~/claude-projects/headroom-worktrees/realign-B4-token-validation-gate`
+**Worktree:** `~/claude-projects/copium-worktrees/realign-B4-token-validation-gate`
 **Risk:** **LOW**
 **LOC:** +250
 
@@ -236,7 +236,7 @@ Eliminate P3-33 and P3-34. After every per-block compression, run the tokenizer 
 ### Files
 
 **Modify:**
-- `crates/headroom-core/src/transforms/live_zone.rs` — wrap each compressor call with:
+- `crates/copium-core/src/transforms/live_zone.rs` — wrap each compressor call with:
   ```rust
   let original_tokens = tokenizer.count(&original_bytes)?;
   let compressed_tokens = tokenizer.count(&compressed_bytes)?;
@@ -245,7 +245,7 @@ Eliminate P3-33 and P3-34. After every per-block compression, run the tokenizer 
       return Ok(None); // fall back to original
   }
   ```
-- `crates/headroom-core/src/transforms/live_zone.rs::compress_block` — gate on byte threshold per content type:
+- `crates/copium-core/src/transforms/live_zone.rs::compress_block` — gate on byte threshold per content type:
   ```rust
   const THRESHOLDS: &[(ContentType, usize)] = &[
       (ContentType::SourceCode, 2048),
@@ -261,10 +261,10 @@ Eliminate P3-33 and P3-34. After every per-block compression, run the tokenizer 
   ```
 
 **Tests added:**
-- `crates/headroom-core/tests/live_zone_thresholds.rs::below_threshold_no_compression_attempted`
-- `crates/headroom-core/tests/live_zone_thresholds.rs::above_threshold_compression_attempted`
-- `crates/headroom-core/tests/live_zone_token_validation.rs::compressed_more_tokens_falls_back`
-- `crates/headroom-core/tests/live_zone_token_validation.rs::compressed_fewer_tokens_accepted`
+- `crates/copium-core/tests/live_zone_thresholds.rs::below_threshold_no_compression_attempted`
+- `crates/copium-core/tests/live_zone_thresholds.rs::above_threshold_compression_attempted`
+- `crates/copium-core/tests/live_zone_token_validation.rs::compressed_more_tokens_falls_back`
+- `crates/copium-core/tests/live_zone_token_validation.rs::compressed_fewer_tokens_accepted`
 - Property test: `proptest! { fn live_zone_compression_token_count_non_increasing(blocks in arb_blocks_strategy()) { ... } }`
 
 ### Acceptance criteria
@@ -290,7 +290,7 @@ PR-B6, PR-B7.
 ## PR-B5 — TOIN observation-only refactor
 
 **Branch:** `realign-B5-toin-observation-only`
-**Worktree:** `~/claude-projects/headroom-worktrees/realign-B5-toin-observation-only`
+**Worktree:** `~/claude-projects/copium-worktrees/realign-B5-toin-observation-only`
 **Risk:** **MEDIUM** (TOIN is a preserved primitive; refactor must maintain its learning value)
 **LOC:** -300 / +400
 
@@ -300,13 +300,13 @@ Eliminate P2-27 and P5-56. Strip TOIN's request-time hint API; keep the recordin
 ### Files
 
 **Modify:**
-- `headroom/telemetry/toin.py:853-927` — remove `get_recommendation()` and `CompressionHint`. Replace with a no-op stub that returns `None`; deprecation warning in docstring.
-- `headroom/telemetry/toin.py:103` — `Pattern` adds `auth_mode: str`, `model_family: str` fields.
-- `headroom/telemetry/toin.py:477, 496, 727, 729, 1248, 1256` — change aggregation key from `sig_hash` to `(auth_mode, model_family, sig_hash)` tuple. Update all dict-key uses.
-- `headroom/telemetry/toin.py:1596` — keep `tenant_prefix` for storage but document it's now redundant with the aggregation key.
-- `headroom/transforms/smart_crusher.py:446` — remove the `get_recommendation()` call site. SmartCrusher is now deterministic; TOIN observes outcomes only.
-- New CLI: `headroom/cli/toin_publish.py` — aggregates the on-disk TOIN store and produces `recommendations.toml`. Run as part of the deploy pipeline.
-- New: `crates/headroom-core/src/transforms/recommendations.rs` — loads `recommendations.toml` at startup. Provides API like `recommendations::get(auth_mode, model, structure_hash) -> Option<Recommendation>`. Used to bias which compressor variants to try first (deterministic; no per-request mutation).
+- `copium/telemetry/toin.py:853-927` — remove `get_recommendation()` and `CompressionHint`. Replace with a no-op stub that returns `None`; deprecation warning in docstring.
+- `copium/telemetry/toin.py:103` — `Pattern` adds `auth_mode: str`, `model_family: str` fields.
+- `copium/telemetry/toin.py:477, 496, 727, 729, 1248, 1256` — change aggregation key from `sig_hash` to `(auth_mode, model_family, sig_hash)` tuple. Update all dict-key uses.
+- `copium/telemetry/toin.py:1596` — keep `tenant_prefix` for storage but document it's now redundant with the aggregation key.
+- `copium/transforms/smart_crusher.py:446` — remove the `get_recommendation()` call site. SmartCrusher is now deterministic; TOIN observes outcomes only.
+- New CLI: `copium/cli/toin_publish.py` — aggregates the on-disk TOIN store and produces `recommendations.toml`. Run as part of the deploy pipeline.
+- New: `crates/copium-core/src/transforms/recommendations.rs` — loads `recommendations.toml` at startup. Provides API like `recommendations::get(auth_mode, model, structure_hash) -> Option<Recommendation>`. Used to bias which compressor variants to try first (deterministic; no per-request mutation).
 
 **Tests added:**
 - `tests/test_toin_observation_only.py::test_no_request_time_hint_api_exposed`
@@ -342,7 +342,7 @@ PR-F3 (auth-mode aggregation key requires the TOIN refactor).
 ## PR-B6 — Memory subsystem refactor: live-zone tail injection only
 
 **Branch:** `realign-B6-memory-live-zone-tail`
-**Worktree:** `~/claude-projects/headroom-worktrees/realign-B6-memory-live-zone-tail`
+**Worktree:** `~/claude-projects/copium-worktrees/realign-B6-memory-live-zone-tail`
 **Risk:** **MEDIUM-HIGH** (touches memory feature semantics)
 **LOC:** -400 / +300
 
@@ -356,11 +356,11 @@ This PR ships auto-tail-mode as default; tool-mode is wired but off-by-default.
 ### Files
 
 **Modify:**
-- `headroom/proxy/memory_handler.py:498-510` — delete `_inject_to_system_or_instructions`. Replace with `_append_to_latest_user_tail`.
-- `headroom/proxy/handlers/openai.py:535-540` — same.
-- `headroom/proxy/handlers/anthropic.py:1117-1135` — promote the existing `_append_context_to_latest_non_frozen_user_turn` to be the default path.
-- `headroom/proxy/server.py:1050-1058` — already deleted in PR-A2; verify nothing reintroduces it.
-- `headroom/proxy/memory_handler.py` — add `MemoryMode` enum: `AutoTail | Tool`. Default `AutoTail`. `Tool` mode skips auto-injection entirely.
+- `copium/proxy/memory_handler.py:498-510` — delete `_inject_to_system_or_instructions`. Replace with `_append_to_latest_user_tail`.
+- `copium/proxy/handlers/openai.py:535-540` — same.
+- `copium/proxy/handlers/anthropic.py:1117-1135` — promote the existing `_append_context_to_latest_non_frozen_user_turn` to be the default path.
+- `copium/proxy/server.py:1050-1058` — already deleted in PR-A2; verify nothing reintroduces it.
+- `copium/proxy/memory_handler.py` — add `MemoryMode` enum: `AutoTail | Tool`. Default `AutoTail`. `Tool` mode skips auto-injection entirely.
 
 **Tests added:**
 - `tests/test_memory_auto_tail.py::test_memory_appears_in_latest_user_message_tail`
@@ -391,7 +391,7 @@ None (memory tool injection session-stickiness from PR-A7 stays).
 ## PR-B7 — CCR hardening: persistent backend + always-on tool registration
 
 **Branch:** `realign-B7-ccr-hardening`
-**Worktree:** `~/claude-projects/headroom-worktrees/realign-B7-ccr-hardening`
+**Worktree:** `~/claude-projects/copium-worktrees/realign-B7-ccr-hardening`
 **Risk:** **MEDIUM**
 **LOC:** -150 / +600
 
@@ -405,23 +405,23 @@ In Rust, the live-zone dispatcher writes `<<ccr:HASH>>` markers into the compres
 ### Files
 
 **Add:**
-- `crates/headroom-core/src/ccr/backends/sqlite.rs` — SQLite-backed `CcrStore`. Schema: `ccr_entries(hash TEXT PRIMARY KEY, original BLOB, created_at INTEGER, ttl_seconds INTEGER)`. Auto-purge on read (`WHERE created_at + ttl_seconds > now`).
-- `crates/headroom-core/src/ccr/backends/redis.rs` — Redis-backed `CcrStore`. `SETEX hash ttl_seconds original`.
-- `crates/headroom-core/src/ccr/backends/mod.rs` — `pub trait CcrStore` (already exists at `ccr.rs`); `pub fn from_config(config: &CcrConfig) -> Box<dyn CcrStore>`.
+- `crates/copium-core/src/ccr/backends/sqlite.rs` — SQLite-backed `CcrStore`. Schema: `ccr_entries(hash TEXT PRIMARY KEY, original BLOB, created_at INTEGER, ttl_seconds INTEGER)`. Auto-purge on read (`WHERE created_at + ttl_seconds > now`).
+- `crates/copium-core/src/ccr/backends/redis.rs` — Redis-backed `CcrStore`. `SETEX hash ttl_seconds original`.
+- `crates/copium-core/src/ccr/backends/mod.rs` — `pub trait CcrStore` (already exists at `ccr.rs`); `pub fn from_config(config: &CcrConfig) -> Box<dyn CcrStore>`.
 
 **Modify:**
-- `crates/headroom-core/src/ccr.rs` — extract `InMemoryCcrStore` to its own file; rest stays.
-- `crates/headroom-core/src/transforms/live_zone.rs` — when a compressor returns a `CompressionResult` with original bytes, store original bytes in CCR backend keyed by `BLAKE3(original_bytes)`. Append `<<ccr:HASH>>` marker to compressed block content.
-- `headroom/proxy/handlers/anthropic.py` — `inject_ccr_retrieve_tool`: always add the tool when `session.has_done_ccr` is true; never toggle off.
-- `headroom/proxy/handlers/openai.py` — same for OpenAI Chat / Responses.
-- `headroom/ccr/tool_injection.py:302-328` — change `if has_compressed_content:` to `if session.has_done_ccr:`.
+- `crates/copium-core/src/ccr.rs` — extract `InMemoryCcrStore` to its own file; rest stays.
+- `crates/copium-core/src/transforms/live_zone.rs` — when a compressor returns a `CompressionResult` with original bytes, store original bytes in CCR backend keyed by `BLAKE3(original_bytes)`. Append `<<ccr:HASH>>` marker to compressed block content.
+- `copium/proxy/handlers/anthropic.py` — `inject_ccr_retrieve_tool`: always add the tool when `session.has_done_ccr` is true; never toggle off.
+- `copium/proxy/handlers/openai.py` — same for OpenAI Chat / Responses.
+- `copium/ccr/tool_injection.py:302-328` — change `if has_compressed_content:` to `if session.has_done_ccr:`.
 - `RUST_DEV.md` — update "Multi-worker deployment — CCR fragmentation" section: with `SqliteCcrStore` + sticky-session not required; with `RedisCcrStore` no stickiness needed at all.
 
 **Tests added:**
-- `crates/headroom-core/tests/ccr_backends.rs::sqlite_round_trip`
-- `crates/headroom-core/tests/ccr_backends.rs::sqlite_ttl_purge`
-- `crates/headroom-core/tests/ccr_backends.rs::redis_round_trip` (gated behind `cfg(feature = "redis")`)
-- `crates/headroom-core/tests/ccr_backends.rs::backend_swap_byte_equal_keys`
+- `crates/copium-core/tests/ccr_backends.rs::sqlite_round_trip`
+- `crates/copium-core/tests/ccr_backends.rs::sqlite_ttl_purge`
+- `crates/copium-core/tests/ccr_backends.rs::redis_round_trip` (gated behind `cfg(feature = "redis")`)
+- `crates/copium-core/tests/ccr_backends.rs::backend_swap_byte_equal_keys`
 - `tests/test_ccr_tool_always_on.py::test_tool_registered_on_every_request_after_first_ccr`
 - `tests/test_ccr_tool_always_on.py::test_tool_not_registered_if_session_never_did_ccr`
 - `tests/test_ccr_tool_always_on.py::test_tool_definition_byte_stable`
@@ -467,4 +467,4 @@ After all 7 PRs land:
 
 **Phase B retires P0-4, P1-13, P2-18 through P2-27, P3-33, P3-34, P5-56, P6-70.**
 
-After Phase B, Headroom's compression value is **back online** — and now it's correct.
+After Phase B, Copium's compression value is **back online** — and now it's correct.

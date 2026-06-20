@@ -12,7 +12,7 @@ PR-A3 makes every forwarder byte-faithful:
     (compact separators, ``ensure_ascii=False``).
 
 The legacy behavior is still reachable via
-``HEADROOM_PROXY_PYTHON_FORWARDER_MODE=legacy_json_kwarg`` for emergency
+``COPIUM_PROXY_PYTHON_FORWARDER_MODE=legacy_json_kwarg`` for emergency
 rollback (operator opt-in, not a fallback).
 """
 
@@ -30,7 +30,7 @@ pytest.importorskip("fastapi")
 
 from fastapi.testclient import TestClient
 
-from headroom.proxy.helpers import (
+from copium.proxy.helpers import (
     BodyMutationTracker,
     append_text_to_latest_user_chat_message,
     get_python_forwarder_mode,
@@ -38,7 +38,7 @@ from headroom.proxy.helpers import (
     prepare_outbound_body_bytes,
     serialize_body_canonical,
 )
-from headroom.proxy.server import ProxyConfig, create_app
+from copium.proxy.server import ProxyConfig, create_app
 
 # ---------------------------------------------------------------------------
 # Unit tests for serializer + tracker
@@ -167,22 +167,22 @@ def test_legacy_json_kwarg_mode_falls_back() -> None:
 def test_python_forwarder_mode_default_is_byte_faithful(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.delenv("HEADROOM_PROXY_PYTHON_FORWARDER_MODE", raising=False)
+    monkeypatch.delenv("COPIUM_PROXY_PYTHON_FORWARDER_MODE", raising=False)
     assert get_python_forwarder_mode() == "byte_faithful"
 
 
 def test_python_forwarder_mode_invalid_raises(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setenv("HEADROOM_PROXY_PYTHON_FORWARDER_MODE", "garbage")
-    with pytest.raises(ValueError, match="HEADROOM_PROXY_PYTHON_FORWARDER_MODE"):
+    monkeypatch.setenv("COPIUM_PROXY_PYTHON_FORWARDER_MODE", "garbage")
+    with pytest.raises(ValueError, match="COPIUM_PROXY_PYTHON_FORWARDER_MODE"):
         get_python_forwarder_mode()
 
 
 def test_python_forwarder_mode_legacy_value_accepted(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setenv("HEADROOM_PROXY_PYTHON_FORWARDER_MODE", "legacy_json_kwarg")
+    monkeypatch.setenv("COPIUM_PROXY_PYTHON_FORWARDER_MODE", "legacy_json_kwarg")
     assert get_python_forwarder_mode() == "legacy_json_kwarg"
 
 
@@ -200,7 +200,7 @@ def test_log_outbound_request_emits_structured_fields() -> None:
     """
     import logging
 
-    proxy_logger = logging.getLogger("headroom.proxy")
+    proxy_logger = logging.getLogger("copium.proxy")
     records: list[logging.LogRecord] = []
 
     class _ListHandler(logging.Handler):
@@ -415,7 +415,7 @@ def test_legacy_json_kwarg_mode_yields_drifted_bytes(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Operator opt-in produces the OLD drifted bytes (rollback validation)."""
-    monkeypatch.setenv("HEADROOM_PROXY_PYTHON_FORWARDER_MODE", "legacy_json_kwarg")
+    monkeypatch.setenv("COPIUM_PROXY_PYTHON_FORWARDER_MODE", "legacy_json_kwarg")
     client, transport = _make_no_optimize_app()
 
     inbound_dict = {
@@ -537,7 +537,7 @@ def test_openai_chat_memory_routes_to_user_tail_not_system() -> None:
         "/v1/chat/completions",
         headers={
             "authorization": "Bearer sk-test",
-            "x-headroom-user-id": "u1",
+            "x-copium-user-id": "u1",
         },
         json={
             "model": "gpt-4o",
@@ -567,7 +567,7 @@ def test_openai_chat_memory_routes_to_user_tail_not_system() -> None:
 def test_openai_chat_memory_disabled_mode_no_op(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setenv("HEADROOM_MEMORY_INJECTION_MODE", "disabled")
+    monkeypatch.setenv("COPIUM_MEMORY_INJECTION_MODE", "disabled")
     config = ProxyConfig(
         optimize=False,
         cache_enabled=False,
@@ -614,7 +614,7 @@ def test_openai_chat_memory_disabled_mode_no_op(
         "/v1/chat/completions",
         headers={
             "authorization": "Bearer sk-test",
-            "x-headroom-user-id": "u1",
+            "x-copium-user-id": "u1",
         },
         json={
             "model": "gpt-4o",

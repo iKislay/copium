@@ -1,6 +1,6 @@
 # macOS Deployment Guide
 
-This guide covers deploying the headroom proxy server as a background service on macOS using LaunchAgent. The service will start automatically on login and restart on crash.
+This guide covers deploying the copium proxy server as a background service on macOS using LaunchAgent. The service will start automatically on login and restart on crash.
 
 ## Overview
 
@@ -16,17 +16,17 @@ This is ideal for local development environments where you want "set and forget"
 ## Prerequisites
 
 - macOS 10.13+ (High Sierra or later)
-- headroom-ai installed with proxy support
+- copium-ai installed with proxy support
 - Anthropic API key configured
 
-### Installing Headroom with Proxy Support
+### Installing Copium with Proxy Support
 
 ```bash
 # Install with proxy support
-pip install headroom-ai[proxy]
+pip install copium-ai[proxy]
 
 # Verify installation
-headroom proxy --help
+copium proxy --help
 ```
 
 ### API Key Configuration
@@ -62,7 +62,7 @@ setenv ANTHROPIC_API_KEY sk-ant-...
 The automated installer handles all setup:
 
 ```bash
-# Clone or navigate to headroom repository
+# Clone or navigate to copium repository
 cd examples/deployment/macos-launchagent
 
 # Run installer
@@ -71,7 +71,7 @@ cd examples/deployment/macos-launchagent
 
 The installer will:
 
-1. Detect your headroom installation
+1. Detect your copium installation
 2. Prompt for port configuration (default: 8787)
 3. Create log directory
 4. Generate LaunchAgent plist
@@ -106,7 +106,7 @@ If you prefer full control over the installation:
 ### Step 1: Create Log Directory
 
 ```bash
-mkdir -p ~/Library/Logs/headroom
+mkdir -p ~/Library/Logs/copium
 ```
 
 ### Step 2: Generate LaunchAgent Plist
@@ -115,16 +115,16 @@ Copy and customize the template:
 
 ```bash
 cd examples/deployment/macos-launchagent
-cp com.headroom.proxy.plist.template ~/Library/LaunchAgents/com.headroom.proxy.plist
+cp com.copium.proxy.plist.template ~/Library/LaunchAgents/com.copium.proxy.plist
 ```
 
-Edit `~/Library/LaunchAgents/com.headroom.proxy.plist`:
+Edit `~/Library/LaunchAgents/com.copium.proxy.plist`:
 
-1. Replace `__HEADROOM_PATH__` with your headroom path:
+1. Replace `__COPIUM_PATH__` with your copium path:
 
    ```bash
-   command -v headroom
-   # Example output: /usr/local/bin/headroom
+   command -v copium
+   # Example output: /usr/local/bin/copium
    ```
 
 2. Replace `__PORT__` with your desired port (e.g., `8787`)
@@ -139,14 +139,14 @@ Edit `~/Library/LaunchAgents/com.headroom.proxy.plist`:
 ### Step 3: Load the LaunchAgent
 
 ```bash
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.headroom.proxy.plist
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.copium.proxy.plist
 ```
 
 ### Step 4: Verify Service
 
 ```bash
 # Check if service is running
-launchctl print gui/$(id -u)/com.headroom.proxy
+launchctl print gui/$(id -u)/com.copium.proxy
 
 # Check if port is listening
 lsof -iTCP:8787 -sTCP:LISTEN
@@ -171,14 +171,14 @@ The default port is 8787. To use a custom port:
 
 1. Uninstall: `./uninstall.sh`
 2. Reinstall with new port: `./install.sh --port 9000`
-3. Update shell integration: `export HEADROOM_PORT=9000`
+3. Update shell integration: `export COPIUM_PORT=9000`
 
 ### Log Location
 
 Logs are written to standard macOS locations:
 
-- **Standard output**: `~/Library/Logs/headroom/proxy.log`
-- **Error output**: `~/Library/Logs/headroom/proxy-error.log`
+- **Standard output**: `~/Library/Logs/copium/proxy.log`
+- **Error output**: `~/Library/Logs/copium/proxy-error.log`
 
 To change log locations, edit the plist:
 
@@ -195,7 +195,7 @@ Configure additional options in the plist `EnvironmentVariables` section:
 <key>EnvironmentVariables</key>
 <dict>
     <!-- Required: Proxy port -->
-    <key>HEADROOM_PORT</key>
+    <key>COPIUM_PORT</key>
     <string>8787</string>
 
     <!-- Optional: API key (or set in shell) -->
@@ -206,8 +206,8 @@ Configure additional options in the plist `EnvironmentVariables` section:
 ```
 
 **Note:** The earlier LLMLingua-2 launch-agent variables
-(`HEADROOM_COMPRESSION_PROVIDER=llmlingua`, `HEADROOM_LLMLINGUA_DEVICE`,
-the `headroom-ai[llmlingua]` extra) were retired with the
+(`COPIUM_COMPRESSION_PROVIDER=llmlingua`, `COPIUM_LLMLINGUA_DEVICE`,
+the `copium-ai[llmlingua]` extra) were retired with the
 `--llmlingua` flag. For ML compression today, install the `[ml]`
 extra and follow `wiki/transforms.md`.
 
@@ -235,10 +235,10 @@ Add to `~/.bashrc` (bash) or `~/.zshrc` (zsh):
 
 ```bash
 # Configure port (optional, defaults to 8787)
-export HEADROOM_PORT=8787
+export COPIUM_PORT=8787
 
 # Source shell integration
-source /path/to/headroom/examples/deployment/macos-launchagent/shell-integration.sh
+source /path/to/copium/examples/deployment/macos-launchagent/shell-integration.sh
 ```
 
 ### What It Does
@@ -267,7 +267,7 @@ export ANTHROPIC_BASE_URL=http://localhost:8787
 
 ```bash
 # View service status
-launchctl print gui/$(id -u)/com.headroom.proxy
+launchctl print gui/$(id -u)/com.copium.proxy
 
 # Check if port is listening
 lsof -iTCP:8787 -sTCP:LISTEN
@@ -280,34 +280,34 @@ curl http://localhost:8787/health
 
 ```bash
 # Tail standard output
-tail -f ~/Library/Logs/headroom/proxy.log
+tail -f ~/Library/Logs/copium/proxy.log
 
 # Tail error output
-tail -f ~/Library/Logs/headroom/proxy-error.log
+tail -f ~/Library/Logs/copium/proxy-error.log
 
 # View last 50 lines
-tail -n 50 ~/Library/Logs/headroom/proxy-error.log
+tail -n 50 ~/Library/Logs/copium/proxy-error.log
 ```
 
 ### Restart Service
 
 ```bash
 # Graceful restart (stop and let KeepAlive restart it)
-launchctl kickstart -k gui/$(id -u)/com.headroom.proxy
+launchctl kickstart -k gui/$(id -u)/com.copium.proxy
 
 # Manual stop/start
-launchctl bootout gui/$(id -u)/com.headroom.proxy
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.headroom.proxy.plist
+launchctl bootout gui/$(id -u)/com.copium.proxy
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.copium.proxy.plist
 ```
 
 ### Stop Service Temporarily
 
 ```bash
 # Disable without uninstalling
-launchctl disable gui/$(id -u)/com.headroom.proxy
+launchctl disable gui/$(id -u)/com.copium.proxy
 
 # Re-enable
-launchctl enable gui/$(id -u)/com.headroom.proxy
+launchctl enable gui/$(id -u)/com.copium.proxy
 ```
 
 ## Verification
@@ -317,7 +317,7 @@ After installation, verify everything is working:
 ### 1. Check Service Status
 
 ```bash
-launchctl print gui/$(id -u)/com.headroom.proxy
+launchctl print gui/$(id -u)/com.copium.proxy
 ```
 
 Expected output includes:
@@ -332,7 +332,7 @@ state = running
 lsof -iTCP:8787 -sTCP:LISTEN
 ```
 
-Should show headroom listening on port 8787.
+Should show copium listening on port 8787.
 
 ### 3. Test Health Endpoint
 
@@ -368,7 +368,7 @@ print(response.content[0].text)
 ### 5. Check Logs for Errors
 
 ```bash
-tail -n 20 ~/Library/Logs/headroom/proxy-error.log
+tail -n 20 ~/Library/Logs/copium/proxy-error.log
 ```
 
 Should show no errors. Common startup errors are listed in [Troubleshooting](#troubleshooting).
@@ -382,7 +382,7 @@ Should show no errors. Common startup errors are listed in [Troubleshooting](#tr
 **Check logs:**
 
 ```bash
-tail -n 50 ~/Library/Logs/headroom/proxy-error.log
+tail -n 50 ~/Library/Logs/copium/proxy-error.log
 ```
 
 **Common causes:**
@@ -390,8 +390,8 @@ tail -n 50 ~/Library/Logs/headroom/proxy-error.log
 | Error | Solution |
 |-------|----------|
 | `ANTHROPIC_API_KEY not set` | Set API key in environment or plist |
-| `ModuleNotFoundError: No module named 'headroom'` | Install: `pip install headroom-ai[proxy]` |
-| `command not found: headroom` | Update plist with correct path: `command -v headroom` |
+| `ModuleNotFoundError: No module named 'copium'` | Install: `pip install copium-ai[proxy]` |
+| `command not found: copium` | Update plist with correct path: `command -v copium` |
 | `Address already in use` | Change port or stop conflicting service |
 
 ### Port Already in Use
@@ -416,12 +416,12 @@ lsof -iTCP:8787 -sTCP:LISTEN
 **Check for Python errors:**
 
 ```bash
-tail -f ~/Library/Logs/headroom/proxy-error.log
+tail -f ~/Library/Logs/copium/proxy-error.log
 ```
 
 **Common causes:**
 
-- Missing dependencies: `pip install headroom-ai[proxy]`
+- Missing dependencies: `pip install copium-ai[proxy]`
 - Invalid API key: Verify `ANTHROPIC_API_KEY`
 - Python version incompatible: Requires Python 3.10+
 
@@ -445,7 +445,7 @@ source ~/.bashrc  # or ~/.zshrc
 
 ```bash
 # Should be set to 1
-echo $HEADROOM_SHELL_INTEGRATION_LOADED
+echo $COPIUM_SHELL_INTEGRATION_LOADED
 ```
 
 ### Service Not Auto-Starting on Login
@@ -455,19 +455,19 @@ echo $HEADROOM_SHELL_INTEGRATION_LOADED
 **Verify LaunchAgent is loaded:**
 
 ```bash
-launchctl list | grep headroom
+launchctl list | grep copium
 ```
 
 **If not listed:**
 
 ```bash
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.headroom.proxy.plist
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.copium.proxy.plist
 ```
 
 **Check RunAtLoad is enabled:**
 
 ```bash
-grep -A1 RunAtLoad ~/Library/LaunchAgents/com.headroom.proxy.plist
+grep -A1 RunAtLoad ~/Library/LaunchAgents/com.copium.proxy.plist
 ```
 
 Should show:
@@ -484,13 +484,13 @@ Should show:
 **Ensure plist has correct permissions:**
 
 ```bash
-chmod 644 ~/Library/LaunchAgents/com.headroom.proxy.plist
+chmod 644 ~/Library/LaunchAgents/com.copium.proxy.plist
 ```
 
 **Verify ownership:**
 
 ```bash
-ls -l ~/Library/LaunchAgents/com.headroom.proxy.plist
+ls -l ~/Library/LaunchAgents/com.copium.proxy.plist
 ```
 
 Should be owned by your user, not root.
@@ -518,7 +518,7 @@ This will:
 
 # Remove shell integration from ~/.bashrc or ~/.zshrc
 # Delete or comment out:
-#   export HEADROOM_PORT=8787
+#   export COPIUM_PORT=8787
 #   source .../shell-integration.sh
 ```
 
@@ -526,13 +526,13 @@ This will:
 
 ```bash
 # Stop service
-launchctl bootout gui/$(id -u)/com.headroom.proxy
+launchctl bootout gui/$(id -u)/com.copium.proxy
 
 # Remove plist
-rm ~/Library/LaunchAgents/com.headroom.proxy.plist
+rm ~/Library/LaunchAgents/com.copium.proxy.plist
 
 # Remove logs (optional)
-rm -rf ~/Library/Logs/headroom
+rm -rf ~/Library/Logs/copium
 ```
 
 ## Production Deployment
@@ -555,7 +555,7 @@ LaunchAgent is designed for single-user development. For production, evaluate:
 
 - [Proxy Server Documentation](proxy.md) - Core proxy configuration and features
 - [Configuration Guide](configuration.md) - Detailed configuration options
-- [Architecture](ARCHITECTURE.md) - How Headroom works internally
+- [Architecture](ARCHITECTURE.md) - How Copium works internally
 - [Troubleshooting](troubleshooting.md) - General troubleshooting guide
 
 ## Platform Alternatives
@@ -613,9 +613,9 @@ Run multiple proxies on different ports:
 ./install.sh --port 8787
 
 # For second instance, manually create plist with different label
-cp com.headroom.proxy.plist.template ~/Library/LaunchAgents/com.headroom.proxy-2.plist
-# Edit: Change Label to com.headroom.proxy-2, port to 8788
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.headroom.proxy-2.plist
+cp com.copium.proxy.plist.template ~/Library/LaunchAgents/com.copium.proxy-2.plist
+# Edit: Change Label to com.copium.proxy-2, port to 8788
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.copium.proxy-2.plist
 ```
 
 ### Custom LaunchAgent Schedule
@@ -658,15 +658,15 @@ the M5 Air) that are prone to CPU-saturation timeouts.
 Enable it by installing the extra and setting the env var:
 
 ```bash
-pip install 'headroom-ai[pytorch-mps]'   # also works as [pytorch_mps]
-export HEADROOM_EMBEDDER_RUNTIME=pytorch_mps
+pip install 'copium-ai[pytorch-mps]'   # also works as [pytorch_mps]
+export COPIUM_EMBEDDER_RUNTIME=pytorch_mps
 ```
 
 Under a LaunchAgent, set the env var in the plist `EnvironmentVariables`
 section:
 
 ```xml
-<key>HEADROOM_EMBEDDER_RUNTIME</key>
+<key>COPIUM_EMBEDDER_RUNTIME</key>
 <string>pytorch_mps</string>
 ```
 
@@ -678,7 +678,7 @@ for details.
 
 ## FAQ
 
-**Q: Why LaunchAgent instead of running `headroom proxy` manually?**
+**Q: Why LaunchAgent instead of running `copium proxy` manually?**
 
 A: LaunchAgent provides automatic startup, crash recovery, and proper lifecycle management. You don't have to remember to start the proxy or keep a terminal window open.
 
@@ -695,7 +695,7 @@ A: Minimal. The proxy adds ~10-50ms latency while reducing token costs by 50-90%
 A: Yes. After changing the plist, reload the service:
 
 ```bash
-launchctl kickstart -k gui/$(id -u)/com.headroom.proxy
+launchctl kickstart -k gui/$(id -u)/com.copium.proxy
 ```
 
 **Q: Can I use this with multiple API providers?**
@@ -704,4 +704,4 @@ A: The LaunchAgent setup is Anthropic-specific. For other providers, see [proxy.
 
 **Q: Does this work with Apple Silicon (M1/M2/M3)?**
 
-A: Yes, fully compatible. ML compression (Kompress, opt-in via `headroom-ai[ml]`) auto-detects MPS on Apple Silicon.
+A: Yes, fully compatible. ML compression (Kompress, opt-in via `copium-ai[ml]`) auto-detects MPS on Apple Silicon.

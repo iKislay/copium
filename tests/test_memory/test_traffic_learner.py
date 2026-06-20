@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from headroom.memory.traffic_learner import (
+from copium.memory.traffic_learner import (
     ExtractedPattern,
     PatternCategory,
     TrafficLearner,
@@ -105,7 +105,7 @@ class TestCommandsRelatedAsRetry:
         # The motivating bug: two grep calls sharing nothing but the
         # binary should not pair up. Different needles, different files.
         failed = (
-            'grep -nE "smoke|HEADROOM_SMOKE_TEST_TIMEOUT|smoke_test" '
+            'grep -nE "smoke|COPIUM_SMOKE_TEST_TIMEOUT|smoke_test" '
             "/Users/x/src-tauri/src/tool_manager.rs 2>&1 | head -20"
         )
         success = (
@@ -230,10 +230,10 @@ class TestPathsRelatedAsTypoEdgeCases:
 class TestCommandsRelatedAsRetrySubstantiveToken:
     def test_substantive_token_beats_distance(self):
         # Edit distance is too high to pass the 40% gate, but both commands
-        # share the substantive token "headroom-config", so the token-overlap
+        # share the substantive token "copium-config", so the token-overlap
         # path accepts the pair.
-        failed = "python -m foo --headroom-config=/etc/h.toml"
-        success = "python -m bar --headroom-config=/etc/h.toml --extra"
+        failed = "python -m foo --copium-config=/etc/h.toml"
+        success = "python -m bar --copium-config=/etc/h.toml --extra"
         assert _commands_related_as_retry(failed, success)
 
 
@@ -486,7 +486,7 @@ class TestProjectForPattern:
     def _project(self, path: str):
         from pathlib import Path as _P
 
-        from headroom.learn.models import ProjectInfo
+        from copium.learn.models import ProjectInfo
 
         p = _P(path)
         return ProjectInfo(name=p.name, project_path=p, data_path=p)
@@ -666,7 +666,7 @@ class TestLoadPersistedPatterns:
 
 class TestPatternsToRecommendations:
     def test_routes_preference_to_memory_file(self):
-        from headroom.learn.models import RecommendationTarget
+        from copium.learn.models import RecommendationTarget
 
         patterns = [
             ExtractedPattern(
@@ -682,7 +682,7 @@ class TestPatternsToRecommendations:
         assert "User prefers terse output" in recs[0].content
 
     def test_routes_environment_to_context_file(self):
-        from headroom.learn.models import RecommendationTarget
+        from copium.learn.models import RecommendationTarget
 
         patterns = [
             ExtractedPattern(
@@ -729,7 +729,7 @@ class TestFlushDebounce:
     @pytest.mark.asyncio
     async def test_flush_worker_rate_limits(self, monkeypatch):
         """Rapid dirty flags should not cause rapid flush_to_file calls."""
-        from headroom.memory import traffic_learner as tl_mod
+        from copium.memory import traffic_learner as tl_mod
 
         # Shorten debounce for a fast test
         monkeypatch.setattr(tl_mod, "FLUSH_DEBOUNCE_SECONDS", 0.5)
@@ -996,20 +996,20 @@ class _FakePlugin:
 
 
 def _install_plugin_registry(monkeypatch, plugin):
-    """Stub out headroom.learn.registry so flush_to_file uses our fake."""
+    """Stub out copium.learn.registry so flush_to_file uses our fake."""
     import sys
     import types as _types
 
-    fake = _types.ModuleType("headroom.learn.registry")
+    fake = _types.ModuleType("copium.learn.registry")
     fake.auto_detect_plugins = lambda: [plugin] if plugin is not None else []  # type: ignore[attr-defined]
     fake.get_plugin = lambda agent_type: plugin  # type: ignore[attr-defined]
-    monkeypatch.setitem(sys.modules, "headroom.learn.registry", fake)
+    monkeypatch.setitem(sys.modules, "copium.learn.registry", fake)
 
 
 def _make_project(path):
     from pathlib import Path as _P
 
-    from headroom.learn.models import ProjectInfo
+    from copium.learn.models import ProjectInfo
 
     p = _P(path)
     return ProjectInfo(name=p.name, project_path=p, data_path=p)
@@ -1185,12 +1185,12 @@ class TestFlushToFile:
 
 class TestBackendResolution:
     def test_resolve_none_backend(self):
-        from headroom.memory.traffic_learner import _resolve_backend_db_path
+        from copium.memory.traffic_learner import _resolve_backend_db_path
 
         assert _resolve_backend_db_path(None) is None
 
     def test_resolve_backend_without_config(self):
-        from headroom.memory.traffic_learner import _resolve_backend_db_path
+        from copium.memory.traffic_learner import _resolve_backend_db_path
 
         class _Bare:
             pass
@@ -1200,7 +1200,7 @@ class TestBackendResolution:
     def test_resolve_backend_with_empty_db_path(self):
         import types as _types
 
-        from headroom.memory.traffic_learner import _resolve_backend_db_path
+        from copium.memory.traffic_learner import _resolve_backend_db_path
 
         backend = _types.SimpleNamespace(_config=_types.SimpleNamespace(db_path=""))
         assert _resolve_backend_db_path(backend) is None

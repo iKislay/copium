@@ -5,7 +5,7 @@ description: Automated release pipeline with release-please, semantic versioning
 
 ## Overview
 
-Headroom uses `release-please` to maintain a release PR from conventional commits on `main`. Merging that release PR creates the release tag and GitHub Release, which triggers `.github/workflows/release.yml` to publish all packages, build version-matched Docker images, and attach release assets.
+Copium uses `release-please` to maintain a release PR from conventional commits on `main`. Merging that release PR creates the release tag and GitHub Release, which triggers `.github/workflows/release.yml` to publish all packages, build version-matched Docker images, and attach release assets.
 
 The release workflow also calls `.github/workflows/docker.yml` as a reusable workflow so GHCR images are published in the same release run with the exact same synced version as PyPI, npm, and GitHub release assets.
 
@@ -15,14 +15,14 @@ For the end-to-end visual flow, see [CI/CD Flow Diagrams](/docs/ci-cd-flows).
 
 | Package | Type | Registry | Environment Variable |
 |---------|------|----------|----------------------|
-| `headroom-ai` | Python | PyPI | `PYPI_PACKAGE` |
-| `headroom-ai` | TypeScript SDK | npmjs.org | `NPM_SDK_PACKAGE` |
-| `headroom-openclaw` | TypeScript plugin | npmjs.org | `NPM_OPENCLAW_PACKAGE` |
-| `@{owner}/headroom-ai` | TypeScript SDK | GitHub Package Registry | — |
-| `@{owner}/headroom-openclaw` | TypeScript plugin | GitHub Package Registry | — |
-| `headroom-ai-{version}.tar.gz` / `headroom_ai-{version}-py3-none-any.whl` | Python package distributions | GitHub Release (`{owner}/headroom`) | — |
-| `headroom-ai-{version}.tgz` / `headroom-openclaw-{version}.tgz` | Node release assets | GitHub Release (`{owner}/headroom`) | — |
-| `ghcr.io/{owner}/headroom` | Docker image | GitHub Container Registry | — |
+| `copium-ai` | Python | PyPI | `PYPI_PACKAGE` |
+| `copium-ai` | TypeScript SDK | npmjs.org | `NPM_SDK_PACKAGE` |
+| `copium-openclaw` | TypeScript plugin | npmjs.org | `NPM_OPENCLAW_PACKAGE` |
+| `@{owner}/copium-ai` | TypeScript SDK | GitHub Package Registry | — |
+| `@{owner}/copium-openclaw` | TypeScript plugin | GitHub Package Registry | — |
+| `copium-ai-{version}.tar.gz` / `copium_ai-{version}-py3-none-any.whl` | Python package distributions | GitHub Release (`{owner}/copium`) | — |
+| `copium-ai-{version}.tgz` / `copium-openclaw-{version}.tgz` | Node release assets | GitHub Release (`{owner}/copium`) | — |
+| `ghcr.io/{owner}/copium` | Docker image | GitHub Container Registry | — |
 
 ## Version Strategy
 
@@ -39,7 +39,7 @@ Release Please calculates the release version from conventional commits and the 
 - `.release-please-config.json` - release-please package configuration
 - `.release-please-manifest.json` - release-please version manifest
 - `pyproject.toml` - `[project].version`
-- `headroom/_version.py` - `__version__`, synced at build time
+- `copium/_version.py` - `__version__`, synced at build time
 - `plugins/openclaw/package.json` - `version`, synced at build time
 - `sdk/typescript/package.json` - `version`, synced at build time
 
@@ -92,20 +92,20 @@ Builds the Python wheel matrix for Linux x86_64, Linux arm64, and Apple Silicon 
 Collects the wheel matrix, source distribution, and npm tarballs into the canonical artifacts used by publishing and GitHub Release asset upload.
 
 ### smoke-import-wheels
-Installs the built wheels into representative customer environments and imports `headroom._core`. This blocks publishing if a wheel builds successfully but cannot import on its promised platform floor.
+Installs the built wheels into representative customer environments and imports `copium._core`. This blocks publishing if a wheel builds successfully but cannot import on its promised platform floor.
 
 ### publish-pypi
 Downloads the Python dist artifact and publishes to PyPI via `pypa/gh-action-pypi-publish@release/v1` (trusted publisher).
 
 ### publish-npm
 Publishes both TypeScript packages to npmjs.org:
-- `sdk/typescript/` as `headroom-ai`
-- `plugins/openclaw/` as `headroom-openclaw`
+- `sdk/typescript/` as `copium-ai`
+- `plugins/openclaw/` as `copium-openclaw`
 
 ### publish-github-packages
 Publishes both Node packages to GitHub Package Registry (`npm.pkg.github.com`) using the current repository owner as the npm scope:
-- `sdk/typescript/` as `@{owner}/headroom-ai`
-- `plugins/openclaw/` as `@{owner}/headroom-openclaw`
+- `sdk/typescript/` as `@{owner}/copium-ai`
+- `plugins/openclaw/` as `@{owner}/copium-openclaw`
 
 ### GitHub release assets
 Uploads the built Python distributions and both npm tarballs to the GitHub Release created in the current repository. GitHub Packages does not provide a PyPI-compatible package registry, so the workflow publishes Python wheels and sdists to GitHub as release assets while npm packages go to GitHub Package Registry and Docker images go to GHCR.
@@ -122,11 +122,11 @@ All package names, registry URLs, and environment names are defined as top-level
 
 ```yaml
 env:
-  PYPI_PACKAGE: headroom-ai
+  PYPI_PACKAGE: copium-ai
   PYPI_ENVIRONMENT: pypi
   NPM_REGISTRY_URL: https://registry.npmjs.org
-  NPM_SDK_PACKAGE: headroom-ai
-  NPM_OPENCLAW_PACKAGE: headroom-openclaw
+  NPM_SDK_PACKAGE: copium-ai
+  NPM_OPENCLAW_PACKAGE: copium-openclaw
   GITHUB_PACKAGES_REGISTRY_URL: https://npm.pkg.github.com
 ```
 
@@ -184,7 +184,7 @@ on:
     paths:
       - ".github/workflows/release.yml"
       - ".github/workflows/docker.yml"
-      - "crates/headroom-py/**"
+      - "crates/copium-py/**"
       - "pyproject.toml"
       - "scripts/verify-versions.py"
       - "scripts/version-sync.py"

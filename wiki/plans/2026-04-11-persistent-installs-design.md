@@ -2,9 +2,9 @@
 
 ## Problem
 
-Headroom already supports session-oriented usage through `headroom proxy`, `headroom wrap ...`, and the Docker-native wrapper scripts, but there is no first-class way to install Headroom as a durable background runtime. That leaves users to hand-roll launch agents, services, scheduled tasks, or Docker restart policies, and it keeps direct tool usage (`claude`, `codex`, `copilot`, `openclaw`, etc.) tied to explicit `wrap` commands.
+Copium already supports session-oriented usage through `copium proxy`, `copium wrap ...`, and the Docker-native wrapper scripts, but there is no first-class way to install Copium as a durable background runtime. That leaves users to hand-roll launch agents, services, scheduled tasks, or Docker restart policies, and it keeps direct tool usage (`claude`, `codex`, `copilot`, `openclaw`, etc.) tied to explicit `wrap` commands.
 
-The new feature should make Headroom deployable as a persistent local runtime while keeping the existing on-demand and wrapped flows intact.
+The new feature should make Copium deployable as a persistent local runtime while keeping the existing on-demand and wrapped flows intact.
 
 ## Goals
 
@@ -29,7 +29,7 @@ The new feature should make Headroom deployable as a persistent local runtime wh
 
 ## Architecture
 
-Introduce a new shared deployment subsystem under `headroom.install`.
+Introduce a new shared deployment subsystem under `copium.install`.
 
 Core model:
 
@@ -39,7 +39,7 @@ Core model:
 
 These three axes normalize all seven user-facing runtime modes without duplicating logic across CLI commands, install scripts, and platform-specific deployment adapters.
 
-The subsystem centers on a persisted deployment manifest in `~/.headroom/deploy/` that records:
+The subsystem centers on a persisted deployment manifest in `~/.copium/deploy/` that records:
 
 - resolved proxy configuration
 - runtime type
@@ -51,25 +51,25 @@ The subsystem centers on a persisted deployment manifest in `~/.headroom/deploy/
 
 ## Command model
 
-Add a new public `headroom install` group:
+Add a new public `copium install` group:
 
-- `headroom install apply`
-- `headroom install status`
-- `headroom install start`
-- `headroom install stop`
-- `headroom install restart`
-- `headroom install remove`
+- `copium install apply`
+- `copium install status`
+- `copium install start`
+- `copium install stop`
+- `copium install restart`
+- `copium install remove`
 
 Add hidden helper commands for artifact runners and health recovery:
 
-- `headroom install agent run --profile <name>`
-- `headroom install agent ensure --profile <name>`
+- `copium install agent run --profile <name>`
+- `copium install agent ensure --profile <name>`
 
-Platform supervisors should register the hidden agent entrypoint rather than raw `headroom proxy ...` so restart, health polling, and manifest handling live in one place.
+Platform supervisors should register the hidden agent entrypoint rather than raw `copium proxy ...` so restart, health polling, and manifest handling live in one place.
 
 ## Runtime adapters
 
-- `PythonRuntimeAdapter`: launches `headroom proxy` directly.
+- `PythonRuntimeAdapter`: launches `copium proxy` directly.
 - `DockerRuntimeAdapter`: launches a detached or foreground Docker container with the existing host mounts and loopback-only port publishing.
 
 Persistent Docker uses the same deployment manifest and status semantics as service/task installs, but the child runtime is Docker-managed rather than OS-supervised.
@@ -86,7 +86,7 @@ Persistent Docker uses the same deployment manifest and status semantics as serv
   - Service: Windows Service wrapper
   - Task: Scheduled Task startup + periodic health-check task
 
-Each adapter renders artifacts into `~/.headroom/deploy/` and stores enough metadata for clean removal.
+Each adapter renders artifacts into `~/.copium/deploy/` and stores enough metadata for clean removal.
 
 ## Tool target configuration
 
@@ -105,11 +105,11 @@ Initial target adapters:
 - Aider / Cursor
   - use env-based integration first, with tool-specific config only where a stable supported surface exists
 
-All non-marker edits must store previous values in the deployment manifest so uninstall removes only Headroom-managed changes.
+All non-marker edits must store previous values in the deployment manifest so uninstall removes only Copium-managed changes.
 
 ## Wrap behavior
 
-`headroom wrap ...` should consult the active deployment manifest before starting a new proxy. If a compatible persistent deployment is present and healthy, `wrap` should reuse it and only perform any remaining tool-specific preparation. If the deployment exists but is unhealthy, `wrap` should attempt to recover it through the install subsystem before falling back to an ephemeral proxy.
+`copium wrap ...` should consult the active deployment manifest before starting a new proxy. If a compatible persistent deployment is present and healthy, `wrap` should reuse it and only perform any remaining tool-specific preparation. If the deployment exists but is unhealthy, `wrap` should attempt to recover it through the install subsystem before falling back to an ephemeral proxy.
 
 ## Docs strategy
 

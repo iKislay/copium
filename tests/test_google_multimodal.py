@@ -13,19 +13,19 @@ import pytest
 pytest.importorskip("fastapi")
 pytest.importorskip("httpx")
 
-from headroom.proxy.server import HeadroomProxy, ProxyConfig
+from copium.proxy.server import CopiumProxy, ProxyConfig
 
 
 @pytest.fixture
 def proxy():
-    """Create a minimal HeadroomProxy instance for testing helper methods."""
+    """Create a minimal CopiumProxy instance for testing helper methods."""
     config = ProxyConfig(
         optimize=False,
         cache_enabled=False,
         rate_limit_enabled=False,
         cost_tracking_enabled=False,
     )
-    return HeadroomProxy(config)
+    return CopiumProxy(config)
 
 
 # =============================================================================
