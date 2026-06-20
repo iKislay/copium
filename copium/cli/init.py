@@ -55,9 +55,9 @@ _CODEX_PROVIDER_MARKER_START = "# --- Copium init provider ---"
 _CODEX_PROVIDER_MARKER_END = "# --- end Copium init provider ---"
 _CODEX_FEATURE_MARKER_START = "# --- Copium init features ---"
 _CODEX_FEATURE_MARKER_END = "# --- end Copium init features ---"
-_SUPPORTED_TARGETS = ("claude", "copilot", "codex", "openclaw")
-_LOCAL_TARGETS = {"claude", "codex"}
-_GLOBAL_TARGETS = {"claude", "copilot", "codex", "openclaw"}
+_SUPPORTED_TARGETS = ("claude", "copilot", "codex", "openclaw", "cursor", "aider")
+_LOCAL_TARGETS = {"claude", "codex", "cursor", "aider"}
+_GLOBAL_TARGETS = {"claude", "copilot", "codex", "openclaw", "cursor", "aider"}
 _STARTUP_READY_TIMEOUT_SECONDS = 15
 _TOML_TABLE_HEADER_RE = re.compile(r"^[ \t]*(?:\[\[[^\]\r\n]+\]\]|\[[^\]\r\n]+\])[ \t]*(?:#.*)?$")
 _TOML_FEATURES_NAME_RE = r"(?:features|\"features\"|'features')"
@@ -825,6 +825,38 @@ def _init_openclaw(*, global_scope: bool, port: int) -> None:
         raise SystemExit(result.returncode)
 
 
+def _resolve_cursor_env(port: int) -> dict[str, str]:
+    return {
+        "OPENAI_BASE_URL": f"http://127.0.0.1:{port}/v1",
+        "ANTHROPIC_BASE_URL": f"http://127.0.0.1:{port}",
+    }
+
+
+def _resolve_aider_env(port: int) -> dict[str, str]:
+    return {
+        "OPENAI_API_BASE": f"http://127.0.0.1:{port}/v1",
+        "ANTHROPIC_BASE_URL": f"http://127.0.0.1:{port}",
+    }
+
+
+def _init_cursor(*, global_scope: bool, port: int, backend: str) -> None:
+    env = _resolve_cursor_env(port)
+    _apply_user_env(env)
+    click.echo("Configured Cursor environment variables.")
+    click.echo(f"  OPENAI_BASE_URL={env['OPENAI_BASE_URL']}")
+    click.echo(f"  ANTHROPIC_BASE_URL={env['ANTHROPIC_BASE_URL']}")
+    click.echo("Restart Cursor to activate Copium proxy routing.")
+
+
+def _init_aider(*, global_scope: bool, port: int, backend: str) -> None:
+    env = _resolve_aider_env(port)
+    _apply_user_env(env)
+    click.echo("Configured Aider environment variables.")
+    click.echo(f"  OPENAI_API_BASE={env['OPENAI_API_BASE']}")
+    click.echo(f"  ANTHROPIC_BASE_URL={env['ANTHROPIC_BASE_URL']}")
+    click.echo("Restart Aider to activate Copium proxy routing.")
+
+
 def _run_init_targets(
     *,
     targets: list[str],
@@ -864,6 +896,10 @@ def _run_init_targets(
             _init_codex(global_scope=global_scope, profile=profile, port=port)
         elif target == "openclaw":
             _init_openclaw(global_scope=global_scope, port=port)
+        elif target == "cursor":
+            _init_cursor(global_scope=global_scope, port=port, backend=backend)
+        elif target == "aider":
+            _init_aider(global_scope=global_scope, port=port, backend=backend)
 
     # Register the copium MCP server with every targeted agent that has
     # a registrar implemented. Wave 1 covers Claude Code; subsequent waves
@@ -1014,6 +1050,36 @@ def init_openclaw(ctx: click.Context) -> None:
     """Install the durable OpenClaw Copium plugin."""
     _run_init_targets(
         targets=["openclaw"],
+        global_scope=bool(_ctx_value(ctx, "global_scope")),
+        port=int(_ctx_value(ctx, "port") or 8787),
+        backend=str(_ctx_value(ctx, "backend") or "anthropic"),
+        anyllm_provider=_ctx_value(ctx, "anyllm_provider"),
+        region=_ctx_value(ctx, "region"),
+        memory=bool(_ctx_value(ctx, "memory")),
+    )
+
+
+@init.command("cursor")
+@click.pass_context
+def init_cursor(ctx: click.Context) -> None:
+    """Install Cursor durable environment variables for Copium proxy routing."""
+    _run_init_targets(
+        targets=["cursor"],
+        global_scope=bool(_ctx_value(ctx, "global_scope")),
+        port=int(_ctx_value(ctx, "port") or 8787),
+        backend=str(_ctx_value(ctx, "backend") or "anthropic"),
+        anyllm_provider=_ctx_value(ctx, "anyllm_provider"),
+        region=_ctx_value(ctx, "region"),
+        memory=bool(_ctx_value(ctx, "memory")),
+    )
+
+
+@init.command("aider")
+@click.pass_context
+def init_aider(ctx: click.Context) -> None:
+    """Install Aider durable environment variables for Copium proxy routing."""
+    _run_init_targets(
+        targets=["aider"],
         global_scope=bool(_ctx_value(ctx, "global_scope")),
         port=int(_ctx_value(ctx, "port") or 8787),
         backend=str(_ctx_value(ctx, "backend") or "anthropic"),
