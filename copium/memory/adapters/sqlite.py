@@ -123,6 +123,10 @@ class SQLiteMemoryStore:
                     -- Embedding (BLOB for numpy array)
                     embedding BLOB,
 
+                    -- Decay: pre-computed expiration
+                    base_importance REAL,
+                    expires_at INTEGER,
+
                     -- Metadata (JSON object)
                     metadata TEXT NOT NULL DEFAULT '{}'
                 )
@@ -158,6 +162,11 @@ class SQLiteMemoryStore:
             )
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_memories_superseded_by ON memories(superseded_by)"
+            )
+
+            # Decay index for O(1) expiry filtering
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_memories_expires_at ON memories(expires_at)"
             )
 
             conn.commit()
