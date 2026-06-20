@@ -290,6 +290,27 @@ class TestDoctorCommand:
     def test_all_pass_exits_0(self, runner, isolated, monkeypatch):
         monkeypatch.setattr(doctor_mod, "probe_json", self._probe(LIVEZ_OK, STATS_OK))
         monkeypatch.setattr(doctor_mod, "get_version", lambda: "0.26.0")
+        # Mock local LLM checks to return pass/skip so they don't interfere
+        monkeypatch.setattr(
+            doctor_mod,
+            "check_ollama",
+            lambda: doctor_mod.CheckResult(name="ollama", status=SKIP, summary="mocked"),
+        )
+        monkeypatch.setattr(
+            doctor_mod,
+            "check_ollama_loaded",
+            lambda: doctor_mod.CheckResult(name="ollama loaded", status=SKIP, summary="mocked"),
+        )
+        monkeypatch.setattr(
+            doctor_mod,
+            "check_vllm",
+            lambda: doctor_mod.CheckResult(name="vllm", status=SKIP, summary="mocked"),
+        )
+        monkeypatch.setattr(
+            doctor_mod,
+            "check_llamacpp",
+            lambda: doctor_mod.CheckResult(name="llamacpp", status=SKIP, summary="mocked"),
+        )
         (isolated / "settings.json").write_text(
             json.dumps({"env": {"ANTHROPIC_BASE_URL": "http://127.0.0.1:8787"}}),
             encoding="utf-8",

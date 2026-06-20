@@ -315,6 +315,153 @@ def check_deployments(manifests: list[Any], probe: Any = probe_json) -> CheckRes
     )
 
 
+# ============================================================================
+# Local LLM Backend Detection
+# ============================================================================
+
+
+def check_ollama() -> CheckResult:
+    """Detect Ollama server and loaded models."""
+    import urllib.request
+    import urllib.error
+
+    try:
+        req = urllib.request.Request("http://localhost:11434/api/tags")
+        with urllib.request.urlopen(req, timeout=2) as resp:
+            data = json.loads(resp.read())
+            models = data.get("models", [])
+            if not models:
+                return CheckResult(
+                    name="ollama",
+                    status=WARN,
+                    summary="Ollama running but no models installed",
+                    hint="pull a model: ollama pull qwen2.5-coder:32b",
+                )
+            model_names = [m.get("name", "unknown") for m in models[:3]]
+            more = f" (+{len(models) - 3} more)" if len(models) > 3 else ""
+            return CheckResult(
+                name="ollama",
+                status=PASS,
+                summary=f"running with {len(models)} model(s): {', '.join(model_names)}{more}",
+            )
+    except (urllib.error.URLError, OSError, json.JSONDecodeError, TimeoutError):
+        return CheckResult(
+            name="ollama",
+            status=SKIP,
+            summary="not detected (localhost:11434)",
+        )
+
+
+def check_ollama_loaded() -> CheckResult:
+    """Check what Ollama models are currently loaded in memory."""
+    import urllib.request
+    import urllib.error
+
+    try:
+        req = urllib.request.Request("http://localhost:11434/api/ps")
+        with urllib.request.urlopen(req, timeout=2) as resp:
+            data = json.loads(resp.read())
+            models = data.get("models", [])
+            if not models:
+                return CheckResult(
+                    name="ollama loaded",
+                    status=WARN,
+                    summary="no models currently loaded in VRAM",
+                    hint="models load on first request; ensure sufficient VRAM",
+                )
+            details = []
+            for m in models[:3]:
+                name = m.get("name", "unknown")
+                vram = m.get("size_vram", 0)
+                vram_gb = f" ({vram / 1e9:.1f}GB VRAM)" if vram > 0 else ""
+                details.append(f"{name}{vram_gb}")
+            return CheckResult(
+                name="ollama loaded",
+                status=PASS,
+                summary=f"loaded: {', '.join(details)}",
+            )
+    except (urllib.error.URLError, OSError, json.JSONDecodeError, TimeoutError):
+        return CheckResult(
+            name="ollama loaded",
+            status=SKIP,
+            summary="Ollama not reachable",
+        )
+
+
+def check_vllm() -> CheckResult:
+    """Detect VLLM server."""
+    import urllib.request
+    import urllib.error
+
+    try:
+        req = urllib.request.Request("http://localhost:8000/v1/models")
+        with urllib.request.urlopen(req, timeout=2) as resp:
+            data = json.loads(resp.read())
+            models = data.get("data", [])
+            if not models:
+                return CheckResult(
+                    name="vllm",
+                    status=WARN,
+                    summary="VLLM running but no models loaded",
+                )
+            model_names = [m.get("id", "unknown") for m in models[:3]]
+            return CheckResult(
+                name="vllm",
+                status=PASS,
+                summary=f"running with model(s): {', '.join(model_names)}",
+            )
+    except (urllib.error.URLError, OSError, json.JSONDecodeError, TimeoutError):
+        return CheckResult(
+            name="vllm",
+            status=SKIP,
+            summary="not detected (localhost:8000)",
+        )
+
+
+def check_llamacpp() -> CheckResult:
+    """Detect llama.cpp server."""
+    import urllib.request
+    import urllib.error
+
+    try:
+        req = urllib.request.Request("http://localhost:8080/props")
+        with urllib.request.urlopen(req, timeout=2) as resp:
+            data = json.loads(resp.read())
+            model_path = data.get("model_path", "unknown")
+            model_name = Path(model_path).stem if model_path != "unknown" else "unknown"
+            n_ctx = data.get("default_generation_settings", {}).get("n_ctx", 0)
+            return CheckResult(
+                name="llamacpp",
+                status=PASS,
+                summary=f"running: {model_name} (context: {n_ctx:,} tokens)",
+            )
+    except (urllib.error.URLError, OSError, json.JSONDecodeError, TimeoutError):
+        return CheckResult(
+            name="llamacpp",
+            status=SKIP,
+            summary="not detected (localhost:8080)",
+        )
+
+
+def check_session_dedup_config() -> CheckResult:
+    """Check if session deduplication is configured."""
+    from copium.config import CopiumConfig
+
+    config = CopiumConfig()
+    if config.session_dedup.enabled:
+        return CheckResult(
+            name="session dedup",
+            status=PASS,
+            summary="enabled (cross-turn content deduplication active)",
+        )
+    return CheckResult(
+        name="session dedup",
+        status=WARN,
+        summary="disabled",
+        hint="enable in config: session_dedup.enabled = true",
+    )
+
+
 _STATUS_STYLE = {PASS: "green", WARN: "yellow", FAIL: "red", SKIP: "dim"}
 _STATUS_GLYPH = {PASS: "✓", WARN: "⚠", FAIL: "✗", SKIP: "·"}
 
@@ -383,7 +530,15 @@ def doctor(port: int, emit_json: bool) -> None:
         check_shell_env(os.environ, port),
         check_savings(stats, savings_path()),
         check_budget(stats),
+        check_session_dedup_config(),
     ]
+
+    # Local LLM backend detection
+    checks.append(check_ollama())
+    checks.append(check_ollama_loaded())
+    checks.append(check_vllm())
+    checks.append(check_llamacpp())
+
     deployments = check_deployments(list_manifests())
     if deployments is not None:
         checks.append(deployments)
