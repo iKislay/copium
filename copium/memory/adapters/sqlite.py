@@ -169,6 +169,26 @@ class SQLiteMemoryStore:
                 "CREATE INDEX IF NOT EXISTS idx_memories_expires_at ON memories(expires_at)"
             )
 
+            # Migration: add columns if missing (existing DBs)
+            for col, typedef in [
+                ("base_importance", "REAL"),
+                ("expires_at", "INTEGER"),
+            ]:
+                try:
+                    conn.execute(f"ALTER TABLE memories ADD COLUMN {col} {typedef}")
+                except sqlite3.OperationalError:
+                    pass  # column already exists
+
+            # Backfill legacy rows: give them a 7-day grace period
+            conn.execute(
+                """
+                UPDATE memories
+                SET base_importance = COALESCE(base_importance, importance, 0.5),
+                    expires_at = unixepoch() + 604800
+                WHERE expires_at IS NULL
+                """
+            )
+
             conn.commit()
 
     def _serialize_embedding(self, embedding: np.ndarray | None) -> bytes | None:
