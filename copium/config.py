@@ -538,6 +538,35 @@ class DifferentialResponseConfig:
 
 
 @dataclass
+class ModelRouterConfig:
+    """Configuration for model routing based on request complexity.
+
+    Routes requests to cheaper models when the task is simple (greetings,
+    simple questions, lookups), and to expensive models only when complexity
+    warrants it (code generation, refactoring, architecture).
+    """
+
+    enabled: bool = False
+
+    # Model mapping: expensive_model -> cheap_model
+    model_map: dict[str, str] = field(
+        default_factory=lambda: {
+            "gpt-4o": "gpt-4o-mini",
+            "gpt-4o-mini": "gpt-4o-mini",
+            "claude-sonnet-4-20250514": "claude-3-haiku",
+            "claude-3-5-sonnet": "claude-3-haiku",
+        }
+    )
+
+    # Complexity scoring weights
+    # message_count, tool_count, code_presence, message_length
+    weights: list[float] = field(default_factory=lambda: [0.25, 0.15, 0.30, 0.30])
+
+    # Threshold: requests below this score use cheap model
+    complexity_threshold: float = 0.4
+
+
+@dataclass
 class CopiumConfig:
     """Main configuration for CopiumClient."""
 
@@ -554,6 +583,7 @@ class CopiumConfig:
     output_compressor: OutputCompressorConfig = field(default_factory=OutputCompressorConfig)
     quality_gate: QualityGateConfig = field(default_factory=QualityGateConfig)
     differential_response: DifferentialResponseConfig = field(default_factory=DifferentialResponseConfig)
+    model_router: ModelRouterConfig = field(default_factory=ModelRouterConfig)
 
     # Output buffer reserved for the model's response when sizing the
     # incoming context. Previously lived on RollingWindowConfig; hoisted

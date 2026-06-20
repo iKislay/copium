@@ -62,6 +62,10 @@ if TYPE_CHECKING:
         OutputCompressor,
         OutputCompressorConfig,
     )
+    from copium.transforms.model_router import (  # noqa: F401
+        ModelRouter,
+        ModelRouterConfig,
+    )
     from copium.transforms.pipeline import TransformPipeline  # noqa: F401
     from copium.transforms.schema_compressor import (  # noqa: F401
         SchemaCompressionConfig,
@@ -138,6 +142,9 @@ __all__ = [
     "CacheAligner",
     "OutputCompressor",
     "OutputCompressorConfig",
+    # Model routing
+    "ModelRouter",
+    "ModelRouterConfig",
     # HTML extraction (optional)
     "_HTML_EXTRACTOR_AVAILABLE",
 ]
@@ -237,6 +244,9 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
     "CacheAligner": ("copium.transforms.cache_aligner", "CacheAligner"),
     "OutputCompressor": ("copium.transforms.output_compressor", "OutputCompressor"),
     "OutputCompressorConfig": ("copium.transforms.output_compressor", "OutputCompressorConfig"),
+    # Model routing
+    "ModelRouter": ("copium.transforms.model_router", "ModelRouter"),
+    "ModelRouterConfig": ("copium.transforms.model_router", "ModelRouterConfig"),
     # HTML extraction (optional dependency - requires trafilatura)
     "HTMLExtractor": ("copium.transforms.html_extractor", "HTMLExtractor"),
     "HTMLExtractorConfig": ("copium.transforms.html_extractor", "HTMLExtractorConfig"),
