@@ -315,7 +315,7 @@ def extract_tags(headers: Any) -> dict[str, str]:
 
 
 def _copium_bypass_enabled(headers: Any) -> bool:
-    """Return True when inbound headers request full Copium passthrough.
+    """Return True if the request should bypass compression entirely.
 
     This is transport-neutral policy: HTTP and WebSocket handlers both call
     it on original inbound headers before request-body mutation.
@@ -327,6 +327,25 @@ def _copium_bypass_enabled(headers: Any) -> bool:
     except AttributeError:
         return False
     return bypass or passthrough
+
+
+def _copium_disabled_transforms(headers: Any) -> set[str]:
+    """Parse the ``X-Copium-Disable`` header into a set of transform names.
+
+    The header value is a comma-separated list of transform names to skip
+    for this specific request. Example::
+
+        X-Copium-Disable: output_compressor,content_router
+
+    Returns an empty set when the header is absent or empty.
+    """
+    try:
+        raw = str(headers.get("x-copium-disable", "")).strip()
+    except AttributeError:
+        return set()
+    if not raw:
+        return set()
+    return {name.strip() for name in raw.split(",") if name.strip()}
 
 
 def serialize_body_canonical(body: dict[str, Any]) -> bytes:

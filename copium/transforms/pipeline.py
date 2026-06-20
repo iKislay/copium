@@ -229,12 +229,15 @@ class TransformPipeline:
                 - request_id: Optional request ID for diff artifact.
                 - waste_messages: Optional richer conversion of the same request
                   used for waste-signal detection only (never transformed).
+                - disabled_transforms: Optional set of transform names to skip
+                  for this request (from X-Copium-Disable header).
 
         Returns:
             Combined TransformResult.
         """
         record_metrics = kwargs.pop("record_metrics", True)
         waste_messages = kwargs.pop("waste_messages", None)
+        disabled_transforms: set[str] = set(kwargs.pop("disabled_transforms", set()))
         tokenizer = self._get_tokenizer(model)
         provider_name = self._provider_name()
 
@@ -318,6 +321,12 @@ class TransformPipeline:
 
             for transform in self.transforms:
                 # Check if transform should run
+                if transform.name in disabled_transforms:
+                    logger.debug(
+                        "Skipping transform %s (disabled by X-Copium-Disable header)",
+                        transform.name,
+                    )
+                    continue
                 if not transform.should_apply(current_messages, tokenizer, **kwargs):
                     continue
 
