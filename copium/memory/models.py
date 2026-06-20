@@ -45,6 +45,10 @@ class Memory:
     # Classification
     importance: float = 0.5  # 0.0 - 1.0
 
+    # Decay: pre-computed expiration
+    base_importance: float | None = None  # S0 at insertion (defaults to importance)
+    expires_at: int | None = None  # unix epoch when S(t) < threshold
+
     # Lineage (for supersession and bubbling)
     supersedes: str | None = None  # ID of memory this replaced
     superseded_by: str | None = None  # ID of memory that replaced this
@@ -93,6 +97,8 @@ class Memory:
             "valid_from": self.valid_from.isoformat(),
             "valid_until": self.valid_until.isoformat() if self.valid_until else None,
             "importance": self.importance,
+            "base_importance": self.base_importance,
+            "expires_at": self.expires_at,
             "supersedes": self.supersedes,
             "superseded_by": self.superseded_by,
             "promoted_from": self.promoted_from,
@@ -124,6 +130,8 @@ class Memory:
             if data.get("valid_until")
             else None,
             importance=data["importance"],
+            base_importance=data.get("base_importance"),
+            expires_at=data.get("expires_at"),
             supersedes=data.get("supersedes"),
             superseded_by=data.get("superseded_by"),
             promoted_from=data.get("promoted_from"),
