@@ -24,6 +24,7 @@ from ..utils import deep_copy_messages
 from .base import Transform
 from .cache_aligner import CacheAligner
 from .content_router import ContentRouter
+from .output_compressor import OutputCompressor
 
 if TYPE_CHECKING:
     from ..providers.base import Provider
@@ -131,6 +132,13 @@ class TransformPipeline:
         # - HTML -> HTMLExtractor
         transforms.append(ContentRouter())
         logger.info("Pipeline using ContentRouter for intelligent content-aware compression")
+
+        # 3. Output Compression (assistant message trimming)
+        # Compresses verbose assistant responses: filler phrases, meta-commentary,
+        # duplicate paragraphs, and trailing restatements. Runs AFTER ContentRouter
+        # because it targets assistant messages, not tool outputs.
+        if self.config.output_compressor.enabled:
+            transforms.append(OutputCompressor(self.config.output_compressor))
 
         return transforms
 

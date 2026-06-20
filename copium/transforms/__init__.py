@@ -54,6 +54,10 @@ if TYPE_CHECKING:
         LogCompressor,
         LogCompressorConfig,
     )
+    from copium.transforms.output_compressor import (  # noqa: F401
+        OutputCompressor,
+        OutputCompressorConfig,
+    )
     from copium.transforms.pipeline import TransformPipeline  # noqa: F401
     from copium.transforms.search_compressor import (  # noqa: F401
         SearchCompressionResult,
@@ -114,6 +118,8 @@ __all__ = [
     "CompressionStrategy",
     # Other transforms
     "CacheAligner",
+    "OutputCompressor",
+    "OutputCompressorConfig",
     # HTML extraction (optional)
     "_HTML_EXTRACTOR_AVAILABLE",
 ]
@@ -201,6 +207,8 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
     "CompressionStrategy": ("copium.transforms.content_router", "CompressionStrategy"),
     # Other transforms
     "CacheAligner": ("copium.transforms.cache_aligner", "CacheAligner"),
+    "OutputCompressor": ("copium.transforms.output_compressor", "OutputCompressor"),
+    "OutputCompressorConfig": ("copium.transforms.output_compressor", "OutputCompressorConfig"),
     # HTML extraction (optional dependency - requires trafilatura)
     "HTMLExtractor": ("copium.transforms.html_extractor", "HTMLExtractor"),
     "HTMLExtractorConfig": ("copium.transforms.html_extractor", "HTMLExtractorConfig"),

@@ -473,6 +473,71 @@ class PrefixFreezeConfig:
 
 
 @dataclass
+class OutputCompressorConfig:
+    """Configuration for output compression.
+
+    Compresses what the model writes back (not just input). Drops ceremony,
+    filler phrases, repeated restatements, and verbose meta-commentary.
+    Applied to assistant messages in the conversation history.
+
+    Savings: 30-74% on output tokens depending on content type.
+    """
+
+    enabled: bool = True
+
+    # Minimum tokens in an assistant message before we bother compressing
+    min_tokens_to_compress: int = 50
+
+    # Remove duplicate paragraphs (exact match)
+    dedup_paragraphs: bool = True
+
+    # Remove trailing code block repetitions
+    dedup_trailing_code: bool = True
+
+    # Max lines to keep per code block (0 = unlimited)
+    max_code_block_lines: int = 0
+
+
+@dataclass
+class QualityGateConfig:
+    """Configuration for quality gate — auto-revert on token inflation.
+
+    After each lossy compression step, re-measure with the tokenizer.
+    If compression doesn't actually save tokens (or makes things worse),
+    auto-revert that step. Makes compression safe-by-default.
+    """
+
+    enabled: bool = True
+
+    # If tokens increase by more than this fraction after a transform,
+    # revert that transform. 0.0 = any increase is reverted.
+    revert_threshold: float = 0.05
+
+    # Log warnings when compression produces marginal savings
+    warn_below_tokens: int = 10
+
+
+@dataclass
+class DifferentialResponseConfig:
+    """Configuration for differential responses — diffs for repeated tool calls.
+
+    For repeated tool calls (e.g., git status, polling), send a unified diff
+    instead of full output. Up to 95% savings on polling patterns.
+    """
+
+    enabled: bool = True
+
+    # Max number of tool calls to track for diff-based compression
+    max_tracked_tools: int = 200
+
+    # Min number of characters in tool output before diffing is worthwhile
+    min_chars_to_diff: int = 100
+
+    # TTL for tracked tool outputs (seconds)
+    tracking_ttl_seconds: int = 600
+
+
+@dataclass
 class CopiumConfig:
     """Main configuration for CopiumClient."""
 
@@ -486,6 +551,9 @@ class CopiumConfig:
     cache_optimizer: CacheOptimizerConfig = field(default_factory=CacheOptimizerConfig)
     ccr: CCRConfig = field(default_factory=CCRConfig)  # Compress-Cache-Retrieve
     prefix_freeze: PrefixFreezeConfig = field(default_factory=PrefixFreezeConfig)
+    output_compressor: OutputCompressorConfig = field(default_factory=OutputCompressorConfig)
+    quality_gate: QualityGateConfig = field(default_factory=QualityGateConfig)
+    differential_response: DifferentialResponseConfig = field(default_factory=DifferentialResponseConfig)
 
     # Output buffer reserved for the model's response when sizing the
     # incoming context. Previously lived on RollingWindowConfig; hoisted
