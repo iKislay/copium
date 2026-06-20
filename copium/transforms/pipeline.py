@@ -27,6 +27,7 @@ from .content_router import ContentRouter
 from .differential_response import DifferentialResponse
 from .output_compressor import OutputCompressor
 from .session_dedup import SessionDedup
+from .error_compressor import ErrorCompressor
 from .toon_encoder import TOONEncoder
 
 if TYPE_CHECKING:
@@ -148,6 +149,13 @@ class TransformPipeline:
         # - HTML -> HTMLExtractor
         transforms.append(ContentRouter())
         logger.info("Pipeline using ContentRouter for intelligent content-aware compression")
+
+        # 2b. Error-Driven Compression
+        # Compresses verbose error outputs (stack traces, exit codes) into
+        # compact "error cards" that guide the agent to recovery. Runs AFTER
+        # ContentRouter since it targets specific tool output patterns.
+        if self.config.error_compressor.enabled:
+            transforms.append(ErrorCompressor(self.config.error_compressor))
 
         # 3. Output Compression (assistant message trimming)
         # Compresses verbose assistant responses: filler phrases, meta-commentary,

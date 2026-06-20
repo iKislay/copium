@@ -102,6 +102,10 @@ if TYPE_CHECKING:
         SessionDedup,
         SessionDedupConfig,
     )
+    from copium.transforms.error_compressor import (  # noqa: F401
+        ErrorCompressor,
+        ErrorCompressorConfig,
+    )
 
 _HTML_EXTRACTOR_AVAILABLE = importlib.util.find_spec("trafilatura") is not None
 
@@ -160,6 +164,9 @@ __all__ = [
     # Session deduplication
     "SessionDedup",
     "SessionDedupConfig",
+    # Error-driven compression
+    "ErrorCompressor",
+    "ErrorCompressorConfig",
     # Model routing
     "ModelRouter",
     "ModelRouterConfig",
@@ -273,6 +280,9 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
     # Session deduplication
     "SessionDedup": ("copium.transforms.session_dedup", "SessionDedup"),
     "SessionDedupConfig": ("copium.transforms.session_dedup", "SessionDedupConfig"),
+    # Error-driven compression
+    "ErrorCompressor": ("copium.transforms.error_compressor", "ErrorCompressor"),
+    "ErrorCompressorConfig": ("copium.transforms.error_compressor", "ErrorCompressorConfig"),
     # Model routing
     "ModelRouter": ("copium.transforms.model_router", "ModelRouter"),
     "ModelRouterConfig": ("copium.transforms.model_router", "ModelRouterConfig"),

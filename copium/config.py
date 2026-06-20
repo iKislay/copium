@@ -597,6 +597,41 @@ class AutoBatchConfig:
 
 
 @dataclass
+class ErrorCompressorConfig:
+    """Configuration for error-driven compression.
+
+    When a tool call fails, compress the failure signal tightly and
+    discard verbose output. Feed errors as structured "error cards"
+    that guide the agent to recovery.
+
+    The core insight: error messages are prompts for the agent. Written
+    for humans ("Please try again"), the agent stops. Written for the
+    agent (error type + context + NEXT_ACTIONS), it recovers
+    autonomously.
+    """
+
+    enabled: bool = True
+
+    # Stack trace elision
+    max_stack_frames: int = 3  # Keep top N user-code frames
+    preserve_framework_frames: bool = False
+
+    # Security warnings (always preserved)
+    preserve_security_warnings: bool = True
+
+    # Error card formatting
+    max_error_card_tokens: int = 200
+    include_next_actions: bool = True
+
+    # Collapse repeated errors
+    collapse_identical: bool = True
+    min_identical_to_collapse: int = 3
+
+    # Minimum error output length to compress
+    min_length_to_compress: int = 150
+
+
+@dataclass
 class SessionDedupConfig:
     """Configuration for session-level deduplication across turns.
 
@@ -696,6 +731,7 @@ class CopiumConfig:
     model_router: ModelRouterConfig = field(default_factory=ModelRouterConfig)
     session_dedup: SessionDedupConfig = field(default_factory=SessionDedupConfig)
     context_budget: ContextBudgetConfig = field(default_factory=ContextBudgetConfig)
+    error_compressor: ErrorCompressorConfig = field(default_factory=ErrorCompressorConfig)
 
     # Output buffer reserved for the model's response when sizing the
     # incoming context. Previously lived on RollingWindowConfig; hoisted
