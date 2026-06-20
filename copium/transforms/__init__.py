@@ -106,6 +106,9 @@ if TYPE_CHECKING:
         ErrorCompressor,
         ErrorCompressorConfig,
     )
+    from copium.transforms.kv_cache_aware import (  # noqa: F401
+        KVCacheAwareTransform,
+    )
 
 _HTML_EXTRACTOR_AVAILABLE = importlib.util.find_spec("trafilatura") is not None
 
@@ -167,6 +170,8 @@ __all__ = [
     # Error-driven compression
     "ErrorCompressor",
     "ErrorCompressorConfig",
+    # KV cache-aware compression
+    "KVCacheAwareTransform",
     # Model routing
     "ModelRouter",
     "ModelRouterConfig",
@@ -283,6 +288,8 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
     # Error-driven compression
     "ErrorCompressor": ("copium.transforms.error_compressor", "ErrorCompressor"),
     "ErrorCompressorConfig": ("copium.transforms.error_compressor", "ErrorCompressorConfig"),
+    # KV cache-aware compression
+    "KVCacheAwareTransform": ("copium.transforms.kv_cache_aware", "KVCacheAwareTransform"),
     # Model routing
     "ModelRouter": ("copium.transforms.model_router", "ModelRouter"),
     "ModelRouterConfig": ("copium.transforms.model_router", "ModelRouterConfig"),

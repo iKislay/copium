@@ -28,6 +28,7 @@ from .differential_response import DifferentialResponse
 from .output_compressor import OutputCompressor
 from .session_dedup import SessionDedup
 from .error_compressor import ErrorCompressor
+from .kv_cache_aware import KVCacheAwareTransform
 from .toon_encoder import TOONEncoder
 
 if TYPE_CHECKING:
@@ -125,6 +126,16 @@ class TransformPipeline:
         # 1. Cache Aligner (prefix stabilization)
         if self.config.cache_aligner.enabled:
             transforms.append(CacheAligner(self.config.cache_aligner))
+
+        # 1a. KV Cache-Aware Detection
+        # Detects the backend's KV cache precision and sets compression
+        # scaling info for downstream transforms. Runs early so other
+        # transforms can read kv_cache_multiplier from kwargs.
+        from copium.config import KVCacheAwareConfig
+
+        kv_config = getattr(self.config, "kv_cache_aware", KVCacheAwareConfig())
+        if kv_config.enabled:
+            transforms.append(KVCacheAwareTransform(kv_config))
 
         # 1b. Differential Response (diffs for repeated tool calls)
         # Runs BEFORE ContentRouter because diffs are already compact and

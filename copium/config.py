@@ -8,6 +8,7 @@ from enum import Enum
 from typing import Any, Literal
 
 from copium.models.config import ML_MODEL_DEFAULTS
+from copium.kv_aware import KVCacheAwareConfig
 
 
 class CopiumMode(str, Enum):
@@ -732,6 +733,7 @@ class CopiumConfig:
     session_dedup: SessionDedupConfig = field(default_factory=SessionDedupConfig)
     context_budget: ContextBudgetConfig = field(default_factory=ContextBudgetConfig)
     error_compressor: ErrorCompressorConfig = field(default_factory=ErrorCompressorConfig)
+    kv_cache_aware: KVCacheAwareConfig = field(default_factory=KVCacheAwareConfig)
 
     # Output buffer reserved for the model's response when sizing the
     # incoming context. Previously lived on RollingWindowConfig; hoisted
