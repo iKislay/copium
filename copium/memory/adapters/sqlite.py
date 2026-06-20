@@ -12,13 +12,14 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from ..models import Memory, ScopeLevel
 from ..ports import MemoryFilter
-from ..decay import DecayConfig, compute_expires_at
+from ..decay import DecayConfig, compute_expires_at, compute_base_lifespan
 
 if TYPE_CHECKING:
     import numpy as np
@@ -348,6 +349,41 @@ class SQLiteMemoryStore:
                 )
                 """,
                 rows,
+            )
+            conn.commit()
+
+    async def reinforce(self, memory_id: str) -> None:
+        """Shift expires_at forward when a memory is referenced.
+
+        Uses the base_importance stored at insertion to compute the
+        original lifespan, then applies the reinforcement multiplier
+        to push the expiration further into the future.
+
+        Args:
+            memory_id: ID of the memory to reinforce.
+        """
+        config = DecayConfig()
+        now = time.time()
+
+        with self._get_conn() as conn:
+            # Fetch current state
+            row = conn.execute(
+                "SELECT base_importance, importance, expires_at FROM memories WHERE id = ?",
+                (memory_id,),
+            ).fetchone()
+
+            if row is None:
+                return
+
+            base_imp = row["base_importance"] or row["importance"] or 0.5
+            base_lifespan = compute_base_lifespan(
+                base_imp, config.decay_lambda, config.threshold
+            )
+            new_expires = int(now + (base_lifespan * config.reinforcement_multiplier))
+
+            conn.execute(
+                "UPDATE memories SET expires_at = ? WHERE id = ?",
+                (new_expires, memory_id),
             )
             conn.commit()
 
