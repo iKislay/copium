@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Any
 
 from ..models import Memory, ScopeLevel
 from ..ports import MemoryFilter
+from ..decay import DecayConfig, compute_expires_at
 
 if TYPE_CHECKING:
     import numpy as np
@@ -224,6 +225,8 @@ class SQLiteMemoryStore:
             "valid_until": memory.valid_until.isoformat() if memory.valid_until else None,
             "category": "",  # Deprecated - kept for backwards compatibility
             "importance": memory.importance,
+            "base_importance": memory.base_importance,
+            "expires_at": memory.expires_at,
             "supersedes": memory.supersedes,
             "superseded_by": memory.superseded_by,
             "promoted_from": memory.promoted_from,
@@ -248,6 +251,8 @@ class SQLiteMemoryStore:
             valid_from=datetime.fromisoformat(row["valid_from"]),
             valid_until=datetime.fromisoformat(row["valid_until"]) if row["valid_until"] else None,
             importance=row["importance"],
+            base_importance=row["base_importance"],
+            expires_at=row["expires_at"],
             supersedes=row["supersedes"],
             superseded_by=row["superseded_by"],
             promoted_from=row["promoted_from"],
@@ -265,10 +270,19 @@ class SQLiteMemoryStore:
         """Save or update a memory.
 
         If a memory with the same ID exists, it will be updated.
+        Automatically computes expires_at if not already set.
 
         Args:
             memory: The memory to save.
         """
+        # Auto-compute expires_at on first save
+        if memory.expires_at is None:
+            memory.base_importance = memory.base_importance or memory.importance
+            config = DecayConfig()
+            memory.expires_at = compute_expires_at(
+                memory.base_importance, config.decay_lambda, config.threshold
+            )
+
         row = self._memory_to_row(memory)
 
         with self._get_conn() as conn:
@@ -277,14 +291,14 @@ class SQLiteMemoryStore:
                 INSERT OR REPLACE INTO memories (
                     id, content, user_id, session_id, agent_id, turn_id,
                     created_at, valid_from, valid_until,
-                    category, importance,
+                    category, importance, base_importance, expires_at,
                     supersedes, superseded_by, promoted_from, promotion_chain,
                     access_count, last_accessed,
                     entity_refs, embedding, metadata
                 ) VALUES (
                     :id, :content, :user_id, :session_id, :agent_id, :turn_id,
                     :created_at, :valid_from, :valid_until,
-                    :category, :importance,
+                    :category, :importance, :base_importance, :expires_at,
                     :supersedes, :superseded_by, :promoted_from, :promotion_chain,
                     :access_count, :last_accessed,
                     :entity_refs, :embedding, :metadata
@@ -303,6 +317,15 @@ class SQLiteMemoryStore:
         if not memories:
             return
 
+        # Auto-compute expires_at for each memory
+        config = DecayConfig()
+        for m in memories:
+            if m.expires_at is None:
+                m.base_importance = m.base_importance or m.importance
+                m.expires_at = compute_expires_at(
+                    m.base_importance, config.decay_lambda, config.threshold
+                )
+
         rows = [self._memory_to_row(m) for m in memories]
 
         with self._get_conn() as conn:
@@ -311,14 +334,14 @@ class SQLiteMemoryStore:
                 INSERT OR REPLACE INTO memories (
                     id, content, user_id, session_id, agent_id, turn_id,
                     created_at, valid_from, valid_until,
-                    category, importance,
+                    category, importance, base_importance, expires_at,
                     supersedes, superseded_by, promoted_from, promotion_chain,
                     access_count, last_accessed,
                     entity_refs, embedding, metadata
                 ) VALUES (
                     :id, :content, :user_id, :session_id, :agent_id, :turn_id,
                     :created_at, :valid_from, :valid_until,
-                    :category, :importance,
+                    :category, :importance, :base_importance, :expires_at,
                     :supersedes, :superseded_by, :promoted_from, :promotion_chain,
                     :access_count, :last_accessed,
                     :entity_refs, :embedding, :metadata
