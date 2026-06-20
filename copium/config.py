@@ -567,6 +567,36 @@ class ModelRouterConfig:
 
 
 @dataclass
+class AutoBatchConfig:
+    """Configuration for auto-batching to provider Batch APIs.
+
+    Routes eligible requests to batch endpoints for 50% discount.
+    Batches are formed by collecting requests over a time window.
+    """
+
+    enabled: bool = False
+
+    # Provider: "openai" or "anthropic"
+    provider: str = "openai"
+
+    # Batch size limits
+    max_batch_size: int = 100  # OpenAI limit
+    min_batch_size: int = 2  # Minimum for batch to be worth it
+
+    # Timing
+    batch_timeout_seconds: float = 60.0  # Max wait for batch to fill
+    poll_interval_seconds: float = 5.0  # How often to check batch status
+
+    # Eligibility: skip batch for these conditions
+    skip_if_streaming: bool = True
+    skip_if_tools: bool = False
+    skip_if_max_tokens_over: int = 4096
+
+    # Cost savings
+    batch_discount: float = 0.5  # 50% discount on batch APIs
+
+
+@dataclass
 class CopiumConfig:
     """Main configuration for CopiumClient."""
 

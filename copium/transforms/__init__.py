@@ -66,6 +66,10 @@ if TYPE_CHECKING:
         ModelRouter,
         ModelRouterConfig,
     )
+    from copium.transforms.auto_batch import (  # noqa: F401
+        AutoBatcher,
+        AutoBatchConfig,
+    )
     from copium.transforms.pipeline import TransformPipeline  # noqa: F401
     from copium.transforms.schema_compressor import (  # noqa: F401
         SchemaCompressionConfig,
@@ -145,6 +149,9 @@ __all__ = [
     # Model routing
     "ModelRouter",
     "ModelRouterConfig",
+    # Auto-batching
+    "AutoBatcher",
+    "AutoBatchConfig",
     # HTML extraction (optional)
     "_HTML_EXTRACTOR_AVAILABLE",
 ]
@@ -247,6 +254,9 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
     # Model routing
     "ModelRouter": ("copium.transforms.model_router", "ModelRouter"),
     "ModelRouterConfig": ("copium.transforms.model_router", "ModelRouterConfig"),
+    # Auto-batching
+    "AutoBatcher": ("copium.transforms.auto_batch", "AutoBatcher"),
+    "AutoBatchConfig": ("copium.transforms.auto_batch", "AutoBatchConfig"),
     # HTML extraction (optional dependency - requires trafilatura)
     "HTMLExtractor": ("copium.transforms.html_extractor", "HTMLExtractor"),
     "HTMLExtractorConfig": ("copium.transforms.html_extractor", "HTMLExtractorConfig"),
