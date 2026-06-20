@@ -65,6 +65,7 @@ def _register_commands() -> None:
         prioritize,  # noqa: F401
         proxy,  # noqa: F401
         recipe,  # noqa: F401
+        report_cmd,  # noqa: F401
         tools,  # noqa: F401
         update,  # noqa: F401
         wrap,  # noqa: F401
