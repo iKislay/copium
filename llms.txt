@@ -1,0 +1,67 @@
+# Copium
+
+> Context optimization layer for LLM applications. Compress tool outputs, logs, files, and RAG chunks before they reach the model. Same answers, 60–95% fewer tokens. Library, proxy, and MCP server. Apache 2.0, local-first.
+
+Copium is shipped as a Python package (`copium-ai`), a TypeScript package (`copium-ai`), an OpenAI + Anthropic-compatible HTTP proxy (`copium proxy`), and an MCP server (`copium_compress`, `copium_retrieve`, `copium_stats` tools). All four modes use the same compression pipeline: per-content-type compressors (JSON, code, logs, diffs, text) feed into a Compress-Cache-Retrieve (CCR) store so compression stays reversible — the LLM can ask for the original whenever it wants.
+
+The canonical, always-current documentation index lives at the docs site below. If you can fetch one URL, fetch that one; the entries here are a hand-curated subset.
+
+## Canonical docs (start here)
+
+- [Live llms.txt (full doc index)](https://copium-docs.vercel.app/llms.txt): Auto-generated index of every doc page with descriptions.
+- [Live llms-full.txt (every doc page concatenated)](https://copium-docs.vercel.app/llms-full.txt): One Markdown blob containing every doc page. Use when you can spend the tokens for full context.
+- [Docs site](https://copium-docs.vercel.app/docs): Human-browsable docs with search.
+- [GitHub repo](https://github.com/iKislay/copium): Source, issues, releases.
+- [PyPI package](https://pypi.org/project/copium-ai/): Python install.
+- [npm package](https://www.npmjs.com/package/copium-ai): TypeScript install.
+
+## Install (copy-paste-runnable)
+
+- Python: `pip install copium-ai` (add `[all]` for every optional extra)
+- TypeScript / Node: `npm install copium-ai` (or `pnpm add copium-ai`, `bun add copium-ai`)
+- Docker: `docker run -p 8787:8787 ghcr.io/iKislay/copium:latest`
+- Run the proxy: `copium proxy --port 8787` then point any client at `http://127.0.0.1:8787`
+- Wrap an agent in one command: `copium wrap claude` (also: `codex`, `cursor`, `aider`, `copilot`, `gemini`)
+
+## Entry points
+
+- [Quickstart](https://copium-docs.vercel.app/docs/quickstart): 5-minute end-to-end (install → compress → call the model).
+- [Installation](https://copium-docs.vercel.app/docs/installation): All install paths, extras, Docker tags, env vars.
+- [Proxy server](https://copium-docs.vercel.app/docs/proxy): Run as a local HTTP proxy in front of OpenAI / Anthropic / Gemini.
+- [MCP server](https://copium-docs.vercel.app/docs/mcp): `copium_compress`, `copium_retrieve`, `copium_stats` for Claude Code / Cursor / any MCP host.
+- [API reference](https://copium-docs.vercel.app/docs/api-reference): Python + TypeScript `compress()` API.
+
+## How it works
+
+- [How compression works](https://copium-docs.vercel.app/docs/how-compression-works): Three-stage pipeline + automatic content routing.
+- [SmartCrusher](https://copium-docs.vercel.app/docs/smart-crusher): Statistical JSON / array compression (70–90% on tool outputs).
+- [Code compression](https://copium-docs.vercel.app/docs/code-compression): AST-aware via tree-sitter (preserves imports, signatures, types).
+- [Text & log compression](https://copium-docs.vercel.app/docs/text-and-logs): Search results, build logs, diffs.
+- [CCR (reversible)](https://copium-docs.vercel.app/docs/ccr): Compress-Cache-Retrieve — originals never deleted; LLM retrieves on demand.
+
+## SDK / framework integrations
+
+- [Anthropic SDK](https://copium-docs.vercel.app/docs/anthropic-sdk): `withCopium(anthropic)` wrapper.
+- [OpenAI SDK](https://copium-docs.vercel.app/docs/openai-sdk): `withCopium(openai)` wrapper.
+- [Vercel AI SDK](https://copium-docs.vercel.app/docs/vercel-ai-sdk): Middleware + `withCopium()`.
+- [LangChain](https://copium-docs.vercel.app/docs/langchain): Chat models, memory, retrievers, agents.
+- [Agno](https://copium-docs.vercel.app/docs/agno): Model wrapping + observability hooks.
+- [Strands](https://copium-docs.vercel.app/docs/strands): Model wrapping + hook-based tool output compression.
+- [LiteLLM](https://copium-docs.vercel.app/docs/litellm): Single callback; works with all 100+ LiteLLM providers.
+
+## Memory & cross-agent state
+
+- [Persistent memory](https://copium-docs.vercel.app/docs/memory): Per-project SQLite + HNSW vector store. No cross-project bleed (GH #462).
+- [SharedContext](https://copium-docs.vercel.app/docs/shared-context): Compressed inter-agent context handoffs.
+- [Failure learning](https://copium-docs.vercel.app/docs/failure-learning): Offline analysis writes corrections to `CLAUDE.md` / `AGENTS.md`.
+
+## Operations
+
+- [Configuration](https://copium-docs.vercel.app/docs/configuration): Env vars, config file, per-call overrides.
+- [Benchmarks](https://copium-docs.vercel.app/docs/benchmarks): Token-savings numbers across content types.
+- [Troubleshooting](https://copium-docs.vercel.app/docs/troubleshooting): Common failure modes and fixes.
+- [Limitations](https://copium-docs.vercel.app/docs/limitations): What Copium won't do well today.
+
+## Licensing
+
+Apache 2.0. Use commercially, modify, redistribute. Data stays on the user's machine when running the library, proxy, or MCP server locally. Anonymous telemetry enabled by default; set `COPIUM_TELEMETRY=off` to disable.

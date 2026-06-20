@@ -1,0 +1,44 @@
+services:
+  cli:
+    image: ${COPIUM_IMAGE:-ghcr.io/iKislay/copium:latest}
+    entrypoint: ["copium"]
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    environment:
+      HOME: /tmp/copium-home
+      # Canonical Copium filesystem contract (issue #175). Forwarded into
+      # the container so the proxy resolves state/config to the bind-mounted
+      # /tmp/copium-home/.copium path. COPIUM_WORKSPACE (above) remains
+      # the Docker bind-mount source and is intentionally different.
+      COPIUM_WORKSPACE_DIR: /tmp/copium-home/.copium
+      COPIUM_CONFIG_DIR: /tmp/copium-home/.copium/config
+    volumes:
+      - ${COPIUM_WORKSPACE:-.}:/workspace
+      - ${COPIUM_HOST_HOME:?set COPIUM_HOST_HOME}/.copium:/tmp/copium-home/.copium
+      - ${COPIUM_HOST_HOME:?set COPIUM_HOST_HOME}/.claude:/tmp/copium-home/.claude
+      - ${COPIUM_HOST_HOME:?set COPIUM_HOST_HOME}/.codex:/tmp/copium-home/.codex
+      - ${COPIUM_HOST_HOME:?set COPIUM_HOST_HOME}/.gemini:/tmp/copium-home/.gemini
+    command: ["--help"]
+
+  proxy:
+    image: ${COPIUM_IMAGE:-ghcr.io/iKislay/copium:latest}
+    entrypoint: ["copium", "proxy"]
+    working_dir: /workspace
+    restart: unless-stopped
+    environment:
+      HOME: /tmp/copium-home
+      COPIUM_HOST: 0.0.0.0
+      # Canonical Copium filesystem contract (issue #175). See `cli` service
+      # above for rationale.
+      COPIUM_WORKSPACE_DIR: /tmp/copium-home/.copium
+      COPIUM_CONFIG_DIR: /tmp/copium-home/.copium/config
+    ports:
+      - "${COPIUM_PORT:-8787}:${COPIUM_PORT:-8787}"
+    volumes:
+      - ${COPIUM_WORKSPACE:-.}:/workspace
+      - ${COPIUM_HOST_HOME:?set COPIUM_HOST_HOME}/.copium:/tmp/copium-home/.copium
+      - ${COPIUM_HOST_HOME:?set COPIUM_HOST_HOME}/.claude:/tmp/copium-home/.claude
+      - ${COPIUM_HOST_HOME:?set COPIUM_HOST_HOME}/.codex:/tmp/copium-home/.codex
+      - ${COPIUM_HOST_HOME:?set COPIUM_HOST_HOME}/.gemini:/tmp/copium-home/.gemini
+    command: ["--host", "0.0.0.0", "--port", "${COPIUM_PORT:-8787}"]

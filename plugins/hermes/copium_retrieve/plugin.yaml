@@ -1,0 +1,6 @@
+name: copium_retrieve
+version: 1.0.0
+description: "Retrieve original content compressed by the copium proxy (CCR markers)"
+author: akb4q
+provides_tools:
+  - copium_retrieve

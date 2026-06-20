@@ -1,0 +1,30 @@
+{
+  "name": "copium-marketplace",
+  "owner": {
+    "name": "github.com/iKislay"
+  },
+  "metadata": {
+    "description": "Copium marketplace for Claude Code and GitHub Copilot CLI plugins.",
+    "version": "0.22.3"
+  },
+  "plugins": [
+    {
+      "name": "copium",
+      "source": "./plugins/copium-agent-hooks",
+      "description": "Copium startup hooks for Claude Code and GitHub Copilot CLI.",
+      "version": "0.22.3",
+      "author": {
+        "name": "github.com/iKislay",
+        "url": "https://github.com/iKislay/copium"
+      },
+      "homepage": "https://github.com/iKislay/copium",
+      "repository": "https://github.com/iKislay/copium",
+      "keywords": [
+        "copium",
+        "hooks",
+        "claude-code",
+        "copilot-cli"
+      ]
+    }
+  ]
+}
