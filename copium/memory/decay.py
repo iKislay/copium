@@ -88,7 +88,7 @@ def compute_expiration(
     return t_days * 86400
 
 
-def compute.expires_at(
+def compute_expires_at(
     base_importance: float,
     decay_lambda: float,
     threshold: float,
