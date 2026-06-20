@@ -808,6 +808,17 @@ class MemoryHandler:
                 )
                 return None
 
+            # Decay reinforcement: push expires_at forward for each
+            # memory that was retrieved and will be injected.
+            # Fire-and-forget async writes — never block the read path.
+            for r in results:
+                mem_id = getattr(r.memory, "id", None)
+                if mem_id and hasattr(backend, "_store") and hasattr(backend._store, "reinforce"):
+                    try:
+                        await backend._store.reinforce(mem_id)
+                    except Exception:
+                        pass  # best-effort, never break injection
+
             # Optional re-rank: when a MemoryRanker is provided, adapt
             # results to MemoryCandidate, re-rank, then filter by
             # ``budget.min_similarity`` on the BOOSTED score. The re-rank
