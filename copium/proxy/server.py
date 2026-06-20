@@ -1388,8 +1388,41 @@ class CopiumProxy(
             },
         )
 
+        # Start memory decay GC loop (ultra-lazy, 24h interval)
+        if self.config.memory_decay_enabled and self.memory_handler:
+            self._memory_gc_task = asyncio.create_task(self._memory_gc_loop())
+
+    async def _memory_gc_loop(self):
+        """Background task: sweep expired memories every 24h.
+
+        Low priority, runs at idle. Only deletes rows where
+        expires_at < unixepoch() to reclaim disk space.
+        """
+        from copium.memory.decay import gc_expired
+
+        gc_interval = self.config.memory_decay_gc_interval
+        logger.info("Memory GC: started (interval=%ds)", gc_interval)
+        while True:
+            await asyncio.sleep(gc_interval)
+            try:
+                if self.memory_handler and self.memory_handler.backend:
+                    store = getattr(self.memory_handler.backend, "_store", None)
+                    if store and hasattr(store, "db_path"):
+                        deleted = await gc_expired(store.db_path)
+                        if deleted > 0:
+                            logger.info("Memory GC: reclaimed %d expired rows", deleted)
+            except Exception as exc:
+                logger.warning("Memory GC sweep failed: %s", exc)
+
     async def shutdown(self):
         """Cleanup async resources."""
+        # Cancel memory GC loop
+        gc_task = getattr(self, "_memory_gc_task", None)
+        if gc_task and not gc_task.done():
+            gc_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await gc_task
+
         if self.http_client_h1 and self.http_client_h1 is not self.http_client:
             await self.http_client_h1.aclose()
         self.http_client_h1 = None
