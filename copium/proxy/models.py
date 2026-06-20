@@ -279,6 +279,13 @@ class ProxyConfig:
     memory_bridge_auto_import: bool = False
     memory_bridge_export_path: str = ""
 
+    # Memory Decay (pre-computed expiration)
+    memory_decay_enabled: bool = True
+    memory_decay_lambda: float = 0.099  # ln(2)/7 — 7-day half-life
+    memory_decay_threshold: float = 0.1
+    memory_decay_reinforcement_multiplier: float = 1.2
+    memory_decay_gc_interval: int = 86400  # 24h
+
     # License / Usage Reporting
     license_key: str | None = None
     license_cloud_url: str = "https://app.copiumlabs.ai"
