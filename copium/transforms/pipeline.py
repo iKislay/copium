@@ -337,13 +337,33 @@ class TransformPipeline:
                         raise
                     duration_ms = (time.perf_counter() - t0) * 1000
 
-                    # Update messages for next transform
-                    current_messages = result.messages
-
-                    # Use token counts reported by the transform itself — avoids
-                    # redundant O(N) recount of the full message list after each step.
                     tokens_before_transform = result.tokens_before
                     tokens_after_transform = result.tokens_after
+
+                    # Quality Gate: auto-revert if tokens increased beyond threshold
+                    qg = self.config.quality_gate
+                    if qg.enabled and tokens_after_transform > tokens_before_transform:
+                        inflation = tokens_after_transform - tokens_before_transform
+                        threshold = int(tokens_before_transform * qg.revert_threshold)
+                        if inflation > max(threshold, qg.warn_below_tokens):
+                            logger.warning(
+                                "Quality gate REVERTED transform %s: "
+                                "tokens inflated by %d (%d -> %d), threshold=%d",
+                                transform.name,
+                                inflation,
+                                tokens_before_transform,
+                                tokens_after_transform,
+                                threshold,
+                            )
+                            # Do NOT update current_messages — keep the pre-transform state
+                            all_warnings.append(
+                                f"quality_gate:reverted:{transform.name}:inflation={inflation}"
+                            )
+                            all_timing[transform.name] = duration_ms
+                            continue
+
+                    # Update messages for next transform
+                    current_messages = result.messages
 
                     if transform_span is not None and transform_span.is_recording():
                         transform_span.set_attribute(
