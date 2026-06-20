@@ -74,6 +74,10 @@ if TYPE_CHECKING:
         TabularCompressor,
         TabularCompressorConfig,
     )
+    from copium.transforms.toon_encoder import (  # noqa: F401
+        TOONEncoder,
+        TOONConfig,
+    )
 
 _HTML_EXTRACTOR_AVAILABLE = importlib.util.find_spec("trafilatura") is not None
 
@@ -183,6 +187,8 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
         "copium.transforms.tabular_ingest",
         "TabularCompressionResult",
     ),
+    "TOONEncoder": ("copium.transforms.toon_encoder", "TOONEncoder"),
+    "TOONConfig": ("copium.transforms.toon_encoder", "TOONConfig"),
     "DiffCompressor": ("copium.transforms.diff_compressor", "DiffCompressor"),
     "DiffCompressorConfig": ("copium.transforms.diff_compressor", "DiffCompressorConfig"),
     "DiffCompressionResult": (

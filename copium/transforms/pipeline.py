@@ -26,6 +26,7 @@ from .cache_aligner import CacheAligner
 from .content_router import ContentRouter
 from .differential_response import DifferentialResponse
 from .output_compressor import OutputCompressor
+from .toon_encoder import TOONEncoder
 
 if TYPE_CHECKING:
     from ..providers.base import Provider
@@ -146,6 +147,12 @@ class TransformPipeline:
         # because it targets assistant messages, not tool outputs.
         if self.config.output_compressor.enabled:
             transforms.append(OutputCompressor(self.config.output_compressor))
+
+        # 4. TOON Encoding (compact table format for uniform JSON arrays)
+        # Encodes uniform JSON arrays into pipe-delimited table format.
+        # Runs after ContentRouter as a complementary compression pass for
+        # structured data that SmartCrusher didn't compress.
+        transforms.append(TOONEncoder())
 
         return transforms
 
