@@ -29,6 +29,7 @@ from .output_compressor import OutputCompressor
 from .session_dedup import SessionDedup
 from .error_compressor import ErrorCompressor
 from .kv_cache_aware import KVCacheAwareTransform
+from .paging_transform import PagingTransform
 from .toon_encoder import TOONEncoder
 
 if TYPE_CHECKING:
@@ -167,6 +168,16 @@ class TransformPipeline:
         # ContentRouter since it targets specific tool output patterns.
         if self.config.error_compressor.enabled:
             transforms.append(ErrorCompressor(self.config.error_compressor))
+
+        # 2c. Cold/Hot Context Paging
+        # Manages context overflow by evicting old tool outputs to SQLite
+        # and replacing them with retrieval markers. Runs after content
+        # compressors since it manages the output of those transforms.
+        from copium.paging import PagingConfig
+
+        paging_config = getattr(self.config, "paging", PagingConfig())
+        if paging_config.enabled:
+            transforms.append(PagingTransform(paging_config))
 
         # 3. Output Compression (assistant message trimming)
         # Compresses verbose assistant responses: filler phrases, meta-commentary,
