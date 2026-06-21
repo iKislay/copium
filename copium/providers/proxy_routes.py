@@ -23,9 +23,12 @@ def _api_target(proxy: Any, provider_name: str) -> str:
         "gemini": "GEMINI_API_URL",
         "cloudcode": "CLOUDCODE_API_URL",
         "vertex": "VERTEX_API_URL",
+        "xai": "XAI_API_URL",
     }
-    legacy_attr = legacy_attrs[provider_name]
-    return cast(str, getattr(proxy, legacy_attr, proxy.provider_runtime.api_target(provider_name)))
+    legacy_attr = legacy_attrs.get(provider_name)
+    if legacy_attr:
+        return cast(str, getattr(proxy, legacy_attr, proxy.provider_runtime.api_target(provider_name)))
+    return proxy.provider_runtime.api_target(provider_name)
 
 
 def _vertex_target_for_location(proxy: Any, location: str) -> str:
