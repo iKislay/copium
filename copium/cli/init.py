@@ -936,6 +936,11 @@ def _install_copium_mcp_for_targets(*, targets: list[str], port: int) -> None:
 @click.option("--region", default=None, help="Cloud region for Bedrock / Vertex style backends.")
 @click.option("--memory", is_flag=True, help="Enable persistent memory in the proxy runtime.")
 @click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Show what would be configured without making changes.",
+)
+@click.option(
     "-v",
     "--verbose",
     is_flag=True,
@@ -951,6 +956,7 @@ def init(
     anyllm_provider: str | None,
     region: str | None,
     memory: bool,
+    dry_run: bool,
     verbose: bool,
 ) -> None:
     """Install durable Copium integrations for supported agents."""
@@ -958,13 +964,14 @@ def init(
         _enable_verbose_logging()
     logger.debug(
         "init: global_scope=%s port=%s backend=%s anyllm_provider=%s region=%s memory=%s "
-        "invoked_subcommand=%s",
+        "dry_run=%s invoked_subcommand=%s",
         global_scope,
         port,
         backend,
         anyllm_provider,
         region,
         memory,
+        dry_run,
         ctx.invoked_subcommand,
     )
     if ctx.invoked_subcommand is not None:
@@ -975,6 +982,7 @@ def init(
             "anyllm_provider": anyllm_provider,
             "region": region,
             "memory": memory,
+            "dry_run": dry_run,
             "verbose": verbose,
         }
         return
@@ -984,6 +992,16 @@ def init(
         logger.debug("init: detect_init_targets returned empty; exiting with guided error")
         raise click.ClickException(_format_empty_detection_error(global_scope))
     logger.debug("init: detected targets=%s", targets)
+
+    if dry_run:
+        click.echo("Dry run: would configure the following targets:")
+        for target in targets:
+            click.echo(f"  - {target}")
+        click.echo(f"\nPort: {port}")
+        click.echo(f"Backend: {backend}")
+        click.echo(f"Memory: {'enabled' if memory else 'disabled'}")
+        return
+
     _run_init_targets(
         targets=targets,
         global_scope=global_scope,
