@@ -191,7 +191,7 @@ class CCRResponseHandler:
         return ccr_calls, other_calls
 
     def _execute_retrieval(self, ccr_call: CCRToolCall) -> CCRToolResult:
-        """Execute a CCR retrieval.
+        """Execute a CCR retrieval with retry logic.
 
         Args:
             ccr_call: The CCR tool call to execute.
@@ -200,7 +200,72 @@ class CCRResponseHandler:
             CCRToolResult with the retrieved content.
         """
         store = get_compression_store()
+        max_retries = 3
+        base_delay = 0.05  # 50ms base delay
 
+        for attempt in range(max_retries):
+            try:
+                result = self._execute_retrieval_once(ccr_call, store)
+                if result.success or attempt == max_retries - 1:
+                    return result
+                
+                # Retry on failure (except integrity check failures)
+                if "integrity check failed" not in result.content.lower():
+                    logger.warning(
+                        "CCR retrieval attempt %d/%d failed for %s, retrying...",
+                        attempt + 1,
+                        max_retries,
+                        ccr_call.hash_key,
+                    )
+                    import asyncio
+                    asyncio.sleep(base_delay * (2 ** attempt))
+                    continue
+                
+                return result
+
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    logger.error(f"CCR retrieval failed after {max_retries} attempts: {e}")
+                    content = json.dumps(
+                        {
+                            "error": f"Retrieval failed after {max_retries} attempts: {str(e)}",
+                            "hash": ccr_call.hash_key,
+                        },
+                        indent=2,
+                    )
+                    return CCRToolResult(
+                        tool_call_id=ccr_call.tool_call_id,
+                        content=content,
+                        success=False,
+                    )
+                
+                logger.warning(
+                    "CCR retrieval attempt %d/%d failed for %s: %s",
+                    attempt + 1,
+                    max_retries,
+                    ccr_call.hash_key,
+                    e,
+                )
+                import asyncio
+                asyncio.sleep(base_delay * (2 ** attempt))
+
+        # Should not reach here, but just in case
+        return CCRToolResult(
+            tool_call_id=ccr_call.tool_call_id,
+            content=json.dumps({"error": "Retrieval failed", "hash": ccr_call.hash_key}),
+            success=False,
+        )
+
+    def _execute_retrieval_once(self, ccr_call: CCRToolCall, store: Any) -> CCRToolResult:
+        """Execute a single CCR retrieval attempt.
+
+        Args:
+            ccr_call: The CCR tool call to execute.
+            store: The compression store.
+
+        Returns:
+            CCRToolResult with the retrieved content.
+        """
         try:
             get_status = getattr(store, "get_entry_status", None)
             entry_status = (
@@ -285,18 +350,7 @@ class CCRResponseHandler:
 
         except Exception as e:
             logger.error(f"CCR retrieval failed for {ccr_call.hash_key}: {e}")
-            content = json.dumps(
-                {
-                    "error": f"Retrieval failed: {str(e)}",
-                    "hash": ccr_call.hash_key,
-                },
-                indent=2,
-            )
-            return CCRToolResult(
-                tool_call_id=ccr_call.tool_call_id,
-                content=content,
-                success=False,
-            )
+            raise  # Re-raise to allow retry logic to handle
 
     def _create_tool_result_message(
         self,
