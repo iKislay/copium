@@ -277,6 +277,23 @@ def compress(
                 transforms_applied=["inflation_guard:reverted"],
             )
 
+        # Guard: if savings are negligible (less than 1 token), revert to originals.
+        # This prevents negative savings reports from marginal compression.
+        tokens_saved = tokens_before - tokens_after
+        if tokens_saved > 0 and tokens_saved < 1:
+            logger.debug(
+                "Optimization produced negligible savings (%d tokens); reverting to original messages",
+                tokens_saved,
+            )
+            return CompressResult(
+                messages=messages,
+                tokens_before=tokens_before,
+                tokens_after=tokens_before,
+                tokens_saved=0,
+                compression_ratio=0.0,
+                transforms_applied=["negligible_savings_guard:reverted"],
+            )
+
         routing_markers = summarize_routing_markers(result.transforms_applied)
         if routing_markers:
             routed_event = pipeline_extensions.emit(

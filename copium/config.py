@@ -515,6 +515,11 @@ class QualityGateConfig:
     # revert that transform. 0.0 = any increase is reverted.
     revert_threshold: float = 0.05
 
+    # Minimum token savings required to keep compressed output.
+    # If savings are below this threshold, revert to original.
+    # Prevents "negative savings" reports from marginal compression.
+    min_savings_tokens: int = 1
+
     # Log warnings when compression produces marginal savings
     warn_below_tokens: int = 10
 

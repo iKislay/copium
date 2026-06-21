@@ -423,6 +423,23 @@ class TransformPipeline:
                             all_timing[transform.name] = duration_ms
                             continue
 
+                    # Quality Gate: also revert if savings are below minimum threshold
+                    # This prevents marginal compression that doesn't meaningfully help
+                    tokens_saved = tokens_before_transform - tokens_after_transform
+                    if qg.enabled and tokens_saved > 0 and tokens_saved < qg.min_savings_tokens:
+                        logger.debug(
+                            "Quality gate REVERTED transform %s: "
+                            "savings below minimum (%d tokens saved, min=%d)",
+                            transform.name,
+                            tokens_saved,
+                            qg.min_savings_tokens,
+                        )
+                        all_warnings.append(
+                            f"quality_gate:reverted:{transform.name}:below_min_savings={tokens_saved}"
+                        )
+                        all_timing[transform.name] = duration_ms
+                        continue
+
                     # Update messages for next transform
                     current_messages = result.messages
 
