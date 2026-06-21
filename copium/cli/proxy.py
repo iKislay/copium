@@ -573,6 +573,11 @@ def _selected_context_tool() -> str:
     help=("Custom Vertex AI regional API URL for publisher endpoints (env: VERTEX_TARGET_API_URL)"),
 )
 @click.option(
+    "--xai-api-url",
+    default=None,
+    help="Custom xAI/Grok API URL for passthrough endpoints (env: XAI_TARGET_API_URL)",
+)
+@click.option(
     "--region",
     default="us-west-2",
     envvar="COPIUM_REGION",
@@ -687,6 +692,7 @@ def proxy(
     gemini_api_url: str | None,
     cloudcode_api_url: str | None,
     vertex_api_url: str | None,
+    xai_api_url: str | None,
     region: str,
     bedrock_region: str | None,
     bedrock_profile: str | None,
@@ -770,6 +776,7 @@ def proxy(
         gemini_api_url=gemini_api_url,
         cloudcode_api_url=cloudcode_api_url,
         vertex_api_url=vertex_api_url,
+        xai_api_url=xai_api_url,
         environ=os.environ,
     )
 
@@ -829,6 +836,7 @@ def proxy(
         gemini_api_url=provider_api_overrides.gemini,
         cloudcode_api_url=provider_api_overrides.cloudcode,
         vertex_api_url=provider_api_overrides.vertex,
+        xai_api_url=provider_api_overrides.xai,
         mode=effective_mode,
         optimize=not no_optimize,
         cache_enabled=not no_cache,
