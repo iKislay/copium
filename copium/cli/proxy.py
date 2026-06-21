@@ -604,6 +604,11 @@ def _selected_context_tool() -> str:
     help="Disable anonymous usage telemetry (env: COPIUM_TELEMETRY=off)",
 )
 @click.option(
+    "--telemetry",
+    is_flag=True,
+    help="Enable anonymous usage telemetry (off by default, env: COPIUM_TELEMETRY=on)",
+)
+@click.option(
     "--stateless",
     is_flag=True,
     help="Disable all filesystem writes — run purely in-memory. "
@@ -687,6 +692,7 @@ def proxy(
     bedrock_profile: str | None,
     bedrock_api_url: str | None,
     no_telemetry: bool,
+    telemetry: bool,
     stateless: bool,
     embedding_server: bool,
     embedding_server_socket: str | None,
@@ -783,9 +789,11 @@ def proxy(
         "on",
     )
 
-    # Telemetry opt-out: --no-telemetry flag sets the env var
+    # Telemetry: --no-telemetry disables, --telemetry enables (default: off)
     if no_telemetry:
         os.environ["COPIUM_TELEMETRY"] = "off"
+    elif telemetry:
+        os.environ["COPIUM_TELEMETRY"] = "on"
 
     if codex_wire_debug or codex_wire_debug_dir:
         os.environ["COPIUM_CODEX_WIRE_DEBUG"] = "1"
