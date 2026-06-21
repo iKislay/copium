@@ -1822,6 +1822,31 @@ class OpenAIHandlerMixin:
             logger.info(
                 f"[{request_id}] Compression skipped: reason={_decision.passthrough_reason}"
             )
+
+        # Model Routing: route simple requests to cheaper models
+        # Runs BEFORE compression to determine the target model.
+        _original_model = model
+        if self.config.model_router.enabled and not _bypass:
+            from copium.transforms.model_router import ModelRouter
+
+            _router = ModelRouter(self.config.model_router)
+            _router_result = _router.apply(
+                messages,
+                tokenizer,
+                model=model,
+                tools=body.get("tools", []),
+            )
+            if _router.target_model and _router.target_model != model:
+                model = _router.target_model
+                body["model"] = model
+                transforms_applied.append(
+                    f"model_router:{_original_model}->{model}:complexity={_router.complexity:.2f}"
+                )
+                logger.info(
+                    f"[{request_id}] Model routed: {_original_model} -> {model} "
+                    f"(complexity={_router.complexity:.2f})"
+                )
+
         if _decision.should_compress:
             try:
                 context_limit = self.openai_provider.get_context_limit(model)
