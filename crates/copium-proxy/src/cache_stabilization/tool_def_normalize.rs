@@ -34,7 +34,7 @@
 //!
 //! # Why no regex
 //!
-//! Per `feedback_realignment_build_constraints.md` (Realignment build
+//! Per `feedback_roadmap_build_constraints.md` (Realignment build
 //! policy): no regex for parsing. Marker detection here is a structured
 //! key lookup (`tool.get("cache_control")`), not a pattern match against
 //! serialized JSON.

@@ -278,19 +278,19 @@ Copium detects this and applies aggressive compression before you hit the cliff.
 
 ---
 
-## Comparison with Headroom
+## Why Copium?
 
-| Feature | Copium | Headroom |
-|---------|--------|----------|
+| Feature | Copium | Cloud-only proxies |
+|---------|--------|-------------------|
 | **Target** | Local LLMs + Cloud APIs | Cloud APIs only |
 | **KV Cache Detection** | ✅ Auto-detect precision | ❌ |
 | **Context Paging** | ✅ Pichay-proven virtual memory | ❌ |
 | **Error Cards** | ✅ Structured with NEXT_ACTIONS | ❌ |
 | **Backend Integration** | ✅ Ollama/VLLM/llama.cpp | ❌ |
-| **Grammar Enforcement** | ✅ JSON/markdown/code validation | ❌ |
+| **Syntax Validation** | ✅ JSON/markdown/code enforcement | ❌ |
 | **Context Simulator** | ✅ A/B test before deploying | ❌ |
-| **Transforms** | 10+ specialized compressors | SmartCrusher only |
-| **Pipeline** | Content-aware routing | Single compressor |
+| **Transforms** | 10+ specialized compressors | Single compressor |
+| **Pipeline** | Content-aware routing | Passthrough |
 | **TUI Dashboard** | ✅ Real-time metrics | ❌ |
 | **Doctor Command** | ✅ Auto-detect setup | ❌ |
 

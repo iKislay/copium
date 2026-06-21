@@ -220,7 +220,7 @@ def capture_codex_wire_debug(
 #
 # Configurable via COPIUM_MEMORY_INJECTION_MODE env var. There is no
 # "system_prompt" option — that path is permanently retired by I2 (cache hot
-# zone never modified). See REALIGNMENT/02-architecture.md §2.2.
+# zone never modified). See ROADMAP/02-architecture.md §2.2.
 _MEMORY_INJECTION_MODE_ENV = "COPIUM_MEMORY_INJECTION_MODE"
 _MEMORY_INJECTION_MODE_DEFAULT: Literal["live_zone_tail", "disabled"] = "live_zone_tail"
 MemoryInjectionMode = Literal["live_zone_tail", "disabled"]
@@ -445,7 +445,7 @@ def log_outbound_request(
 ) -> None:
     """Structured log line for every outbound forwarder call.
 
-    Per realignment build constraints: every cache-affecting decision is
+    Per roadmap build constraints: every cache-affecting decision is
     logged. Never includes ``Authorization``/``x-api-key`` content or full
     body bytes.
     """
@@ -473,7 +473,7 @@ def log_memory_injection(
 ) -> None:
     """Emit a structured log line for every memory-context routing decision.
 
-    Per realignment build constraints: log every cache-affecting decision.
+    Per roadmap build constraints: log every cache-affecting decision.
     Never log raw query content or Authorization header — only a stable
     hash of the query.
     """
@@ -1528,7 +1528,7 @@ _INTERNAL_HEADER_PREFIX = "x-copium-"
 # Operator opt-in env var. ``enabled`` (default) strips internal
 # ``x-copium-*`` headers from every upstream-bound forwarder.
 # ``disabled`` is an explicit operator opt-in for diagnostic shadow
-# tracing — NOT a fallback. Per realignment build constraint #4 the
+# tracing — NOT a fallback. Per roadmap build constraint #4 the
 # behaviour is loud, configurable, and never silent.
 _STRIP_INTERNAL_HEADERS_ENV = "COPIUM_STRIP_INTERNAL_HEADERS"
 StripInternalHeadersMode = Literal["enabled", "disabled"]
@@ -1581,7 +1581,7 @@ def log_outbound_headers(
     """Structured log line for every upstream forwarder header strip.
 
     Emitted once per outbound request (paired with ``log_outbound_request``).
-    Per realignment build constraint #8 we log every cache-affecting
+    Per roadmap build constraint #8 we log every cache-affecting
     decision; per #8/#11 we never log header values, only the count of
     stripped internal headers.
     """
@@ -1630,7 +1630,7 @@ def log_outbound_headers(
 #
 # Operator opt-in `COPIUM_BETA_HEADER_STICKY=disabled` short-circuits
 # the tracker (returns the client value verbatim). That mode is loud and
-# explicit per realignment build constraint #4 — NOT a silent fallback.
+# explicit per roadmap build constraint #4 — NOT a silent fallback.
 
 _BETA_HEADER_STICKY_ENV = "COPIUM_BETA_HEADER_STICKY"
 BetaHeaderStickyMode = Literal["enabled", "disabled"]
@@ -1945,7 +1945,7 @@ def log_beta_header_merge(
 #
 # Operator opt-in `COPIUM_TOOL_INJECTION_STICKY=disabled` short-
 # circuits the tracker; per-turn decision flows through unchanged. That
-# mode is loud and explicit per realignment build constraint #4 — NOT a
+# mode is loud and explicit per roadmap build constraint #4 — NOT a
 # silent fallback. It exists for diagnostic shadow tracing / emergency
 # rollback only.
 
@@ -2178,7 +2178,7 @@ def log_tool_injection_decision(
 ) -> None:
     """Structured log for every cache-affecting tool-injection decision.
 
-    Per realignment build constraint #8 we log every cache-affecting
+    Per roadmap build constraint #8 we log every cache-affecting
     decision. ``tool_definition_bytes_count`` is the per-tool byte count
     summed across all memory tools injected this turn. We do NOT log the
     tool definition contents (might contain user-specific schemas) per
@@ -2406,7 +2406,7 @@ def apply_session_sticky_memory_tools(
 
 # ─── Session-sticky CCR tool injection (PR-B7) ─────────────────────────
 #
-# Per realignment plan PR-B7 (`REALIGNMENT/04-phase-B-live-zone.md`):
+# Per roadmap plan PR-B7 (`ROADMAP/04-phase-B-live-zone.md`):
 # once a session has performed any CCR compression, the
 # `copium_retrieve` tool stays registered in `body["tools"]` for every
 # subsequent request in that session — never toggled off.

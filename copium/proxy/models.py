@@ -262,7 +262,7 @@ class ProxyConfig:
     # PR-B6: Memory injection mode. ``"auto_tail"`` (default) auto-appends
     # retrieved memory to the latest user message tail (live zone).
     # ``"tool"`` disables auto-injection — the model must call
-    # ``memory_search`` to retrieve. See REALIGNMENT/04-phase-B-live-zone.md
+    # ``memory_search`` to retrieve. See ROADMAP/04-phase-B-live-zone.md
     # PR-B6.
     memory_mode: Literal["auto_tail", "tool"] = "auto_tail"
     # Qdrant connection (defaults resolve from COPIUM_QDRANT_* env vars)

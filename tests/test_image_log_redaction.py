@@ -63,7 +63,7 @@ def _make_request_log(*, request_messages=None, response_content=None) -> Reques
 def test_large_base64_truncated():
     """A multi-MB base64 payload in a request message is replaced with
     a size-only placeholder. This is the load-bearing assertion from
-    REALIGNMENT/09-phase-G-rtk-observability.md:155."""
+    ROADMAP/09-phase-G-rtk-observability.md:155."""
     big = _big_base64(IMAGE_BASE64_REDACT_THRESHOLD_BYTES * 4)
     messages = [
         {

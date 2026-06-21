@@ -36,8 +36,8 @@ serde = { version = "1", features = ["derive"] }
 # JSON intact: `Value::Number` becomes a wrapper around the original
 # digit string, so `1.0` does NOT collapse to `1`, and `12345678901234567`
 # does NOT lose precision through f64. Required by Realignment invariant
-# I1 (byte-faithful passthrough on unmutated bytes; see REALIGNMENT/02-
-# architecture.md §2.2) and PR-A4 (see REALIGNMENT/03-phase-A-lockdown.md).
+# I1 (byte-faithful passthrough on unmutated bytes; see ROADMAP/02-
+# architecture.md §2.2) and PR-A4 (see ROADMAP/03-phase-A-lockdown.md).
 #
 # `raw_value` exposes `serde_json::value::RawValue`, the unparsed JSON
 # fragment type. Phase B PR-B2 uses this to forward unmodified

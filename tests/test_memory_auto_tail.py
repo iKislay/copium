@@ -17,7 +17,7 @@ These tests verify three guarantees of the AutoTail memory mode:
    (system / instructions / tool definitions) is sacrosanct.
 
 These cover the three test names called out in
-``REALIGNMENT/04-phase-B-live-zone.md`` PR-B6:
+``ROADMAP/04-phase-B-live-zone.md`` PR-B6:
 
 - ``test_memory_appears_in_latest_user_message_tail``
 - ``test_memory_does_not_modify_system_or_tools``
@@ -37,7 +37,7 @@ from copium.proxy.memory_handler import MemoryConfig, MemoryHandler, MemoryMode
 # ---------------------------------------------------------------------------
 # Fixtures: a deterministic in-memory backend stub.
 #
-# The realignment spec for PR-B6 requires byte-identical output across runs
+# The roadmap spec for PR-B6 requires byte-identical output across runs
 # for the same query. We avoid the real ONNX embedder + HNSW backend (which
 # is non-deterministic across processes due to thread scheduling) by stubbing
 # the backend with a fixed, ordered result set keyed on ``user_id`` + query.
@@ -395,7 +395,7 @@ def test_auto_tail_block_id_format_handles_missing_id() -> None:
 #
 # Post-this-PR the block carries a short guidance line that names the
 # direct-update / direct-delete affordance. This is the "memory prelude"
-# referenced in the realignment plan — embedded in the same user-message
+# referenced in the roadmap plan — embedded in the same user-message
 # tail as the memories themselves, never in system/instructions.
 # ---------------------------------------------------------------------------
 

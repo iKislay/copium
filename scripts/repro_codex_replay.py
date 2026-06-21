@@ -2,7 +2,7 @@
 """Repro harness: multi-agent Codex reconnect storm against a local proxy.
 
 This script reproduces the failure class described in
-``wiki/plans/2026-04-17-codex-proxy-runtime-analysis.md`` ("Latest Correction"):
+``guides/plans/2026-04-17-codex-proxy-runtime-analysis.md`` ("Latest Correction"):
 a burst of concurrent Codex WebSocket sessions plus a parallel burst of large
 Anthropic ``/v1/messages`` replays immediately after a fresh proxy restart, with
 ``/livez`` probed continuously to detect event-loop starvation.

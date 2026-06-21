@@ -19,7 +19,7 @@ The audit found:
 
 ## What changes
 
-The realignment is structured in 9 phases, 40 PRs, ~13 weeks sequential or ~8 weeks with parallel work:
+The roadmap is structured in 9 phases, 40 PRs, ~13 weeks sequential or ~8 weeks with parallel work:
 
 - **Phase A — Lockdown (1 week):** stop the cache bleeding immediately. Make `/v1/messages` compression a passthrough; stop mutating the system prompt; switch Python forwarders from `httpx ... json=body` (re-serializes) to `httpx ... content=raw_bytes`; honor customer-set `cache_control` markers in Rust; strip `x-copium-*` from upstream-bound headers; pin `anthropic-beta` order and make it session-sticky; add a SHA-256 byte-faithful round-trip test.
 - **Phase B — Live-zone engine (2 weeks):** delete ICM, scoring, relevance, rolling-window, progressive-summarizer, tool-crusher (~10 K LOC). Build a live-zone-only block dispatcher in Rust that runs SmartCrusher / LogCompressor / DiffCompressor / SearchCompressor / KompressCompressor on the latest user message content + latest tool_result + latest function_call_output + latest local_shell_call_output. Token-validate every compression with fallback. CCR hardens: persistent backend + always-on `ccr_retrieve` tool registration.

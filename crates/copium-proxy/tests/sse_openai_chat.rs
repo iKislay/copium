@@ -1,6 +1,6 @@
 //! Integration tests for the OpenAI Chat Completions SSE state machine.
 //!
-//! Wire-format quirks under test (per realignment guide §5.2):
+//! Wire-format quirks under test (per roadmap guide §5.2):
 //!
 //!   - Tool calls: `id` and `function.name` arrive ONLY on the first
 //!     chunk per `index`. Subsequent chunks omit them; the proxy must

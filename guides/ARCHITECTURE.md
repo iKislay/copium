@@ -245,7 +245,7 @@ analysis = {
 
 The proxy ships an opt-in ML compression path backed by **Kompress**
 (ModernBERT-based token classifier). Install with `pip install
-'copium-ai[ml]'`; see `wiki/transforms.md` for current configuration.
+'copium-ai[ml]'`; see `guides/transforms.md` for current configuration.
 
 **Note:** The earlier LLMLingua-2 integration (`--llmlingua` flag, the
 `copium-ai[llmlingua]` extra, and the `LLMLinguaCompressor` class) was

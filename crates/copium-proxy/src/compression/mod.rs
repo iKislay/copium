@@ -2,7 +2,7 @@
 //!
 //! # Phase A lockdown (PR-A1)
 //!
-//! Per `REALIGNMENT/03-phase-A-lockdown.md`, the
+//! Per `ROADMAP/03-phase-A-lockdown.md`, the
 //! `IntelligentContextManager`-driven path that previously ran on
 //! every `/v1/messages` request is gone. Today this module is a
 //! tracking shell: it owns the path-matcher (`is_compressible_path`)

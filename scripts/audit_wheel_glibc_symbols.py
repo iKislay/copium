@@ -61,7 +61,7 @@ POST_FLOOR_SYMBOLS = [
     (
         "__isoc23_",
         (2, 38),
-        "https://sourceware.org/glibc/wiki/Release/2.38",
+        "https://sourceware.org/glibc/guides/Release/2.38",
     ),
     # Single-threaded fast-path flag read by libstdc++ (gcc 11+).
     # Caught by the X1 smoke gate on PR #396 (X2 dry-run) on the
@@ -70,7 +70,7 @@ POST_FLOOR_SYMBOLS = [
     (
         "__libc_single_threaded",
         (2, 32),
-        "https://sourceware.org/glibc/wiki/Release/2.32",
+        "https://sourceware.org/glibc/guides/Release/2.32",
     ),
 ]
 

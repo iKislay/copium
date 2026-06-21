@@ -1,5 +1,5 @@
 site_name: Copium
-docs_dir: wiki
+docs_dir: guides
 site_description: "The Context Optimization Layer for LLM Applications — compress everything your AI agent reads."
 site_url: https://chopratejas.github.io/copium
 repo_url: https://github.com/iKislay/copium

@@ -314,7 +314,7 @@ class CCRToolInjector:
     ) -> tuple[list[dict[str, Any]], bool]:
         """Inject CCR retrieval tool into tools list.
 
-        PR-B7 (`REALIGNMENT/04-phase-B-live-zone.md`): callers may pass
+        PR-B7 (`ROADMAP/04-phase-B-live-zone.md`): callers may pass
         ``session_has_done_ccr=True`` so the tool is injected even when
         THIS request has no fresh compression markers. That is the
         sticky-on path: once a session has done CCR, the

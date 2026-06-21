@@ -21,7 +21,7 @@ The fix:
 
 Operator opt-in `COPIUM_BETA_HEADER_STICKY=disabled` short-circuits
 the tracker (returns the client value verbatim). That mode is loud and
-explicit per realignment build constraint #4 — NOT a silent fallback.
+explicit per roadmap build constraint #4 — NOT a silent fallback.
 """
 
 from __future__ import annotations

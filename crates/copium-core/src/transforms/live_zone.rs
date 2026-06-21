@@ -24,7 +24,7 @@
 //!   like `function_call_output` and `reasoning`.
 //! - Gemini uses `contents`/`parts`/`function_response`.
 //!
-//! Phase C (`REALIGNMENT/05-phase-C-rust-proxy.md`) introduces
+//! Phase C (`ROADMAP/05-phase-C-rust-proxy.md`) introduces
 //! `compress_openai_chat_live_zone`, `compress_openai_responses_live_zone`,
 //! and friends. They share this module's provider-agnostic types
 //! ([`LiveZoneOutcome`], [`BlockAction`], [`CompressionManifest`])
@@ -83,7 +83,7 @@
 //! whitespace, key order subtleties, or numeric formatting that the
 //! provider may have already cached against. Byte-faithful copy of
 //! everything we don't touch is the only way to guarantee
-//! cache stability — see `project_compression_realignment_2026_05`.
+//! cache stability — see `project_compression_roadmap_2026_05`.
 //!
 //! # AuthMode
 //!
@@ -144,7 +144,7 @@ pub const DEFAULT_MODEL: &str = "claude-3-5-sonnet-20241022";
 // bookkeeping, log lines) costs more than the marginal token savings,
 // and tiny inputs almost never compress at all.
 //
-// Sourced from the spec (`REALIGNMENT/04-phase-B-live-zone.md::PR-B4`).
+// Sourced from the spec (`ROADMAP/04-phase-B-live-zone.md::PR-B4`).
 // Pinned as `const` rather than a hard-coded `match` so the values are
 // grep-able and reviewable in one place.
 
@@ -585,7 +585,7 @@ fn diff_compressor() -> &'static DiffCompressor {
 ///   model's native format (Anthropic, Llama, Cohere, …); route
 ///   to the matching dispatcher.
 ///
-/// Phase C (`REALIGNMENT/05-phase-C-rust-proxy.md`) introduces the
+/// Phase C (`ROADMAP/05-phase-C-rust-proxy.md`) introduces the
 /// per-provider dispatchers. Each will live as
 /// `compress_<provider>_live_zone` and share the cache-safety
 /// invariants and the per-content-type compressor backend
@@ -2273,7 +2273,7 @@ mod openai_chat_tests {
 // `messages`, and the array carries explicitly-typed items (not
 // role-tagged messages).
 //
-// Live zone, per spec PR-C3 (`REALIGNMENT/05-phase-C-rust-proxy.md`):
+// Live zone, per spec PR-C3 (`ROADMAP/05-phase-C-rust-proxy.md`):
 //
 //   - latest `function_call_output.output`
 //   - latest `local_shell_call_output.output`

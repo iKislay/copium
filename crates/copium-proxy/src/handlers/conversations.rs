@@ -26,7 +26,7 @@
 //!
 //! # Why explicit routes (not a regex / catch-all)?
 //!
-//! Per the realignment build constraints we forbid regex routing.
+//! Per the roadmap build constraints we forbid regex routing.
 //! Each handler binds to an exact axum path matcher
 //! (`/v1/conversations/:id/items/:item_id`, etc.). Path params are
 //! extracted via `axum::extract::Path` so they round-trip into

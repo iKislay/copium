@@ -134,7 +134,7 @@ pub fn rate_limit_remaining_output_tokens_gauge(registry: &Registry) -> &'static
 
 /// Snapshot of upstream rate-limit headers extracted from one
 /// response. None-fields are headers the upstream did not include
-/// (per realignment build-constraint "no silent fallbacks": we do not
+/// (per roadmap build-constraint "no silent fallbacks": we do not
 /// fabricate a value, we just don't emit on that gauge).
 #[derive(Debug, Default, Clone, Copy)]
 pub struct RateLimitSnapshot {

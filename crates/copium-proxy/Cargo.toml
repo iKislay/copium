@@ -115,5 +115,5 @@ sha2 = "0.10"
 # must never panic on arbitrary input bytes (TCP can hand us anything,
 # including malformed UTF-8 split mid-codepoint or fuzz-generated
 # noise). 100K cases is the project default for "no panic" parser
-# invariants — see `feedback_realignment_build_constraints.md`.
+# invariants — see `feedback_roadmap_build_constraints.md`.
 proptest = "1"

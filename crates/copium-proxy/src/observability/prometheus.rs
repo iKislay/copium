@@ -36,7 +36,7 @@
 //!
 //! # Logs paired with every increment
 //!
-//! Per the realignment build-constraint "comprehensive structured
+//! Per the roadmap build-constraint "comprehensive structured
 //! logs", every metric increment in this module emits a
 //! `tracing::debug!` with `event = "metric_recorded"` so operators
 //! can correlate scrape values with log lines during incidents.

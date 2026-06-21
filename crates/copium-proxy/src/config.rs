@@ -308,7 +308,7 @@ pub struct CliArgs {
     /// Strip internal `x-copium-*` headers from upstream-bound
     /// requests (PR-A5, fixes P5-49). Default `enabled`. The `disabled`
     /// path is operator opt-in for diagnostic shadow tracing only —
-    /// NOT a fallback per realignment build constraint #4.
+    /// NOT a fallback per roadmap build constraint #4.
     ///
     /// Source priority: CLI flag → `COPIUM_PROXY_STRIP_INTERNAL_HEADERS`
     /// env var → default (`enabled`).

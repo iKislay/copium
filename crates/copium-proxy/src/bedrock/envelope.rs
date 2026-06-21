@@ -23,7 +23,7 @@
 //! # Why key order matters
 //!
 //! Bedrock's request validator does NOT depend on key order, but our
-//! cache-safety contract (`I1` in REALIGNMENT/02-architecture.md) is
+//! cache-safety contract (`I1` in ROADMAP/02-architecture.md) is
 //! that *unmodified* bytes round-trip byte-equal. If the compressor
 //! returns `NoChange` we forward the original buffered bytes
 //! verbatim — we never re-serialize. If the compressor returns

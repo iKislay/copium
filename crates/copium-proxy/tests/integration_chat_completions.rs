@@ -8,7 +8,7 @@
 //! upstream received — the same cache-safety contract the Anthropic
 //! tests pin.
 //!
-//! Coverage matrix (per PR-C2 spec, REALIGNMENT/05-phase-C-rust-proxy.md):
+//! Coverage matrix (per PR-C2 spec, ROADMAP/05-phase-C-rust-proxy.md):
 //!
 //! 1. `passthrough_no_compression_byte_equal` — small body, compression
 //!    on, body too small to compress; bytes round-trip byte-equal.

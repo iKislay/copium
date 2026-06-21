@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - 'docs/**'
-      - 'wiki/**'
+      - 'guides/**'
       - 'mkdocs.yml'
       - '.github/workflows/docs.yml'
   push:

@@ -119,7 +119,7 @@ def _make_pattern_key(
 
     Defaults populate to `DEFAULT_AUTH_MODE` / `DEFAULT_MODEL_FAMILY`
     when callers haven't supplied a value — keeps callers terse during
-    the Phase B realignment while PR-F3 wires real detectors.
+    the Phase B roadmap while PR-F3 wires real detectors.
     """
     return (
         auth_mode or DEFAULT_AUTH_MODE,
@@ -138,7 +138,7 @@ def _deserialize_pattern_key(serialized: str) -> PatternKey:
 
     Backward-compatible with pre-B5 dumps that stored keys as bare
     structure hashes (no separator): those parse as
-    `(DEFAULT_AUTH_MODE, DEFAULT_MODEL_FAMILY, sig_hash)`. The realignment
+    `(DEFAULT_AUTH_MODE, DEFAULT_MODEL_FAMILY, sig_hash)`. The roadmap
     plan permits wiping the on-disk store, but this fallback keeps reads
     safe if a stale file appears in the wild.
     """

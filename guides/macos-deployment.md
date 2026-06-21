@@ -209,7 +209,7 @@ Configure additional options in the plist `EnvironmentVariables` section:
 (`COPIUM_COMPRESSION_PROVIDER=llmlingua`, `COPIUM_LLMLINGUA_DEVICE`,
 the `copium-ai[llmlingua]` extra) were retired with the
 `--llmlingua` flag. For ML compression today, install the `[ml]`
-extra and follow `wiki/transforms.md`.
+extra and follow `guides/transforms.md`.
 
 ### Crash Recovery
 

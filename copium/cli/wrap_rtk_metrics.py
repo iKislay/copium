@@ -12,7 +12,7 @@ proxy's prometheus exporter can import them without dragging in the
 full ``wrap.py`` module — that module owns subprocess-level CLI
 spawning and is heavyweight to import at proxy startup.
 
-Per realignment build-constraint "no silent fallbacks":
+Per roadmap build-constraint "no silent fallbacks":
 ``record_rtk_invocation`` raises on a non-string tool name rather
 than coercing; a caller passing the wrong type is a bug, not a
 runtime fallback condition.

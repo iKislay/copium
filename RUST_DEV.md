@@ -288,7 +288,7 @@ doesn't rediscover them.
 
 ## Multi-worker deployment — CCR fragmentation
 
-**Status:** PR-B7 (`REALIGNMENT/04-phase-B-live-zone.md`) introduced two
+**Status:** PR-B7 (`ROADMAP/04-phase-B-live-zone.md`) introduced two
 persistent CCR backends. The single-`--workers` recommendation no longer
 applies once you select a persistent backend.
 

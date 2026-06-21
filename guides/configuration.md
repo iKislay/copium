@@ -60,7 +60,7 @@ copium proxy --no-ccr-responses
 copium proxy --no-ccr-expansion
 
 # (The earlier --llmlingua flag was retired in 0.9.x and replaced by
-# Kompress (ModernBERT). See `wiki/transforms.md` for the current
+# Kompress (ModernBERT). See `guides/transforms.md` for the current
 # opt-in path via the `[ml]` extra.)
 ```
 

@@ -1,6 +1,6 @@
 //! Phase E cache-stabilization surface.
 //!
-//! The realignment plan (`REALIGNMENT/07-phase-E-cache-stabilization.md`)
+//! The roadmap plan (`ROADMAP/07-phase-E-cache-stabilization.md`)
 //! groups every cache-stabilization mechanism behind one module so
 //! operators searching for "what does Copium do to keep prompt
 //! caches warm" land in one place. Phase E PRs in this module either:

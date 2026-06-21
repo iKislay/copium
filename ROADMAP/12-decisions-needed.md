@@ -1,6 +1,6 @@
 # 12 — Decisions Needed
 
-Open questions the realignment can't resolve unilaterally. Greenlight or alternative each before the corresponding PR lands.
+Open questions the roadmap can't resolve unilaterally. Greenlight or alternative each before the corresponding PR lands.
 
 ---
 
@@ -44,7 +44,7 @@ Folded into Phase B PR-B1.
 
 **Context:** Per project memory `~/.claude/projects/-Users-tchopra-claude-projects-copium/memory/project_lossless_first_pipeline.md`, Stage 3g was queued to formalize "lossless-then-lossy-then-CCR ordering as a `CompressionPipeline` orchestrator + `LosslessTransform`/`LossyTransform` traits." The plan assumed an ICM-style orchestrator over the messages array.
 
-**Recommendation:** **Re-scope** issue #315 to "live-zone-only pipeline orchestrator." The traits stay (`LosslessTransform`/`LossyTransform`); the scope changes from "history compactor" to "live-zone block dispatcher." This is what Phase B PR-B2 builds. Update issue #315's body to reflect the realignment.
+**Recommendation:** **Re-scope** issue #315 to "live-zone-only pipeline orchestrator." The traits stay (`LosslessTransform`/`LossyTransform`); the scope changes from "history compactor" to "live-zone block dispatcher." This is what Phase B PR-B2 builds. Update issue #315's body to reflect the roadmap.
 
 **Alternative:** Close issue #315 and treat Phase B PR-B2 as fulfilling its intent. Risk: history of the decision is lost.
 
@@ -54,7 +54,7 @@ Folded into Phase B PR-B1.
 
 **Context:** Per project memory `project_copium_loop.md` (enterprise paid product) and `project_copium_aws_marketplace.md` (BYOC CFN stack in customer VPC). Both depend on the OSS proxy.
 
-**Recommendation:** The realignment **strengthens** both:
+**Recommendation:** The roadmap **strengthens** both:
 - Copium Loop's value proposition is "trace stream + enterprise compression policy"; Phase F's auth-mode policy is exactly the surface Loop wants to gate on.
 - AWS Marketplace BYOC's pitch is "context compression in front of Bedrock"; Phase D's native Bedrock support makes that pitch real (today's LiteLLM-converted Bedrock path was fake; Phase D fixes it).
 

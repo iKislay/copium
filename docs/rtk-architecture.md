@@ -1,7 +1,7 @@
 # RTK architecture — why wrap-CLI only
 
 **Status:** decided. Locked at Phase G PR-G3 (2026-05).
-**Owner:** Copium realignment.
+**Owner:** Copium roadmap.
 
 ## TL;DR
 
@@ -101,7 +101,7 @@ See `copium/cli/wrap/` for the per-agent shims.
 A change to this architecture should:
 
 1. Quote the live-zone-only contract from
-   `REALIGNMENT/04-phase-B-live-zone.md` and explain why the
+   `ROADMAP/04-phase-B-live-zone.md` and explain why the
    cache-burst risk is acceptable.
 2. Show measurements (not estimates) that proxy-side RTK adds value
    beyond `log_compressor.rs` on real production traffic.
@@ -113,10 +113,10 @@ doc.
 
 ## References
 
-- `REALIGNMENT/09-phase-G-rtk-observability.md` — Phase G plan.
-- `REALIGNMENT/04-phase-B-live-zone.md` — cache hot-zone contract.
+- `ROADMAP/09-phase-G-rtk-observability.md` — Phase G plan.
+- `ROADMAP/04-phase-B-live-zone.md` — cache hot-zone contract.
 - `copium/cli/wrap/` — wrap-CLI implementation.
 - `crates/copium-core/src/transforms/log_compressor.rs` — the
   proxy-side log compressor RTK would parallel.
 - 2026-05-01 user direction message archived in
-  `project_compression_realignment_2026_05` memory note.
+  `project_compression_roadmap_2026_05` memory note.

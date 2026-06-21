@@ -519,7 +519,7 @@ pub(crate) async fn forward_http(
 
     // ─── COMPRESSION GATE ──────────────────────────────────────────────
     //
-    // PR-A1 lockdown (per `REALIGNMENT/03-phase-A-lockdown.md`): the
+    // PR-A1 lockdown (per `ROADMAP/03-phase-A-lockdown.md`): the
     // `/v1/messages` path no longer mutates the body. The gate below
     // still routes JSON bodies on the LLM endpoint into a "buffered"
     // arm, because:
@@ -980,7 +980,7 @@ pub(crate) async fn forward_http(
     // response and record them as gauges. The `provider` label is
     // chosen by which of the upstream `request-id` shapes we saw
     // (Anthropic vs OpenAI). When neither shape was detected we
-    // skip emission rather than guessing — per realignment build-
+    // skip emission rather than guessing — per roadmap build-
     // constraint "no silent fallbacks".
     let rate_limit_snapshot =
         crate::observability::extract_rate_limit_snapshot(upstream_resp.headers());

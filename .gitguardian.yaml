@@ -22,10 +22,10 @@ secret:
       match: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 
     # Anthropic-shaped strings whose payloads literally contain the word
-    # "fixture" — used in `test_realignment_live_multi_turn` to assert the
+    # "fixture" — used in `test_roadmap_live_multi_turn` to assert the
     # auth-mode classifier routes PAYG / OAuth / subscription headers
     # correctly. No live API call is ever made with these tokens.
-    # File: tests/test_realignment_live_multi_turn.py
+    # File: tests/test_roadmap_live_multi_turn.py
     - name: "Anthropic-shaped fixture token (PAYG via x-api-key)"
       match: "sk-ant-api03-payg-fixture"
     - name: "Anthropic-shaped fixture token (OAuth bearer)"

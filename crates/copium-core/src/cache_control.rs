@@ -30,15 +30,15 @@
 //! - For markers in `system` (string OR block list) or `tools[*]`,
 //!   the function does NOT bump `frozen_count`. Those fields are
 //!   unconditionally part of the cache hot zone (see invariant I2 in
-//!   `REALIGNMENT/02-architecture.md` §2.2); they're never touched by
+//!   `ROADMAP/02-architecture.md` §2.2); they're never touched by
 //!   the compressor regardless of marker placement, so they don't
 //!   affect the message-index floor.
 //! - Returns `0` when there are no markers anywhere in `messages[*]`.
 //!
 //! # Why no regex
 //!
-//! Per the realignment build constraints
-//! (`feedback_realignment_build_constraints.md` rule 3), pattern
+//! Per the roadmap build constraints
+//! (`feedback_roadmap_build_constraints.md` rule 3), pattern
 //! detection uses parsers, not regex. We walk the parsed JSON tree
 //! via `serde_json` accessors only — that's both safer (no
 //! pattern-string typo risk) and faster (no compilation cost on
@@ -71,7 +71,7 @@ use serde_json::Value;
 /// ephemeral cache lane. We keep the constant here (rather than
 /// inlining `"1h"` literal at use sites) so any future rename or
 /// case-change is a single-edit affair. Avoiding magic strings is
-/// rule 2 of the realignment build constraints.
+/// rule 2 of the roadmap build constraints.
 const CACHE_TTL_1H: &str = "1h";
 
 /// TTL marker value for the Anthropic 5-minute cache lane (the

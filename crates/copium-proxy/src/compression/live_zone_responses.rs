@@ -19,7 +19,7 @@
 //!   text content. Earlier *_output items are FROZEN.
 //! - Output items must clear a 2 KiB minimum BEFORE the
 //!   per-content-type byte threshold even runs (per spec PR-C3
-//!   §scope, line 167 of the realignment plan).
+//!   §scope, line 167 of the roadmap plan).
 //! - Cache hot zone: every other item type passes through verbatim.
 //!   This includes `reasoning.encrypted_content`, `compaction.*`,
 //!   MCP / computer-use / web-search / file-search /

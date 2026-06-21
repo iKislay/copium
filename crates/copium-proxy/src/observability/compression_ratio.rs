@@ -94,7 +94,7 @@ pub fn observe_ratio(
     compressed_tokens: usize,
 ) {
     if original_tokens == 0 {
-        // Per realignment build-constraint "no silent fallbacks": a
+        // Per roadmap build-constraint "no silent fallbacks": a
         // zero-denominator block would synthesise a `NaN` sample we
         // can't observe meaningfully. Loud-log and skip.
         tracing::warn!(

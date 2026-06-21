@@ -106,8 +106,8 @@ use crate::auth_mode::AuthMode;
 // the unit tests can assert against the same source of truth — if a
 // caller drifts the per-mode value, the assertion fails.
 //
-// Per the realignment build constraints (project memory
-// `feedback_realignment_build_constraints.md`): "configurable / no
+// Per the roadmap build constraints (project memory
+// `feedback_roadmap_build_constraints.md`): "configurable / no
 // hardcoded values". The configuration *is* the per-mode default — we
 // deliberately do NOT add a separate env var per field. Operators tune
 // by editing these constants and shipping a new build, which is the

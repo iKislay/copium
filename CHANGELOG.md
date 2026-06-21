@@ -187,7 +187,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **kompress:** warn when `COPIUM_KOMPRESS_BACKEND` is set to an unrecognized
   value instead of silently falling back to `auto`, and document the backend
   selection env var (`auto` / `onnx` / `onnx_cpu` / `onnx_coreml` / `pytorch` /
-  `pytorch_mps` plus shorthand aliases) in `wiki/configuration.md` (issue
+  `pytorch_mps` plus shorthand aliases) in `guides/configuration.md` (issue
   [#202](https://github.com/iKislay/copium/issues/202), PR
   [#204](https://github.com/iKislay/copium/pull/204)).
 * **proxy:** per-provider attribution in the savings history rollups. Each `/stats-history` bucket (hourly/daily/weekly/monthly) now carries a `by_provider` map breaking down `tokens_saved`, `compression_savings_usd_delta`, `total_input_tokens_delta`, and `total_input_cost_usd_delta` per provider, so consumers can show how savings and spend are distributed across providers within a time period. Providers only appear in a bucket where they moved a counter; legacy history checkpoints with no provider collapse into `"unknown"`. Affected files: `copium/proxy/savings_tracker.py`, `copium/proxy/prometheus_metrics.py`.
@@ -470,7 +470,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   work with identical semantics. Docker install scripts and
   `docker-compose.native.yml` forward the new vars into containers so
   savings, logs, and telemetry resolve to the bind-mounted `.copium` path.
-  See [`wiki/filesystem-contract.md`](wiki/filesystem-contract.md).
+  See [`guides/filesystem-contract.md`](guides/filesystem-contract.md).
 
 ### Changed
 - **`/stats-history` now returns compact checkpoint history by default** — the

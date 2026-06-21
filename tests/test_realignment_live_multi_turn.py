@@ -1,4 +1,4 @@
-"""Wave 3 — multi-turn live integration tests for the Phase A+B realignment.
+"""Wave 3 — multi-turn live integration tests for the Phase A+B roadmap.
 
 These tests guard the load-bearing claims of the megamerge branch
 (``realign-phase-AB-cache-safety-and-live-zone``) against real upstream
@@ -20,13 +20,13 @@ Each test maps to one or more A+B PR claims:
 
 Run with::
 
-    python -m pytest tests/test_realignment_live_multi_turn.py -v
+    python -m pytest tests/test_roadmap_live_multi_turn.py -v
 
 CI surrogate (must stay green and excludes this file)::
 
     python -m pytest -m "not live" --tb=short -q
 
-Per-realignment-plan: ``REALIGNMENT/04-phase-B-live-zone.md``.
+Per-roadmap-plan: ``ROADMAP/04-phase-B-live-zone.md``.
 """
 
 from __future__ import annotations
@@ -54,8 +54,8 @@ from tests._dotenv import autouse_apply_env, load_env_overrides  # noqa: E402
 # ---------------------------------------------------------------------------
 #
 # All thresholds and model IDs configurable here so the tests stay free of
-# hardcoded magic numbers (per-realignment build constraint:
-# ``feedback_realignment_build_constraints.md``).
+# hardcoded magic numbers (per-roadmap build constraint:
+# ``feedback_roadmap_build_constraints.md``).
 
 LIVE_CONFIG: dict[str, Any] = {
     # Anthropic — primary model with explicit fallback. The fallback path
@@ -130,7 +130,7 @@ def _build_cache_prefix() -> str:
     seed = (
         "Copium is a context-engineering layer for LLM applications. "
         "It compresses tool outputs, aligns prefix caches, and routes content "
-        "to specialized compressors. The realignment branch (Phase A+B) hardens "
+        "to specialized compressors. The roadmap branch (Phase A+B) hardens "
         "cache stability and constrains compression to the live zone — the "
         "latest user message tail. Frozen prefixes are never mutated. "
     )
@@ -194,7 +194,7 @@ def test_anthropic_cache_hit_across_two_turns(proxy_client: TestClient) -> None:
     must produce a cache_read_input_tokens > 0 on turn 2.
 
     The proxy's cache hot zone (system prompt + frozen prefix) is
-    invariant I2 from the realignment plan — if compression mutates any
+    invariant I2 from the roadmap plan — if compression mutates any
     of those bytes, this hit count goes to 0 and the test fails.
     """
     model = _resolve_anthropic_model(proxy_client, ANTHROPIC_KEY)
@@ -205,7 +205,7 @@ def test_anthropic_cache_hit_across_two_turns(proxy_client: TestClient) -> None:
     # send and to keep the live-zone block dispatcher's traversal path
     # consistent across turns. Bare-string content hits a separate
     # normalization path; both should be cache-stable, but list form is
-    # what the realignment lockdown was tuned against.
+    # what the roadmap lockdown was tuned against.
     body_template: dict[str, Any] = {
         "model": model,
         "max_tokens": LIVE_CONFIG["max_tokens_short"],
@@ -243,7 +243,7 @@ def test_anthropic_cache_hit_across_two_turns(proxy_client: TestClient) -> None:
     # cache_read tokens even though the bytes are byte-identical. Retry up
     # to N times before declaring the cache broken — this isolates "proxy
     # broke cache stability" (always 0) from "Anthropic write hadn't
-    # propagated yet" (eventually > 0). The realignment claim is cache
+    # propagated yet" (eventually > 0). The roadmap claim is cache
     # STABILITY across turns, not first-turn-write latency.
     last_usage: dict[str, Any] = {}
     cache_read_observed = 0

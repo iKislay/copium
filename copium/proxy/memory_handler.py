@@ -63,7 +63,7 @@ class MemoryMode(str, enum.Enum):
     the tool execution path, not the prompt-construction path. Memory becomes
     opt-in (and visible to the model) rather than implicit.
 
-    See REALIGNMENT/04-phase-B-live-zone.md PR-B6 for the rationale.
+    See ROADMAP/04-phase-B-live-zone.md PR-B6 for the rationale.
     """
 
     AUTO_TAIL = "auto_tail"
@@ -91,7 +91,7 @@ NATIVE_MEMORY_TOOL_TYPE = "memory_20250818"
 # Maximum time to wait for a single backend initialization (one-shot).
 # Applies to MemoryHandler._ensure_initialized. On timeout, _initialized
 # stays False so that subsequent requests retry instead of deadlocking.
-# See wiki/plans/2026-04-17-fix-codex-proxy-resilience-plan.md "Risks" row 7.
+# See guides/plans/2026-04-17-fix-codex-proxy-resilience-plan.md "Risks" row 7.
 STARTUP_INIT_TIMEOUT_SECONDS = 30.0
 
 

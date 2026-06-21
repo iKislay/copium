@@ -25,7 +25,7 @@ The fix:
 
 Operator opt-in `COPIUM_TOOL_INJECTION_STICKY=disabled` short-
 circuits the tracker (per-turn decision flows through verbatim — the
-broken behavior). That mode is loud and explicit per realignment build
+broken behavior). That mode is loud and explicit per roadmap build
 constraint #4 — NOT a silent fallback. It exists for diagnostic shadow
 tracing and emergency rollback only.
 """

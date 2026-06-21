@@ -1,4 +1,4 @@
-"""Tests for Phase 3 features: Simulator, Grammar, Backends."""
+"""Tests for Phase 3 features: Simulator, Syntax, Backends."""
 
 from __future__ import annotations
 
@@ -6,11 +6,11 @@ import json
 
 import pytest
 
-from copium.grammar import (
-    GrammarCompressor,
-    GrammarCompressorConfig,
-    GrammarType,
-    detect_grammar,
+from copium.syntax import (
+    SyntaxCompressor,
+    SyntaxCompressorConfig,
+    SyntaxType,
+    detect_syntax,
     validate_and_repair,
     _validate_json,
     _repair_json,
@@ -32,26 +32,26 @@ from copium.native_backends import (
 )
 
 
-class TestGrammarDetection:
+class TestSyntaxDetection:
     """Test grammar type detection."""
 
     def test_json_detection(self):
-        assert detect_grammar('{"key": "value"}') == GrammarType.JSON
-        assert detect_grammar('[1, 2, 3]') == GrammarType.JSON
+        assert detect_syntax('{"key": "value"}') == SyntaxType.JSON
+        assert detect_syntax('[1, 2, 3]') == SyntaxType.JSON
 
     def test_markdown_detection(self):
-        assert detect_grammar("# Header\n\nContent") == GrammarType.MARKDOWN
-        assert detect_grammar("```python\ncode\n```") == GrammarType.MARKDOWN
+        assert detect_syntax("# Header\n\nContent") == SyntaxType.MARKDOWN
+        assert detect_syntax("```python\ncode\n```") == SyntaxType.MARKDOWN
 
     def test_code_detection(self):
-        assert detect_grammar("def hello():\n    pass") == GrammarType.CODE
-        assert detect_grammar("const x = 1;") == GrammarType.CODE
+        assert detect_syntax("def hello():\n    pass") == SyntaxType.CODE
+        assert detect_syntax("const x = 1;") == SyntaxType.CODE
 
     def test_freeform(self):
-        assert detect_grammar("just plain text") == GrammarType.FREEFORM
+        assert detect_syntax("just plain text") == SyntaxType.FREEFORM
 
 
-class TestJSONGrammar:
+class TestJSONSyntax:
     """Test JSON grammar validation and repair."""
 
     def test_valid_json(self):
@@ -71,7 +71,7 @@ class TestJSONGrammar:
         assert json.loads(repaired) == {"key": "value"}
 
 
-class TestMarkdownGrammar:
+class TestMarkdownSyntax:
     """Test markdown grammar validation and repair."""
 
     def test_valid_markdown(self):
@@ -98,7 +98,7 @@ class TestValidateAndRepair:
     def test_valid_content(self):
         is_valid, content, grammar = validate_and_repair('{"key": "value"}')
         assert is_valid
-        assert grammar == GrammarType.JSON
+        assert grammar == SyntaxType.JSON
 
     def test_invalid_json_auto_repair(self):
         is_valid, content, grammar = validate_and_repair('{"key": "value",}')
@@ -108,15 +108,15 @@ class TestValidateAndRepair:
     def test_freeform_always_valid(self):
         is_valid, content, grammar = validate_and_repair("plain text")
         assert is_valid
-        assert grammar == GrammarType.FREEFORM
+        assert grammar == SyntaxType.FREEFORM
 
 
-class TestGrammarCompressor:
+class TestSyntaxCompressor:
     """Test grammar-constrained compression."""
 
     def test_json_compression_valid(self):
-        config = GrammarCompressorConfig()
-        compressor = GrammarCompressor(config)
+        config = SyntaxCompressorConfig()
+        compressor = SyntaxCompressor(config)
 
         def lossy_compress(content):
             # Simulate a lossy compressor that might break JSON
@@ -128,23 +128,23 @@ class TestGrammarCompressor:
         )
         # Should be repaired
         assert was_valid
-        assert grammar == GrammarType.JSON
+        assert grammar == SyntaxType.JSON
         parsed = json.loads(compressed)
         assert "key" in parsed
 
     def test_compression_preserves_structure(self):
-        config = GrammarCompressorConfig()
-        compressor = GrammarCompressor(config)
+        config = SyntaxCompressorConfig()
+        compressor = SyntaxCompressor(config)
 
         original = "# Hello\n\nSome content"
         compressed, grammar, was_valid = compressor.compress(original)
         assert was_valid
-        assert grammar == GrammarType.MARKDOWN
+        assert grammar == SyntaxType.MARKDOWN
         assert "# Hello" in compressed
 
     def test_disabled_config(self):
-        config = GrammarCompressorConfig(enabled=False)
-        compressor = GrammarCompressor(config)
+        config = SyntaxCompressorConfig(enabled=False)
+        compressor = SyntaxCompressor(config)
         content = '{"key": "value",}'
         compressed, grammar, was_valid = compressor.compress(content)
         assert was_valid  # Not validated when disabled

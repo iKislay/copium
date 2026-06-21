@@ -1,6 +1,6 @@
 //! Integration tests for the OpenAI Responses SSE state machine.
 //!
-//! Wire-format quirks under test (per realignment guide §5.3):
+//! Wire-format quirks under test (per roadmap guide §5.3):
 //!
 //!   - Items are keyed by `item.id`, NOT by position. The spec permits
 //!     out-of-order completion: item B can complete before item A even

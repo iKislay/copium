@@ -56,7 +56,7 @@ Delete the Python FastAPI server, all handlers, the responses converter (already
 - `Dockerfile` — drop the Python proxy server stage; the Rust binary is the only proxy.
 - `docker-compose.yml` — same.
 - `RUST_DEV.md` — promote the Rust proxy from "Phase 1 transparent reverse proxy" to "the proxy."
-- All operator runbooks in `wiki/` and `docs/` — update to reference Rust binary.
+- All operator runbooks in `guides/` and `docs/` — update to reference Rust binary.
 
 **Tests deleted:**
 - `tests/test_proxy_*.py` — most of these (which test the Python proxy directly). Keep tests that exercise CLI wrappers, RTK, evals, learn, memory writers, tokenizers.
@@ -88,7 +88,7 @@ PR-H2.
 
 ### Notes
 
-- This is the largest single PR in the realignment. Coordinate with operations team.
+- This is the largest single PR in the roadmap. Coordinate with operations team.
 - Do NOT delete in one giant commit; split into a series of smaller commits within the PR (one per module deletion) for git-blame friendliness.
 
 ---
@@ -150,7 +150,7 @@ Sweep up everything orphaned by H1+H2: unused imports, dead test fixtures, stale
 
 **Modify:**
 - `README.md` — operator-facing docs reflect the Rust binary.
-- `wiki/` — refresh.
+- `guides/` — refresh.
 - `docs/` — refresh.
 - `RUST_DEV.md` — final form (renamed to `DEV.md` since there's no longer a Python/Rust split).
 - `copium/__init__.py` — drop unused module imports.

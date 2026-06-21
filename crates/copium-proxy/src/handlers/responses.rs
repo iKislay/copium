@@ -117,7 +117,7 @@ pub async fn handle_responses(
     // response-side tier (from `response.completed`) is captured by
     // the SSE state machine at stream-close; this counter increment
     // pairs them. Body is parsed best-effort; missing/non-JSON
-    // bodies do NOT fabricate a tier — per realignment build-
+    // bodies do NOT fabricate a tier — per roadmap build-
     // constraint "no silent fallbacks", we just skip the emit and
     // log at debug.
     //

@@ -5,7 +5,7 @@
 //! Phase H ("retire the Python proxy") depends on this metric to
 //! confirm parity between the Rust proxy and the soon-to-retire
 //! Python proxy during canary. The acceptance gate in
-//! `REALIGNMENT/10-phase-H-python-retirement.md:11-12` reads
+//! `ROADMAP/10-phase-H-python-retirement.md:11-12` reads
 //! `cache_hit_rate ≥ Python baseline; no 5xx regressions in 24h`.
 //! That assertion is meaningless without this histogram.
 //!
@@ -68,7 +68,7 @@ pub(super) const CACHE_HIT_RATE_BUCKETS: &[f64] =
 
 /// Provider label vocabulary. Kept here (rather than scattered
 /// across emit sites) so the cardinality budget is reviewable in one
-/// place per realignment build-constraint "configurable + scalable".
+/// place per roadmap build-constraint "configurable + scalable".
 pub mod provider {
     pub const ANTHROPIC: &str = "anthropic";
     pub const OPENAI_CHAT: &str = "openai_chat";
@@ -100,7 +100,7 @@ pub fn histogram(registry: &Registry) -> &'static HistogramVec {
 /// degenerate request such as an empty messages array), so callers
 /// can choose to skip the observation rather than divide-by-zero.
 ///
-/// Per realignment build-constraint "no silent fallbacks", a
+/// Per roadmap build-constraint "no silent fallbacks", a
 /// zero-denominator request is *NOT* coerced to `0.0`; it returns
 /// `None` so the emit-site can log + skip instead of polluting the
 /// histogram with synthesised samples.

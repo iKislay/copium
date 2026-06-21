@@ -129,4 +129,4 @@ PR-F1 (this PR) lands the helper. The rest of Phase F wires it into specific pol
 - **PR-F3:** TOIN per-tenant aggregation key includes `(auth_mode, model_family, structure_hash)`.
 - **PR-F4:** `X-Forwarded-*` skipped on Subscription mode.
 
-See `REALIGNMENT/08-phase-F-auth-mode.md` for the full phase plan.
+See `ROADMAP/08-phase-F-auth-mode.md` for the full phase plan.

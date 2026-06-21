@@ -270,5 +270,5 @@ cardinality unbounded.
 
 - `docs/rtk-architecture.md` — why RTK lives wrap-side, not proxy-side.
 - `crates/copium-proxy/src/observability/` — implementation.
-- `REALIGNMENT/09-phase-G-rtk-observability.md` — spec.
-- `REALIGNMENT/10-phase-H-python-retirement.md` — H1 acceptance gate.
+- `ROADMAP/09-phase-G-rtk-observability.md` — spec.
+- `ROADMAP/10-phase-H-python-retirement.md` — H1 acceptance gate.

@@ -32,8 +32,8 @@ from copium.proxy.auth_mode import AuthMode
 # (not the values — that would double-pin against drift in a way that
 # masks real divergence).
 #
-# Per the realignment build constraints (project memory
-# ``feedback_realignment_build_constraints.md``): "configurable / no
+# Per the roadmap build constraints (project memory
+# ``feedback_roadmap_build_constraints.md``): "configurable / no
 # hardcoded values". The configuration *is* the per-mode default — we
 # deliberately do NOT add a separate env var per field. Operators tune
 # by editing these constants and shipping a new build, mirroring the

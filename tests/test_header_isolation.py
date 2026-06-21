@@ -15,7 +15,7 @@ because they never depended on the local outbound-bound dict.
 
 Operator opt-in `COPIUM_STRIP_INTERNAL_HEADERS=disabled` keeps the
 internal headers in the upstream-bound dict for diagnostic shadow tracing.
-That mode is loud and explicit per realignment build constraint #4 — NOT
+That mode is loud and explicit per roadmap build constraint #4 — NOT
 a silent fallback.
 """
 

@@ -2,7 +2,7 @@
 //!
 //! Each test feeds a curated event stream through `SseFramer +
 //! AnthropicStreamState` and asserts the structured state matches what
-//! the Anthropic Messages spec (and the Copium realignment guide
+//! the Anthropic Messages spec (and the Copium roadmap guide
 //! §5.1) requires.
 //!
 //! These tests retire P1-8 (`thinking_delta`), P1-9 (`signature_delta`),

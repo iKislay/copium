@@ -17,7 +17,7 @@
 //! thread, no cron.
 //!
 //! All hot statements are prepared once on connection setup and reused
-//! per call (per realignment build constraint #5: performant). Writes
+//! per call (per roadmap build constraint #5: performant). Writes
 //! upsert by primary key so re-storing the same hash overwrites in
 //! place (matches in-memory and Redis backend semantics).
 //!

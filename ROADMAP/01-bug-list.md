@@ -243,7 +243,7 @@ These bugs collapse Anthropic prompt-cache hit rate toward 0% for any traffic th
 
 ### P3-36. No shared content-hash cache across customers (Phase 4)
 - **Evidence:** `CompressionCache` is per-session, per-worker.
-- **Status:** Out of scope for this realignment; queued for Phase 4 of the guide.
+- **Status:** Out of scope for this roadmap; queued for Phase 4 of the guide.
 
 ---
 

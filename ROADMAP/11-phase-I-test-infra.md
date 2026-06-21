@@ -1,6 +1,6 @@
 # Phase I — Test Infrastructure (Continuous, Parallel)
 
-**Goal:** Build the test/CI surface that makes the realignment safe to land and stays safe afterward. This phase runs **in parallel** with all other phases — its PRs land alongside the corresponding feature work.
+**Goal:** Build the test/CI surface that makes the roadmap safe to land and stays safe afterward. This phase runs **in parallel** with all other phases — its PRs land alongside the corresponding feature work.
 
 **Calendar:** Continuous. Each test PR pairs with the feature PR it gates.
 
@@ -382,4 +382,4 @@ After all 10 PRs land:
 
 **Phase I retires P6-63 through P6-72.**
 
-After Phase I, regressing the realignment requires actively breaking tests — the cache safety properties become continuously enforced.
+After Phase I, regressing the roadmap requires actively breaking tests — the cache safety properties become continuously enforced.

@@ -1,6 +1,6 @@
 //! OpenAI Chat Completions streaming state machine.
 //!
-//! Per OpenAI's streaming spec (and §5.2 of the Copium realignment
+//! Per OpenAI's streaming spec (and §5.2 of the Copium roadmap
 //! guide), a Chat Completions stream is a sequence of `data:` lines
 //! with no `event:` field. Each `data:` payload is a JSON `chunk`
 //! object whose shape mirrors the non-streaming response, except

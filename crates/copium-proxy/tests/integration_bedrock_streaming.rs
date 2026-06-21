@@ -6,7 +6,7 @@
 //! handler. The upstream is a wiremock server that serves
 //! `application/vnd.amazon.eventstream` bytes — no real AWS.
 //!
-//! Coverage matrix (per PR-D2 spec, REALIGNMENT/06-phase-D-bedrock-vertex.md):
+//! Coverage matrix (per PR-D2 spec, ROADMAP/06-phase-D-bedrock-vertex.md):
 //!
 //! 1. `eventstream_parses_correctly` — feed known-good binary bytes
 //!    to the parser; assert message boundaries, CRCs, and headers.
@@ -533,7 +533,7 @@ proptest! {
         ..ProptestConfig::default()
     })]
 
-    /// Per `feedback_realignment_build_constraints.md`, every parser
+    /// Per `feedback_roadmap_build_constraints.md`, every parser
     /// in the project must terminate without panic on arbitrary input.
     /// The proxy faces TCP, which can deliver any byte sequence
     /// (corruption, truncation, deliberate fuzzing). The test pushes

@@ -7,7 +7,7 @@ tools; a few are runnable as part of development workflows.
 
 `repro_codex_replay.py` reproduces the multi-agent Codex reconnect/retry storm
 against a local Copium proxy (default `http://127.0.0.1:8787`), as described
-in `wiki/plans/2026-04-17-codex-proxy-runtime-analysis.md` under "Latest
+in `guides/plans/2026-04-17-codex-proxy-runtime-analysis.md` under "Latest
 Correction". Use it to:
 
 - Regression-check that `/livez` stays responsive under a cold-start storm.

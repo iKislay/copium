@@ -1,6 +1,6 @@
 """Tests for PR-G2 — RTK ``tokens_saved`` data-plane wiring.
 
-Phase G of the Copium realignment retires the dead ``tokens_saved_rtk``
+Phase G of the Copium roadmap retires the dead ``tokens_saved_rtk``
 field by sourcing it from RTK's own stats endpoint (``rtk gain --format
 json`` via :func:`copium.proxy.helpers._get_rtk_stats`) and writing the
 per-call delta into ``CopiumContribution.tokens_saved_rtk``.

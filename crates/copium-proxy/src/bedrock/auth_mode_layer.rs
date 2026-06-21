@@ -22,7 +22,7 @@
 //!    unsigned), classify it, and if F1 returned `Payg` for it we
 //!    still force `OAuth` while emitting
 //!    `event = bedrock_auth_mode_unexpected` at WARN. Per the
-//!    realignment build constraint "no silent fallbacks", we
+//!    roadmap build constraint "no silent fallbacks", we
 //!    NEVER silently coerce — the divergence is loud.
 //! 3. Stores the resolved [`AuthMode`] in `request.extensions()`
 //!    so downstream handlers can read it without re-classifying.

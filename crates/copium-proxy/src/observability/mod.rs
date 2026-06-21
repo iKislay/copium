@@ -12,7 +12,7 @@
 //!
 //! - [`prometheus`] — registry construction (lazy via `OnceLock`),
 //!   Bedrock-scoped counters / histograms, and the `/metrics`
-//!   text-format scrape handler. Per the realignment build
+//!   text-format scrape handler. Per the roadmap build
 //!   constraint "elegant + scalable" we keep one module per
 //!   concern; future Phase F / Phase H additions (auth-mode
 //!   counters, OpenAI request totals) live alongside the

@@ -7,7 +7,7 @@
 //!
 //! # PR-A1 — Phase A lockdown
 //!
-//! Per `REALIGNMENT/03-phase-A-lockdown.md`, the `/v1/messages`
+//! Per `ROADMAP/03-phase-A-lockdown.md`, the `/v1/messages`
 //! endpoint is now a byte-faithful passthrough. The cache-safety
 //! invariant is asserted via SHA-256 byte equality between the
 //! bytes the client sent and the bytes the upstream received. JSON

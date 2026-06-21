@@ -1974,7 +1974,7 @@ class OpenAIHandlerMixin:
         # CCR Tool Injection: Inject retrieval tool if compression occurred
         # OR if this session has previously done CCR (PR-B7 sticky-on).
         # See `copium/proxy/handlers/anthropic.py` and PR-B7 plan
-        # `REALIGNMENT/04-phase-B-live-zone.md` for the rationale: once a
+        # `ROADMAP/04-phase-B-live-zone.md` for the rationale: once a
         # session has done CCR, the `copium_retrieve` tool stays
         # registered for every subsequent turn so the prompt cache
         # anchored on the previous turn's tool list never busts.
@@ -2026,7 +2026,7 @@ class OpenAIHandlerMixin:
         # PR-A3 follow-up to A2: memory context now routes exclusively to
         # the live-zone tail (latest user message), never via a system-level
         # prepend. The cache hot zone (system messages) is sacrosanct —
-        # invariant I2. See REALIGNMENT/03-phase-A-lockdown.md PR-A3.
+        # invariant I2. See ROADMAP/03-phase-A-lockdown.md PR-A3.
         memory_context_injected = False
         memory_tools_injected = False
         if memory_decision.inject:
@@ -2241,7 +2241,7 @@ class OpenAIHandlerMixin:
                     # we re-raise on CCR errors instead of swallowing
                     # them. The Anthropic version still swallows for
                     # legacy reasons; align it in a follow-up.
-                    # TODO(#realignment): align anthropic.py CCR block to
+                    # TODO(#roadmap): align anthropic.py CCR block to
                     # re-raise on exception so both providers fail loud.
                     if (
                         self.ccr_response_handler
@@ -2978,7 +2978,7 @@ class OpenAIHandlerMixin:
                 # Memory context now routes exclusively to the live-zone tail
                 # (latest non-frozen user item). Instructions are part of the
                 # cache hot zone and must never be mutated — invariant I2.
-                # See REALIGNMENT/03-phase-A-lockdown.md PR-A2.
+                # See ROADMAP/03-phase-A-lockdown.md PR-A2.
                 if self.memory_handler.config.inject_context:
                     try:
                         memory_context = await asyncio.wait_for(

@@ -42,7 +42,7 @@
 //! When we want to emit the unknown-warning log we still hold the
 //! `RawValue` alongside it — see [`ClassifiedItem`].
 //!
-//! Per `feedback_realignment_build_constraints.md`: the parser uses
+//! Per `feedback_roadmap_build_constraints.md`: the parser uses
 //! serde, not regex; the dispatcher honors per-content-type thresholds
 //! from `transforms::live_zone`; structured `tracing` logs name every
 //! decision.

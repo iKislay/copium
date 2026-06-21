@@ -1,7 +1,7 @@
 //! OpenAI Responses streaming state machine.
 //!
 //! Per OpenAI's Responses streaming spec (and §5.3 of the Copium
-//! realignment guide), the Responses stream uses **named events**
+//! roadmap guide), the Responses stream uses **named events**
 //! (an `event:` SSE line per event), unlike Chat Completions. Each
 //! event corresponds to a structured update on the response object.
 //!

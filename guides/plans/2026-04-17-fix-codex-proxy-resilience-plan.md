@@ -3,7 +3,7 @@ title: "fix: Codex proxy resilience under reconnect storms"
 type: fix
 status: active
 date: 2026-04-17
-origin: wiki/plans/2026-04-17-codex-proxy-runtime-analysis.md
+origin: guides/plans/2026-04-17-codex-proxy-runtime-analysis.md
 ---
 
 # fix: Codex proxy resilience under reconnect storms
@@ -34,7 +34,7 @@ Controlled reproductions ruled out the obvious single-factor causes (port, launc
 
 Without stage timings, active-task introspection, or session bookkeeping, the next iteration of debugging will again rely on `sample`, `lsof`, and guesswork. This plan fixes that first, then layers cold-start backpressure on top — in that order — so each subsequent bug hunt converges faster.
 
-(see origin: `wiki/plans/2026-04-17-codex-proxy-runtime-analysis.md`)
+(see origin: `guides/plans/2026-04-17-codex-proxy-runtime-analysis.md`)
 
 ## Requirements Trace
 
@@ -84,7 +84,7 @@ Without stage timings, active-task introspection, or session bookkeeping, the ne
 
 ### Institutional Learnings
 
-- `docs/solutions/` does not exist in this repo. The `wiki/plans/` folder holds design-style documents; no rolling solutions log to mine.
+- `docs/solutions/` does not exist in this repo. The `guides/plans/` folder holds design-style documents; no rolling solutions log to mine.
 - **Prior fork learning** (origin §"What Was Changed In The Fork"): keep compression on, retry upstream WS, normalize fallback body, wrap memory-context lookup in a timeout. These are invariants — Unit 2 and Unit 4 must not regress them.
 - **Prior rollback learning** (origin §"Rolled back locally"): latency-first skips of compression / memory injection were rolled back. Any new "fast path" must not recreate that shape.
 
@@ -103,7 +103,7 @@ None used for this plan. Python `asyncio` lock, `asyncio.Semaphore`, `asyncio.Ta
 - **Bounded pre-upstream concurrency on the Anthropic path, not on all paths.** The Codex WS path already serializes naturally (one client → one upstream WS). The Anthropic HTTP path is where replay storms arrive. Limiting concurrency only where the problem actually exists keeps the blast radius tight.
   - *Rationale:* origin §"Hypothesis 4" + §"Updated upstream patch focus" item 2.
 - **Debug endpoints are loopback-only, always.** No config flag, no auth header — a remote IP gets a 404, period. This sidesteps "did someone accidentally expose task state?" as a concern.
-- **Frontmatter, not freeform.** Unlike the existing `wiki/plans/` files this plan uses YAML frontmatter (`status: active`, `origin:`, etc.) to participate in the `ce:plan` deepening + search flow.
+- **Frontmatter, not freeform.** Unlike the existing `guides/plans/` files this plan uses YAML frontmatter (`status: active`, `origin:`, etc.) to participate in the `ce:plan` deepening + search flow.
 
 ## Open Questions
 
@@ -397,7 +397,7 @@ Decision matrix for "where does this request wait?":
 **Verification:**
 - Manual: from a remote IP, all three endpoints return 404.
 - Manual: during the Unit 6 harness, `/debug/tasks` shows relay tasks matching the expected count.
-- Documented in `wiki/proxy.md` under a new "Debug endpoints" subsection.
+- Documented in `guides/proxy.md` under a new "Debug endpoints" subsection.
 
 ---
 
@@ -439,7 +439,7 @@ Decision matrix for "where does this request wait?":
 
 **Verification:**
 - CI smoke test runs the script against a mock server on every PR.
-- `wiki/proxy.md` gets a "Reproducing the reconnect storm" subsection referencing the script.
+- `guides/proxy.md` gets a "Reproducing the reconnect storm" subsection referencing the script.
 
 ## System-Wide Impact
 
@@ -465,16 +465,16 @@ Decision matrix for "where does this request wait?":
 
 ## Documentation / Operational Notes
 
-- Add a "Debug endpoints" subsection to `wiki/proxy.md` covering the three new loopback-only routes, their output shape, and the loopback-only guarantee.
-- Add a "Reproducing the reconnect storm" subsection to `wiki/proxy.md` referencing `scripts/repro_codex_replay.py`.
-- Update `wiki/metrics.md` with the new histogram series names from Unit 2 and the new gauges from Unit 3.
+- Add a "Debug endpoints" subsection to `guides/proxy.md` covering the three new loopback-only routes, their output shape, and the loopback-only guarantee.
+- Add a "Reproducing the reconnect storm" subsection to `guides/proxy.md` referencing `scripts/repro_codex_replay.py`.
+- Update `guides/metrics.md` with the new histogram series names from Unit 2 and the new gauges from Unit 3.
 - Update `CHANGELOG.md` under an "Unreleased" heading with: (a) compression preserved — no behavioral change for existing Codex users; (b) new stage timings visible in logs; (c) new `COPIUM_ANTHROPIC_PRE_UPSTREAM_CONCURRENCY` env var; (d) new `/debug/*` loopback endpoints.
 - **Rollout note:** deploy behind the existing launchd flow; monitor `/metrics` for the new histograms; monitor logs for `pre_upstream_wait_ms` — sustained non-zero values across many requests mean the Unit 4 default is too tight for this machine's load profile.
 - **Rollback note:** each unit is cherry-pickable. If Unit 4 causes regression, revert only Unit 4 (semaphore removal); Units 1–3 and 5–6 have no user-visible behavior change.
 
 ## Sources & References
 
-- **Origin document:** `wiki/plans/2026-04-17-codex-proxy-runtime-analysis.md`
+- **Origin document:** `guides/plans/2026-04-17-codex-proxy-runtime-analysis.md`
 - Related code:
   - `copium/proxy/handlers/openai.py` — `handle_openai_responses_ws`, `_client_to_upstream`, `_upstream_to_client`, `_ws_http_fallback`
   - `copium/proxy/handlers/anthropic.py` — `handle_anthropic_messages`

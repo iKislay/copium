@@ -8,7 +8,7 @@
 //! requests are routed to the mock instead of real AWS — no live
 //! AWS dependency.
 //!
-//! Coverage matrix (per PR-D1 spec, REALIGNMENT/06-phase-D-bedrock-vertex.md):
+//! Coverage matrix (per PR-D1 spec, ROADMAP/06-phase-D-bedrock-vertex.md):
 //!
 //! 1. `native_envelope_round_trip_byte_equal` — small body,
 //!    compression-mode off; bytes round-trip byte-equal upstream.

@@ -318,5 +318,5 @@ impl LossyTransform for KompressCompressor { ... }
 - Does NOT compress on `/v1/responses/compact` or `/v1/conversations` (different shapes; passthrough only).
 - Does NOT rewrite request headers except to strip `x-copium-*` from upstream-bound headers and add conditional `X-Forwarded-*` (PAYG/OAuth only).
 - Does NOT add `User-Agent` headers. The customer's UA passes through verbatim.
-- Does NOT compress images, base64 blobs, or audio (out of scope for this realignment).
+- Does NOT compress images, base64 blobs, or audio (out of scope for this roadmap).
 - Does NOT modify `tool_use.input` JSON key order, `tool_calls.function.arguments` string contents, `phase` field, V4A patches, `local_shell_call.action.command` argv arrays, or any encrypted/redacted/compaction content.
