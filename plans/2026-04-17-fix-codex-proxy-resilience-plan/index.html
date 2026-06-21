@@ -1,0 +1,2770 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="The Context Optimization Layer for LLM Applications — compress everything your AI agent reads.">
+      
+      
+      
+        <link rel="canonical" href="https://chopratejas.github.io/copium/plans/2026-04-17-fix-codex-proxy-resilience-plan/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>fix: Codex proxy resilience under reconnect storms - Copium</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#fix-codex-proxy-resilience-under-reconnect-storms" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Copium" class="md-header__button md-logo" aria-label="Copium" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12 18.54 7.37-5.74L21 14.07l-9 7-9-7 1.62-1.26zM12 16 3 9l9-7 9 7zm0-11.47L6.26 9 12 13.47 17.74 9z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Copium
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              fix: Codex proxy resilience under reconnect storms
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="amber"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="amber"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/iKislay/copium" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    iKislay/copium
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../quickstart/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../proxy/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../integration-guide/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Integrations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../ARCHITECTURE/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  How It Works
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../benchmarks/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Benchmarks
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../cli/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../macos-deployment/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Deployment
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Copium" class="md-nav__button md-logo" aria-label="Copium" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12 18.54 7.37-5.74L21 14.07l-9 7-9-7 1.62-1.26zM12 16 3 9l9-7 9 7zm0-11.47L6.26 9 12 13.47 17.74 9z"/></svg>
+
+    </a>
+    Copium
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/iKislay/copium" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    iKislay/copium
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker-install/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker-Native Install
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../persistent-installs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Persistent Installs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../proxy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Proxy Server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../compression/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compression Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ccr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CCR (Lossless Retrieval)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../image-compression/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Compression
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Memory System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../shared-context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shared Context
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../learn/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Failure Learning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integration-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vertex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vertex AI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../langchain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../agno/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agno
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../strands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Strands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How It Works
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How It Works
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transforms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transforms Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../text-compression/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Text Compression
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../llmlingua.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLMLingua
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Benchmarks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Accuracy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../LATENCY_BENCHMARKS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Latency
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../LIMITATIONS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Limitations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../sdk/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SDK
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../network-diff-capture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Differential Network Capture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metrics & Observability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Deployment
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../macos-deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    macOS LaunchAgent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#problem-frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem Frame
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requirements-trace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements Trace
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scope-boundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope Boundaries
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scope Boundaries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deferred-to-separate-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deferred to Separate Tasks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#context-research" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context &amp; Research
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Context &amp; Research">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#relevant-code-and-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Relevant Code and Patterns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#institutional-learnings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Institutional Learnings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#external-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        External References
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-technical-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Technical Decisions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#open-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Open Questions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Open Questions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#resolved-during-planning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resolved During Planning
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deferred-to-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deferred to Implementation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#high-level-technical-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        High-Level Technical Design
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-units" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation Units
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#system-wide-impact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System-Wide Impact
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#risks-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Risks &amp; Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-operational-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation / Operational Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sources-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sources &amp; References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="fix-codex-proxy-resilience-under-reconnect-storms">fix: Codex proxy resilience under reconnect storms<a class="headerlink" href="#fix-codex-proxy-resilience-under-reconnect-storms" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>Harden the shared Copium proxy so it can survive real multi-agent Codex traffic — especially the <strong>large Anthropic <code>/v1/messages?beta=true</code> reconnect/retry storm</strong> that hits the proxy immediately after a restart — without appearing dead (<code>/livez</code> timing out, new <code>/v1/responses</code> websocket handshakes hanging) and without bypassing compression.</p>
+<p>This is the follow-on work to the runtime analysis captured in the origin document. The previous branch (<code>fix/responses-retries-keep-compression</code>) fixed the upstream WS handshake/fallback issues and kept compression enabled. This plan addresses the <strong>remaining long-lived runtime degradation</strong> described in §4 of the origin ("Long-lived service degradation on <code>8787</code>").</p>
+<p>The plan deliberately focuses on <strong>observability + lifecycle hygiene + cold-start backpressure</strong>, not more blind patching. Compression stays enabled throughout.</p>
+<h2 id="problem-frame">Problem Frame<a class="headerlink" href="#problem-frame" title="Permanent link">&para;</a></h2>
+<p>Aged <code>8787</code> processes enter a state where:</p>
+<ul>
+<li>new <code>GET /livez</code> requests time out</li>
+<li>new <code>/v1/responses</code> opening handshakes time out</li>
+<li>existing established streams continue working</li>
+<li>the process is alive, listens on the port, and sampling shows heavy ONNX thread activity</li>
+</ul>
+<p>Controlled reproductions ruled out the obvious single-factor causes (port, launchd, memory alone, idle socket count, compression-preserving changes, cold Kompress load). The surviving hypotheses (§"What Is Still Plausible" in origin) converge on:</p>
+<ol>
+<li><strong>Long-lived real traffic leaves stuck websocket relay tasks / lifecycle bookkeeping leaks</strong> (H1)</li>
+<li><strong>Real Codex traffic, not synthetic traffic, triggers slow hidden work</strong> (H2)</li>
+<li><strong>ONNX/memory amplifies but does not solely cause the failure</strong> (H3)</li>
+<li><strong>Shared-proxy reconnect/retry storms after restart drive the proxy into this state</strong> (H4 — confirmed by the "Latest Correction" in origin)</li>
+</ol>
+<p>Without stage timings, active-task introspection, or session bookkeeping, the next iteration of debugging will again rely on <code>sample</code>, <code>lsof</code>, and guesswork. This plan fixes that first, then layers cold-start backpressure on top — in that order — so each subsequent bug hunt converges faster.</p>
+<p>(see origin: <code>guides/plans/2026-04-17-codex-proxy-runtime-analysis.md</code>)</p>
+<h2 id="requirements-trace">Requirements Trace<a class="headerlink" href="#requirements-trace" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>R1.</strong> <code>/livez</code> remains responsive during and immediately after a restart that triggers large Anthropic replay traffic from active agent sessions. (origin §"Latest Correction", §"Updated upstream patch focus" item 4)</li>
+<li><strong>R2.</strong> Cold-start heavy assets (Kompress ONNX, memory embedder, tokenizers, tree-sitter parsers) are loaded once at startup and <em>shared</em> between all provider pipelines; concurrent first-use callers wait on a single future, not N parallel loads. (origin §"Updated upstream patch focus" item 1)</li>
+<li><strong>R3.</strong> The proxy provides enough runtime observability to prove — with data, not guesses — whether a future degradation is WS lifecycle starvation, memory/embedder contention, replay-storm amplification, or something else. (origin §"Priority 1: add instrumentation, not more blind patching")</li>
+<li><strong>R4.</strong> Codex websocket relay tasks are explicitly tracked and deterministically cancelled when either side of the relay exits; a leaked relay task cannot hold the process alive past the client's disconnect. (origin §"Code Paths Most Relevant To The Remaining Bug" item 3; H1)</li>
+<li><strong>R5.</strong> Cold-start compression + memory-context work on the Anthropic path is <strong>bounded in concurrency</strong> so that N simultaneous large replay requests cannot monopolize the event loop and thread pool. Compression stays enabled. (origin §"Updated upstream patch focus" item 2)</li>
+<li><strong>R6.</strong> A reproducible harness exists for the real-agent reconnect/retry scenario so regressions can be caught locally instead of only in production. (origin §"Priority 2: reproduce degradation with real Codex traffic on a fresh process")</li>
+<li><strong>R7.</strong> Existing fork behavior is preserved: compression is not bypassed on WS/streaming; upstream WS retry/open-timeout hardening is kept; WS→HTTP fallback normalization is kept; memory-context fail-open timeout is kept. (origin §"What Was Changed In The Fork", §"Kept locally")</li>
+</ul>
+<h2 id="scope-boundaries">Scope Boundaries<a class="headerlink" href="#scope-boundaries" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Not</strong> re-introducing any "skip compression" fast paths. Compression-preserving direction is non-negotiable.</li>
+<li><strong>Not</strong> re-litigating the launchd setup bug (already fixed upstream in dotfiles; out of this repo).</li>
+<li><strong>Not</strong> redesigning the memory stack, embedder choice, or Kompress model. Those are upstream concerns.</li>
+<li><strong>Not</strong> building a full distributed tracing system. The instrumentation added here is structured logs + in-process counters; OpenTelemetry hookup is a separate plan.</li>
+<li><strong>Not</strong> changing the WS→HTTP fallback semantics beyond what's needed to plumb through the new request-id/session-id logging fields.</li>
+<li><strong>Not</strong> modifying <code>copium-ai[ml]</code> dependencies, HuggingFace model IDs, or the embedder's own backend.</li>
+</ul>
+<h3 id="deferred-to-separate-tasks">Deferred to Separate Tasks<a class="headerlink" href="#deferred-to-separate-tasks" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>OpenTelemetry / metrics exporter wiring</strong>: the counters added here expose <code>prometheus_metrics</code> entries; OTLP export belongs in a follow-up.</li>
+<li><strong>External watchdog in the LaunchAgent</strong>: a plist-level <code>WatchPaths</code>/<code>ThrottleInterval</code> revision belongs in the <code>.dotfiles</code> repo (see origin §"Important External Files"), not here. This plan only adds the in-process signal the watchdog would consume (§Unit 5).</li>
+<li><strong>Quantifying multi-agent reconnect budget</strong>: tuning the <code>Unit 4</code> semaphore default via load testing is work for after merge.</li>
+<li><strong>Dedicated Codex WS-side cap</strong>: <code>/v1/responses</code> remains intentionally ungated by the Anthropic HTTP semaphore. The current plan surfaces <code>active_relay_tasks</code> on <code>/readyz</code> so operators can see WS pressure early; add a separate WS-side cap only if those counters show the threat model has shifted.</li>
+</ul>
+<h2 id="context-research">Context &amp; Research<a class="headerlink" href="#context-research" title="Permanent link">&para;</a></h2>
+<h3 id="relevant-code-and-patterns">Relevant Code and Patterns<a class="headerlink" href="#relevant-code-and-patterns" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>copium/proxy/handlers/openai.py:1206</code> — <code>handle_openai_responses_ws</code> (Codex WS entry point, 600+ lines)</li>
+<li><code>copium/proxy/handlers/openai.py:1559-1767</code> — upstream WS connect retry loop, <code>open_timeout</code> handling</li>
+<li><code>copium/proxy/handlers/openai.py:1815</code> — <code>_ws_http_fallback</code> (preserved as-is)</li>
+<li><code>copium/proxy/handlers/openai.py:1439-1452</code> — memory context timeout fail-open (preserved as-is)</li>
+<li><code>copium/proxy/handlers/anthropic.py:293</code> — <code>handle_anthropic_messages</code> (HTTP entry point, also covers the <code>?beta=true</code> replay traffic)</li>
+<li><code>copium/proxy/server.py:586-733</code> — <code>CopiumProxy.startup</code> (where eager preload runs)</li>
+<li><code>copium/proxy/server.py:634-637</code> — current eager preload iterates <strong>only</strong> <code>anthropic_pipeline.transforms</code> and breaks on first match</li>
+<li><code>copium/proxy/server.py:301-308</code> — both pipelines currently share the same <code>transforms</code> list (so the module-level <code>_kompress_cache</code> is de facto shared, but this is fragile)</li>
+<li><code>copium/proxy/server.py:1190-1212</code> — <code>/livez</code>, <code>/readyz</code>, <code>/health</code> handlers (trivial JSON, no I/O)</li>
+<li><code>copium/proxy/memory_handler.py:134-207</code> — <code>MemoryHandler._ensure_initialized</code> (lazy, no <code>asyncio.Lock</code>)</li>
+<li><code>copium/transforms/content_router.py:1221-1297</code> — <code>eager_load_compressors</code> (Kompress + Magika + Code-Aware + SmartCrusher)</li>
+<li><code>copium/transforms/kompress_compressor.py:163-221</code> — <code>_load_kompress_onnx</code> / <code>_load_kompress</code> with module-level <code>_kompress_cache</code> + <code>threading.Lock</code></li>
+<li><code>copium/proxy/request_logger.py</code> — existing structured request log sink (extend, don't replace)</li>
+<li><code>copium/proxy/prometheus_metrics.py</code> — existing <code>PrometheusMetrics</code> class; add counters/gauges here</li>
+<li><code>copium/proxy/helpers.py:138-207</code> — <code>_read_request_json</code> (pre-upstream work on Anthropic path)</li>
+</ul>
+<h3 id="institutional-learnings">Institutional Learnings<a class="headerlink" href="#institutional-learnings" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>docs/solutions/</code> does not exist in this repo. The <code>guides/plans/</code> folder holds design-style documents; no rolling solutions log to mine.</li>
+<li><strong>Prior fork learning</strong> (origin §"What Was Changed In The Fork"): keep compression on, retry upstream WS, normalize fallback body, wrap memory-context lookup in a timeout. These are invariants — Unit 2 and Unit 4 must not regress them.</li>
+<li><strong>Prior rollback learning</strong> (origin §"Rolled back locally"): latency-first skips of compression / memory injection were rolled back. Any new "fast path" must not recreate that shape.</li>
+</ul>
+<h3 id="external-references">External References<a class="headerlink" href="#external-references" title="Permanent link">&para;</a></h3>
+<p>None used for this plan. Python <code>asyncio</code> lock, <code>asyncio.Semaphore</code>, <code>asyncio.Task</code>, and <code>asyncio.all_tasks()</code> semantics are sufficient; no framework-specific research needed. External research was intentionally skipped (§1.2: strong local patterns, team knows the area).</p>
+<h2 id="key-technical-decisions">Key Technical Decisions<a class="headerlink" href="#key-technical-decisions" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Observe before mitigating.</strong> Units 2 and 3 (instrumentation + lifecycle accounting) land before Unit 4 (backpressure) so the backpressure defaults can be tuned from real data instead of guessed. The origin explicitly calls this out as Priority 1.</li>
+<li><em>Rationale:</em> the last round of patches was driven by symptoms; the next one should be driven by timings.</li>
+<li><strong>Share cold-start state across pipelines explicitly, not by accident.</strong> Currently both <code>TransformPipeline</code> instances share the same <code>transforms</code> list by coincidence of construction (<code>server.py:301-308</code>). Unit 1 moves the preload out of "first matching transform on the Anthropic pipeline" into a startup-level orchestration step that holds references it can reuse across both pipelines, and adds a single <code>asyncio.Lock</code> around first-use paths so concurrent requests land on the same future.</li>
+<li><em>Rationale:</em> origin §"Updated upstream patch focus" item 1: "make eager preload and request-time use share the same in-process singleton/cache".</li>
+<li><strong>Track WS sessions in a registry, not via ad-hoc <code>logger.info</code>.</strong> A <code>WebSocketSessionRegistry</code> makes active-count a first-class observable and lets <code>/debug/ws-sessions</code> return something useful.</li>
+<li><strong>Explicit relay-task cancellation</strong> replaces <code>asyncio.gather(..., return_exceptions=True)</code> for the two relay halves. When one side exits, the other is cancelled deterministically — no wait on TCP timeout, no task leak (addresses H1).</li>
+<li><strong>Bounded pre-upstream concurrency on the Anthropic path, not on all paths.</strong> The Codex WS path already serializes naturally (one client → one upstream WS). The Anthropic HTTP path is where replay storms arrive. Limiting concurrency only where the problem actually exists keeps the blast radius tight.</li>
+<li><em>Rationale:</em> origin §"Hypothesis 4" + §"Updated upstream patch focus" item 2.</li>
+<li><strong>Debug endpoints are loopback-only, always.</strong> No config flag, no auth header — a remote IP gets a 404, period. This sidesteps "did someone accidentally expose task state?" as a concern.</li>
+<li><strong>Frontmatter, not freeform.</strong> Unlike the existing <code>guides/plans/</code> files this plan uses YAML frontmatter (<code>status: active</code>, <code>origin:</code>, etc.) to participate in the <code>ce:plan</code> deepening + search flow.</li>
+</ul>
+<h2 id="open-questions">Open Questions<a class="headerlink" href="#open-questions" title="Permanent link">&para;</a></h2>
+<h3 id="resolved-during-planning">Resolved During Planning<a class="headerlink" href="#resolved-during-planning" title="Permanent link">&para;</a></h3>
+<ul>
+<li><em>Q: Target upstream or the fork?</em> Resolved: target the fork (<code>fix/responses-retries-keep-compression</code>), structured so each unit is cherry-pickable into a PR against <code>iKislay/copium#172</code>.</li>
+<li><em>Q: Should Unit 5's debug endpoints require an explicit flag to enable?</em> Resolved: <strong>no</strong> — loopback-only gating is sufficient and the debug data is useless if it isn't always available when the process is struggling.</li>
+<li><em>Q: Does <code>MemoryHandler._ensure_initialized</code> already have a concurrency guard?</em> Resolved: <strong>no</strong>. It relies on <code>self._initialized = True</code> flip, which is not atomic across <code>await</code> points. Unit 1 adds an <code>asyncio.Lock</code>.</li>
+<li><em>Q: Are the WS relay tasks already cancelled on partner exit?</em> Resolved: <strong>no</strong>. <code>asyncio.gather(return_exceptions=True)</code> waits for both; the survivor only exits when its own loop raises. Unit 3 fixes this.</li>
+<li><em>Q: Is the existing Kompress singleflight sufficient?</em> Resolved: partially. The <code>threading.Lock</code> serializes same-model-id loads, but holds during <code>hf_hub_download</code> (network I/O). Unit 1 supplements with an <code>asyncio.Lock</code> at the request-handler layer so async callers don't each spawn the thread-pool job.</li>
+</ul>
+<h3 id="deferred-to-implementation">Deferred to Implementation<a class="headerlink" href="#deferred-to-implementation" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Exact default for the Anthropic pre-upstream semaphore.</strong> Start at <code>max(2, min(8, os.cpu_count()))</code> and expose via <code>--anthropic-pre-upstream-concurrency</code> / <code>COPIUM_ANTHROPIC_PRE_UPSTREAM_CONCURRENCY</code>. Tune after Unit 2's stage timings land.</li>
+<li><strong>Which asyncio task names are "long-lived" thresholds</strong> for Unit 5's dump. Likely <code>&gt; 2× median lifetime</code>, but the median is only observable after Unit 2 runs in production.</li>
+<li><strong>Whether the repro harness (Unit 6) needs to speak realistic Codex subprotocol framing or can synthesize enough with recorded frames.</strong> Depends on how faithfully <code>tests/test_openai_codex_routing.py</code> fixtures already capture the handshake.</li>
+<li><strong>Final placement of <code>WebSocketSessionRegistry</code></strong>: <code>copium/proxy/ws_session_registry.py</code> as a new module, or folded into <code>copium/proxy/server.py</code>. Likely new module; confirm during implementation once imports are real.</li>
+</ul>
+<h2 id="high-level-technical-design">High-Level Technical Design<a class="headerlink" href="#high-level-technical-design" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><em>This illustrates the intended approach and is directional guidance for review, not implementation specification. The implementing agent should treat it as context, not code to reproduce.</em></p>
+</blockquote>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>                    ┌───────────────────────────────────────────────────────┐
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>                    │                   CopiumProxy.startup                │
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>                    │                                                        │
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>                    │   Unit 1: shared_warmup()                              │
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>                    │     • eager-load on both pipelines (not just first)    │
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>                    │     • Kompress, Magika, Code-Aware, SmartCrusher        │
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                    │     • memory backend + embedder                         │
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>                    │     • populates WarmupRegistry singletons               │
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>                    └───────────────┬────────────────────┬──────────────────┘
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>                                    │                    │
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>                                    ▼                    ▼
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>              ┌─────────────────────────────┐   ┌─────────────────────────────┐
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>              │   Codex WS path             │   │   Anthropic HTTP path       │
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>              │   /v1/responses             │   │   /v1/messages?beta=true    │
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>              │                             │   │                             │
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>              │ Unit 3: session registry    │   │ Unit 4: pre-upstream        │
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>              │   • register on accept      │   │         Semaphore(N)        │
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>              │   • cancel partner on exit  │   │   • guards _read_request    │
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>              │   • deregister in finally   │   │   • deep-copy                │
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>              │                             │   │   • first compression stage │
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>              │ Unit 2: stage timings       │   │   • memory-context lookup   │
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>              │   accept → first_frame      │   │                             │
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>              │   → upstream_connect        │   │ Unit 2: stage timings       │
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>              │   → upstream_first_event    │   │   read_json → deep_copy →   │
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>              │   → total_session_ms        │   │   compress → memory →       │
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>              └─────────────────────────────┘   │   upstream_first_byte       │
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>                                                └─────────────────────────────┘
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>                                    │                    │
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>                                    └────────┬───────────┘
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>                                             ▼
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>                      ┌─────────────────────────────────────────┐
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>                      │   Unit 5: /debug/* (loopback-only)       │
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>                      │     • /debug/tasks                        │
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>                      │     • /debug/ws-sessions                  │
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>                      │     • /debug/warmup                       │
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>                      └─────────────────────────────────────────┘
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>                                             │
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>                                             ▼
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>                      ┌─────────────────────────────────────────┐
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>                      │   Unit 6: scripts/repro_codex_replay.py  │
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>                      │     • spawn N concurrent Codex WS         │
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>                      │     • fire Anthropic replay-shaped POSTs  │
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>                      │     • assert /livez stays &lt; 100ms          │
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>                      └─────────────────────────────────────────┘
+</span></code></pre></div>
+<p>Decision matrix for "where does this request wait?":</p>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Pre-upstream gate</th>
+<th>Relay lifecycle gate</th>
+<th>Memory lookup timeout</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/v1/responses</code> (Codex WS)</td>
+<td><em>(none — natural 1:1)</em></td>
+<td><code>WSSessionRegistry</code></td>
+<td>existing <code>wait_for</code></td>
+</tr>
+<tr>
+<td><code>/v1/messages</code> (Anthropic)</td>
+<td><code>Semaphore(N)</code> (new)</td>
+<td><em>(HTTP-single-shot)</em></td>
+<td>existing <code>wait_for</code></td>
+</tr>
+<tr>
+<td><code>/v1/chat/completions</code> (OpenAI)</td>
+<td><em>(unchanged)</em></td>
+<td><em>(unchanged)</em></td>
+<td><em>(unchanged)</em></td>
+</tr>
+<tr>
+<td><code>/livez</code>, <code>/readyz</code></td>
+<td><em>(none — must be free)</em></td>
+<td><em>(n/a)</em></td>
+<td><em>(n/a)</em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="implementation-units">Implementation Units<a class="headerlink" href="#implementation-units" title="Permanent link">&para;</a></h2>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Unit 1: Shared cold-start warmup + async singleflight for memory init</strong></li>
+</ul>
+<p><strong>Goal:</strong> Make preload truthful and shared across all provider pipelines; ensure the first wave of concurrent requests after restart never kick duplicate expensive loads.</p>
+<p><strong>Requirements:</strong> R2, R7</p>
+<p><strong>Dependencies:</strong> None (pure startup change; no other unit depends on this landing first, but landing it first reduces noise in Unit 2's timings)</p>
+<p><strong>Files:</strong>
+- Modify: <code>copium/proxy/server.py</code> (startup orchestration around lines 627-675)
+- Modify: <code>copium/proxy/memory_handler.py</code> (add <code>asyncio.Lock</code> in <code>_ensure_initialized</code>)
+- Modify: <code>copium/transforms/content_router.py</code> (no behavior change — ensure <code>eager_load_compressors</code> is idempotent when called via both pipelines)
+- Create: <code>copium/proxy/warmup.py</code> (new <code>WarmupRegistry</code> holding preloaded handles)
+- Test: <code>tests/test_proxy_warmup.py</code> (new)
+- Test: <code>tests/test_memory_handler_concurrent_init.py</code> (new)</p>
+<p><strong>Approach:</strong>
+- Introduce <code>WarmupRegistry</code> with typed slots for kompress, magika, code-aware, smart-crusher, memory-embedder, memory-backend. Populate during <code>CopiumProxy.startup</code>, expose via <code>proxy.warmup</code> for <code>/debug/warmup</code> (Unit 5) and <code>/readyz</code>.
+- Iterate <strong>both</strong> <code>self.anthropic_pipeline.transforms</code> and <code>self.openai_pipeline.transforms</code> when calling <code>eager_load_compressors</code>; dedupe by <code>id(transform)</code> so shared transforms don't double-load.
+- Preload the memory embedder explicitly — today <code>ensure_initialized</code> initializes the backend but the embedder's first-use cost may still be deferred until the first <code>search_and_format_context</code>. Force one warm-up encode (a single short string) to pre-compile the ONNX graph.
+- Add <code>asyncio.Lock</code> in <code>MemoryHandler._ensure_initialized</code> so concurrent first callers await one load, not N.
+- Replace the "break after first matching transform" loop with explicit orchestration. Log whether the warmup was a no-op (already loaded) vs. a fresh load.</p>
+<p><strong>Patterns to follow:</strong>
+- Existing <code>eager_status</code> dict shape in <code>server.py:630-666</code>.
+- <code>threading.Lock</code> module-level pattern in <code>kompress_compressor.py</code> (for the sync side); supplement with <code>asyncio.Lock</code> in memory_handler (async side).
+- <code>request_logger</code>'s structured-log pattern for startup events.</p>
+<p><strong>Test scenarios:</strong>
+- Happy path: starting the proxy with <code>optimize=True</code> logs one preload event per component and <code>WarmupRegistry</code> reports all slots loaded.
+- Happy path: starting with <code>optimize=False</code> populates <code>WarmupRegistry</code> on first request instead (lazy path still works).
+- Edge case: <code>optimize=True</code> with <code>enable_kompress=False</code> — <code>WarmupRegistry.kompress</code> is <code>None</code>, no error logged.
+- Edge case: both pipelines share the same router transform — <code>eager_load_compressors</code> runs once, not twice.
+- Integration: <code>MemoryHandler._ensure_initialized</code> called 10 concurrent times from different tasks — only one backend init runs (assert via counter on <code>LocalBackend.__init__</code> hit count).
+- Integration: embedder warm-up encode is issued at startup — verify via mock that <code>embed_text("warmup")</code> (or equivalent) was called once during startup, not lazily on first request.
+- Error path: memory backend init raises — startup still completes, <code>WarmupRegistry.memory_backend</code> is <code>None</code>, health reports degraded memory.</p>
+<p><strong>Verification:</strong>
+- Startup logs show each component preloaded exactly once, with timings.
+- <code>/readyz</code> reports all configured subsystems as <code>initialized=true</code> before accepting traffic.
+- Concurrent first-request simulation (<code>asyncio.gather</code> 20 requests) triggers only one Kompress load in logs.</p>
+<hr />
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Unit 2: Stage-timing instrumentation on Codex WS and Anthropic HTTP paths</strong></li>
+</ul>
+<p><strong>Goal:</strong> Emit structured per-request timings for every stage that plausibly contributes to cold-start or degradation latency, so the next debugging session starts from data.</p>
+<p><strong>Requirements:</strong> R3</p>
+<p><strong>Dependencies:</strong> None (independent), but landing alongside Unit 1 gives early visibility into whether warmup actually helped.</p>
+<p><strong>Files:</strong>
+- Modify: <code>copium/proxy/handlers/openai.py</code> (WS path at lines 1206+; HTTP path at 798+)
+- Modify: <code>copium/proxy/handlers/anthropic.py</code> (<code>handle_anthropic_messages</code> around line 293 and downstream)
+- Modify: <code>copium/proxy/request_logger.py</code> (extend schema)
+- Modify: <code>copium/proxy/prometheus_metrics.py</code> (add histograms per stage)
+- Modify: <code>copium/proxy/helpers.py</code> (thread <code>stage_timer</code> through <code>_read_request_json</code> / compression helpers)
+- Create: <code>copium/proxy/stage_timer.py</code> (small context-manager util)
+- Test: <code>tests/test_stage_timer.py</code> (new)
+- Test: <code>tests/test_openai_codex_ws_timings.py</code> (new)
+- Test: <code>tests/test_anthropic_stage_timings.py</code> (new)</p>
+<p><strong>Approach:</strong>
+- Add a <code>StageTimer</code> context manager with <code>stage_timer.measure("memory_context")</code> support; emits structured log on exit. Unified across handlers.
+- For Codex WS: instrument <code>accept</code>, <code>first_client_frame</code>, <code>upstream_connect</code>, <code>upstream_first_event</code>, <code>memory_context</code>, <code>compression</code>, <code>total_session</code>. Log on session close with all fields.
+- For Anthropic HTTP: instrument <code>read_request_json</code>, <code>deep_copy</code>, <code>compression_first_stage</code>, <code>memory_context</code>, <code>upstream_connect</code>, <code>upstream_first_byte</code>, <code>total_pre_upstream</code>. Log after first upstream byte arrives.
+- Also export each stage as a Prometheus histogram — the existing <code>PrometheusMetrics</code> class has the right pattern; mirror it.
+- <code>request_id</code> is already threaded through both handlers. Add a <code>session_id</code> (UUID generated at WS accept / HTTP request start) so multi-turn sessions are correlatable.</p>
+<p><strong>Execution note:</strong> Land the util + test (<code>StageTimer</code>) first; only then plumb it through the two handlers. Keeps the diff reviewable.</p>
+<p><strong>Patterns to follow:</strong>
+- <code>copium/proxy/request_logger.py</code> structured-field schema.
+- <code>PrometheusMetrics.record_request</code> histogram pattern.
+- Existing <code>request_id = await self._next_request_id()</code> at <code>openai.py:1232</code>.</p>
+<p><strong>Test scenarios:</strong>
+- Happy path: a full Codex WS session (accept → response.completed) emits one structured log line with all 7 stage fields populated and a positive <code>total_session</code> &gt; 0.
+- Happy path: a full Anthropic HTTP request emits one log line with all pre-upstream stage fields populated.
+- Edge case: a session that exits during upstream connect (no <code>first_event</code>) logs <code>upstream_first_event=null</code> without raising.
+- Edge case: <code>request_id</code> and <code>session_id</code> appear together on every log line.
+- Error path: a timeout in <code>memory_context</code> logs <code>memory_context</code> duration = the timeout value, not <code>null</code> (prove the timer captures the failure window).
+- Integration: Prometheus histograms emit non-zero observations after a real request round-trip.</p>
+<p><strong>Verification:</strong>
+- Every <code>/v1/responses</code> WS session and every <code>/v1/messages</code> request produces exactly one timing log line.
+- <code>/metrics</code> endpoint shows the new histogram series.
+- No existing tests regress; the request_logger schema additions are backward-compatible (new fields only).</p>
+<hr />
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <strong>Unit 3: WebSocket session registry + deterministic relay-task cancellation</strong></li>
+</ul>
+<p><strong>Goal:</strong> Eliminate the "aged process has leaked relay tasks" hypothesis by making every WS session explicitly tracked and both relay tasks deterministically cancelled when either exits.</p>
+<p><strong>Requirements:</strong> R4</p>
+<p><strong>Dependencies:</strong> Unit 2 (uses the same <code>session_id</code>)</p>
+<p><strong>Files:</strong>
+- Create: <code>copium/proxy/ws_session_registry.py</code> (new)
+- Modify: <code>copium/proxy/handlers/openai.py</code> (<code>handle_openai_responses_ws</code> at 1206; relay task construction around 1559-1767; <code>_upstream_to_client</code> at 1565)
+- Modify: <code>copium/proxy/prometheus_metrics.py</code> (add <code>active_ws_sessions</code> gauge, <code>active_relay_tasks</code> gauge, <code>ws_session_duration</code> histogram)
+- Test: <code>tests/test_ws_session_registry.py</code> (new)
+- Test: <code>tests/test_openai_codex_ws_lifecycle.py</code> (new)</p>
+<p><strong>Approach:</strong>
+- <code>WebSocketSessionRegistry</code> holds <code>dict[session_id, WSSessionHandle]</code> where handle tracks: <code>started_at</code>, <code>client_addr</code>, <code>upstream_url</code>, <code>relay_tasks: list[asyncio.Task]</code>, <code>last_activity_at</code>.
+- Register on <code>websocket.accept()</code> success; deregister in a <code>try/finally</code> around the whole handler body.
+- Replace <code>asyncio.gather(_client_to_upstream(), _upstream_to_client(), return_exceptions=True)</code> with explicit <code>asyncio.create_task(...)</code> for each, then <code>asyncio.wait(..., return_when=FIRST_COMPLETED)</code>. Cancel the other task explicitly, then <code>await</code> the cancelled task's <code>.cancelled()</code> settlement (suppress <code>CancelledError</code>).
+- Emit one structured log line per session termination with cause (<code>client_disconnect</code> / <code>upstream_disconnect</code> / <code>upstream_error</code> / <code>client_error</code>).</p>
+<p><strong>Execution note:</strong> Start from a failing integration test that asserts "after a client disconnects mid-stream, the upstream relay task is <code>done()</code> within 100ms and the registry is empty". Then make it pass.</p>
+<p><strong>Patterns to follow:</strong>
+- Existing <code>_client_to_upstream()</code> and <code>_upstream_to_client()</code> structure in <code>openai.py:1559-1767</code>.
+- <code>contextlib.suppress(asyncio.CancelledError)</code> pattern.
+- <code>PrometheusMetrics</code> gauge update pattern.</p>
+<p><strong>Test scenarios:</strong>
+- Happy path: a normal session completes; registry is empty after <code>response.completed</code>; both relay tasks <code>.done()</code> is True.
+- Edge case: client disconnects mid-stream; upstream relay task is cancelled within 100ms; registry no longer contains the session.
+- Edge case: upstream closes first; client-side relay task is cancelled within 100ms; client receives a clean close frame.
+- Edge case: 50 concurrent WS sessions open and close; <code>active_ws_sessions</code> gauge rises to 50 then returns to 0; no tasks remain in <code>asyncio.all_tasks()</code> with the relay task name pattern.
+- Error path: upstream connect fails before relay tasks are created; registry is deregistered cleanly (no leak from the handshake phase).
+- Error path: <code>_upstream_to_client</code> raises mid-stream; client task is cancelled; registry reports <code>termination_cause=upstream_error</code>.
+- Integration: the <code>/debug/ws-sessions</code> endpoint (Unit 5) returns live data consistent with the registry under load.</p>
+<p><strong>Verification:</strong>
+- After a torture-test of 100 rapid connect/disconnect cycles, <code>asyncio.all_tasks()</code> count returns to baseline within 1s.
+- <code>active_ws_sessions</code> gauge returns to 0 after all sessions close.
+- No <code>RuntimeWarning: coroutine was never awaited</code> in logs.</p>
+<hr />
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Unit 4: Bounded pre-upstream concurrency for Anthropic replay storms</strong></li>
+</ul>
+<p><strong>Goal:</strong> Prevent the cold-start replay storm from occupying every event-loop slot and thread-pool worker with deep-copy / compression / memory-context work before upstream receives the request.</p>
+<p><strong>Requirements:</strong> R1, R5, R7</p>
+<p><strong>Dependencies:</strong> Unit 2 (must have stage timings landed so the default semaphore size can be tuned from real numbers; the unit itself can ship with a conservative default and be retuned later)</p>
+<p><strong>Files:</strong>
+- Modify: <code>copium/proxy/handlers/anthropic.py</code> (wrap the pre-upstream phases in <code>handle_anthropic_messages</code> at ~293 through first upstream call)
+- Modify: <code>copium/proxy/models.py</code> or config module (add <code>anthropic_pre_upstream_concurrency: int</code> config field)
+- Modify: <code>copium/proxy/server.py</code> (construct the <code>asyncio.Semaphore</code> on <code>CopiumProxy.__init__</code> so it's per-process, not per-request)
+- Modify: CLI surface (add <code>--anthropic-pre-upstream-concurrency</code> flag + env var)
+- Test: <code>tests/test_anthropic_pre_upstream_backpressure.py</code> (new)</p>
+<p><strong>Approach:</strong>
+- Add <code>self.anthropic_pre_upstream_sem = asyncio.Semaphore(config.anthropic_pre_upstream_concurrency or max(2, min(8, os.cpu_count())))</code> in <code>CopiumProxy.__init__</code>.
+- In <code>handle_anthropic_messages</code>, wrap the region from <code>_read_request_json</code> through the first <code>self.http_client.send()</code> / <code>stream()</code> call in <code>async with self.anthropic_pre_upstream_sem:</code>.
+- <strong>Critically:</strong> <code>/livez</code> and <code>/readyz</code> do not go through this semaphore. They remain free even under replay storm.
+- Emit a log (not a warning — expected under load) when a request waits &gt; 100ms for the semaphore, so we can see queueing in the Unit 2 stage timings.
+- Default config: <code>COPIUM_ANTHROPIC_PRE_UPSTREAM_CONCURRENCY</code> env var honored; CLI flag overrides; unset defaults to the computed floor.</p>
+<p><strong>Patterns to follow:</strong>
+- Existing config field addition pattern in <code>copium/proxy/models.py</code>.
+- Existing CLI flag plumbing in <code>copium/cli/</code>.
+- <code>request_logger.info(..., stage="pre_upstream_wait_ms", ...)</code> field extension from Unit 2.</p>
+<p><strong>Test scenarios:</strong>
+- Happy path: a single request passes through with negligible <code>pre_upstream_wait_ms</code>.
+- Edge case: N+1 concurrent requests (where N = configured concurrency) — exactly one waits; all complete; <code>pre_upstream_wait_ms &gt; 0</code> only on the waiter.
+- Edge case: <code>anthropic_pre_upstream_concurrency=1</code> serializes two concurrent requests deterministically (useful for tests).
+- Error path: a request that raises inside the critical section releases the semaphore (verify via counter that <code>_value</code> returns to baseline).
+- Integration: under a synthetic storm of 20 concurrent large POSTs (simulating the retry replay), <code>/livez</code> response time stays under 100ms (p99 from Unit 2 timings).
+- Integration: compression is <em>not</em> bypassed — assert a known large body still produces a compressed upstream request (no regression of R7).</p>
+<p><strong>Verification:</strong>
+- Under <code>scripts/repro_codex_replay.py</code> (Unit 6), <code>/livez</code> p99 stays under 100ms during the storm phase.
+- Counter-factual: setting concurrency to <code>10000</code> (effectively unbounded) reproduces the original starvation in the harness.</p>
+<hr />
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Unit 5: Loopback-only debug introspection endpoints</strong></li>
+</ul>
+<p><strong>Goal:</strong> Make "what is this process doing right now?" a single <code>curl</code> away when degradation happens, instead of <code>sample</code> + <code>lsof</code> + guesswork.</p>
+<p><strong>Requirements:</strong> R3</p>
+<p><strong>Dependencies:</strong> Unit 3 (ws session data), Unit 1 (warmup registry data)</p>
+<p><strong>Files:</strong>
+- Modify: <code>copium/proxy/server.py</code> (add <code>/debug/tasks</code>, <code>/debug/ws-sessions</code>, <code>/debug/warmup</code> routes near the existing <code>/livez</code> at 1190)
+- Create: <code>copium/proxy/debug_introspection.py</code> (pure functions that serialize state)
+- Create: <code>copium/proxy/loopback_guard.py</code> (middleware / dep that 404s non-loopback requests)
+- Test: <code>tests/test_proxy_debug_endpoints.py</code> (new)</p>
+<p><strong>Approach:</strong>
+- <code>loopback_guard</code>: inspect <code>request.client.host</code>; if not in <code>{"127.0.0.1", "::1", "localhost"}</code>, return 404 with no body. A 404 (not 403) keeps debug endpoints invisible to external scanners.
+- <code>/debug/tasks</code> returns <code>asyncio.all_tasks()</code> with: name, coro name, age, current-line (via <code>get_coro().cr_frame.f_code.co_qualname</code>), stack depth. Sort by age desc.
+- <code>/debug/ws-sessions</code> returns the registry dump from Unit 3.
+- <code>/debug/warmup</code> returns <code>WarmupRegistry</code> state from Unit 1 + whether each slot is <code>loaded</code> / <code>loading</code> / <code>null</code>.
+- All three return JSON. None mutate state. None block.</p>
+<p><strong>Patterns to follow:</strong>
+- Existing <code>/readyz</code> handler shape in <code>server.py:1204-1207</code>.
+- Loopback detection: <code>request.client.host</code> is already FastAPI's standard; mirror the guard style used elsewhere in the repo if any; otherwise a small dependency function.</p>
+<p><strong>Test scenarios:</strong>
+- Happy path: <code>curl 127.0.0.1:8787/debug/tasks</code> returns 200 with a JSON array; each entry has <code>name</code>, <code>age_seconds</code>, <code>coro</code>.
+- Edge case: <code>/debug/tasks</code> called during a live WS session lists the relay tasks with non-zero age.
+- Edge case: loopback guard returns 404 (not 403) for a simulated non-loopback client.
+- Edge case: <code>/debug/warmup</code> reports <code>memory_backend=loaded</code> after Unit 1's startup completes; reports <code>loading</code> if called during startup (race window).
+- Error path: <code>asyncio.all_tasks()</code> raising (hypothetical) — handler returns 500 with structured error, doesn't crash the server.
+- Integration: <code>/debug/ws-sessions</code> output is consistent with the session count gauge from Unit 3 during a load test.</p>
+<p><strong>Verification:</strong>
+- Manual: from a remote IP, all three endpoints return 404.
+- Manual: during the Unit 6 harness, <code>/debug/tasks</code> shows relay tasks matching the expected count.
+- Documented in <code>guides/proxy.md</code> under a new "Debug endpoints" subsection.</p>
+<hr />
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Unit 6: Repro harness for multi-agent reconnect storm</strong></li>
+</ul>
+<p><strong>Goal:</strong> Produce a single script that reproducibly exercises the failure class from origin §"Latest Correction" (active agent reconnects + large replay requests) against a fresh local proxy, so the fix is provable and regressions are catchable.</p>
+<p><strong>Requirements:</strong> R6</p>
+<p><strong>Dependencies:</strong> Unit 2 (so the harness can assert on stage timings), Unit 4 (so the harness can verify backpressure helps)</p>
+<p><strong>Files:</strong>
+- Create: <code>scripts/repro_codex_replay.py</code> (new)
+- Create: <code>scripts/fixtures/anthropic_replay_body.json</code> (recorded shape of a large replay request body, sanitized)
+- Create: <code>scripts/fixtures/codex_response_create_frame.json</code> (recorded first-frame shape)
+- Modify: <code>scripts/README.md</code> (add harness section)</p>
+<p><strong>Approach:</strong>
+- CLI: <code>python scripts/repro_codex_replay.py --url http://127.0.0.1:8787 --ws-clients 8 --anthropic-clients 4 --duration 30s</code>
+- Phase 1 (warmup): open 1 WS, send one <code>response.create</code>, drain to <code>response.completed</code>. Confirms proxy is live.
+- Phase 2 (storm): simultaneously:
+  - Open N Codex WS connections, send one <code>response.create</code> each, keep the session open for the duration.
+  - Fire M concurrent large Anthropic POSTs shaped like agent-reconnect replays (from the fixture). Each retries on connection error for up to 60s, mimicking real agent behavior.
+- Throughout: probe <code>/livez</code> every 250ms, record p50/p95/p99.
+- Exit code: non-zero if <code>/livez</code> p99 exceeds 500ms during the storm (soft assertion).
+- Print a summary: per-phase timings, livez stats, count of successful Codex <code>response.completed</code>, count of Anthropic successes.</p>
+<p><strong>Execution note:</strong> Harness-first is fine here — the fixture JSONs can be hand-crafted initially and swapped for captured ones later.</p>
+<p><strong>Patterns to follow:</strong>
+- Existing benchmark harness in <code>benchmarks/</code> for run-loop structure.
+- <code>websockets</code> library usage already in <code>tests/test_proxy_codex_route_aliases.py</code>.</p>
+<p><strong>Test scenarios:</strong>
+- Test expectation: light — the harness is a script, not a library. A smoke test in <code>tests/test_scripts/test_repro_codex_replay_smoke.py</code> launches it against a mock server and verifies it exits 0 with the expected summary shape.
+- Happy path: harness runs against a healthy proxy; exit code 0; summary shows livez p99 &lt; 500ms.
+- Error path: harness invoked with <code>--url</code> pointing at a closed port; exits with clear "connection refused" message, non-zero code, within 5 seconds.
+- Integration: after Unit 4 lands, harness with default Anthropic concurrency limits shows livez p99 &lt; 100ms; harness with <code>COPIUM_ANTHROPIC_PRE_UPSTREAM_CONCURRENCY=10000</code> (unbounded) reproduces the original starvation (p99 &gt; 5s).</p>
+<p><strong>Verification:</strong>
+- CI smoke test runs the script against a mock server on every PR.
+- <code>guides/proxy.md</code> gets a "Reproducing the reconnect storm" subsection referencing the script.</p>
+<h2 id="system-wide-impact">System-Wide Impact<a class="headerlink" href="#system-wide-impact" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Interaction graph:</strong> the new <code>WarmupRegistry</code> (Unit 1) and <code>WebSocketSessionRegistry</code> (Unit 3) are accessed from <code>CopiumProxy</code> during request handling and by <code>/debug/*</code> routes. Both are single-writer-per-event-loop; no locks needed beyond the <code>asyncio.Lock</code> in <code>MemoryHandler._ensure_initialized</code> (Unit 1).</li>
+<li><strong>Error propagation:</strong> Unit 3 changes <code>asyncio.gather(..., return_exceptions=True)</code> to explicit <code>asyncio.wait(FIRST_COMPLETED)</code> + cancel. This means partner-side exceptions surface earlier — previously, a client-side error would still let upstream-side drain to completion. Verify in test scenarios that this does not drop in-flight frames that the client had already queued.</li>
+<li><strong>State lifecycle risks:</strong> Unit 3's session registry must be deregistered in the outermost <code>finally</code> — a leak here re-creates the exact bug this plan fixes. Unit 1's <code>asyncio.Lock</code> must be released on exception paths (use <code>async with</code>, not manual acquire/release).</li>
+<li><strong>API surface parity:</strong> no change to <code>/v1/responses</code> or <code>/v1/messages</code> request/response contract. The only new routes are <code>/debug/*</code>, loopback-gated.</li>
+<li><strong>Integration coverage:</strong> Unit 3 + Unit 6 together are the main integration story — unit-test-only coverage of relay cancellation is insufficient; the repro harness is how we prove it in aggregate.</li>
+<li><strong>Unchanged invariants:</strong> Compression stays enabled on all paths. Upstream WS retry/open-timeout handling (<code>openai.py:1559-1767</code>) is untouched. WS→HTTP fallback normalization (<code>openai.py:1815</code>) is untouched except for threading through the new <code>session_id</code> / stage-timer context. Memory-context fail-open <code>asyncio.wait_for</code> (<code>openai.py:1439-1452</code>, and the equivalent on the Anthropic path) is untouched. <code>/livez</code> logic stays trivial and IO-free.</li>
+</ul>
+<h2 id="risks-dependencies">Risks &amp; Dependencies<a class="headerlink" href="#risks-dependencies" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Likelihood</th>
+<th>Impact</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Unit 3's new cancellation semantics drop in-flight frames the client had already queued on the upstream side.</td>
+<td>Med</td>
+<td>High (user-visible stream corruption)</td>
+<td>Explicit test scenarios for "client disconnect mid-stream" verify no frames silently lost; harness (Unit 6) measures successful <code>response.completed</code> count.</td>
+</tr>
+<tr>
+<td>Unit 4's semaphore default is too conservative and adds visible latency under normal multi-agent use.</td>
+<td>Med</td>
+<td>Med</td>
+<td>Default computed from <code>cpu_count()</code> with a floor of 2 and ceiling of 8; tunable via CLI + env; Unit 2 timings will surface if the wait is user-visible.</td>
+</tr>
+<tr>
+<td>Unit 4's semaphore default is too permissive and doesn't actually stop starvation under real replay storms.</td>
+<td>Med</td>
+<td>High (plan fails R1)</td>
+<td>Unit 6 harness tests both bounded and unbounded configs; ship with conservative default, relax based on harness data post-merge.</td>
+</tr>
+<tr>
+<td>Unit 5's <code>/debug/tasks</code> exposes sensitive state (e.g., in-flight request bodies via coro locals).</td>
+<td>Low</td>
+<td>Med (info-leak if endpoint ever becomes non-loopback)</td>
+<td>Serializer strips coro locals; only task <em>metadata</em> (name, age, qualname) is exposed, never arguments. Loopback guard is enforced by middleware before the handler runs.</td>
+</tr>
+<tr>
+<td>Unit 1's embedder warm-up encode triggers a HuggingFace download in CI and slows test runs.</td>
+<td>Med</td>
+<td>Low</td>
+<td>Warm-up encode is skipped when <code>optimize=False</code>; test environment uses a stub embedder; document in <code>tests/conftest.py</code>.</td>
+</tr>
+<tr>
+<td>The real degradation is <em>not</em> caused by WS task leaks or replay storms (our top hypotheses), and this plan's instrumentation exposes it but the mitigations don't fix it.</td>
+<td>Low</td>
+<td>Med</td>
+<td>This is fine. The plan is observe-first; Unit 2 + Unit 5 give the data for the next iteration. The plan is valuable even if Units 3 and 4 turn out to be insufficient on their own.</td>
+</tr>
+<tr>
+<td><code>asyncio.Lock</code> added in Unit 1 is held across the memory backend init, which itself calls <code>await HierarchicalMemory.create()</code> — if that hangs, first-request + <code>ensure_initialized</code> both hang.</td>
+<td>Low</td>
+<td>High (deadlock at startup)</td>
+<td>Wrap <code>_ensure_initialized</code> in a <code>wait_for(..., timeout=STARTUP_INIT_TIMEOUT_SECONDS)</code> (configurable, default 30s). On timeout, log error and leave <code>_initialized=False</code> so subsequent requests retry.</td>
+</tr>
+<tr>
+<td>Tests that monkey-patch <code>MemoryHandler._initialized</code> directly break because of the new lock ordering.</td>
+<td>Low</td>
+<td>Low</td>
+<td>Audit <code>tests/test_proxy_memory_integration.py</code> and fixtures; use <code>ensure_initialized</code> via the public entry point only.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="documentation-operational-notes">Documentation / Operational Notes<a class="headerlink" href="#documentation-operational-notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Add a "Debug endpoints" subsection to <code>guides/proxy.md</code> covering the three new loopback-only routes, their output shape, and the loopback-only guarantee.</li>
+<li>Add a "Reproducing the reconnect storm" subsection to <code>guides/proxy.md</code> referencing <code>scripts/repro_codex_replay.py</code>.</li>
+<li>Update <code>guides/metrics.md</code> with the new histogram series names from Unit 2 and the new gauges from Unit 3.</li>
+<li>Update <code>CHANGELOG.md</code> under an "Unreleased" heading with: (a) compression preserved — no behavioral change for existing Codex users; (b) new stage timings visible in logs; (c) new <code>COPIUM_ANTHROPIC_PRE_UPSTREAM_CONCURRENCY</code> env var; (d) new <code>/debug/*</code> loopback endpoints.</li>
+<li><strong>Rollout note:</strong> deploy behind the existing launchd flow; monitor <code>/metrics</code> for the new histograms; monitor logs for <code>pre_upstream_wait_ms</code> — sustained non-zero values across many requests mean the Unit 4 default is too tight for this machine's load profile.</li>
+<li><strong>Rollback note:</strong> each unit is cherry-pickable. If Unit 4 causes regression, revert only Unit 4 (semaphore removal); Units 1–3 and 5–6 have no user-visible behavior change.</li>
+</ul>
+<h2 id="sources-references">Sources &amp; References<a class="headerlink" href="#sources-references" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Origin document:</strong> <code>guides/plans/2026-04-17-codex-proxy-runtime-analysis.md</code></li>
+<li>Related code:</li>
+<li><code>copium/proxy/handlers/openai.py</code> — <code>handle_openai_responses_ws</code>, <code>_client_to_upstream</code>, <code>_upstream_to_client</code>, <code>_ws_http_fallback</code></li>
+<li><code>copium/proxy/handlers/anthropic.py</code> — <code>handle_anthropic_messages</code></li>
+<li><code>copium/proxy/server.py</code> — <code>CopiumProxy.__init__</code>, <code>.startup</code>, health routes</li>
+<li><code>copium/proxy/memory_handler.py</code> — <code>MemoryHandler._ensure_initialized</code></li>
+<li><code>copium/transforms/content_router.py</code> — <code>eager_load_compressors</code></li>
+<li><code>copium/transforms/kompress_compressor.py</code> — <code>_load_kompress_onnx</code>, <code>_kompress_cache</code></li>
+<li>Related PRs/issues:</li>
+<li>Upstream: <code>https://github.com/iKislay/copium/issues/172</code></li>
+<li>Fork branch: <code>fix/responses-retries-keep-compression</code> (commit <code>0b11637</code>)</li>
+<li>External docs: none used for this plan.</li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/iKislay/copium" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/copium-ai/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 444.7a20.4 20.4 0 1 1 0-40.7 20.4 20.4 0 1 1 0 40.7M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.6-183.4a20.4 20.4 0 1 1 0 40.8 20.4 20.4 0 1 1 0-40.8"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://discord.gg/yRmaUNpsPJ" target="_blank" rel="noopener" title="discord.gg" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M492.5 69.8c-.2-.3-.4-.6-.8-.7-38.1-17.5-78.4-30-119.7-37.1-.4-.1-.8 0-1.1.1s-.6.4-.8.8c-5.5 9.9-10.5 20.2-14.9 30.6-44.6-6.8-89.9-6.8-134.4 0-4.5-10.5-9.5-20.7-15.1-30.6-.2-.3-.5-.6-.8-.8s-.7-.2-1.1-.2C162.5 39 122.2 51.5 84.1 69c-.3.1-.6.4-.8.7C7.1 183.5-13.8 294.6-3.6 404.2c0 .3.1.5.2.8s.3.4.5.6c44.4 32.9 94 58 146.8 74.2.4.1.8.1 1.1 0s.7-.4.9-.7c11.3-15.4 21.4-31.8 30-48.8.1-.2.2-.5.2-.8s0-.5-.1-.8-.2-.5-.4-.6-.4-.3-.7-.4c-15.8-6.1-31.2-13.4-45.9-21.9-.3-.2-.5-.4-.7-.6s-.3-.6-.3-.9 0-.6.2-.9.3-.5.6-.7c3.1-2.3 6.2-4.7 9.1-7.1.3-.2.6-.4.9-.4s.7 0 1 .1c96.2 43.9 200.4 43.9 295.5 0 .3-.1.7-.2 1-.2s.7.2.9.4c2.9 2.4 6 4.9 9.1 7.2.2.2.4.4.6.7s.2.6.2.9-.1.6-.3.9-.4.5-.6.6c-14.7 8.6-30 15.9-45.9 21.8-.2.1-.5.2-.7.4s-.3.4-.4.7-.1.5-.1.8.1.5.2.8c8.8 17 18.8 33.3 30 48.8.2.3.6.6.9.7s.8.1 1.1 0c52.9-16.2 102.6-41.3 147.1-74.2.2-.2.4-.4.5-.6s.2-.5.2-.8c12.3-126.8-20.5-236.9-86.9-334.5zm-302 267.7c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.4 59.2-52.8 59.2m195.4 0c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.2 59.2-52.8 59.2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy", "content.code.annotate", "content.tabs.link", "navigation.instant", "navigation.instant.progress", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "search.highlight", "search.suggest", "search.share", "toc.follow", "header.autohide"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
