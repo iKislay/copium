@@ -40,6 +40,16 @@ When using Copium:
 2. **Proxy Exposure**: Don't expose the proxy server to the public internet without authentication
 3. **Log Files**: Be aware that request logs may contain sensitive information
 4. **Budget Limits**: Set budget limits to prevent unexpected costs
+5. **Filesystem Permissions**: Protect `~/.copium/` directory (contains CCR store)
+   ```bash
+   chmod 700 ~/.copium
+   ```
+6. **Telemetry**: Disabled by default. Enable only if you want to contribute anonymous stats.
+7. **Dependencies**: Regularly audit dependencies
+   ```bash
+   cargo audit
+   pip-audit
+   ```
 
 ### Scope
 
@@ -61,5 +71,10 @@ Copium includes several security features:
 - **Passthrough mode**: Sensitive content passes through unchanged by default
 - **Input validation**: All inputs are validated before processing
 - **Safe defaults**: Security-conscious defaults out of the box
+- **Telemetry off by default**: Your data stays local unless you opt in
+
+## Threat Model
+
+For detailed security analysis, see [docs/security/threat-model.md](docs/security/threat-model.md).
 
 Thank you for helping keep Copium and its users safe!
