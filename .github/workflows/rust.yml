@@ -75,6 +75,9 @@ jobs:
           - os: macos-14
             target: aarch64-apple-darwin
             maturin-target: aarch64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            maturin-target: x86_64-pc-windows-msvc
         # macOS x86_64 (Intel) is NOT in this matrix.
         # `fastembed` → `ort` → `ort-sys` does not publish prebuilt ONNX
         # Runtime binaries for `x86_64-apple-darwin`; building from source
@@ -88,6 +91,11 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
+      - name: Install Visual Studio Build Tools
+        if: matrix.os == 'windows-latest'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
       - name: "Build wheel (single-wheel architecture builds copium-ai)"
         uses: PyO3/maturin-action@v1
         # Maturin reads `[tool.maturin]` from the root `pyproject.toml`
