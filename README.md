@@ -159,9 +159,13 @@ Both Copium and Headroom compress AI agent context. Key differences:
 | **Local LLM support** | Yes (Ollama, VLLM, llama.cpp) | No |
 | **KV cache precision detection** | Yes (auto-detect Q4_0/Q8_0/FP16) | No |
 | **Context paging** | Yes (Pichay-proven virtual memory) | No |
+| **Telemetry** | Off by default (opt-in) | On by default (opt-out) |
+| **CCR integrity checks** | Yes (SHA-256 verification) | No |
+| **CCR retry logic** | Yes (exponential backoff) | No |
+| **Windows support** | Pre-built wheels (CI tested) | Manual install only |
+| **CCR debugging CLI** | Yes (`copium ccr list/inspect/verify`) | No |
 | **Pricing** | Free, open-source (Apache 2.0) | Free, open-source (Apache 2.0) |
 | **Language** | Python + Rust core | Python + Rust core |
-| **Model** | -- | Kompress-v2-base (HuggingFace) |
 
 ### vs Provider-native compaction
 
