@@ -78,14 +78,15 @@ jobs:
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             maturin-target: x86_64-pc-windows-msvc
-        # macOS x86_64 (Intel) is NOT in this matrix.
-        # `fastembed` → `ort` → `ort-sys` does not publish prebuilt ONNX
-        # Runtime binaries for `x86_64-apple-darwin`; building from source
-        # in CI is a multi-hour cmake job. Apple Silicon has been the
-        # default macOS target since 2020 and is sufficient for the wheels
-        # we ship. If a customer needs Intel macOS, build from source
-        # locally (the toolchain works; only prebuilt distribution skips
-        # this target).
+          # macOS x86_64 (Intel) — builds a pure-Python wheel without the
+          # Rust extension (ort-sys lacks prebuilt ONNX Runtime binaries
+          # for this target). Users get compression via SmartCrusher fallback
+          # but lose the Rust-accelerated paths. Install from source for full
+          # Rust support (cmake required).
+          - os: macos-13
+            target: x86_64-apple-darwin
+            maturin-target: x86_64-apple-darwin
+            pure-python: true
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
@@ -96,7 +97,8 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
-      - name: "Build wheel (single-wheel architecture builds copium-ai)"
+      - name: "Build wheel (Rust extension)"
+        if: ${{ !matrix.pure-python }}
         uses: PyO3/maturin-action@v1
         # Maturin reads `[tool.maturin]` from the root `pyproject.toml`
         # which points at `crates/copium-py/Cargo.toml` for the cdylib.
@@ -106,6 +108,10 @@ jobs:
           command: build
           args: --release --out dist
           target: ${{ matrix.maturin-target }}
+      - name: "Build wheel (pure Python, no Rust extension)"
+        if: ${{ matrix.pure-python }}
+        run: |
+          pip wheel --no-deps --wheel-dir dist .
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v7
         with:
