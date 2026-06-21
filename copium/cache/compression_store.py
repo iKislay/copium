@@ -160,6 +160,9 @@ class CompressionEntry:
     tool_signature_hash: str | None = None
     compression_strategy: str | None = None  # Strategy used for compression
 
+    # Integrity verification: SHA-256 truncated to 16 chars
+    checksum: str | None = None
+
     # Feedback tracking
     retrieval_count: int = 0
     search_queries: list[str] = field(default_factory=list)
@@ -347,6 +350,7 @@ class CompressionStore:
             ttl=ttl if ttl is not None else self._default_ttl,
             tool_signature_hash=tool_signature_hash,
             compression_strategy=compression_strategy,
+            checksum=hashlib.sha256(original.encode()).hexdigest()[:16],
         )
 
         # Process pending feedback BEFORE acquiring lock for eviction.
@@ -412,6 +416,20 @@ class CompressionStore:
                 # CRITICAL FIX: Track stale heap entry
                 self._stale_heap_entries += 1
                 return None
+
+            # Integrity check: verify checksum if present
+            if entry.checksum is not None:
+                actual_checksum = hashlib.sha256(entry.original_content.encode()).hexdigest()[:16]
+                if actual_checksum != entry.checksum:
+                    logger.warning(
+                        "CCR integrity check failed for %s (expected %s, got %s)",
+                        hash_key,
+                        entry.checksum,
+                        actual_checksum,
+                    )
+                    self._backend.delete(hash_key)
+                    self._stale_heap_entries += 1
+                    return None
 
             # Track access for feedback
             entry.record_access(query)
