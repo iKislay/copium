@@ -102,6 +102,7 @@ class ProxyConfig:
     gemini_api_url: str | None = None  # Custom Gemini API URL override
     cloudcode_api_url: str | None = None  # Custom Cloud Code Assist API URL override
     vertex_api_url: str | None = None  # Custom Vertex AI regional API URL override
+    xai_api_url: str | None = None  # Custom xAI/Grok API URL override
 
     # Backend: "anthropic" (direct API), "litellm-*" (via LiteLLM), or "anyllm" (via any-llm)
     backend: str = "anthropic"
@@ -363,4 +364,5 @@ class ProxyConfig:
             gemini=self.gemini_api_url,
             cloudcode=self.cloudcode_api_url,
             vertex=self.vertex_api_url,
+            xai=self.xai_api_url,
         )
