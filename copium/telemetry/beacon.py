@@ -3,9 +3,10 @@
 Sends aggregate-only stats (tokens saved, compression ratios, cache hit rates,
 performance overhead) to help improve Copium.  No prompts, no content, no PII.
 
-On by default. Opt out with:
-    COPIUM_TELEMETRY=off copium proxy
-    copium proxy --no-telemetry
+Off by default. Opt in with:
+    COPIUM_TELEMETRY=on copium proxy
+    copium proxy --telemetry
+    copium telemetry --enable
 """
 
 from __future__ import annotations
@@ -69,8 +70,8 @@ def _build_pipeline_timing(stats: dict) -> dict[str, object]:
 
 
 def is_telemetry_enabled() -> bool:
-    """Check if telemetry is enabled (on by default, opt out with env var)."""
-    val = os.environ.get("COPIUM_TELEMETRY", "on").lower().strip()
+    """Check if telemetry is enabled (off by default, opt in with env var)."""
+    val = os.environ.get("COPIUM_TELEMETRY", "off").lower().strip()
     return val not in _OFF_VALUES
 
 
@@ -94,12 +95,18 @@ def format_telemetry_notice(*, prefix: str = "") -> str:
     Returns an empty string when telemetry or warnings are disabled so callers
     can unconditionally include the result in their output.
     """
-    if not is_telemetry_enabled() or not is_telemetry_warn_enabled():
-        return ""
-    return (
-        f"{prefix}Telemetry:    ENABLED (anonymous aggregate stats) | "
-        "Disable: COPIUM_TELEMETRY=off or --no-telemetry"
-    )
+    if is_telemetry_enabled():
+        if not is_telemetry_warn_enabled():
+            return ""
+        return (
+            f"{prefix}Telemetry:    ENABLED (anonymous aggregate stats) | "
+            "Disable: COPIUM_TELEMETRY=off or copium telemetry --disable"
+        )
+    else:
+        return (
+            f"{prefix}Telemetry:    DISABLED (your data stays local)   | "
+            "Enable:  COPIUM_TELEMETRY=on or copium telemetry --enable"
+        )
 
 
 class TelemetryBeacon:
