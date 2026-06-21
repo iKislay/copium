@@ -23,16 +23,33 @@ class ModelRouter(Transform):
     - Code presence (code = complex)
     - Tool definitions (fewer = simpler)
     - Message length (short = simple)
+
+    Usage:
+        router = ModelRouter(config)
+        result = router.apply(messages, tokenizer, model="gpt-4o", tools=tools)
+        # Check router.target_model to get the routed model
     """
 
     name = "model_router"
 
     def __init__(self, config: ModelRouterConfig | None = None) -> None:
         self.config = config or ModelRouterConfig()
+        self._target_model: str | None = None
+        self._complexity: float = 0.0
 
     @property
     def enabled(self) -> bool:
         return self.config.enabled
+
+    @property
+    def target_model(self) -> str | None:
+        """The model this router selected. None if routing was not performed."""
+        return self._target_model
+
+    @property
+    def complexity(self) -> float:
+        """The computed complexity score (0.0-1.0)."""
+        return self._complexity
 
     def _estimate_complexity(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]]) -> float:
         """Estimate request complexity (0.0 = very simple, 1.0 = very complex)."""
@@ -77,34 +94,47 @@ class ModelRouter(Transform):
         tokenizer: Tokenizer,
         **kwargs: Any,
     ) -> TransformResult:
-        """Route request to appropriate model based on complexity."""
+        """Route request to appropriate model based on complexity.
+
+        After calling this, check self.target_model for the routed model.
+        If routing is disabled or model is not in model_map, target_model
+        will be the same as the input model.
+        """
+        self._target_model = None
+        self._complexity = 0.0
+
         if not self.enabled:
             return TransformResult(
-                messages=messages,
-                tokens_before=0,
-                tokens_after=0,
-                transform_name=self.name,
+                messages=list(messages),
+                tokens_before=tokenizer.count_messages(messages),
+                tokens_after=tokenizer.count_messages(messages),
+                transforms_applied=[],
             )
 
         model = kwargs.get("model", "")
         if not model:
             return TransformResult(
-                messages=messages,
-                tokens_before=0,
-                tokens_after=0,
-                transform_name=self.name,
+                messages=list(messages),
+                tokens_before=tokenizer.count_messages(messages),
+                tokens_after=tokenizer.count_messages(messages),
+                transforms_applied=[],
             )
 
         tools = kwargs.get("tools", [])
-        complexity = self._estimate_complexity(messages, tools)
-        use_cheap = complexity < self.config.complexity_threshold
-        target_model = self.config.model_map.get(model, model) if use_cheap else model
+        self._complexity = self._estimate_complexity(messages, tools)
+        use_cheap = self._complexity < self.config.complexity_threshold
+        target = self.config.model_map.get(model, model) if use_cheap else model
 
+        self._target_model = target
         tokens_before = tokenizer.count_messages(messages)
+
+        transforms = []
+        if target != model:
+            transforms.append(f"model_router:{model}->{target}:complexity={self._complexity:.2f}")
 
         return TransformResult(
             messages=list(messages),
             tokens_before=tokens_before,
             tokens_after=tokens_before,
-            transforms_applied=[self.name],
+            transforms_applied=transforms,
         )
