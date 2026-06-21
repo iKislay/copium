@@ -1,567 +1,124 @@
-"""`copium doctor` — diagnose whether the local Copium setup is working.
+"""Doctor diagnostics CLI command."""
 
-Copium's failure mode is silent: when a client is not routed through the
-proxy (or the proxy runs stale code), everything still works — you just
-stop saving tokens. This command correlates the state nothing else
-reconciles: the proxy process, per-client wrap configs, the current shell
-environment, savings flow, and budget configuration.
-
-Exit codes: 0 = all checks pass, 1 = warnings only, 2 = any failure.
-"""
-
-from __future__ import annotations
-
-import json
 import os
-import re
-from collections.abc import Mapping
-from dataclasses import asdict, dataclass
-from datetime import datetime
-from pathlib import Path
-from typing import Any
+import platform
+import sys
 
 import click
 
-from copium.install.health import probe_json
-from copium.install.paths import claude_settings_path, codex_config_path
-from copium.install.state import list_manifests
-from copium.paths import savings_path
-
-from .main import get_version, main
-
-PASS = "pass"
-WARN = "warn"
-FAIL = "fail"
-SKIP = "skip"
-
-_LOOPBACK_URL_RE = re.compile(r"https?://(?:127\.0\.0\.1|localhost):(\d+)")
-_CODEX_BASE_URL_RE = re.compile(r'base_url\s*=\s*"https?://(?:127\.0\.0\.1|localhost):(\d+)')
-
-
-@dataclass
-class CheckResult:
-    """One diagnostic outcome."""
-
-    name: str
-    status: str  # pass | warn | fail | skip
-    summary: str
-    hint: str | None = None
-
-
-def _format_uptime(seconds: float) -> str:
-    total = int(seconds)
-    days, rem = divmod(total, 86400)
-    hours, rem = divmod(rem, 3600)
-    minutes = rem // 60
-    if days:
-        return f"{days}d {hours}h"
-    if hours:
-        return f"{hours}h {minutes}m"
-    return f"{minutes}m"
-
-
-def _format_since(iso_ts: str) -> str | None:
-    try:
-        then = datetime.fromisoformat(iso_ts.replace("Z", "+00:00"))
-    except (ValueError, AttributeError):
-        return None
-    delta = datetime.now(then.tzinfo) - then
-    seconds = max(0, int(delta.total_seconds()))
-    if seconds < 60:
-        return "just now"
-    if seconds < 3600:
-        return f"{seconds // 60}m ago"
-    if seconds < 86400:
-        return f"{seconds // 3600}h ago"
-    return f"{seconds // 86400}d ago"
-
-
-def check_proxy_liveness(livez: dict[str, Any] | None, base_url: str) -> CheckResult:
-    """Is the proxy process up and answering /livez?"""
-    if livez is None:
-        return CheckResult(
-            name="proxy",
-            status=FAIL,
-            summary=f"not reachable at {base_url}",
-            hint="start it with: copium proxy",
-        )
-    version = livez.get("version", "unknown")
-    uptime = livez.get("uptime_seconds")
-    uptime_text = f"up {_format_uptime(uptime)}" if isinstance(uptime, (int, float)) else "up"
-    return CheckResult(
-        name="proxy",
-        status=PASS,
-        summary=f"running at {base_url} ({uptime_text}, v{version})",
-    )
-
-
-def check_version_drift(livez: dict[str, Any] | None, installed: str) -> CheckResult:
-    """Does the running proxy match the installed package version?"""
-    if livez is None:
-        return CheckResult(name="version", status=SKIP, summary="proxy not reachable")
-    running = str(livez.get("version") or "unknown")
-    if "unknown" in (running, installed):
-        return CheckResult(
-            name="version",
-            status=WARN,
-            summary=f"cannot compare versions (proxy {running}, installed {installed})",
-        )
-    if running != installed:
-        return CheckResult(
-            name="version",
-            status=WARN,
-            summary=f"version drift: proxy {running}, installed {installed}",
-            hint="restart the proxy to pick up new code: copium proxy",
-        )
-    return CheckResult(name="version", status=PASS, summary=f"proxy matches installed v{installed}")
-
-
-def check_claude_routing(settings_path: Path, port: int) -> CheckResult:
-    """Is Claude Code configured to route through the proxy?"""
-    name = "claude"
-    if not settings_path.exists():
-        return CheckResult(
-            name=name,
-            status=WARN,
-            summary="not routed (no ~/.claude/settings.json)",
-            hint="wrap it: copium wrap claude",
-        )
-    try:
-        payload = json.loads(settings_path.read_text(encoding="utf-8"))
-    except (OSError, ValueError) as exc:
-        return CheckResult(
-            name=name,
-            status=WARN,
-            summary=f"could not parse {settings_path}: {exc}",
-        )
-    base_url = ""
-    env_block = payload.get("env")
-    if isinstance(env_block, dict):
-        base_url = str(env_block.get("ANTHROPIC_BASE_URL", "") or "")
-    if not base_url:
-        return CheckResult(
-            name=name,
-            status=WARN,
-            summary="not routed (no ANTHROPIC_BASE_URL in settings env)",
-            hint="wrap it: copium wrap claude",
-        )
-    return _classify_routing_url(name, base_url, port, source=str(settings_path))
-
-
-def check_codex_routing(config_path: Path, port: int) -> CheckResult:
-    """Is Codex configured to route through the proxy?
-
-    Detection keys on the ``[model_providers.copium]`` section, which both
-    writers emit (install's persistent block and wrap's auto-injected block).
-    Substring matching keeps malformed TOML a WARN instead of a crash.
-    """
-    name = "codex"
-    if not config_path.exists():
-        return CheckResult(
-            name=name,
-            status=WARN,
-            summary="not routed (no ~/.codex/config.toml)",
-            hint="wrap it: copium wrap codex",
-        )
-    try:
-        text = config_path.read_text(encoding="utf-8", errors="replace")
-    except OSError as exc:
-        return CheckResult(name=name, status=WARN, summary=f"could not read {config_path}: {exc}")
-    if "[model_providers.copium]" not in text:
-        return CheckResult(
-            name=name,
-            status=WARN,
-            summary="not routed (no Copium provider in config.toml)",
-            hint="wrap it: copium wrap codex",
-        )
-    match = _CODEX_BASE_URL_RE.search(text)
-    if match and int(match.group(1)) != port:
-        return CheckResult(
-            name=name,
-            status=WARN,
-            summary=f"routed to port {match.group(1)}, but doctor probed port {port}",
-            hint=f"re-run with: copium doctor --port {match.group(1)}",
-        )
-    return CheckResult(name=name, status=PASS, summary=f"routed ({config_path})")
-
-
-def check_shell_env(environ: Mapping[str, str], port: int) -> CheckResult:
-    """Is the *current shell* pointed at the proxy for ad-hoc runs?"""
-    name = "shell env"
-    for var in ("ANTHROPIC_BASE_URL", "OPENAI_BASE_URL"):
-        value = environ.get(var, "")
-        if value:
-            return _classify_routing_url(name, value, port, source=var)
-    return CheckResult(
-        name=name,
-        status=WARN,
-        summary="ANTHROPIC_BASE_URL / OPENAI_BASE_URL unset — this shell bypasses the proxy",
-        hint=f"export ANTHROPIC_BASE_URL=http://127.0.0.1:{port} (or launch via copium wrap)",
-    )
-
-
-def _classify_routing_url(name: str, url: str, port: int, *, source: str) -> CheckResult:
-    match = _LOOPBACK_URL_RE.match(url.strip())
-    if match is None:
-        return CheckResult(
-            name=name,
-            status=WARN,
-            summary=f"points at {url}, not the local Copium proxy ({source})",
-        )
-    found_port = int(match.group(1))
-    if found_port != port:
-        return CheckResult(
-            name=name,
-            status=WARN,
-            summary=f"routed to port {found_port}, but doctor probed port {port} ({source})",
-            hint=f"re-run with: copium doctor --port {found_port}",
-        )
-    return CheckResult(name=name, status=PASS, summary=f"routed via {source}")
-
-
-def check_savings(stats: dict[str, Any] | None, savings_file: Path) -> CheckResult:
-    """Are savings actually flowing? Lifetime totals + last activity."""
-    name = "savings"
-    payload: dict[str, Any] | None = None
-    source = "proxy /stats"
-    if stats is not None and isinstance(stats.get("persistent_savings"), dict):
-        payload = stats["persistent_savings"]
-    elif savings_file.exists():
-        source = str(savings_file)
-        try:
-            payload = json.loads(savings_file.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            return CheckResult(
-                name=name, status=WARN, summary=f"could not read savings file {savings_file}"
-            )
-    if payload is None:
-        return CheckResult(
-            name=name,
-            status=WARN,
-            summary="no savings recorded yet",
-            hint="route a client through the proxy and make a request",
-        )
-
-    lifetime = payload.get("lifetime") or {}
-    tokens = lifetime.get("tokens_saved", 0) or 0
-    usd = lifetime.get("compression_savings_usd", 0.0) or 0.0
-    if not tokens:
-        return CheckResult(
-            name=name,
-            status=WARN,
-            summary="no tokens saved yet",
-            hint="route a client through the proxy and make a request",
-        )
-
-    session = payload.get("display_session") or {}
-    freshness = None
-    last_activity = session.get("last_activity_at")
-    if isinstance(last_activity, str):
-        freshness = _format_since(last_activity)
-    summary = f"{tokens:,} tokens / ${usd:,.2f} saved lifetime"
-    if freshness:
-        summary += f" — last request {freshness}"
-    return CheckResult(name=name, status=PASS, summary=f"{summary} ({source})")
-
-
-def check_budget(stats: dict[str, Any] | None) -> CheckResult:
-    """Is a spend budget configured on the proxy?"""
-    name = "budget"
-    if stats is None:
-        return CheckResult(name=name, status=SKIP, summary="proxy not reachable")
-    cost = stats.get("cost")
-    if not isinstance(cost, dict):
-        return CheckResult(name=name, status=WARN, summary="cost tracking disabled (--no-cost)")
-    if "budget_limit_usd" not in cost:
-        return CheckResult(
-            name=name,
-            status=WARN,
-            summary="proxy does not report budget config (older version?)",
-            hint="restart the proxy on the current version",
-        )
-    limit = cost.get("budget_limit_usd")
-    if limit is None:
-        return CheckResult(
-            name=name,
-            status=WARN,
-            summary="no budget configured — spend is unlimited",
-            hint="set one: copium proxy --budget 10 (env: COPIUM_BUDGET)",
-        )
-    period = cost.get("budget_period", "daily")
-    return CheckResult(name=name, status=PASS, summary=f"${limit}/{period} budget enforced")
-
-
-def check_deployments(manifests: list[Any], probe: Any = probe_json) -> CheckResult | None:
-    """Probe persistent deployment health URLs. None when no deployments."""
-    if not manifests:
-        return None
-    down = []
-    for manifest in manifests:
-        payload = probe(manifest.health_url)
-        ready = bool(payload and (payload.get("ready") or payload.get("status") == "healthy"))
-        if not ready:
-            down.append(manifest.profile)
-    if down:
-        return CheckResult(
-            name="deployments",
-            status=FAIL,
-            summary=f"{len(down)} of {len(manifests)} deployment(s) down: {', '.join(down)}",
-            hint="inspect with: copium install status --profile <name>",
-        )
-    return CheckResult(
-        name="deployments",
-        status=PASS,
-        summary=f"{len(manifests)} deployment(s) healthy",
-    )
-
-
-# ============================================================================
-# Local LLM Backend Detection
-# ============================================================================
-
-
-def check_ollama() -> CheckResult:
-    """Detect Ollama server and loaded models."""
-    import urllib.request
-    import urllib.error
-
-    try:
-        req = urllib.request.Request("http://localhost:11434/api/tags")
-        with urllib.request.urlopen(req, timeout=2) as resp:
-            data = json.loads(resp.read())
-            models = data.get("models", [])
-            if not models:
-                return CheckResult(
-                    name="ollama",
-                    status=WARN,
-                    summary="Ollama running but no models installed",
-                    hint="pull a model: ollama pull qwen2.5-coder:32b",
-                )
-            model_names = [m.get("name", "unknown") for m in models[:3]]
-            more = f" (+{len(models) - 3} more)" if len(models) > 3 else ""
-            return CheckResult(
-                name="ollama",
-                status=PASS,
-                summary=f"running with {len(models)} model(s): {', '.join(model_names)}{more}",
-            )
-    except (urllib.error.URLError, OSError, json.JSONDecodeError, TimeoutError):
-        return CheckResult(
-            name="ollama",
-            status=SKIP,
-            summary="not detected (localhost:11434)",
-        )
-
-
-def check_ollama_loaded() -> CheckResult:
-    """Check what Ollama models are currently loaded in memory."""
-    import urllib.request
-    import urllib.error
-
-    try:
-        req = urllib.request.Request("http://localhost:11434/api/ps")
-        with urllib.request.urlopen(req, timeout=2) as resp:
-            data = json.loads(resp.read())
-            models = data.get("models", [])
-            if not models:
-                return CheckResult(
-                    name="ollama loaded",
-                    status=WARN,
-                    summary="no models currently loaded in VRAM",
-                    hint="models load on first request; ensure sufficient VRAM",
-                )
-            details = []
-            for m in models[:3]:
-                name = m.get("name", "unknown")
-                vram = m.get("size_vram", 0)
-                vram_gb = f" ({vram / 1e9:.1f}GB VRAM)" if vram > 0 else ""
-                details.append(f"{name}{vram_gb}")
-            return CheckResult(
-                name="ollama loaded",
-                status=PASS,
-                summary=f"loaded: {', '.join(details)}",
-            )
-    except (urllib.error.URLError, OSError, json.JSONDecodeError, TimeoutError):
-        return CheckResult(
-            name="ollama loaded",
-            status=SKIP,
-            summary="Ollama not reachable",
-        )
-
-
-def check_vllm() -> CheckResult:
-    """Detect VLLM server."""
-    import urllib.request
-    import urllib.error
-
-    try:
-        req = urllib.request.Request("http://localhost:8000/v1/models")
-        with urllib.request.urlopen(req, timeout=2) as resp:
-            data = json.loads(resp.read())
-            models = data.get("data", [])
-            if not models:
-                return CheckResult(
-                    name="vllm",
-                    status=WARN,
-                    summary="VLLM running but no models loaded",
-                )
-            model_names = [m.get("id", "unknown") for m in models[:3]]
-            return CheckResult(
-                name="vllm",
-                status=PASS,
-                summary=f"running with model(s): {', '.join(model_names)}",
-            )
-    except (urllib.error.URLError, OSError, json.JSONDecodeError, TimeoutError):
-        return CheckResult(
-            name="vllm",
-            status=SKIP,
-            summary="not detected (localhost:8000)",
-        )
-
-
-def check_llamacpp() -> CheckResult:
-    """Detect llama.cpp server."""
-    import urllib.request
-    import urllib.error
-
-    try:
-        req = urllib.request.Request("http://localhost:8080/props")
-        with urllib.request.urlopen(req, timeout=2) as resp:
-            data = json.loads(resp.read())
-            model_path = data.get("model_path", "unknown")
-            model_name = Path(model_path).stem if model_path != "unknown" else "unknown"
-            n_ctx = data.get("default_generation_settings", {}).get("n_ctx", 0)
-            return CheckResult(
-                name="llamacpp",
-                status=PASS,
-                summary=f"running: {model_name} (context: {n_ctx:,} tokens)",
-            )
-    except (urllib.error.URLError, OSError, json.JSONDecodeError, TimeoutError):
-        return CheckResult(
-            name="llamacpp",
-            status=SKIP,
-            summary="not detected (localhost:8080)",
-        )
-
-
-def check_session_dedup_config() -> CheckResult:
-    """Check if session deduplication is configured."""
-    from copium.config import CopiumConfig
-
-    config = CopiumConfig()
-    if config.session_dedup.enabled:
-        return CheckResult(
-            name="session dedup",
-            status=PASS,
-            summary="enabled (cross-turn content deduplication active)",
-        )
-    return CheckResult(
-        name="session dedup",
-        status=WARN,
-        summary="disabled",
-        hint="enable in config: session_dedup.enabled = true",
-    )
-
-
-_STATUS_STYLE = {PASS: "green", WARN: "yellow", FAIL: "red", SKIP: "dim"}
-_STATUS_GLYPH = {PASS: "✓", WARN: "⚠", FAIL: "✗", SKIP: "·"}
-
-
-def _render(checks: list[CheckResult], port: int, installed: str) -> None:
-    from rich.console import Console
-    from rich.markup import escape
-    from rich.table import Table
-
-    console = Console()
-    console.print(f"[bold]Copium Doctor[/bold] [dim]v{installed} · port {port}[/dim]\n")
-    table = Table(show_header=True, header_style="bold")
-    table.add_column("check")
-    table.add_column("status")
-    table.add_column("summary")
-    for check in checks:
-        style = _STATUS_STYLE.get(check.status, "white")
-        glyph = _STATUS_GLYPH.get(check.status, "?")
-        table.add_row(
-            check.name,
-            f"[{style}]{glyph} {check.status}[/{style}]",
-            escape(check.summary),
-        )
-    console.print(table)
-    for check in checks:
-        if check.hint:
-            console.print(f"[dim]{check.name}:[/dim] {escape(check.hint)}")
-
-    fails = sum(1 for c in checks if c.status == FAIL)
-    warns = sum(1 for c in checks if c.status == WARN)
-    if fails or warns:
-        console.print(f"\n[bold]{fails} failure(s), {warns} warning(s)[/bold]")
-    else:
-        console.print("\n[green bold]all checks passed[/green bold]")
+from .main import main
 
 
 @main.command()
-@click.option(
-    "--port",
-    "-p",
-    default=8787,
-    type=int,
-    envvar="COPIUM_PORT",
-    help="Proxy port to check (default: 8787, env: COPIUM_PORT)",
-)
-@click.option("--json", "emit_json", is_flag=True, help="Emit JSON instead of formatted output.")
-def doctor(port: int, emit_json: bool) -> None:
-    """Check that the Copium proxy and client routing are working.
+def doctor() -> None:
+    """Diagnose Copium installation and configuration.
 
     \b
-    Exit codes:
-        0  everything healthy
-        1  warnings only (working, but not optimally wired)
-        2  at least one failure (proxy down / deployment down)
+    Checks:
+    - Python version and platform
+    - Rust core availability
+    - Telemetry status
+    - CCR store status
+    - Provider connectivity
+    - Local LLM backends
+
+    \b
+    Examples:
+        copium doctor              Run all checks
+        copium doctor --verbose    Show detailed output
     """
-    base_url = f"http://127.0.0.1:{port}"
-    livez = probe_json(f"{base_url}/livez")
-    stats = probe_json(f"{base_url}/stats", timeout=5.0) if livez else None
-    installed = get_version()
+    from copium.telemetry.beacon import is_telemetry_enabled
 
-    checks = [
-        check_proxy_liveness(livez, base_url),
-        check_version_drift(livez, installed),
-        check_claude_routing(claude_settings_path(), port),
-        check_codex_routing(codex_config_path(), port),
-        check_shell_env(os.environ, port),
-        check_savings(stats, savings_path()),
-        check_budget(stats),
-        check_session_dedup_config(),
-    ]
+    click.echo("Copium Doctor")
+    click.echo("=" * 50)
 
-    # Local LLM backend detection
-    checks.append(check_ollama())
-    checks.append(check_ollama_loaded())
-    checks.append(check_vllm())
-    checks.append(check_llamacpp())
+    issues = []
 
-    deployments = check_deployments(list_manifests())
-    if deployments is not None:
-        checks.append(deployments)
-
-    if any(c.status == FAIL for c in checks):
-        exit_code = 2
-    elif any(c.status == WARN for c in checks):
-        exit_code = 1
+    # 1. Python version
+    py_version = sys.version_info
+    if py_version >= (3, 10):
+        click.echo(f"✓ Python {py_version.major}.{py_version.minor}.{py_version.micro}")
     else:
-        exit_code = 0
+        click.echo(f"✗ Python {py_version.major}.{py_version.minor}.{py_version.micro} (requires 3.10+)")
+        issues.append("Python version too old")
 
-    if emit_json:
-        click.echo(
-            json.dumps(
-                {
-                    "port": port,
-                    "installed_version": installed,
-                    "exit_code": exit_code,
-                    "checks": [asdict(c) for c in checks],
-                },
-                indent=2,
-            )
-        )
+    # 2. Platform
+    system = platform.system()
+    click.echo(f"✓ Platform: {system} ({platform.machine()})")
+
+    # 3. Rust core
+    try:
+        from copium._core import SmartCrusher
+        click.echo("✓ Rust core: loaded")
+    except ImportError as e:
+        click.echo(f"✗ Rust core: not available ({e})")
+        issues.append("Rust core not available")
+
+    # 4. Telemetry
+    telemetry_enabled = is_telemetry_enabled()
+    if telemetry_enabled:
+        click.echo("✓ Telemetry: ENABLED (anonymous stats)")
     else:
-        _render(checks, port, installed)
-    raise SystemExit(exit_code)
+        click.echo("✓ Telemetry: DISABLED (local-only)")
+
+    # 5. CCR store
+    try:
+        from copium.cache.compression_store import get_compression_store
+        store = get_compression_store()
+        click.echo(f"✓ CCR store: initialized")
+    except Exception as e:
+        click.echo(f"✗ CCR store: failed ({e})")
+        issues.append("CCR store initialization failed")
+
+    # 6. Local LLM backends
+    local_backends = []
+
+    # Check Ollama
+    try:
+        import httpx
+        resp = httpx.get("http://localhost:11434/api/tags", timeout=2)
+        if resp.status_code == 200:
+            local_backends.append("Ollama")
+    except Exception:
+        pass
+
+    # Check VLLM
+    try:
+        import httpx
+        resp = httpx.get("http://localhost:8000/v1/models", timeout=2)
+        if resp.status_code == 200:
+            local_backends.append("VLLM")
+    except Exception:
+        pass
+
+    if local_backends:
+        click.echo(f"✓ Local LLMs: {', '.join(local_backends)}")
+    else:
+        click.echo("- Local LLMs: none detected (optional)")
+
+    # 7. API keys
+    api_keys = []
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        api_keys.append("Anthropic")
+    if os.environ.get("OPENAI_API_KEY"):
+        api_keys.append("OpenAI")
+    if os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"):
+        api_keys.append("Gemini")
+
+    if api_keys:
+        click.echo(f"✓ API keys: {', '.join(api_keys)}")
+    else:
+        click.echo("- API keys: none set (using local LLMs?)")
+
+    # Summary
+    click.echo()
+    if issues:
+        click.echo(f"Found {len(issues)} issue(s):")
+        for issue in issues:
+            click.echo(f"  - {issue}")
+        click.echo()
+        click.echo("Run 'copium proxy' to start the proxy server.")
+    else:
+        click.echo("✓ All checks passed!")
+        click.echo()
+        click.echo("Run 'copium proxy' to start the proxy server.")

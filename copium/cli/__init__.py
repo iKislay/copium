@@ -17,6 +17,7 @@ from . import (  # noqa: F401
     capture,
     ccr,
     copilot_auth,
+    doctor,
     evals,
     init,
     install,
