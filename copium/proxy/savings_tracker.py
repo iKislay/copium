@@ -882,6 +882,17 @@ class SavingsTracker:
                 _coerce_float(last.get("total_input_cost_usd")),
             )
 
+        session = _normalize_display_session(raw.get("display_session"))
+
+        # Guard against session drifting ahead of lifetime after an unclean
+        # shutdown: the two are persisted independently so a crash between
+        # writes can leave session > lifetime.  Clamp to the lifetime floor.
+        lifetime_savings_usd_r = round(lifetime_savings_usd, 6)
+        if _coerce_float(session.get("compression_savings_usd")) > lifetime_savings_usd_r > 0:
+            session["compression_savings_usd"] = lifetime_savings_usd_r
+        if _coerce_int(session.get("tokens_saved")) > lifetime_tokens_saved > 0:
+            session["tokens_saved"] = lifetime_tokens_saved
+
         state = {
             "schema_version": SCHEMA_VERSION,
             "lifetime": {
@@ -891,7 +902,7 @@ class SavingsTracker:
                 "total_input_tokens": lifetime_input_tokens,
                 "total_input_cost_usd": round(lifetime_input_cost_usd, 6),
             },
-            "display_session": _normalize_display_session(raw.get("display_session")),
+            "display_session": session,
             "history": normalized_history,
             "projects": _normalize_projects(raw.get("projects")),
         }
@@ -1038,6 +1049,18 @@ class SavingsTracker:
             _coerce_float(session.get("total_input_cost_usd")),
             6,
         )
+
+        # Session savings must never exceed lifetime savings.  After a proxy
+        # restart (or crash-recovery) the persisted display_session can drift
+        # ahead of lifetime because they are written independently.  Clamp so
+        # the dashboard never shows "this session > lifetime".
+        lifetime_usd = _coerce_float(self._state["lifetime"].get("compression_savings_usd"))
+        if session["compression_savings_usd"] > lifetime_usd > 0:
+            session["compression_savings_usd"] = round(lifetime_usd, 6)
+        lifetime_tokens = _coerce_int(self._state["lifetime"].get("tokens_saved"))
+        if _coerce_int(session.get("tokens_saved")) > lifetime_tokens > 0:
+            session["tokens_saved"] = lifetime_tokens
+
         return session
 
     def _is_display_session_expired(
