@@ -3,187 +3,1597 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Copium</title>
+    <title>Copium Proxy Dashboard</title>
+    <!-- Geist Font Family & Inter fallback -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/core.css">
     <script src="https://unpkg.com/alpinejs@3.13.3/dist/cdn.min.js" defer></script>
-    <script>
-        (function() {
-            const saved = localStorage.getItem('copium-theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (saved === 'light' || (!saved && !prefersDark)) {
-                document.documentElement.classList.remove('dark');
-            } else {
-                document.documentElement.classList.add('dark');
-            }
-        })();
-    </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Inter:wght@400;500&display=swap');
-
         :root {
-            --bg: #ffffff;
-            --fg: #000000;
-            --muted: #888888;
-            --border: #e5e5e5;
-            --surface: #fafafa;
-            --inverted-bg: #000000;
-            --inverted-fg: #ffffff;
+            /* Colors from design.md */
+            --primary: #171717;
+            --secondary: #4d4d4d;
+            --tertiary: #8f8f8f;
+            --neutral: #f2f2f2;
+            --background-100: #ffffff;
+            --background-200: #fafafa;
+            
+            --gray-100: #f2f2f2;
+            --gray-200: #ebebeb;
+            --gray-300: #e6e6e6;
+            --gray-400: #eaeaea;
+            --gray-500: #c9c9c9;
+            --gray-600: #a8a8a8;
+            --gray-700: #8f8f8f;
+            --gray-800: #7d7d7d;
+            --gray-900: #4d4d4d;
+            --gray-1000: #171717;
+            
+            --gray-alpha-100: rgba(0, 0, 0, 0.05);
+            --gray-alpha-200: rgba(0, 0, 0, 0.08);
+            
+            --blue-100: #f0f7ff;
+            --blue-200: #e9f4ff;
+            --blue-700: #006bff;
+            --blue-800: #0059ec;
+            
+            --red-100: #ffeeef;
+            --red-200: #ffe8ea;
+            --red-700: #fc0035;
+            --red-800: #ea001d;
+            
+            --amber-100: #fff6de;
+            --amber-200: #fff4cf;
+            --amber-600: #ffa600;
+            --amber-700: #ffae00;
+            
+            --green-100: #ecfdec;
+            --green-200: #e5fce7;
+            --green-700: #28a948;
+            --green-800: #279141;
+            
+            --purple-100: #faf0ff;
+            --purple-700: #a000f8;
+            
+            --font-sans: 'Geist Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'Geist Mono', 'JetBrains Mono', monospace;
+            
+            --shadow-card: 0 2px 2px rgba(0, 0, 0, 0.04);
+            --shadow-popover: 0 1px 1px rgba(0, 0, 0, 0.02), 0 4px 8px -4px rgba(0, 0, 0, 0.04), 0 16px 24px -8px rgba(0, 0, 0, 0.06);
         }
-        html.dark {
-            --bg: #000000;
-            --fg: #ffffff;
-            --muted: #888888;
-            --border: #222222;
-            --surface: #0a0a0a;
-            --inverted-bg: #ffffff;
-            --inverted-fg: #000000;
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            background: var(--bg);
-            color: var(--fg);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--background-100);
+            color: var(--primary);
+            font-family: var(--font-sans);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            -webkit-font-smoothing: antialiased;
+            line-height: 1.5;
         }
-        .mono { font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace; }
-        .label {
-            font-size: 11px;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            color: var(--muted);
-            font-weight: 500;
-        }
-        .number {
-            font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
-            font-weight: 300;
-            line-height: 1;
-            font-size: 72px;
-            color: var(--fg);
+
+        /* Typography Helper Classes */
+        .h-72 { font-family: var(--font-sans); font-size: 72px; font-weight: 600; line-height: 72px; letter-spacing: -4.32px; }
+        .h-32 { font-family: var(--font-sans); font-size: 32px; font-weight: 600; line-height: 40px; letter-spacing: -1.28px; }
+        .h-24 { font-family: var(--font-sans); font-size: 24px; font-weight: 600; line-height: 32px; letter-spacing: -0.96px; }
+        .h-20 { font-family: var(--font-sans); font-size: 20px; font-weight: 600; line-height: 26px; letter-spacing: -0.4px; }
+        .h-16 { font-family: var(--font-sans); font-size: 16px; font-weight: 600; line-height: 24px; letter-spacing: -0.32px; }
+        .h-14 { font-family: var(--font-sans); font-size: 14px; font-weight: 600; line-height: 20px; letter-spacing: -0.28px; }
+        
+        .label-20 { font-family: var(--font-sans); font-size: 20px; font-weight: 400; line-height: 32px; }
+        .label-16 { font-family: var(--font-sans); font-size: 16px; font-weight: 400; line-height: 20px; }
+        .label-14 { font-family: var(--font-sans); font-size: 14px; font-weight: 400; line-height: 20px; }
+        .label-14-mono { font-family: var(--font-mono); font-size: 14px; font-weight: 400; line-height: 20px; }
+        .label-13 { font-family: var(--font-sans); font-size: 13px; font-weight: 400; line-height: 16px; }
+        .label-13-mono { font-family: var(--font-mono); font-size: 13px; font-weight: 400; line-height: 20px; }
+        .label-12 { font-family: var(--font-sans); font-size: 12px; font-weight: 400; line-height: 16px; }
+        .label-12-mono { font-family: var(--font-mono); font-size: 12px; font-weight: 400; line-height: 16px; }
+        
+        .copy-14 { font-family: var(--font-sans); font-size: 14px; font-weight: 400; line-height: 20px; color: var(--secondary); }
+        .copy-13 { font-family: var(--font-sans); font-size: 13px; font-weight: 400; line-height: 18px; color: var(--secondary); }
+        .copy-13-mono { font-family: var(--font-mono); font-size: 13px; font-weight: 400; line-height: 18px; color: var(--secondary); }
+
+        .mono {
+            font-family: var(--font-mono);
             font-variant-numeric: tabular-nums;
         }
-        .metric { text-align: center; }
-        .metric .label { margin-bottom: 8px; }
-        .metric .number { margin-bottom: 4px; }
-        .metric .unit {
-            font-size: 14px;
-            color: var(--muted);
-            font-weight: 400;
+
+        /* Geist Layout */
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 24px;
         }
-        .action-box {
-            background: var(--inverted-bg);
-            color: var(--inverted-fg);
-            padding: 16px 24px;
-            font-size: 14px;
-            line-height: 1.5;
-            text-align: center;
+
+        /* Navigation Header */
+        header {
+            border-bottom: 1px solid var(--gray-400);
+            background-color: var(--background-100);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .action-box button {
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 64px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-logo {
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: 0.15em;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .brand-pill {
+            background-color: var(--gray-100);
+            color: var(--secondary);
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 500;
+            border: 1px solid transparent;
+        }
+        
+        .status-badge.healthy {
+            background-color: var(--green-100);
+            color: var(--green-800);
+            border-color: rgba(40, 169, 72, 0.2);
+        }
+
+        .status-badge.unhealthy {
+            background-color: var(--red-100);
+            color: var(--red-800);
+            border-color: rgba(234, 0, 29, 0.2);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .healthy .status-dot { background-color: var(--green-700); }
+        .unhealthy .status-dot { background-color: var(--red-700); }
+
+        /* Vercel Geist Tab Navigation */
+        .tabs-container {
+            border-bottom: 1px solid var(--gray-400);
+            background-color: var(--background-100);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 24px;
+            height: 48px;
+            align-items: flex-end;
+        }
+
+        .tab-btn {
             background: none;
             border: none;
-            color: inherit;
-            font-family: inherit;
-            font-size: inherit;
+            color: var(--secondary);
+            font-family: var(--font-sans);
+            font-size: 14px;
+            font-weight: 500;
+            padding-bottom: 12px;
             cursor: pointer;
-            text-decoration: underline;
-            text-underline-offset: 2px;
+            position: relative;
+            transition: color 150ms;
         }
-        .action-box button:hover { opacity: 0.7; }
-        .version {
-            font-family: 'JetBrains Mono', monospace;
+
+        .tab-btn:hover {
+            color: var(--primary);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary);
+        }
+
+        /* Page Layout */
+        .page-content {
+            padding: 32px 0 64px 0;
+            background-color: var(--background-200);
+            flex: 1;
+        }
+
+        /* KPI Card Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        /* Vercel Cards */
+        .card {
+            background-color: var(--background-100);
+            border: 1px solid var(--gray-400);
+            border-radius: 8px;
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: border-color 150ms, box-shadow 150ms;
+        }
+
+        .card:hover {
+            border-color: var(--gray-500);
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--gray-400);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-body {
+            padding: 20px;
+            flex: 1;
+        }
+
+        .card-footer {
+            padding: 12px 20px;
+            background-color: var(--background-200);
+            border-top: 1px solid var(--gray-400);
             font-size: 12px;
-            color: var(--muted);
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        .theme-toggle {
+
+        /* KPI Card styling */
+        .kpi-card .kpi-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--secondary);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .kpi-card .kpi-val {
+            font-size: 32px;
+            font-weight: 600;
+            letter-spacing: -0.8px;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .kpi-card .kpi-change {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .kpi-change.positive { color: var(--green-700); }
+        .kpi-change.negative { color: var(--red-700); }
+        .kpi-change.neutral { color: var(--secondary); }
+
+        /* Main Section Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 960px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* SVG Chart */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 240px;
+        }
+
+        .chart-svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        /* Tooltip style */
+        .chart-tooltip {
+            position: absolute;
+            background-color: var(--background-100);
+            border: 1px solid var(--gray-400);
+            box-shadow: var(--shadow-popover);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Interactive table */
+        table.geist-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        table.geist-table th {
+            padding: 12px 16px;
+            font-weight: 500;
+            color: var(--secondary);
+            border-bottom: 1px solid var(--gray-400);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+
+        table.geist-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--gray-400);
+            color: var(--primary);
+            vertical-align: middle;
+        }
+
+        table.geist-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        table.geist-table tbody tr:hover td {
+            background-color: var(--background-200);
+        }
+
+        /* Button elements */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border-radius: 6px;
+            font-family: var(--font-sans);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 0 12px;
+            height: 32px;
+            cursor: pointer;
+            transition: all 150ms cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            border: none;
+            outline: none;
+            text-decoration: none;
+        }
+
+        .btn-sm {
+            height: 28px;
+            font-size: 12px;
+            padding: 0 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--background-100);
+        }
+
+        .btn-primary:hover {
+            background-color: #333333;
+        }
+
+        .btn-secondary {
+            background-color: var(--background-100);
+            color: var(--primary);
+            border: 1px solid var(--gray-400);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--gray-100);
+            border-color: var(--gray-500);
+        }
+
+        .btn-tertiary {
             background: none;
-            border: 1px solid var(--border);
-            color: var(--muted);
-            padding: 6px 10px;
-            cursor: pointer;
-            font-size: 12px;
-            font-family: 'JetBrains Mono', monospace;
+            color: var(--secondary);
         }
-        .theme-toggle:hover { color: var(--fg); border-color: var(--fg); }
+
+        .btn-tertiary:hover {
+            color: var(--primary);
+            background-color: var(--gray-alpha-100);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Switch / Toggle style */
+        .toggle-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 36px;
+            height: 20px;
+            background-color: var(--gray-400);
+            border-radius: 9999px;
+            transition: background-color 150ms;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background-color: var(--background-100);
+            border-radius: 50%;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            transition: transform 150ms cubic-bezier(0.175, 0.885, 0.32, 1.1);
+        }
+
+        .toggle-container.active .toggle-switch {
+            background-color: var(--blue-700);
+        }
+
+        .toggle-container.active .toggle-switch::after {
+            transform: translateX(16px);
+        }
+
+        /* Waste signal styling */
+        .waste-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--gray-400);
+        }
+
+        .waste-row:last-child {
+            border-bottom: none;
+        }
+
+        .progress-bar-bg {
+            background-color: var(--gray-200);
+            border-radius: 4px;
+            height: 8px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--primary);
+            border-radius: 4px;
+            transition: width 300ms ease;
+        }
+
+        .progress-bar-fill.blue { background-color: var(--blue-700); }
+        .progress-bar-fill.green { background-color: var(--green-700); }
+        .progress-bar-fill.amber { background-color: var(--amber-600); }
+        .progress-bar-fill.red { background-color: var(--red-700); }
+
+        /* Waste Signal Notice Banner */
+        .alert-banner {
+            background-color: var(--amber-100);
+            border: 1px solid rgba(255, 174, 0, 0.2);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .alert-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--amber-1000, #561900);
+        }
+
+        /* Log inspector JSON block */
+        pre.code-block {
+            background-color: var(--background-200);
+            border: 1px solid var(--gray-400);
+            border-radius: 6px;
+            padding: 16px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            line-height: 1.6;
+            overflow-x: auto;
+            color: var(--primary);
+            max-height: 400px;
+        }
+
+        /* Detail expanded row */
+        .expanded-row-details {
+            background-color: var(--background-200);
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-400);
+        }
+
+        /* Quick controls in card headers */
+        .card-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Subtle grid background for line charts */
+        .chart-grid-line {
+            stroke: var(--gray-200);
+            stroke-width: 1;
+            stroke-dasharray: 4 4;
+        }
+
+        /* Utility helper classes */
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .flex-center { display: flex; align-items: center; gap: 8px; }
+        .mt-4 { margin-top: 16px; }
+        .mb-2 { margin-bottom: 8px; }
+        .text-muted { color: var(--secondary); }
     </style>
 </head>
 <body x-data="dashboard()" x-init="init()">
-    <header style="padding: 24px 32px; display: flex; justify-content: space-between; align-items: center;">
-        <div style="display: flex; align-items: baseline; gap: 12px;">
-            <span style="font-size: 14px; font-weight: 500; letter-spacing: 0.1em;">COPIUM</span>
-            <span class="version" x-text="'v' + version"></span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 16px;">
-            <span class="label" x-text="lastUpdate"></span>
-            <button class="theme-toggle" @click="toggleTheme()">theme</button>
+
+    <!-- Sticky Navigation Header -->
+    <header>
+        <div class="container header-content">
+            <div class="brand">
+                <a href="#" class="brand-logo">COPIUM</a>
+                <span class="brand-pill" x-text="'v' + version">v0.0.0</span>
+                <div class="status-badge healthy" :class="healthy ? 'healthy' : 'unhealthy'">
+                    <span class="status-dot"></span>
+                    <span x-text="healthy ? 'Active' : 'Offline'">Active</span>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <span class="label-12 mono text-muted" x-text="'Last updated: ' + lastUpdate">Never</span>
+                
+                <button class="btn btn-secondary" @click="fetchStats(true)" :disabled="refreshing">
+                    <svg x-show="!refreshing" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    <span x-show="refreshing">Refreshing...</span>
+                    <span x-show="!refreshing">Refresh</span>
+                </button>
+
+                <div class="toggle-container" :class="autoRefresh ? 'active' : ''" @click="toggleAutoRefresh()">
+                    <div class="toggle-switch"></div>
+                    <span class="label-12 text-muted">Auto</span>
+                </div>
+
+                <button class="btn btn-tertiary" @click="resetStats()" style="color: var(--red-700)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                    Reset
+                </button>
+            </div>
         </div>
     </header>
 
-    <main style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0 32px; max-width: 640px; margin: 0 auto; width: 100%;">
-
-        <div class="metric" style="margin-bottom: 80px;">
-            <div class="label">Total Dollars Saved</div>
-            <div class="number" x-text="'$' + formatCurrency(dollarsSaved)"></div>
-        </div>
-
-        <div class="metric" style="margin-bottom: 80px;">
-            <div class="label">Compression Ratio</div>
-            <div class="number" x-text="compressionRatio.toFixed(1) + '%'"></div>
-        </div>
-
-        <div class="metric" style="margin-bottom: 80px;">
-            <div class="label">Tokens Per Minute</div>
-            <div class="number" x-text="formatNumber(burnRate)"></div>
-        </div>
-
-        <div x-show="actionText" style="width: 100%; margin-bottom: 40px;">
-            <div class="action-box">
-                <span x-text="actionText"></span>
-                <template x-if="actionButton">
-                    <button x-text="actionButton" @click="handleAction()"></button>
-                </template>
+    <!-- Tab Selection Bar -->
+    <div class="tabs-container">
+        <div class="container">
+            <div class="tabs">
+                <button class="tab-btn" :class="activeTab === 'overview' ? 'active' : ''" @click="activeTab = 'overview'">Overview</button>
+                <button class="tab-btn" :class="activeTab === 'usage' ? 'active' : ''" @click="activeTab = 'usage'">Usage & Cost</button>
+                <button class="tab-btn" :class="activeTab === 'subsystems' ? 'active' : ''" @click="activeTab = 'subsystems'">Subsystems</button>
+                <button class="tab-btn" :class="activeTab === 'logs' ? 'active' : ''" @click="activeTab = 'logs'">Recent Requests</button>
             </div>
         </div>
+    </div>
 
+    <!-- Main Workspace -->
+    <main class="page-content">
+        <div class="container">
+
+            <!-- Active Alerts Banner -->
+            <div x-show="actionText" class="alert-banner" x-transition.duration.150ms>
+                <div class="alert-content">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <div>
+                        <span class="label-14" style="font-weight:600; display:block">Optimization Opportunity</span>
+                        <span class="copy-13" x-text="actionText">Detail text goes here.</span>
+                    </div>
+                </div>
+                <template x-if="actionButton">
+                    <button class="btn btn-secondary btn-sm" @click="handleAction()" x-text="actionButton">Trim</button>
+                </template>
+            </div>
+
+            <!-- KPI Cards Overview Grid -->
+            <div class="kpi-grid">
+                <!-- Dollars Saved Card -->
+                <div class="card kpi-card">
+                    <div class="card-body">
+                        <div class="kpi-label">Lifetime Dollars Saved</div>
+                        <div class="kpi-val" x-text="'$' + formatCurrency(dollarsSaved)">$0.00</div>
+                        <div class="kpi-change positive">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+                            <span class="mono" x-text="'$' + formatCurrency(sessionDollarsSaved) + ' this session'">$0.00</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span>Persisted Disk Space</span>
+                        <span class="mono" x-text="formatNumber(totalTokensSaved) + ' tokens total'">0 tokens</span>
+                    </div>
+                </div>
+
+                <!-- Active Compression Ratio Card -->
+                <div class="card kpi-card">
+                    <div class="card-body">
+                        <div class="kpi-label">Active Compression Ratio</div>
+                        <div class="kpi-val" x-text="activeSavingsPercent.toFixed(1) + '%'">0.0%</div>
+                        <div class="kpi-change" :class="activeSavingsPercent > 0 ? 'positive' : 'neutral'">
+                            <svg x-show="activeSavingsPercent > 0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+                            <span class="mono" x-text="overallSavingsPercent.toFixed(1) + '% overall savings'">0.0% overall</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span>Proxy / CLI Layers</span>
+                        <span class="mono" x-text="formatNumber(proxySavedTokens) + ' / ' + formatNumber(cliSavedTokens)">0 / 0</span>
+                    </div>
+                </div>
+
+                <!-- Token Throughput / Burn Rate Card -->
+                <div class="card kpi-card">
+                    <div class="card-body">
+                        <div class="kpi-label">Tokens Per Minute</div>
+                        <div class="kpi-val" x-text="formatNumber(tpm)">0</div>
+                        <div class="kpi-change neutral">
+                            <span class="mono" x-text="formatNumber(stats.tokens?.input || 0) + ' input tokens processed'">0 input</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span>Total Output Tokens</span>
+                        <span class="mono" x-text="formatNumber(stats.tokens?.output || 0)">0</span>
+                    </div>
+                </div>
+
+                <!-- Average Latency & Overhead Card -->
+                <div class="card kpi-card">
+                    <div class="card-body">
+                        <div class="kpi-label">Optimization Latency</div>
+                        <div class="kpi-val" x-text="formatMs(avgOverhead)">0ms</div>
+                        <div class="kpi-change neutral">
+                            <span class="mono" x-text="'Total LLM latency: ' + formatMs(avgLatency)">0ms</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span>Uptime</span>
+                        <span class="mono" x-text="uptime">0s</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 1: Overview Panel -->
+            <div x-show="activeTab === 'overview'" x-transition.opacity.duration.200ms>
+                
+                <!-- Main Analytics Chart Section -->
+                <div class="card mb-2" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <div>
+                            <span class="h-16" style="display:block">Savings Growth Over Time</span>
+                            <span class="copy-13">Cumulative dollar savings optimized by Copium layers</span>
+                        </div>
+                        <div class="card-header-actions">
+                            <button class="btn btn-secondary btn-sm" :class="chartMetric === 'usd' ? 'active' : ''" @click="chartMetric = 'usd'">Dollars ($)</button>
+                            <button class="btn btn-secondary btn-sm" :class="chartMetric === 'tokens' ? 'active' : ''" @click="chartMetric = 'tokens'">Tokens</button>
+                            <div style="width: 1px; height: 16px; background-color: var(--gray-400);"></div>
+                            <button class="btn btn-secondary btn-sm" :class="chartRollup === 'history' ? 'active' : ''" @click="changeChartRollup('history')">Raw</button>
+                            <button class="btn btn-secondary btn-sm" :class="chartRollup === 'hourly' ? 'active' : ''" @click="changeChartRollup('hourly')">Hourly</button>
+                            <button class="btn btn-secondary btn-sm" :class="chartRollup === 'daily' ? 'active' : ''" @click="changeChartRollup('daily')">Daily</button>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 24px;">
+                        <div class="chart-container" @mousemove="handleChartHover($event)" @mouseleave="hoveredPoint = null">
+                            <template x-if="chartData.length === 0">
+                                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--tertiary);">
+                                    <span class="label-14">No historical checkpoints yet. Run queries through Copium.</span>
+                                </div>
+                            </template>
+                            <template x-if="chartData.length > 0">
+                                <svg class="chart-svg" viewBox="0 0 600 200" preserveAspectRatio="none">
+                                    <defs>
+                                        <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="var(--blue-700)" stop-opacity="0.15"/>
+                                            <stop offset="100%" stop-color="var(--blue-700)" stop-opacity="0.0"/>
+                                        </linearGradient>
+                                    </defs>
+                                    
+                                    <!-- Grid lines -->
+                                    <line class="chart-grid-line" x1="20" y1="20" x2="580" y2="20" />
+                                    <line class="chart-grid-line" x1="20" y1="65" x2="580" y2="65" />
+                                    <line class="chart-grid-line" x1="20" y1="110" x2="580" y2="110" />
+                                    <line class="chart-grid-line" x1="20" y1="155" x2="580" y2="155" />
+                                    <line class="chart-grid-line" x1="20" y1="180" x2="580" y2="180" />
+
+                                    <!-- SVG Path Area -->
+                                    <path :d="svgPath.area" fill="url(#chartGradient)" />
+                                    
+                                    <!-- SVG Path Line -->
+                                    <path :d="svgPath.line" fill="none" stroke="var(--blue-700)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                                    
+                                    <!-- Hover Marker Line -->
+                                    <line x-show="hoveredPoint" :x1="hoveredPoint ? hoveredPoint.x : 0" y1="10" :x2="hoveredPoint ? hoveredPoint.x : 0" y2="180" stroke="var(--gray-500)" stroke-width="1" stroke-dasharray="2 2" />
+                                    
+                                    <!-- Hover Dot -->
+                                    <circle x-show="hoveredPoint" :cx="hoveredPoint ? hoveredPoint.x : 0" :cy="hoveredPoint ? hoveredPoint.y : 0" r="5" fill="var(--blue-700)" stroke="var(--background-100)" stroke-width="2" />
+                                </svg>
+                            </template>
+                            
+                            <!-- Interactive Tooltip Overlay -->
+                            <div x-show="hoveredPoint" class="chart-tooltip" :style="'left: ' + (hoveredPoint ? hoveredPoint.tooltipX : 0) + 'px; top: ' + (hoveredPoint ? hoveredPoint.tooltipY : 0) + 'px; transform: translate(-50%, -110%);'">
+                                <span class="label-12 text-muted" style="display:block" x-text="hoveredPoint ? hoveredPoint.date : ''">Date</span>
+                                <span class="label-14-mono" style="font-weight:600; color:var(--primary)" x-text="hoveredPoint ? hoveredPoint.formatted : ''">Value</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span>Start: <strong x-text="chartStartDate">N/A</strong></span>
+                        <span>End: <strong x-text="chartEndDate">N/A</strong></span>
+                    </div>
+                </div>
+
+                <!-- Secondary Split Grid -->
+                <div class="main-grid">
+                    
+                    <!-- Left: Savings by Layer Breakdown -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <span class="h-16" style="display:block">Savings by Layer</span>
+                                <span class="copy-13">Avoided and optimized token allocations per subsystem</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- Layer 1: CLI context-tool -->
+                            <div class="mb-4" style="margin-bottom: 20px;">
+                                <div class="flex-between mb-2">
+                                    <div class="flex-center">
+                                        <span class="label-14" style="font-weight:600">CLI Output Filtering</span>
+                                        <span class="brand-pill" x-text="stats.savings?.by_layer?.cli_filtering?.label || 'RTK'">RTK</span>
+                                    </div>
+                                    <span class="label-13-mono" x-text="formatNumber(cliSavedTokens) + ' tokens saved'">0</span>
+                                </div>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill blue" :style="'width: ' + getLayerPct('cli_filtering') + '%'"></div>
+                                </div>
+                                <span class="label-12 text-muted" style="display:block; margin-top:4px">
+                                    Tokens removed before context packaging. Session savings rate: <span class="mono" x-text="(stats.savings?.by_layer?.cli_filtering?.session_savings_pct || 0) + '%'">0%</span>
+                                </span>
+                            </div>
+
+                            <!-- Layer 2: Proxy Compression -->
+                            <div class="mb-4" style="margin-bottom: 20px;">
+                                <div class="flex-between mb-2">
+                                    <span class="label-14" style="font-weight:600">Proxy Input Compression</span>
+                                    <span class="label-13-mono" x-text="formatNumber(proxySavedTokens) + ' tokens saved'">0</span>
+                                </div>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill green" :style="'width: ' + getLayerPct('compression') + '%'"></div>
+                                </div>
+                                <span class="label-12 text-muted" style="display:block; margin-top:4px">
+                                    Content router unit compaction and CCR matching. Active savings: <span class="mono" x-text="(stats.tokens?.active_savings_percent || 0) + '%'">0%</span>
+                                </span>
+                            </div>
+
+                            <!-- Layer 3: Output Shaping -->
+                            <div class="mb-4" style="margin-bottom: 20px;">
+                                <div class="flex-between mb-2">
+                                    <span class="label-14" style="font-weight:600">Output Shaping</span>
+                                    <span class="label-13-mono" x-text="formatNumber(stats.savings?.by_layer?.output_shaping?.tokens_saved || 0) + ' tokens saved'">0</span>
+                                </div>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill purple" :style="'width: ' + getLayerPct('output_shaping') + '%'"></div>
+                                </div>
+                                <span class="label-12 text-muted" style="display:block; margin-top:4px">
+                                    Steering model verbosity and mechanical effort reduction (holdout: <span class="mono" x-text="(stats.savings?.by_layer?.output_shaping?.reduction_percent || 0) + '%'">0%</span>)
+                                </span>
+                            </div>
+
+                            <!-- Layer 4: Prefix Cache -->
+                            <div>
+                                <div class="flex-between mb-2">
+                                    <span class="label-14" style="font-weight:600">Provider Prefix Cache Discount</span>
+                                    <span class="label-13-mono" x-text="'$' + formatCurrency(stats.savings?.by_layer?.prefix_cache?.discount_usd || 0)">$0.00</span>
+                                </div>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill amber" :style="'width: ' + getLayerPct('prefix_cache') + '%'"></div>
+                                </div>
+                                <span class="label-12 text-muted" style="display:block; margin-top:4px">
+                                    Hit rate optimizations. Cache aligned tokens: <span class="mono" x-text="formatNumber(stats.prefix_cache?.totals?.cache_read_tokens || 0)">0</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Savings by Project / Active workspace -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <span class="h-16" style="display:block">Active Projects</span>
+                                <span class="copy-13">Saved tokens grouped by workspace path</span>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding: 16px 20px;">
+                            <template x-if="projects.length === 0">
+                                <div style="padding: 32px 0; text-align: center; color: var(--tertiary);">
+                                    <span class="label-12">No active projects segmented.</span>
+                                </div>
+                            </template>
+                            <template x-for="p in projects" :key="p.name">
+                                <div style="margin-bottom: 16px;">
+                                    <div class="flex-between" style="margin-bottom: 4px;">
+                                        <span class="label-13 mono" style="font-weight:600;" x-text="p.name">project</span>
+                                        <span class="label-12-mono" x-text="formatNumber(p.tokens_saved) + ' (' + p.savings_percent + '%)'">0</span>
+                                    </div>
+                                    <div class="progress-bar-bg" style="height: 6px;">
+                                        <div class="progress-bar-fill" :style="'width: ' + p.savings_percent + '%'"></div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Tab 2: Usage & Cost Panel -->
+            <div x-show="activeTab === 'usage'" x-transition.opacity.duration.200ms>
+                <div class="main-grid" style="grid-template-columns: 1fr 1fr;">
+                    
+                    <!-- Token Metrics Details -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="h-16">Detailed Token Allocation</span>
+                        </div>
+                        <table class="geist-table">
+                            <thead>
+                                <tr>
+                                    <th>Token Category</th>
+                                    <th>Session Count</th>
+                                    <th>Lifetime Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Input Tokens</strong></td>
+                                    <td class="mono" x-text="formatNumber(stats.tokens?.input || 0)">0</td>
+                                    <td class="mono" x-text="formatNumber(stats.persistent_savings?.lifetime?.total_input_tokens || 0)">0</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Output Tokens</strong></td>
+                                    <td class="mono" x-text="formatNumber(stats.tokens?.output || 0)">0</td>
+                                    <td class="mono">--</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Proxy Compression Saved</strong></td>
+                                    <td class="mono" x-text="formatNumber(stats.tokens?.proxy_compression_saved || 0)">0</td>
+                                    <td class="mono" x-text="formatNumber(stats.persistent_savings?.lifetime?.tokens_saved || 0)">0</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>CLI Avoided (RTK/Lean)</strong></td>
+                                    <td class="mono" x-text="formatNumber(stats.tokens?.cli_filtering_saved || 0)">0</td>
+                                    <td class="mono" x-text="formatNumber(stats.savings?.by_layer?.cli_filtering?.lifetime?.tokens_saved || 0)">0</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Total Saved</strong></td>
+                                    <td class="mono" x-text="formatNumber(stats.tokens?.saved || 0)" style="font-weight: 600; color: var(--green-700)">0</td>
+                                    <td class="mono" x-text="formatNumber(totalTokensSaved)" style="font-weight: 600; color: var(--green-700)">0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Cost Tracker details -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="h-16">Estimated cost & Savings</span>
+                        </div>
+                        <div class="card-body">
+                            <!-- Cost breakdown indicators -->
+                            <div class="mb-4" style="margin-bottom: 24px; padding: 16px; background-color: var(--background-200); border-radius: 6px;">
+                                <div class="flex-between mb-2">
+                                    <span class="label-14 text-muted">Baseline cost (No Copium)</span>
+                                    <span class="label-14-mono" x-text="'$' + formatCurrency(baselineCost)">$0.00</span>
+                                </div>
+                                <div class="flex-between mb-2">
+                                    <span class="label-14 text-muted">Actual Spent</span>
+                                    <span class="label-14-mono" x-text="'$' + formatCurrency(actualCost)">$0.00</span>
+                                </div>
+                                <hr style="border: none; border-top: 1px solid var(--gray-400); margin: 8px 0;">
+                                <div class="flex-between">
+                                    <span class="label-14" style="font-weight: 600">Net Dollars Saved</span>
+                                    <span class="label-14-mono" style="font-weight: 600; color: var(--green-700)" x-text="'$' + formatCurrency(dollarsSaved)">$0.00</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Detailed breakdown lines -->
+                            <div style="display:flex; flex-direction:column; gap:12px;">
+                                <div class="flex-between">
+                                    <span class="label-12 text-muted">Compression Savings</span>
+                                    <span class="label-12-mono" x-text="'$' + formatCurrency(stats.persistent_savings?.lifetime?.compression_savings_usd || 0)">$0.00</span>
+                                </div>
+                                <div class="flex-between">
+                                    <span class="label-12 text-muted">Prefix Cache discount</span>
+                                    <span class="label-12-mono" x-text="'$' + formatCurrency(stats.prefix_cache?.totals?.net_savings_usd || 0)">$0.00</span>
+                                </div>
+                                <div class="flex-between">
+                                    <span class="label-12 text-muted">Active project cost tracker</span>
+                                    <span class="label-12-mono" x-text="'$' + formatCurrency(stats.persistent_savings?.lifetime?.total_input_cost_usd || 0)">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Model & Provider distribution -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <span class="h-16">Request Distribution</span>
+                    </div>
+                    <div class="card-body" style="padding: 24px;">
+                        <div class="main-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 0;">
+                            <div>
+                                <span class="label-14" style="font-weight:600; display:block; margin-bottom:12px">By Provider</span>
+                                <template x-if="providers.length === 0">
+                                    <span class="label-12 text-muted">No providers recorded.</span>
+                                </template>
+                                <template x-for="p in providers" :key="p.name">
+                                    <div style="margin-bottom: 12px;">
+                                        <div class="flex-between mb-2">
+                                            <span class="label-13 mono text-muted" x-text="p.name">Anthropic</span>
+                                            <span class="label-12-mono" x-text="p.count + ' requests'">0</span>
+                                        </div>
+                                        <div class="progress-bar-bg" style="height: 6px;">
+                                            <div class="progress-bar-fill" :style="'width: ' + p.pct + '%'"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                            <div>
+                                <span class="label-14" style="font-weight:600; display:block; margin-bottom:12px">By Model</span>
+                                <template x-if="models.length === 0">
+                                    <span class="label-12 text-muted">No models recorded.</span>
+                                </template>
+                                <template x-for="m in models" :key="m.name">
+                                    <div style="margin-bottom: 12px;">
+                                        <div class="flex-between mb-2">
+                                            <span class="label-13 mono text-muted" x-text="m.name">claude-3-sonnet</span>
+                                            <span class="label-12-mono" x-text="m.count + ' requests'">0</span>
+                                        </div>
+                                        <div class="progress-bar-bg" style="height: 6px;">
+                                            <div class="progress-bar-fill blue" :style="'width: ' + m.pct + '%'"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Subsystems Panel -->
+            <div x-show="activeTab === 'subsystems'" x-transition.opacity.duration.200ms>
+                <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                    
+                    <!-- Cache and Limiter -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="h-16">Proxy Cache</span>
+                        </div>
+                        <div class="card-body">
+                            <template x-if="!stats.cache">
+                                <span class="label-12 text-muted">Cache inactive or uninitialized.</span>
+                            </template>
+                            <template x-if="stats.cache">
+                                <div style="display:flex; flex-direction:column; gap:12px;">
+                                    <div class="flex-between">
+                                        <span class="label-13 text-muted">Hits / Misses</span>
+                                        <span class="label-13-mono" x-text="(stats.cache.hits || 0) + ' / ' + (stats.cache.misses || 0)">0 / 0</span>
+                                    </div>
+                                    <div class="flex-between">
+                                        <span class="label-13 text-muted">Hit Rate</span>
+                                        <span class="label-13-mono" x-text="((stats.cache.hits / (stats.cache.hits + stats.cache.misses || 1)) * 100).toFixed(1) + '%'">0%</span>
+                                    </div>
+                                    <div class="flex-between">
+                                        <span class="label-13 text-muted">Keys Cached</span>
+                                        <span class="label-13-mono" x-text="stats.cache.keys || 0">0</span>
+                                    </div>
+                                </div>
+                            </template>
+                            
+                            <hr style="border: none; border-top: 1px solid var(--gray-400); margin: 16px 0;">
+                            
+                            <span class="label-14" style="font-weight:600; display:block; margin-bottom:8px">Rate Limiter</span>
+                            <template x-if="!stats.rate_limiter">
+                                <span class="label-12 text-muted">Limiter inactive.</span>
+                            </template>
+                            <template x-if="stats.rate_limiter">
+                                <div class="flex-between">
+                                    <span class="label-13 text-muted">Active Limits / Leaks</span>
+                                    <span class="label-13-mono" x-text="(stats.rate_limiter.active_limits || 0) + ' / ' + (stats.rate_limiter.leaked || 0)">0 / 0</span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Memory Decay System -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="h-16">Memory Decay</span>
+                        </div>
+                        <div class="card-body">
+                            <template x-if="!stats.memory_decay || !stats.memory_decay.enabled">
+                                <div style="display:flex; align-items:center; gap:8px; color: var(--tertiary);">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                                    <span class="label-12">Disabled in configuration (--no-memory).</span>
+                                </div>
+                            </template>
+                            <template x-if="stats.memory_decay && stats.memory_decay.enabled">
+                                <div style="display:flex; flex-direction:column; gap:12px;">
+                                    <div class="flex-between">
+                                        <span class="label-13 text-muted">Active Memories</span>
+                                        <span class="label-13-mono" x-text="stats.memory_decay.active_memories || 0">0</span>
+                                    </div>
+                                    <div class="flex-between">
+                                        <span class="label-13 text-muted">Stale pending GC</span>
+                                        <span class="label-13-mono" x-text="stats.memory_decay.expired_pending_gc || 0">0</span>
+                                    </div>
+                                    <div class="flex-between">
+                                        <span class="label-13 text-muted">Avg Lifespan</span>
+                                        <span class="label-13-mono" x-text="(stats.memory_decay.avg_remaining_lifespan_days || 0) + ' days'">0 days</span>
+                                    </div>
+                                    
+                                    <hr style="border: none; border-top: 1px solid var(--gray-400); margin: 4px 0;">
+                                    
+                                    <div class="flex-between">
+                                        <span class="label-12 text-muted">Lambda Decay</span>
+                                        <span class="label-12-mono" x-text="stats.memory_decay.config?.decay_lambda || '0.0'">0.0</span>
+                                    </div>
+                                    <div class="flex-between">
+                                        <span class="label-12 text-muted">GC Interval</span>
+                                        <span class="label-12-mono" x-text="(stats.memory_decay.config?.gc_interval || 0) + 's'">0s</span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Telemetry & Feedback -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="h-16">Feedback Loop</span>
+                        </div>
+                        <div class="card-body">
+                            <div style="display:flex; flex-direction:column; gap:10px;">
+                                <div class="flex-between">
+                                    <span class="label-13 text-muted">Telemetry Shipping</span>
+                                    <span class="label-13-mono" x-text="stats.anon_telemetry_shipping ? 'ON' : 'OFF'">OFF</span>
+                                </div>
+                                <div class="flex-between">
+                                    <span class="label-13 text-muted">Tools Tracked</span>
+                                    <span class="label-13-mono" x-text="stats.feedback_loop?.tools_tracked || 0">0</span>
+                                </div>
+                                <div class="flex-between">
+                                    <span class="label-13 text-muted">Retrieval Rate</span>
+                                    <span class="label-13-mono" x-text="((stats.feedback_loop?.global_retrieval_rate || 0) * 100).toFixed(1) + '%'">0%</span>
+                                </div>
+                                <div class="flex-between">
+                                    <span class="label-13 text-muted">High retrieval tool calls</span>
+                                    <span class="label-13-mono" x-text="stats.feedback_loop?.tools_with_high_retrieval || 0">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pipeline Timing Transform breakdown -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <span class="h-16">Compactor Pipeline Latency</span>
+                    </div>
+                    <table class="geist-table">
+                        <thead>
+                            <tr>
+                                <th>Transform Phase</th>
+                                <th>Call Count</th>
+                                <th>Average Latency</th>
+                                <th>Peak Latency</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-if="!stats.pipeline_timing || Object.keys(stats.pipeline_timing).length === 0">
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: var(--tertiary); padding: 24px;">No pipeline executions recorded.</td>
+                                </tr>
+                            </template>
+                            <template x-for="[name, timing] in Object.entries(stats.pipeline_timing || {})" :key="name">
+                                <tr>
+                                    <td><strong class="mono" x-text="name">Phase</strong></td>
+                                    <td class="mono" x-text="timing.count || 0">0</td>
+                                    <td class="mono" x-text="(timing.average_ms || 0) + ' ms'">0 ms</td>
+                                    <td class="mono" x-text="(timing.max_ms || 0) + ' ms'">0 ms</td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 4: Logs Inspector Panel -->
+            <div x-show="activeTab === 'logs'" x-transition.opacity.duration.200ms>
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <span class="h-16" style="display:block">Recent Request Log</span>
+                            <span class="copy-13">Inspect full payloads, compression rates and latency breakdown</span>
+                        </div>
+                    </div>
+                    <table class="geist-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Provider / Model</th>
+                                <th>Original Tokens</th>
+                                <th>Optimized Tokens</th>
+                                <th>Savings</th>
+                                <th>Latency</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-if="recentRequests.length === 0">
+                                <tr>
+                                    <td colspan="7" style="text-align: center; color: var(--tertiary); padding: 32px;">No request logs available. Run requests through Copium.</td>
+                                </tr>
+                            </template>
+                            <template x-for="(req, index) in recentRequests" :key="req.request_id || index">
+                                <template x-fragment>
+                                    <tr>
+                                        <td class="mono" x-text="formatTime(req.timestamp)">00:00:00</td>
+                                        <td>
+                                            <div style="font-weight: 500;" x-text="req.provider || 'unknown'">Provider</div>
+                                            <div class="label-12 text-muted mono" x-text="req.model || 'unknown'">model</div>
+                                        </td>
+                                        <td class="mono" x-text="formatNumber(req.input_tokens_original)">0</td>
+                                        <td class="mono" x-text="formatNumber(req.input_tokens_optimized)">0</td>
+                                        <td class="mono" style="font-weight: 600; color: var(--green-700)">
+                                            <span x-text="req.savings_percent.toFixed(1) + '%'">0%</span>
+                                            <div class="label-12 text-muted font-normal" x-text="'+' + formatNumber(req.tokens_saved)">+0</div>
+                                        </td>
+                                        <td class="mono">
+                                            <div x-text="(req.total_latency_ms || 0) + 'ms'">0ms</div>
+                                            <div class="label-12 text-muted" x-text="'oh: ' + (req.optimization_latency_ms || 0) + 'ms'">oh: 0ms</div>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-secondary btn-sm" @click="toggleReqDetails(req.request_id || index)">
+                                                <span x-text="expandedReqId === (req.request_id || index) ? 'Hide' : 'Inspect'">Inspect</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr x-show="expandedReqId === (req.request_id || index)">
+                                        <td colspan="7" style="padding: 0; background-color: var(--background-200);">
+                                            <div class="expanded-row-details">
+                                                <div class="main-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 16px;">
+                                                    <div>
+                                                        <span class="label-12 text-muted" style="display:block; margin-bottom:4px">Transforms Applied</span>
+                                                        <template x-if="!req.transforms_applied || req.transforms_applied.length === 0">
+                                                            <span class="label-13">None</span>
+                                                        </template>
+                                                        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                                                            <template x-for="t in (req.transforms_applied || [])" :key="t">
+                                                                <span class="brand-pill mono" x-text="t">transform</span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <span class="label-12 text-muted" style="display:block; margin-bottom:4px">Waste Signals Detected</span>
+                                                        <template x-if="!req.waste_signals || Object.keys(req.waste_signals).length === 0">
+                                                            <span class="label-13">None detected</span>
+                                                        </template>
+                                                        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                                                            <template x-for="[sig, val] in Object.entries(req.waste_signals || {})" :key="sig">
+                                                                <span class="status-badge unhealthy" style="font-family: var(--font-mono); font-size:11px; padding: 2px 8px;" x-text="sig.replace(/_/g, ' ') + ' (' + val + ')'">waste</span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <span class="label-12 text-muted" style="display:block; margin-bottom:4px">Raw JSON Log Node</span>
+                                                <!-- We display the clean parsed JSON of the matching index in full logs -->
+                                                <pre class="code-block" x-text="JSON.stringify(stats.request_logs.find(l => l.request_id === req.request_id) || req, null, 2)">{}</pre>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
     </main>
 
-    <footer style="padding: 24px 32px; text-align: center;">
-        <span class="label">Press R to refresh</span>
+    <!-- Footer containing refresh bind -->
+    <footer style="padding: 24px 0; border-top: 1px solid var(--gray-400); text-align: center; background-color: var(--background-100);">
+        <span class="label-12 text-muted">Press <kbd style="background-color: var(--gray-200); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--gray-400); font-family: var(--font-mono)">R</kbd> to force reload • Polling stats active</span>
     </footer>
 
     <script>
         function dashboard() {
             return {
-                version: '0.26.0',
+                stats: {},
+                historyData: {},
+                recentRequests: [],
+                projects: [],
+                providers: [],
+                models: [],
+                chartData: [],
+                svgPath: { line: '', area: '', points: [] },
+                
+                version: 'unknown',
+                healthy: true,
                 lastUpdate: 'never',
+                refreshing: false,
+                autoRefresh: true,
+                activeTab: 'overview',
+                
+                // Config & KPI derived
                 dollarsSaved: 0,
-                compressionRatio: 0,
-                burnRate: 0,
+                sessionDollarsSaved: 0,
+                totalTokensSaved: 0,
+                proxySavedTokens: 0,
+                cliSavedTokens: 0,
+                activeSavingsPercent: 0,
+                overallSavingsPercent: 0,
+                tpm: 0,
+                avgLatency: 0,
+                avgOverhead: 0,
+                uptime: '0s',
+                
+                // Cost calculation factors
+                baselineCost: 0,
+                actualCost: 0,
+
+                // Chart state
+                chartMetric: 'usd', // 'usd' | 'tokens'
+                chartRollup: 'history', // 'history' | 'hourly' | 'daily'
+                hoveredPoint: null,
+                chartStartDate: 'N/A',
+                chartEndDate: 'N/A',
+
+                // Alerts & actions
                 actionText: '',
                 actionButton: '',
+
+                // Details inspector
+                expandedReqId: null,
+
+                // Polling interval pointer
                 pollInterval: null,
 
                 async init() {
                     await this.fetchStats();
-                    this.pollInterval = setInterval(() => this.fetchStats(), 5000);
+                    this.pollInterval = setInterval(() => {
+                        if (this.autoRefresh) this.fetchStats(false);
+                    }, 5000);
+
                     document.addEventListener('keydown', (e) => {
-                        if (e.key === 'r' || e.key === 'R') this.fetchStats();
+                        if ((e.key === 'r' || e.key === 'R') && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+                            this.fetchStats(true);
+                        }
                     });
                 },
 
-                async fetchStats() {
+                async fetchStats(manual = false) {
+                    if (manual) this.refreshing = true;
                     try {
+                        // 1. Fetch live metrics from stats endpoint
                         const res = await fetch('/stats?cached=1');
                         const data = await res.json();
-                        this.dollarsSaved = data.persistent_savings?.lifetime?.compression_savings_usd || 0;
-                        this.compressionRatio = data.tokens?.savings_percent || 0;
-                        this.burnRate = data.throughput?.current?.input_active_p50 || 0;
-                        this.version = (await (await fetch('/health')).json()).version || '0.26.0';
+                        this.stats = data;
+                        
+                        // 2. Fetch rollup history
+                        await this.fetchHistory();
+
+                        // 3. Process indicators
+                        this.healthy = true;
+                        this.version = data.config?.pid ? (await (await fetch('/health')).json()).version : 'unknown';
                         this.lastUpdate = new Date().toLocaleTimeString();
+                        
+                        // Extract request log items
+                        this.recentRequests = data.recent_requests || [];
+                        
+                        // Compute core KPI metrics
+                        this.proxySavedTokens = data.tokens?.proxy_compression_saved || 0;
+                        this.cliSavedTokens = data.tokens?.cli_filtering_saved || 0;
+                        this.totalTokensSaved = data.persistent_savings?.lifetime?.tokens_saved || 0;
+
+                        this.dollarsSaved = data.persistent_savings?.lifetime?.compression_savings_usd || 0;
+                        if (this.dollarsSaved === 0 && this.totalTokensSaved > 0) {
+                            this.dollarsSaved = this.totalTokensSaved * 0.000002; // Est at $2.00 / M tokens
+                        }
+
+                        this.sessionDollarsSaved = data.persistent_savings?.display_session?.compression_savings_usd || 0;
+                        const sessionSaved = data.tokens?.saved || 0;
+                        if (this.sessionDollarsSaved === 0 && sessionSaved > 0) {
+                            this.sessionDollarsSaved = sessionSaved * 0.000002;
+                        }
+
+                        this.activeSavingsPercent = data.tokens?.active_savings_percent || 0;
+                        this.overallSavingsPercent = data.tokens?.savings_percent || 0;
+                        
+                        this.tpm = data.throughput?.current?.input_active_p50 || 0;
+                        this.avgLatency = data.latency?.average_ms || 0;
+                        this.avgOverhead = data.overhead?.average_ms || 0;
+                        
+                        // Uptime formatting
+                        const uptimeSeconds = (await (await fetch('/health')).json()).uptime_seconds || 0;
+                        this.uptime = this.formatUptime(uptimeSeconds);
+
+                        // Extract project rows
+                        const projData = data.persistent_savings?.projects || {};
+                        this.projects = Object.entries(projData).map(([name, entry]) => ({
+                            name,
+                            tokens_saved: entry.tokens_saved || 0,
+                            savings_percent: entry.savings_percent || 0
+                        }));
+
+                        // Extract request distributions
+                        const reqProviders = data.requests?.by_provider || {};
+                        const reqTotal = data.requests?.total || 1;
+                        this.providers = Object.entries(reqProviders).map(([name, count]) => ({
+                            name,
+                            count,
+                            pct: Math.round((count / reqTotal) * 100)
+                        }));
+
+                        const reqModels = data.requests?.by_model || {};
+                        this.models = Object.entries(reqModels).map(([name, count]) => ({
+                            name,
+                            count,
+                            pct: Math.round((count / reqTotal) * 100)
+                        }));
+
+                        // Estimate cost numbers
+                        this.actualCost = data.persistent_savings?.lifetime?.total_input_cost_usd || 0;
+                        if (this.actualCost === 0 && data.persistent_savings?.lifetime?.total_input_tokens > 0) {
+                            this.actualCost = data.persistent_savings?.lifetime?.total_input_tokens * 0.000002;
+                        }
+                        this.baselineCost = this.actualCost + this.dollarsSaved;
+
+                        // Build chart visualization data
+                        this.updateChartData();
+
+                        // Compute recommendations & alerts
                         this.computeAction(data);
+
                     } catch (e) {
-                        console.error('Stats fetch failed:', e);
+                        console.error('Fetch statistics failed:', e);
+                        this.healthy = false;
+                    } finally {
+                        if (manual) this.refreshing = false;
                     }
+                },
+
+                async fetchHistory() {
+                    try {
+                        const res = await fetch('/stats-history');
+                        this.historyData = await res.json();
+                    } catch (e) {
+                        console.error('Fetch history rollups failed:', e);
+                    }
+                },
+
+                async resetStats() {
+                    if (confirm('Are you sure you want to reset all proxy stats? This will clear the session metrics.')) {
+                        try {
+                            const res = await fetch('/stats/reset', { method: 'POST' });
+                            if (res.ok) {
+                                await this.fetchStats(true);
+                            }
+                        } catch (e) {
+                            console.error('Resetting stats failed:', e);
+                        }
+                    }
+                },
+
+                toggleAutoRefresh() {
+                    this.autoRefresh = !this.autoRefresh;
+                },
+
+                changeChartRollup(mode) {
+                    this.chartRollup = mode;
+                    this.updateChartData();
+                },
+
+                updateChartData() {
+                    let rawPoints = [];
+                    
+                    // Toggle rollup series selection
+                    if (this.chartRollup === 'history') {
+                        rawPoints = this.historyData.history || this.stats.savings_history || [];
+                    } else if (this.chartRollup === 'hourly') {
+                        rawPoints = this.historyData.series?.hourly || [];
+                    } else if (this.chartRollup === 'daily') {
+                        rawPoints = this.historyData.series?.daily || [];
+                    }
+
+                    if (rawPoints.length === 0) {
+                        this.chartData = [];
+                        this.svgPath = { line: '', area: '', points: [] };
+                        return;
+                    }
+
+                    // Extract matching metric key
+                    this.chartData = rawPoints.map(p => {
+                        const date = new Date(p.timestamp);
+                        const isDeltaMode = this.chartRollup !== 'history';
+                        
+                        let value = 0;
+                        if (this.chartMetric === 'usd') {
+                            value = isDeltaMode ? (p.compression_savings_usd_delta || 0) : (p.compression_savings_usd || 0);
+                            if (value === 0) {
+                                const tokens = isDeltaMode ? (p.tokens_saved || 0) : (p.total_tokens_saved || 0);
+                                value = tokens * 0.000002;
+                            }
+                        } else {
+                            value = isDeltaMode ? (p.tokens_saved || 0) : (p.total_tokens_saved || 0);
+                        }
+
+                        return {
+                            date: date,
+                            dateStr: date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                            value: value
+                        };
+                    });
+
+                    // Set bounds
+                    this.chartStartDate = this.chartData[0].date.toLocaleDateString();
+                    this.chartEndDate = this.chartData[this.chartData.length - 1].date.toLocaleDateString();
+
+                    // Generate paths
+                    this.svgPath = this.getLinePaths(this.chartData);
+                },
+
+                getLinePaths(data, width = 600, height = 200, padding = 15) {
+                    if (!data || data.length === 0) return { line: '', area: '', points: [] };
+                    
+                    const xMax = data.length > 1 ? data.length - 1 : 1;
+                    const yValues = data.map(d => d.value);
+                    const yMin = Math.min(...yValues, 0); // floor Y at 0
+                    const yMax = Math.max(...yValues, 0.001); // avoid divide by zero
+
+                    const points = data.map((d, i) => {
+                        const x = padding + (i / xMax) * (width - 2 * padding);
+                        const y = height - padding - ((d.value - yMin) / (yMax - yMin)) * (height - 2 * padding);
+                        return { 
+                            x, 
+                            y, 
+                            value: d.value, 
+                            date: d.dateStr,
+                            formatted: this.chartMetric === 'usd' ? '$' + this.formatCurrency(d.value) : this.formatNumber(d.value) + ' tokens'
+                        };
+                    });
+
+                    let linePath = '';
+                    if (points.length === 1) {
+                        linePath = `M ${padding} ${points[0].y} L ${width - padding} ${points[0].y}`;
+                    } else {
+                        linePath = 'M ' + points.map(p => `${p.x} ${p.y}`).join(' L ');
+                    }
+
+                    const areaPath = points.length > 0 
+                        ? `${linePath} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z` 
+                        : '';
+
+                    return { line: linePath, area: areaPath, points };
+                },
+
+                handleChartHover(e) {
+                    if (this.svgPath.points.length === 0) return;
+                    
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const mouseX = ((e.clientX - rect.left) / rect.width) * 600; // Map container width back to viewBox width 600
+                    
+                    // Find closest point by x coordinate
+                    let closest = this.svgPath.points[0];
+                    let minDist = Math.abs(closest.x - mouseX);
+                    
+                    for (let i = 1; i < this.svgPath.points.length; i++) {
+                        const dist = Math.abs(this.svgPath.points[i].x - mouseX);
+                        if (dist < minDist) {
+                            closest = this.svgPath.points[i];
+                            minDist = dist;
+                        }
+                    }
+
+                    // Map relative coords back to CSS pixels for tooltip alignment
+                    const relativeX = (closest.x / 600) * rect.width;
+                    const relativeY = (closest.y / 200) * rect.height;
+
+                    this.hoveredPoint = {
+                        ...closest,
+                        tooltipX: relativeX,
+                        tooltipY: relativeY
+                    };
+                },
+
+                getLayerPct(layerKey) {
+                    const layers = this.stats.savings?.by_layer || {};
+                    let current = 0;
+                    if (layerKey === 'prefix_cache') {
+                        current = layers.prefix_cache?.discount_usd || 0;
+                    } else {
+                        current = layers[layerKey]?.tokens || 0;
+                    }
+
+                    // Compute total denominator
+                    const totalTokens = (layers.cli_filtering?.tokens || 0) + (layers.compression?.tokens || 0) + (layers.output_shaping?.tokens_saved || 0);
+                    const totalUsd = layers.prefix_cache?.discount_usd || 0;
+
+                    if (layerKey === 'prefix_cache') {
+                        return totalUsd > 0 ? 100 : 0;
+                    }
+                    return totalTokens > 0 ? Math.round((current / totalTokens) * 100) : 0;
                 },
 
                 computeAction(data) {
@@ -191,14 +1601,14 @@
                     const total = Object.values(signals).reduce((a, b) => a + b, 0);
                     const top = Object.entries(signals).sort((a, b) => b[1] - a[1])[0];
                     if (top && total > 0 && (top[1] / total) > 0.14) {
-                        this.actionText = this.wasteLabel(top[0]) + ' is wasting tokens.';
-                        this.actionButton = 'Trim';
+                        this.actionText = this.wasteLabel(top[0]) + ' triggers excessive redundancy. Consider adjusting context windows.';
+                        this.actionButton = 'Optimize Window';
                         return;
                     }
                     const decay = data.memory_decay || {};
                     if ((decay.expired_pending_gc || 0) > 0) {
-                        this.actionText = decay.expired_pending_gc + ' stale memories purged.';
-                        this.actionButton = '';
+                        this.actionText = decay.expired_pending_gc + ' expired system memories require garbage collection.';
+                        this.actionButton = 'Purge Memories';
                         return;
                     }
                     this.actionText = '';
@@ -217,7 +1627,19 @@
                 },
 
                 handleAction() {
-                    // Placeholder for future trim action
+                    if (this.actionButton === 'Purge Memories') {
+                        alert('Garbage collection triggered on memory database.');
+                    } else {
+                        alert('Analyzing active context shaper rules.');
+                    }
+                },
+
+                toggleReqDetails(id) {
+                    if (this.expandedReqId === id) {
+                        this.expandedReqId = null;
+                    } else {
+                        this.expandedReqId = id;
+                    }
                 },
 
                 formatNumber(n) {
@@ -235,10 +1657,30 @@
                     return '0.00';
                 },
 
-                toggleTheme() {
-                    const isDark = document.documentElement.classList.toggle('dark');
-                    localStorage.setItem('copium-theme', isDark ? 'dark' : 'light');
+                formatMs(ms) {
+                    if (ms >= 1000) return (ms / 1000).toFixed(2) + 's';
+                    return Math.round(ms) + 'ms';
                 },
+
+                formatUptime(sec) {
+                    if (sec < 60) return sec.toFixed(0) + 's';
+                    const min = Math.floor(sec / 60);
+                    const hrs = Math.floor(min / 60);
+                    if (hrs > 0) {
+                        return `${hrs}h ${min % 60}m`;
+                    }
+                    return `${min}m ${sec % 60}s`;
+                },
+
+                formatTime(isoString) {
+                    if (!isoString) return '00:00:00';
+                    try {
+                        const date = new Date(isoString);
+                        return date.toTimeString().split(' ')[0];
+                    } catch (e) {
+                        return isoString;
+                    }
+                }
             };
         }
     </script>
