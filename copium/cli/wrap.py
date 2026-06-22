@@ -8,6 +8,7 @@ Usage:
     copium wrap vibe                      # Start proxy + Mistral Vibe
     copium wrap cursor                    # Start proxy + print Cursor config instructions
     copium wrap openclaw                  # Install + configure OpenClaw plugin
+    copium wrap opencode                  # Start proxy + launch OpenCode (free Zen models)
     copium wrap claude --no-context-tool  # Without CLI context-tool setup
     copium wrap claude --port 9999        # Custom proxy port
     copium wrap claude -- --model opus    # Pass args to claude
@@ -2910,6 +2911,7 @@ def wrap() -> None:
         copium wrap goose               # Goose (Block) CLI
         copium wrap openhands           # OpenHands CLI
         copium wrap openclaw            # OpenClaw plugin bootstrap
+        copium wrap opencode            # OpenCode (free Zen models)
 
     \b
     `wrap` vs `proxy`:
@@ -2918,11 +2920,6 @@ def wrap() -> None:
         - `copium proxy` — just the proxy. Use this with any
           OpenAI/Anthropic-compatible client by setting
           ANTHROPIC_BASE_URL / OPENAI_BASE_URL yourself.
-
-    \b
-    Note: `copium wrap opencode` does NOT exist. For opencode, run
-    `copium proxy` and point opencode at it via OPENAI_BASE_URL.
-    `openclaw` is a separate tool — different from opencode.
     """
 
 
@@ -4856,6 +4853,192 @@ def unwrap_openclaw(
     if not no_stop_proxy:
         _echo_unwrap_proxy_stop_status(_stop_local_proxy_for_unwrap(proxy_port), proxy_port)
     click.echo()
+
+
+# =============================================================================
+# OpenCode
+# =============================================================================
+
+
+@wrap.command(context_settings={"ignore_unknown_options": True})
+@click.option("--port", "-p", default=8787, type=int, help="Proxy port (default: 8787)")
+@click.option("--no-proxy", is_flag=True, help="Skip proxy startup (use existing proxy)")
+@click.option("--learn", is_flag=True, help="Enable live traffic learning")
+@click.option("--memory", is_flag=True, help="Enable persistent cross-session memory")
+@click.option("--verbose", "-v", is_flag=True, help="Verbose output")
+@click.option("--prepare-only", is_flag=True, hidden=True)
+@click.argument("opencode_args", nargs=-1, type=click.UNPROCESSED)
+def opencode(
+    port: int,
+    no_proxy: bool,
+    learn: bool,
+    memory: bool,
+    verbose: bool,
+    prepare_only: bool,
+    opencode_args: tuple,
+) -> None:
+    """Launch OpenCode through Copium proxy.
+
+    \b
+    Temporarily adds a "copium" provider to opencode.json that routes all
+    API calls through the local Copium proxy. Supports all OpenCode free
+    Zen models: mimo-v2.5-free, deepseek-v4-flash-free, big-pickle,
+    nemotron-3-ultra-free, north-mini-code-free.
+
+    \b
+    The upstream target is OpenCode Zen (https://opencode.ai/zen/v1).
+    Copium compresses requests before forwarding to Zen. Free models
+    do not require an API key.
+
+    \b
+    Examples:
+        copium wrap opencode
+        copium wrap opencode -- -m opencode/mimo-v2.5-free
+        copium wrap opencode --no-proxy
+        copium wrap opencode --verbose
+    """
+    if prepare_only:
+        return
+
+    opencode_bin = shutil.which("opencode")
+    if not opencode_bin:
+        click.echo("Error: 'opencode' not found in PATH.")
+        click.echo("Install OpenCode: https://opencode.ai")
+        raise SystemExit(1)
+
+    # --- Config paths ---
+    config_path = Path.home() / ".config" / "opencode" / "opencode.json"
+
+    # Read existing config for restoration
+    original_config_text: str | None = None
+    if config_path.exists():
+        original_config_text = config_path.read_text(encoding="utf-8")
+
+    # Build the copium provider entry.
+    # Free Zen models use @ai-sdk/openai-compatible against the local proxy.
+    # The proxy forwards to https://opencode.ai/zen/v1 (set via openai_api_url).
+    copium_provider: dict = {
+        "npm": "@ai-sdk/openai-compatible",
+        "name": "Copium (Compressed)",
+        "options": {
+            "baseURL": f"http://127.0.0.1:{port}/v1",
+        },
+        "models": {
+            "mimo-v2.5-free": {
+                "name": "MiMo V2.5 Free (Copium)",
+                "tool_call": True,
+                "reasoning": True,
+            },
+            "deepseek-v4-flash-free": {
+                "name": "DeepSeek V4 Flash Free (Copium)",
+                "tool_call": True,
+            },
+            "big-pickle": {
+                "name": "Big Pickle (Copium)",
+                "tool_call": True,
+            },
+            "nemotron-3-ultra-free": {
+                "name": "Nemotron 3 Ultra Free (Copium)",
+                "tool_call": True,
+            },
+            "north-mini-code-free": {
+                "name": "North Mini Code Free (Copium)",
+                "tool_call": True,
+            },
+        },
+    }
+
+    def _restore_config() -> None:
+        """Restore the original opencode.json after wrap exits."""
+        if not config_path.exists():
+            return
+        if original_config_text is not None:
+            config_path.write_text(original_config_text, encoding="utf-8")
+            if verbose:
+                click.echo(f"  Restored {config_path}")
+        else:
+            # Config was created by us — remove it
+            try:
+                config_path.unlink()
+            except OSError:
+                pass
+
+    # --- Start proxy + launch ---
+    proxy_holder: list[subprocess.Popen | None] = [None]
+    cleanup = _make_cleanup(proxy_holder, port)
+    _register_proxy_client(port)
+    signal.signal(signal.SIGINT, _ignore_child_sigint)
+    signal.signal(signal.SIGTERM, cleanup)
+
+    try:
+        click.echo()
+        padded = "COPIUM WRAP: OPENCODE".center(47)
+        click.echo("  ╔═══════════════════════════════════════════════╗")
+        click.echo(f"  ║{padded}║")
+        click.echo("  ╚═══════════════════════════════════════════════╝")
+        click.echo()
+
+        # Start the proxy, forwarding to OpenCode Zen upstream
+        proxy_holder[0] = _ensure_proxy(
+            port,
+            no_proxy,
+            learn=learn,
+            memory=memory,
+            agent_type="opencode",
+            openai_api_url="https://opencode.ai/zen/v1",
+        )
+        _push_runtime_env(port, no_proxy)
+
+        # Modify opencode.json to add the copium provider
+        try:
+            if original_config_text:
+                config = json.loads(original_config_text)
+            else:
+                config = {"$schema": "https://opencode.ai/config.json"}
+
+            config.setdefault("provider", {})["copium"] = copium_provider
+
+            config_path.parent.mkdir(parents=True, exist_ok=True)
+            config_path.write_text(
+                json.dumps(config, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+            if verbose:
+                click.echo(f"  Updated {config_path} with copium provider")
+        except (json.JSONDecodeError, OSError) as e:
+            click.echo(f"  Warning: could not update {config_path}: {e}")
+            click.echo("  You can manually add the copium provider to your config.")
+            raise SystemExit(1)
+
+        click.echo()
+        click.echo("  Launching OpenCode (API routed through Copium)...")
+        click.echo()
+        click.echo("  Free Zen models available via the 'copium' provider:")
+        click.echo("    opencode/mimo-v2.5-free          (reasoning, tool call)")
+        click.echo("    opencode/deepseek-v4-flash-free  (tool call)")
+        click.echo("    opencode/big-pickle              (tool call)")
+        click.echo("    opencode/nemotron-3-ultra-free   (tool call)")
+        click.echo("    opencode/north-mini-code-free    (tool call)")
+        click.echo()
+        click.echo("  Select the 'copium' provider in OpenCode to use compressed models.")
+        click.echo("  Models are prefixed with 'copium/' in the model picker.")
+        _print_telemetry_notice()
+        click.echo()
+
+        result = subprocess.run(
+            [opencode_bin, *opencode_args],
+            env=os.environ.copy(),
+        )
+        raise SystemExit(result.returncode)
+
+    except SystemExit:
+        raise
+    except Exception as e:
+        click.echo(f"  Error: {e}")
+        raise SystemExit(1) from e
+    finally:
+        cleanup()
+        _restore_config()
 
 
 # =============================================================================
