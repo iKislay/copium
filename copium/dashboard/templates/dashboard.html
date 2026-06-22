@@ -1220,6 +1220,62 @@
                     </div>
                 </div>
 
+                <!-- Latency Distribution -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <div>
+                            <span class="h-16" style="display:block">Latency Distribution</span>
+                            <span class="copy-13">Time to first byte and total latency percentiles</span>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 24px;">
+                        <div class="main-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 0;">
+                            <div>
+                                <span class="label-14" style="font-weight:600; display:block; margin-bottom:12px">Total Latency</span>
+                                <div style="display:flex; flex-direction:column; gap:12px;">
+                                    <template x-for="stat in [
+                                        {label: 'Min', val: latencyMin},
+                                        {label: 'P50', val: latencyP50},
+                                        {label: 'Average', val: avgLatency},
+                                        {label: 'P99', val: latencyP99},
+                                        {label: 'Max', val: latencyMax}
+                                    ]">
+                                        <div>
+                                            <div class="flex-between mb-2">
+                                                <span class="label-13 mono text-muted" x-text="stat.label"></span>
+                                                <span class="label-12-mono" x-text="formatMs(stat.val)">0ms</span>
+                                            </div>
+                                            <div class="progress-bar-bg" style="height: 6px;">
+                                                <div class="progress-bar-fill blue" :style="'width: ' + (latencyMax > 0 ? (stat.val / latencyMax * 100) : 0) + '%'"></div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="label-14" style="font-weight:600; display:block; margin-bottom:12px">Time To First Byte (TTFB)</span>
+                                <div style="display:flex; flex-direction:column; gap:12px;">
+                                    <template x-for="stat in [
+                                        {label: 'P50', val: ttfbP50},
+                                        {label: 'P99', val: ttfbP99},
+                                        {label: 'Max', val: ttfbMax}
+                                    ]">
+                                        <div>
+                                            <div class="flex-between mb-2">
+                                                <span class="label-13 mono text-muted" x-text="stat.label"></span>
+                                                <span class="label-12-mono" x-text="formatMs(stat.val)">0ms</span>
+                                            </div>
+                                            <div class="progress-bar-bg" style="height: 6px;">
+                                                <div class="progress-bar-fill amber" :style="'width: ' + (ttfbMax > 0 ? (stat.val / ttfbMax * 100) : 0) + '%'"></div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Pipeline Timing Transform breakdown -->
                 <div class="card mt-4">
                     <div class="card-header">
@@ -1382,7 +1438,14 @@
                 overallSavingsPercent: 0,
                 tpm: 0,
                 avgLatency: 0,
+                latencyMin: 0,
+                latencyMax: 0,
+                latencyP50: 0,
+                latencyP99: 0,
                 avgOverhead: 0,
+                ttfbP50: 0,
+                ttfbP99: 0,
+                ttfbMax: 0,
                 uptime: '0s',
                 
                 // Cost calculation factors
@@ -1480,7 +1543,14 @@
                         
                         this.tpm = data.throughput?.current?.input_active_p50 || 0;
                         this.avgLatency = data.latency?.average_ms || 0;
+                        this.latencyMin = data.latency?.min_ms || 0;
+                        this.latencyMax = data.latency?.max_ms || 0;
+                        this.latencyP50 = data.latency?.p50_ms || 0;
+                        this.latencyP99 = data.latency?.p99_ms || 0;
                         this.avgOverhead = data.overhead?.average_ms || 0;
+                        this.ttfbP50 = data.ttfb?.p50_ms || 0;
+                        this.ttfbP99 = data.ttfb?.p99_ms || 0;
+                        this.ttfbMax = data.ttfb?.max_ms || 0;
                         
                         // Uptime formatting
                         const uptimeSeconds = (await (await fetch('/health')).json()).uptime_seconds || 0;
