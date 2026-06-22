@@ -112,6 +112,10 @@ if TYPE_CHECKING:
     from copium.transforms.paging_transform import (  # noqa: F401
         PagingTransform,
     )
+    from copium.transforms.quality_gate import (  # noqa: F401
+        QualityGate,
+        QualityGateResult,
+    )
 
 _HTML_EXTRACTOR_AVAILABLE = importlib.util.find_spec("trafilatura") is not None
 
@@ -177,6 +181,9 @@ __all__ = [
     "KVCacheAwareTransform",
     # Cold/hot context paging
     "PagingTransform",
+    # Quality gate
+    "QualityGate",
+    "QualityGateResult",
     # Model routing
     "ModelRouter",
     "ModelRouterConfig",
@@ -297,6 +304,9 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
     "KVCacheAwareTransform": ("copium.transforms.kv_cache_aware", "KVCacheAwareTransform"),
     # Cold/hot context paging
     "PagingTransform": ("copium.transforms.paging_transform", "PagingTransform"),
+    # Quality gate
+    "QualityGate": ("copium.transforms.quality_gate", "QualityGate"),
+    "QualityGateResult": ("copium.transforms.quality_gate", "QualityGateResult"),
     # Model routing
     "ModelRouter": ("copium.transforms.model_router", "ModelRouter"),
     "ModelRouterConfig": ("copium.transforms.model_router", "ModelRouterConfig"),
