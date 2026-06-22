@@ -1061,6 +1061,48 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Agent Usage Breakdown -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <div>
+                            <span class="h-16" style="display:block">Agent Usage</span>
+                            <span class="copy-13">Per-agent token consumption and savings</span>
+                        </div>
+                    </div>
+                    <table class="geist-table">
+                        <thead>
+                            <tr>
+                                <th>Agent</th>
+                                <th>Requests</th>
+                                <th>Input Tokens</th>
+                                <th>Tokens Saved</th>
+                                <th>Savings %</th>
+                                <th>Est. Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-if="agentUsage.length === 0">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: var(--tertiary); padding: 24px;">No agent usage data recorded.</td>
+                                </tr>
+                            </template>
+                            <template x-for="a in agentUsage" :key="a.agent">
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 500;" x-text="a.label">agent</div>
+                                        <div class="label-12 text-muted mono" x-text="a.agent">id</div>
+                                    </td>
+                                    <td class="mono" x-text="formatNumber(a.requests)">0</td>
+                                    <td class="mono" x-text="formatNumber(a.tokens_input)">0</td>
+                                    <td class="mono" style="color: var(--green-700);" x-text="formatNumber(a.tokens_saved)">0</td>
+                                    <td class="mono" x-text="a.savings_pct.toFixed(1) + '%'">0%</td>
+                                    <td class="mono" x-text="'$' + formatCurrency(a.cost_usd)">$0.00</td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- Tab 3: Subsystems Panel -->
@@ -1638,17 +1680,17 @@
                     const compTokens = layers.compression?.tokens || 0;
                     const outTokens = layers.output_shaping?.tokens_saved || 0;
                     const cacheUsd = layers.prefix_cache?.discount_usd || 0;
+                    const normalizedCache = cacheUsd * 200000;
+                    const totalTokens = cliTokens + compTokens + outTokens + normalizedCache;
+
+                    if (totalTokens <= 0) return 0;
 
                     if (layerKey === 'prefix_cache') {
-                        if (cacheUsd <= 0) return 0;
-                        const maxVal = Math.max(cliTokens, compTokens, outTokens, 1);
-                        const normalizedCache = cacheUsd * 200000;
-                        return Math.min(100, Math.round((normalizedCache / maxVal) * 100));
+                        return Math.round((normalizedCache / totalTokens) * 100);
                     }
 
-                    const current = layers[layerKey]?.tokens || 0;
-                    const totalTokens = cliTokens + compTokens + outTokens;
-                    return totalTokens > 0 ? Math.round((current / totalTokens) * 100) : 0;
+                    const current = layers[layerKey]?.tokens || (layerKey === 'output_shaping' ? layers[layerKey]?.tokens_saved : 0) || 0;
+                    return Math.round((current / totalTokens) * 100);
                 },
 
                 computeAction(data) {

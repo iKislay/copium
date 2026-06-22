@@ -252,3 +252,6 @@ uv.lock
 # package shadows the maturin overlay on sys.path.
 /copium/_core.*.so
 /copium/_core.so
+
+# Plans
+plans/
