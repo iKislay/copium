@@ -1615,6 +1615,15 @@ class OpenAIHandlerMixin:
         headers.pop("accept-encoding", None)
         tags = extract_tags(headers)
         client = classify_client(headers)
+        # Per-request transform control: parse X-Copium-Disable and X-Copium-Ratio
+        from copium.proxy.helpers import _copium_compression_ratio, _copium_disabled_transforms
+
+        _disabled_transforms = _copium_disabled_transforms(request.headers)
+        _compression_ratio = _copium_compression_ratio(request.headers)
+        if _disabled_transforms:
+            tags["disabled_transforms"] = ",".join(sorted(_disabled_transforms))
+        if _compression_ratio is not None:
+            tags["compression_ratio"] = str(_compression_ratio)
         # Surface the image-compression decision (computed earlier) into
         # tags now that the tags dict exists. Same observability pattern
         # the funnel uses for passthrough_reason + memory_skip_reason.
@@ -1877,6 +1886,7 @@ class OpenAIHandlerMixin:
                             frozen_message_count=openai_frozen_count,
                             biases=_hook_biases,
                             compression_policy=compression_policy,
+                            disabled_transforms=_disabled_transforms,
                         ),
                         timeout=COMPRESSION_TIMEOUT_SECONDS,
                     )
@@ -1901,6 +1911,7 @@ class OpenAIHandlerMixin:
                             frozen_message_count=openai_frozen_count,
                             biases=_hook_biases,
                             compression_policy=compression_policy,
+                            disabled_transforms=_disabled_transforms,
                         ),
                         timeout=COMPRESSION_TIMEOUT_SECONDS,
                     )

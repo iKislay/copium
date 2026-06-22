@@ -673,6 +673,15 @@ class AnthropicHandlerMixin:
             # from User-Agent or X-Client. Surfaced via the funnel into
             # PERF logs and RequestLog.tags — see RequestOutcome.client.
             client = classify_client(headers, default="claude")
+            # Per-request transform control: parse X-Copium-Disable and X-Copium-Ratio
+            from copium.proxy.helpers import _copium_compression_ratio, _copium_disabled_transforms
+
+            _disabled_transforms = _copium_disabled_transforms(request.headers)
+            _compression_ratio = _copium_compression_ratio(request.headers)
+            if _disabled_transforms:
+                tags["disabled_transforms"] = ",".join(sorted(_disabled_transforms))
+            if _compression_ratio is not None:
+                tags["compression_ratio"] = str(_compression_ratio)
             # PR-A5 (P5-49): strip internal x-copium-* from upstream-bound
             # headers AFTER `_extract_tags` reads them. Inbound bypass gating
             # uses `request.headers.get(...)` directly above; memory user-id
@@ -1100,6 +1109,7 @@ class AnthropicHandlerMixin:
                                     biases=biases,
                                     request_id=request_id,
                                     compression_policy=compression_policy,
+                                    disabled_transforms=_disabled_transforms,
                                     **proxy_pipeline_kwargs(self.config),
                                 ),
                                 timeout=COMPRESSION_TIMEOUT_SECONDS,
@@ -1141,6 +1151,7 @@ class AnthropicHandlerMixin:
                                     biases=biases,
                                     request_id=request_id,
                                     compression_policy=compression_policy,
+                                    disabled_transforms=_disabled_transforms,
                                     **proxy_pipeline_kwargs(self.config),
                                 ),
                                 timeout=COMPRESSION_TIMEOUT_SECONDS,

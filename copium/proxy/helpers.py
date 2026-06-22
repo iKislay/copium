@@ -348,6 +348,33 @@ def _copium_disabled_transforms(headers: Any) -> set[str]:
     return {name.strip() for name in raw.split(",") if name.strip()}
 
 
+def _copium_compression_ratio(headers: Any) -> float | None:
+    """Parse the ``X-Copium-Ratio`` header into a target compression ratio.
+
+    The header value is a float between 0.0 and 1.0 representing the
+    target compression ratio. Example::
+
+        X-Copium-Ratio: 0.3
+
+    means "compress to approximately 30% of the original size".
+
+    Returns None when the header is absent or empty (use default ratio).
+    """
+    try:
+        raw = str(headers.get("x-copium-ratio", "")).strip()
+    except AttributeError:
+        return None
+    if not raw:
+        return None
+    try:
+        ratio = float(raw)
+        if 0.0 <= ratio <= 1.0:
+            return ratio
+    except ValueError:
+        pass
+    return None
+
+
 def serialize_body_canonical(body: dict[str, Any]) -> bytes:
     """Re-serialize a request body deterministically with cache-stable formatting.
 
