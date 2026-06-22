@@ -186,6 +186,18 @@ def _selected_context_tool() -> str:
     ),
 )
 @click.option("--no-optimize", is_flag=True, help="Disable optimization (passthrough mode)")
+@click.option(
+    "--preset",
+    default=None,
+    type=click.Choice(["minimal", "standard", "aggressive", "local-llm", "lossless"]),
+    envvar="COPIUM_PRESET",
+    help=(
+        "Apply a named compression preset. Overrides individual transform defaults. "
+        "minimal: structural only; standard: full stack (default); "
+        "aggressive: max savings; local-llm: for Ollama/VLLM; lossless: zero quality loss. "
+        "Env: COPIUM_PRESET."
+    ),
+)
 @click.option("--no-cache", is_flag=True, help="Disable semantic caching")
 @click.option("--no-rate-limit", is_flag=True, help="Disable rate limiting")
 @click.option(
@@ -648,6 +660,7 @@ def proxy(
     max_keepalive_connections: int,
     intercept_tool_results: bool,
     no_optimize: bool,
+    preset: str | None,
     no_cache: bool,
     no_rate_limit: bool,
     no_ccr_inject_tool: bool,
@@ -744,6 +757,26 @@ def proxy(
             fg="yellow",
             err=True,
         )
+
+    # Apply named preset when --preset is set.
+    # The preset mutates environment variables that the ProxyConfig constructor
+    # reads, so it must run before ProxyConfig is built below.
+    if preset:
+        try:
+            from copium.presets import ALL_PRESETS
+
+            preset_fn = ALL_PRESETS.get(preset)
+            if preset_fn is not None:
+                _preset_config = preset_fn()
+                click.echo(f"  Preset '{preset}' applied.")
+                # Expose preset config to server via env var so ProxyConfig can read it
+                os.environ["COPIUM_PRESET"] = preset
+        except Exception as _preset_err:
+            click.secho(
+                f"Warning: could not apply preset '{preset}': {_preset_err}",
+                fg="yellow",
+                err=True,
+            )
 
     # Opt-in: turn on tool_result interceptors (ast-grep Read outline, etc.).
     # Only fetch the bundled CLI tool binaries when the feature is enabled —
@@ -1191,3 +1224,38 @@ Press Ctrl+C to stop.
             import asyncio as _asyncio2
 
             _asyncio2.run(_embed_watchdog.stop())
+
+
+@main.command("run", hidden=False, context_settings={"ignore_unknown_options": True, "allow_extra_args": True})
+@click.pass_context
+def run(ctx: click.Context) -> None:
+    """Zero-config proxy start (alias for `copium proxy`).
+
+    Auto-detects your LLM provider from environment variables and starts
+    the compression proxy. Accepts all the same flags as `copium proxy`.
+
+    \b
+    Examples:
+        copium run                       Start proxy on default port 8787
+        copium run --port 9000           Custom port
+        copium run --memory              Enable persistent memory
+        copium run --help                Show all available proxy options
+    \b
+    Quick setup:
+        export ANTHROPIC_API_KEY=sk-...
+        copium run
+        # In your agent: export ANTHROPIC_BASE_URL=http://localhost:8787
+    """
+    import sys as _sys
+
+    # Rewrite sys.argv so Click sees 'proxy' instead of 'run', then re-invoke
+    # the main entry-point. All extra flags/args are forwarded unchanged.
+    argv = list(_sys.argv)
+    try:
+        run_idx = next(i for i, a in enumerate(argv) if a == "run")
+        argv[run_idx] = "proxy"
+    except StopIteration:
+        argv = [argv[0], "proxy"] + list(ctx.args)
+    _sys.argv = argv
+    from .main import main as _main
+    _main(standalone_mode=True)

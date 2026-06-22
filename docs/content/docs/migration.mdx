@@ -1,0 +1,163 @@
+---
+title: Migration Guide
+description: Migrate from other context compression tools to Copium — zero-downtime, same proxy interface.
+---
+
+# Migrating to Copium
+
+Copium uses the same **proxy-as-middleware** interface as other context compression tools.
+If you are already using a tool like Headroom or a similar proxy, migration takes under 5 minutes.
+
+---
+
+## What Stays the Same
+
+- **Same base URL override pattern** — `export ANTHROPIC_BASE_URL=http://localhost:8787`
+- **Same OpenAI-compatible endpoint** — `OPENAI_BASE_URL=http://localhost:8787/v1`
+- **Same per-request disable header** — `X-Copium-Disable: session_dedup,cache_aligner`
+- **Same Prometheus `/metrics` endpoint** for Grafana dashboards
+
+---
+
+## Migrating from a Simpler Proxy
+
+If you were running another context compression proxy, migration is straightforward:
+
+### Step 1 — Install Copium
+
+```bash
+pip install "copium-ai[proxy]"
+```
+
+### Step 2 — Stop your old proxy
+
+```bash
+# Stop whatever was running before
+pkill -f "old-proxy"
+```
+
+### Step 3 — Start Copium
+
+```bash
+copium proxy
+# or: copium run  (zero-config alias)
+```
+
+### Step 4 — Done
+
+Your `ANTHROPIC_BASE_URL` still points to `http://localhost:8787` (or your chosen port).
+No code changes needed.
+
+---
+
+## What You Gain
+
+| Feature | Copium | Simpler Proxy |
+|---|:---:|:---:|
+| **Reversible compression (CCR)** | ✅ | ❌ |
+| **Session dedup** | ✅ | ❌ |
+| **Local LLM support** | ✅ | ❌ |
+| **MCP server** | ✅ | ❌ |
+| **Error card compression** | ✅ | ❌ |
+| **Differential response** | ✅ | ❌ |
+| **KV cache precision detection** | ✅ | ❌ |
+| **Context paging** | ✅ | ❌ |
+| **Model router** | ✅ | ❌ |
+| **Bedrock / Vertex / xAI** | ✅ | ❌ |
+| **Cross-agent memory** | ✅ | ❌ |
+| **Dashboard (web + TUI)** | ✅ | Grafana only |
+| **`copium wrap` agent wrappers** | ✅ | ❌ |
+| **`copium doctor` diagnostics** | ✅ | ❌ |
+| **Rust core** | ✅ | ❌ |
+
+---
+
+## Using Compression Presets
+
+If you previously used a specific compression profile, Copium's preset system lets you match it:
+
+```bash
+# Minimal — structural transforms only (closest to a "lite" proxy)
+copium proxy --preset minimal
+
+# Standard — recommended (all transforms, conservative settings)
+copium proxy --preset standard
+
+# Aggressive — maximum savings
+copium proxy --preset aggressive
+
+# Local LLM — optimized for Ollama/VLLM/llama.cpp
+copium proxy --preset local-llm
+```
+
+---
+
+## Agent Wrappers
+
+Copium includes one-liner wrappers for common AI coding tools:
+
+```bash
+copium wrap claude      # Claude Code
+copium wrap cursor      # Cursor
+copium wrap aider       # Aider
+copium wrap codex       # OpenAI Codex
+copium wrap opencode    # OpenCode
+```
+
+Each wrapper:
+1. Starts the Copium proxy in the background
+2. Configures the agent's base URL automatically
+3. Prints "Copium is compressing your requests"
+
+---
+
+## Per-Request Transform Control
+
+Disable specific transforms for individual requests via header:
+
+```
+X-Copium-Disable: session_dedup
+X-Copium-Disable: cache_aligner,smart_crusher
+```
+
+This mirrors the `X-Disable` pattern used by other proxy tools.
+
+---
+
+## Prometheus Metrics
+
+Copium exports metrics compatible with existing dashboards:
+
+| Copium metric | Description |
+|---|---|
+| `copium_requests_total` | Total proxy requests |
+| `copium_tokens_saved_total` | Cumulative input tokens saved |
+| `copium_compression_ratio` | Per-request compression ratio |
+| `copium_pipeline_duration_seconds` | End-to-end pipeline latency |
+| `copium_transform_duration_seconds` | Per-transform latency |
+
+Scrape from `http://localhost:8787/metrics`.
+
+---
+
+## Migration Checklist
+
+- [ ] `pip install "copium-ai[proxy]"`
+- [ ] `copium proxy` (or `copium run`)
+- [ ] Verify `ANTHROPIC_BASE_URL=http://localhost:8787` still works
+- [ ] Run `copium stats` to confirm savings are tracked
+- [ ] Optionally: `copium wrap claude` for zero-config agent integration
+- [ ] Optionally: configure a [preset](/docs/configuration) to match your old profile
+
+---
+
+## Getting Help
+
+```bash
+copium doctor          # Diagnostic check
+copium stats           # View savings summary
+copium --help          # All commands
+```
+
+- [GitHub Issues](https://github.com/iKislay/copium/issues)
+- [Documentation](https://copium-docs.vercel.app)

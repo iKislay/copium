@@ -2,7 +2,7 @@
 
 **The context compression layer for LLM applications**
 
-> 50–94% fewer tokens. Zero quality loss. Drop-in proxy for Claude, GPT, Gemini, Bedrock, and local LLMs.
+> 65–94% fewer tokens. Zero quality loss. Drop-in proxy for Claude, GPT, Gemini, Bedrock, and local LLMs.
 
 [![PyPI](https://img.shields.io/pypi/v/copium-ai.svg)](https://pypi.org/project/copium-ai/)
 [![Python](https://img.shields.io/badge/python-3.10+-blue)](https://pypi.org/project/copium-ai/)
@@ -294,13 +294,46 @@ Copium runs **locally**, covers **every** content type, works with every major f
 | | Scope | Deploy | Local LLMs | Reversible |
 |---|---|---|:---:|:---:|
 | **Copium** | All context — tools, RAG, logs, files, history | Proxy, library, MCP | ✅ | ✅ (CCR) |
+| [Kompact](https://github.com/kompact) | Prompt text & schemas | Python library | ❌ | ❌ |
+| [Claw Compactor](https://github.com/claw) | Prompt text & structure | Python library | ❌ | ❌ |
 | [Headroom](https://github.com/chopratejas/headroom) | All context | Proxy, library, middleware, MCP | ❌ | ✅ (CCR) |
+| [ContextZip](https://github.com/contextzip) | Session history / JSONL | Python CLI | ✅ | ✅ (Static) |
 | [RTK](https://github.com/rtk-ai/rtk) | CLI command outputs | CLI wrapper | ✅ | ❌ |
 | [lean-ctx](https://github.com/yvgude/lean-ctx) | CLI commands, MCP tools | CLI wrapper, MCP | ✅ | ❌ |
 | [Compresr](https://compresr.ai), [Token Co.](https://thetokencompany.ai) | Text sent to their API | Hosted API call | ❌ | ❌ |
 | OpenAI Compaction | Conversation history | Provider-native | ❌ | ❌ |
 
-### vs Headroom
+<details>
+<summary><b>vs Kompact</b></summary>
+
+Kompact is a Python library focused strictly on compressing prompt text and JSON schemas. Copium is a full architecture handling streaming tool outputs, multi-turn session deduplication, and provider caching.
+
+| | Copium | Kompact |
+|---|---|---|
+| **Architecture** | Proxy, MCP, Library | Library only |
+| **Tool Outputs** | SmartCrusher (statistical) | Regex/Text truncation |
+| **Session Dedup** | ✅ Cross-turn retrieval | ❌ |
+| **Performance** | Core logic in Rust | Pure Python |
+| **Safety** | Reversible (CCR) | Lossy |
+
+</details>
+
+<details>
+<summary><b>vs Claw Compactor</b></summary>
+
+Claw Compactor is a high-quality 14-stage pipeline for compressing prompts, but it's restricted to library deployment and irreversible compression. Copium incorporates similar quality-gated pipelines but wraps them in a zero-code proxy with reversible fail-safes.
+
+| | Copium | Claw Compactor |
+|---|---|---|
+| **Zero-Code Usage** | ✅ Drop-in Proxy | ❌ Library only |
+| **Reversibility** | ✅ Compress-Cache-Retrieve | ❌ Irreversible |
+| **Quality Gates** | ✅ Auto-reverts on inflation | ❌ Manual |
+| **Provider Support** | Universal (Anthropic, Bedrock, etc) | Manual injection |
+
+</details>
+
+<details>
+<summary><b>vs Headroom</b></summary>
 
 Both Copium and Headroom compress AI agent context. Key differences:
 
@@ -312,12 +345,35 @@ Both Copium and Headroom compress AI agent context. Key differences:
 | **Telemetry** | Off by default (opt-in) | On by default (opt-out) |
 | **CCR integrity checks** | ✅ (SHA-256 verification) | ❌ |
 | **Windows support** | ✅ Pre-built wheels (CI tested) | Manual install only |
-| **CCR debugging CLI** | ✅ `copium ccr list/inspect/verify` | ❌ |
-| **Pricing** | Free, open-source (Apache 2.0) | Free, open-source (Apache 2.0) |
 
-### vs Provider-native compaction
+</details>
 
-Provider compaction (OpenAI, Anthropic) only compresses **conversation history**. Copium compresses **everything** — tool outputs, logs, RAG results, files — and routes each content type to the best compressor.
+<details>
+<summary><b>vs ContextZip</b></summary>
+
+ContextZip operates on static conversation archives (e.g., `.jsonl` files) to compress past sessions. Copium operates on live agent traffic in real time.
+
+| | Copium | ContextZip |
+|---|---|---|
+| **Target** | Live HTTP traffic (Proxy) | Static session files (.jsonl) |
+| **Mechanism** | Real-time compression / routing | Post-hoc deduplication |
+| **Use Case** | While the agent is actively running | Archiving or resuming past chats |
+
+</details>
+
+<details>
+<summary><b>vs RTK</b></summary>
+
+RTK requires you to manually wrap individual CLI commands (`rtk git status`). Copium wraps the entire agent (`copium wrap claude`), automatically capturing and compressing every tool output without changing how you type commands.
+
+</details>
+
+<details>
+<summary><b>vs Provider-native compaction</b></summary>
+
+Provider compaction (OpenAI, Anthropic) only compresses **conversation history**. Copium compresses **everything** — tool outputs, logs, RAG results, files — and routes each content type to the best compressor before it ever reaches the provider.
+
+</details>
 
 ---
 

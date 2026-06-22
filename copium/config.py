@@ -752,6 +752,41 @@ class ContextBudgetConfig:
 
 
 @dataclass
+class ModelFallbackConfig:
+    """Automatic model fallback on rate-limit or server errors.
+
+    When the upstream provider returns 429 (rate limit) or 503 (unavailable),
+    the proxy retries the request with the configured fallback model. This prevents
+    agent stalls when a premium model is overloaded.
+
+    Example copium.jsonc configuration::
+
+        {
+          "model_fallbacks": {
+            "claude-sonnet-4-5": "claude-haiku-4-5",
+            "gpt-4o": "gpt-4o-mini"
+          }
+        }
+    """
+
+    enabled: bool = True
+
+    # Maps primary_model -> fallback_model (exact model name match).
+    # Requests targeting a key model are retried with the value model on
+    # 429 or 503 responses from the upstream provider.
+    model_map: dict[str, str] = field(default_factory=dict)
+
+    # HTTP status codes that trigger a fallback retry.
+    trigger_status_codes: list[int] = field(default_factory=lambda: [429, 503])
+
+    # Maximum number of fallback retries per request (1 = try original + 1 fallback).
+    max_retries: int = 1
+
+    # Base delay in seconds before the first fallback retry (exponential backoff).
+    backoff_seconds: float = 1.0
+
+
+@dataclass
 class CopiumConfig:
     """Main configuration for CopiumClient."""
 
@@ -774,6 +809,7 @@ class CopiumConfig:
     error_compressor: ErrorCompressorConfig = field(default_factory=ErrorCompressorConfig)
     kv_cache_aware: KVCacheAwareConfig = field(default_factory=KVCacheAwareConfig)
     paging: PagingConfig = field(default_factory=PagingConfig)
+    model_fallback: ModelFallbackConfig = field(default_factory=ModelFallbackConfig)
 
     # Output buffer reserved for the model's response when sizing the
     # incoming context. Previously lived on RollingWindowConfig; hoisted
