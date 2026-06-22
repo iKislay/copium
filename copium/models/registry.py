@@ -447,6 +447,86 @@ def _register_builtin_models() -> None:
     )
 
     # ============================================================
+    # OpenCode Go subscription models
+    # (OpenAI-compatible upstream at https://opencode.ai/zen/go/v1)
+    # deepseek-v4-flash and deepseek-v4-pro are already registered above
+    # as deepseek-provider models; the remaining Go models are scoped here
+    # under the "opencode-go" provider so context-limit lookups resolve.
+    # ============================================================
+
+    _MODELS["glm-5.2"] = ModelInfo(
+        name="glm-5.2",
+        provider="opencode-go",
+        context_window=128_000,
+        max_output_tokens=16_384,
+        supports_tools=True,
+        supports_vision=False,
+        supports_streaming=True,
+        tokenizer_backend="huggingface",
+        notes="GLM 5.2 via OpenCode Go - ZhipuAI coding model",
+    )
+
+    _MODELS["glm-5.1"] = ModelInfo(
+        name="glm-5.1",
+        provider="opencode-go",
+        context_window=128_000,
+        max_output_tokens=16_384,
+        supports_tools=True,
+        supports_vision=False,
+        supports_streaming=True,
+        tokenizer_backend="huggingface",
+        notes="GLM 5.1 via OpenCode Go - ZhipuAI coding model",
+    )
+
+    _MODELS["kimi-k2.7-code"] = ModelInfo(
+        name="kimi-k2.7-code",
+        provider="opencode-go",
+        context_window=256_000,
+        max_output_tokens=16_384,
+        supports_tools=True,
+        supports_vision=False,
+        supports_streaming=True,
+        tokenizer_backend="huggingface",
+        notes="Kimi K2.7 Code via OpenCode Go - Moonshot coding model",
+    )
+
+    _MODELS["kimi-k2.6"] = ModelInfo(
+        name="kimi-k2.6",
+        provider="opencode-go",
+        context_window=256_000,
+        max_output_tokens=16_384,
+        supports_tools=True,
+        supports_vision=False,
+        supports_streaming=True,
+        tokenizer_backend="huggingface",
+        notes="Kimi K2.6 via OpenCode Go - Moonshot coding model",
+    )
+
+    _MODELS["mimo-v2.5"] = ModelInfo(
+        name="mimo-v2.5",
+        provider="opencode-go",
+        context_window=128_000,
+        max_output_tokens=16_384,
+        supports_tools=True,
+        supports_vision=False,
+        supports_streaming=True,
+        tokenizer_backend="huggingface",
+        notes="MiMo V2.5 via OpenCode Go - Xiaomi coding model",
+    )
+
+    _MODELS["mimo-v2.5-pro"] = ModelInfo(
+        name="mimo-v2.5-pro",
+        provider="opencode-go",
+        context_window=128_000,
+        max_output_tokens=16_384,
+        supports_tools=True,
+        supports_vision=False,
+        supports_streaming=True,
+        tokenizer_backend="huggingface",
+        notes="MiMo V2.5 Pro via OpenCode Go - Xiaomi coding model",
+    )
+
+    # ============================================================
     # Qwen Models
     # ============================================================
 
