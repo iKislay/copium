@@ -640,6 +640,17 @@
     <!-- Main Workspace -->
     <main class="page-content">
         <div class="container">
+            
+            <!-- Offline Error Banner -->
+            <div x-show="!healthy" class="alert-banner" style="background-color: var(--red-100); border-color: rgba(234, 0, 29, 0.2); margin-bottom: 24px;">
+                <div class="alert-content" style="color: var(--red-800);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    <div>
+                        <span class="label-14" style="font-weight:600; display:block">Backend Unreachable</span>
+                        <span class="copy-13" style="color: var(--red-800);">The Copium proxy is not responding. Dashboards will not update until connection is restored.</span>
+                    </div>
+                </div>
+            </div>
 
             <!-- Active Alerts Banner -->
             <div x-show="actionText" class="alert-banner" x-transition.duration.150ms>
