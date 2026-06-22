@@ -60,6 +60,46 @@
             --shadow-card: 0 2px 2px rgba(0, 0, 0, 0.04);
             --shadow-popover: 0 1px 1px rgba(0, 0, 0, 0.02), 0 4px 8px -4px rgba(0, 0, 0, 0.04), 0 16px 24px -8px rgba(0, 0, 0, 0.06);
         }
+        
+        .dark-theme {
+            --primary: #ededed;
+            --secondary: #a1a1aa;
+            --tertiary: #71717a;
+            --neutral: #27272a;
+            --background-100: #0a0a0a;
+            --background-200: #121212;
+            
+            --gray-100: #27272a;
+            --gray-200: #3f3f46;
+            --gray-300: #52525b;
+            --gray-400: #27272a;
+            --gray-500: #71717a;
+            --gray-600: #a1a1aa;
+            --gray-700: #d4d4d8;
+            --gray-800: #e4e4e7;
+            --gray-900: #f4f4f5;
+            --gray-1000: #fafafa;
+            
+            --gray-alpha-100: rgba(255, 255, 255, 0.05);
+            --gray-alpha-200: rgba(255, 255, 255, 0.08);
+            
+            --blue-100: rgba(0, 112, 243, 0.15);
+            --blue-200: rgba(0, 112, 243, 0.25);
+            
+            --red-100: rgba(234, 0, 29, 0.15);
+            --red-200: rgba(234, 0, 29, 0.25);
+            
+            --amber-100: rgba(245, 166, 35, 0.15);
+            --amber-200: rgba(245, 166, 35, 0.25);
+            
+            --green-100: rgba(40, 169, 72, 0.15);
+            --green-200: rgba(40, 169, 72, 0.25);
+            
+            --purple-100: rgba(160, 0, 248, 0.15);
+            
+            --shadow-card: 0 2px 2px rgba(0, 0, 0, 0.8);
+            --shadow-popover: 0 1px 1px rgba(0, 0, 0, 0.6), 0 4px 8px -4px rgba(0, 0, 0, 0.8), 0 16px 24px -8px rgba(0, 0, 0, 0.9);
+        }
 
         * {
             margin: 0;
@@ -362,6 +402,12 @@
         }
 
         /* Interactive table */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
         table.geist-table {
             width: 100%;
             border-collapse: collapse;
@@ -616,6 +662,11 @@
                     <div class="toggle-switch"></div>
                     <span class="label-12 text-muted">Auto</span>
                 </div>
+                
+                <button class="btn btn-tertiary" @click="toggleTheme()" style="padding: 0 8px;" title="Toggle Dark Mode">
+                    <svg x-show="!darkMode" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    <svg x-show="darkMode" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                </button>
 
                 <button class="btn btn-tertiary" @click="resetStats()" style="color: var(--red-700)">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
@@ -962,42 +1013,44 @@
                         <div class="card-header">
                             <span class="h-16">Detailed Token Allocation</span>
                         </div>
-                        <table class="geist-table">
-                            <thead>
-                                <tr>
-                                    <th>Token Category</th>
-                                    <th>Session Count</th>
-                                    <th>Lifetime Count</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>Input Tokens</strong></td>
-                                    <td class="mono" x-text="formatNumber(stats.tokens?.input || 0)">0</td>
-                                    <td class="mono" x-text="formatNumber(stats.persistent_savings?.lifetime?.total_input_tokens || 0)">0</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Output Tokens</strong></td>
-                                    <td class="mono" x-text="formatNumber(stats.tokens?.output || 0)">0</td>
-                                    <td class="mono">--</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Proxy Compression Saved</strong></td>
-                                    <td class="mono" x-text="formatNumber(stats.tokens?.proxy_compression_saved || 0)">0</td>
-                                    <td class="mono" x-text="formatNumber(stats.persistent_savings?.lifetime?.tokens_saved || 0)">0</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>CLI Avoided (RTK/Lean)</strong></td>
-                                    <td class="mono" x-text="formatNumber(stats.tokens?.cli_filtering_saved || 0)">0</td>
-                                    <td class="mono" x-text="formatNumber(stats.savings?.by_layer?.cli_filtering?.lifetime?.tokens_saved || 0)">0</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Total Saved</strong></td>
-                                    <td class="mono" x-text="formatNumber(stats.tokens?.saved || 0)" style="font-weight: 600; color: var(--green-700)">0</td>
-                                    <td class="mono" x-text="formatNumber(totalTokensSaved)" style="font-weight: 600; color: var(--green-700)">0</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="geist-table">
+                                <thead>
+                                    <tr>
+                                        <th>Token Category</th>
+                                        <th>Session Count</th>
+                                        <th>Lifetime Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Input Tokens</strong></td>
+                                        <td class="mono" x-text="formatNumber(stats.tokens?.input || 0)">0</td>
+                                        <td class="mono" x-text="formatNumber(stats.persistent_savings?.lifetime?.total_input_tokens || 0)">0</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Output Tokens</strong></td>
+                                        <td class="mono" x-text="formatNumber(stats.tokens?.output || 0)">0</td>
+                                        <td class="mono">--</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Proxy Compression Saved</strong></td>
+                                        <td class="mono" x-text="formatNumber(stats.tokens?.proxy_compression_saved || 0)">0</td>
+                                        <td class="mono" x-text="formatNumber(stats.persistent_savings?.lifetime?.tokens_saved || 0)">0</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>CLI Avoided (RTK/Lean)</strong></td>
+                                        <td class="mono" x-text="formatNumber(stats.tokens?.cli_filtering_saved || 0)">0</td>
+                                        <td class="mono" x-text="formatNumber(stats.savings?.by_layer?.cli_filtering?.lifetime?.tokens_saved || 0)">0</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Total Saved</strong></td>
+                                        <td class="mono" x-text="formatNumber(stats.tokens?.saved || 0)" style="font-weight: 600; color: var(--green-700)">0</td>
+                                        <td class="mono" x-text="formatNumber(totalTokensSaved)" style="font-weight: 600; color: var(--green-700)">0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <!-- Cost Tracker details -->
@@ -1091,6 +1144,31 @@
                     </div>
                 </div>
 
+                <!-- Waste Signals Detection -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <span class="h-16">Waste Signals Detection</span>
+                    </div>
+                    <div class="card-body" style="padding: 24px;">
+                        <template x-if="wasteSignals.length === 0">
+                            <div style="padding: 12px 0; color: var(--tertiary);">
+                                <span class="label-12 text-muted">No waste signals detected.</span>
+                            </div>
+                        </template>
+                        <template x-for="w in wasteSignals" :key="w.name">
+                            <div style="margin-bottom: 12px;">
+                                <div class="flex-between mb-2">
+                                    <span class="label-13 mono text-muted" x-text="w.name">Signal</span>
+                                    <span class="label-12-mono" x-text="w.count + ' occurrences'">0</span>
+                                </div>
+                                <div class="progress-bar-bg" style="height: 6px;">
+                                    <div class="progress-bar-fill red" :style="'width: ' + w.pct + '%'"></div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
                 <!-- Agent Usage Breakdown -->
                 <div class="card mt-4">
                     <div class="card-header">
@@ -1099,38 +1177,40 @@
                             <span class="copy-13">Per-agent token consumption and savings</span>
                         </div>
                     </div>
-                    <table class="geist-table">
-                        <thead>
-                            <tr>
-                                <th>Agent</th>
-                                <th>Requests</th>
-                                <th>Input Tokens</th>
-                                <th>Tokens Saved</th>
-                                <th>Savings %</th>
-                                <th>Est. Cost</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <template x-if="agentUsage.length === 0">
+                    <div class="table-responsive">
+                        <table class="geist-table">
+                            <thead>
                                 <tr>
-                                    <td colspan="6" style="text-align: center; color: var(--tertiary); padding: 24px;">No agent usage data recorded.</td>
+                                    <th>Agent</th>
+                                    <th>Requests</th>
+                                    <th>Input Tokens</th>
+                                    <th>Tokens Saved</th>
+                                    <th>Savings %</th>
+                                    <th>Est. Cost</th>
                                 </tr>
-                            </template>
-                            <template x-for="a in agentUsage" :key="a.agent">
-                                <tr>
-                                    <td>
-                                        <div style="font-weight: 500;" x-text="a.label">agent</div>
-                                        <div class="label-12 text-muted mono" x-text="a.agent">id</div>
-                                    </td>
-                                    <td class="mono" x-text="formatNumber(a.requests)">0</td>
-                                    <td class="mono" x-text="formatNumber(a.tokens_input)">0</td>
-                                    <td class="mono" style="color: var(--green-700);" x-text="formatNumber(a.tokens_saved)">0</td>
-                                    <td class="mono" x-text="a.savings_pct.toFixed(1) + '%'">0%</td>
-                                    <td class="mono" x-text="'$' + formatCurrency(a.cost_usd)">$0.00</td>
-                                </tr>
-                            </template>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <template x-if="agentUsage.length === 0">
+                                    <tr>
+                                        <td colspan="6" style="text-align: center; color: var(--tertiary); padding: 24px;">No agent usage data recorded.</td>
+                                    </tr>
+                                </template>
+                                <template x-for="a in agentUsage" :key="a.agent">
+                                    <tr>
+                                        <td>
+                                            <div style="font-weight: 500;" x-text="a.label">agent</div>
+                                            <div class="label-12 text-muted mono" x-text="a.agent">id</div>
+                                        </td>
+                                        <td class="mono" x-text="formatNumber(a.requests)">0</td>
+                                        <td class="mono" x-text="formatNumber(a.tokens_input)">0</td>
+                                        <td class="mono" style="color: var(--green-700);" x-text="formatNumber(a.tokens_saved)">0</td>
+                                        <td class="mono" x-text="a.savings_pct.toFixed(1) + '%'">0%</td>
+                                        <td class="mono" x-text="'$' + formatCurrency(a.cost_usd)">$0.00</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -1310,31 +1390,33 @@
                     <div class="card-header">
                         <span class="h-16">Compactor Pipeline Latency</span>
                     </div>
-                    <table class="geist-table">
-                        <thead>
-                            <tr>
-                                <th>Transform Phase</th>
-                                <th>Call Count</th>
-                                <th>Average Latency</th>
-                                <th>Peak Latency</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <template x-if="!stats.pipeline_timing || Object.keys(stats.pipeline_timing).length === 0">
+                    <div class="table-responsive">
+                        <table class="geist-table">
+                            <thead>
                                 <tr>
-                                    <td colspan="4" style="text-align: center; color: var(--tertiary); padding: 24px;">No pipeline executions recorded.</td>
+                                    <th>Transform Phase</th>
+                                    <th>Call Count</th>
+                                    <th>Average Latency</th>
+                                    <th>Peak Latency</th>
                                 </tr>
-                            </template>
-                            <template x-for="[name, timing] in Object.entries(stats.pipeline_timing || {})" :key="name">
-                                <tr>
-                                    <td><strong class="mono" x-text="name">Phase</strong></td>
-                                    <td class="mono" x-text="timing.count || 0">0</td>
-                                    <td class="mono" x-text="(timing.average_ms || 0) + ' ms'">0 ms</td>
-                                    <td class="mono" x-text="(timing.max_ms || 0) + ' ms'">0 ms</td>
-                                </tr>
-                            </template>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <template x-if="!stats.pipeline_timing || Object.keys(stats.pipeline_timing).length === 0">
+                                    <tr>
+                                        <td colspan="4" style="text-align: center; color: var(--tertiary); padding: 24px;">No pipeline executions recorded.</td>
+                                    </tr>
+                                </template>
+                                <template x-for="[name, timing] in Object.entries(stats.pipeline_timing || {})" :key="name">
+                                    <tr>
+                                        <td><strong class="mono" x-text="name">Phase</strong></td>
+                                        <td class="mono" x-text="timing.count || 0">0</td>
+                                        <td class="mono" x-text="(timing.average_ms || 0) + ' ms'">0 ms</td>
+                                        <td class="mono" x-text="(timing.max_ms || 0) + ' ms'">0 ms</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -1361,86 +1443,88 @@
                             </select>
                         </div>
                     </div>
-                    <table class="geist-table">
-                        <thead>
-                            <tr>
-                                <th>Time</th>
-                                <th>Provider / Model</th>
-                                <th>Original Tokens</th>
-                                <th>Optimized Tokens</th>
-                                <th>Savings</th>
-                                <th>Latency</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <template x-if="filteredRequests.length === 0">
+                    <div class="table-responsive">
+                        <table class="geist-table">
+                            <thead>
                                 <tr>
-                                    <td colspan="7" style="text-align: center; color: var(--tertiary); padding: 32px;">No request logs match the criteria.</td>
+                                    <th>Time</th>
+                                    <th>Provider / Model</th>
+                                    <th>Original Tokens</th>
+                                    <th>Optimized Tokens</th>
+                                    <th>Savings</th>
+                                    <th>Latency</th>
+                                    <th>Action</th>
                                 </tr>
-                            </template>
-                            <template x-for="(req, index) in filteredRequests" :key="req.request_id || index">
-                                <template x-fragment>
+                            </thead>
+                            <tbody>
+                                <template x-if="filteredRequests.length === 0">
                                     <tr>
-                                        <td class="mono" x-text="formatTime(req.timestamp)">00:00:00</td>
-                                        <td>
-                                            <div style="font-weight: 500;" x-text="req.provider || 'unknown'">Provider</div>
-                                            <div class="label-12 text-muted mono" x-text="req.model || 'unknown'">model</div>
-                                        </td>
-                                        <td class="mono" x-text="formatNumber(req.input_tokens_original)">0</td>
-                                        <td class="mono" x-text="formatNumber(req.input_tokens_optimized)">0</td>
-                                        <td class="mono" style="font-weight: 600; color: var(--green-700)">
-                                            <span x-text="req.savings_percent.toFixed(1) + '%'">0%</span>
-                                            <div class="label-12 text-muted font-normal" x-text="'+' + formatNumber(req.tokens_saved)">+0</div>
-                                        </td>
-                                        <td class="mono">
-                                            <div x-text="(req.total_latency_ms || 0) + 'ms'">0ms</div>
-                                            <div class="label-12 text-muted" x-text="'oh: ' + (req.optimization_latency_ms || 0) + 'ms'">oh: 0ms</div>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-secondary btn-sm" @click="toggleReqDetails(req.request_id || index)">
-                                                <span x-text="expandedReqId === (req.request_id || index) ? 'Hide' : 'Inspect'">Inspect</span>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr x-show="expandedReqId === (req.request_id || index)">
-                                        <td colspan="7" style="padding: 0; background-color: var(--background-200);">
-                                            <div class="expanded-row-details">
-                                                <div class="main-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 16px;">
-                                                    <div>
-                                                        <span class="label-12 text-muted" style="display:block; margin-bottom:4px">Transforms Applied</span>
-                                                        <template x-if="!req.transforms_applied || req.transforms_applied.length === 0">
-                                                            <span class="label-13">None</span>
-                                                        </template>
-                                                        <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                                                            <template x-for="t in (req.transforms_applied || [])" :key="t">
-                                                                <span class="brand-pill mono" x-text="t">transform</span>
-                                                            </template>
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <span class="label-12 text-muted" style="display:block; margin-bottom:4px">Waste Signals Detected</span>
-                                                        <template x-if="!req.waste_signals || Object.keys(req.waste_signals).length === 0">
-                                                            <span class="label-13">None detected</span>
-                                                        </template>
-                                                        <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                                                            <template x-for="[sig, val] in Object.entries(req.waste_signals || {})" :key="sig">
-                                                                <span class="status-badge unhealthy" style="font-family: var(--font-mono); font-size:11px; padding: 2px 8px;" x-text="sig.replace(/_/g, ' ') + ' (' + val + ')'">waste</span>
-                                                            </template>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                
-                                                <span class="label-12 text-muted" style="display:block; margin-bottom:4px">Raw JSON Log Node</span>
-                                                <!-- We display the clean parsed JSON of the matching index in full logs -->
-                                                <pre class="code-block" x-text="JSON.stringify(stats.request_logs.find(l => l.request_id === req.request_id) || req, null, 2)">{}</pre>
-                                            </div>
-                                        </td>
+                                        <td colspan="7" style="text-align: center; color: var(--tertiary); padding: 32px;">No request logs match the criteria.</td>
                                     </tr>
                                 </template>
-                            </template>
-                        </tbody>
-                    </table>
+                                <template x-for="(req, index) in filteredRequests" :key="req.request_id || index">
+                                    <template x-fragment>
+                                        <tr>
+                                            <td class="mono" x-text="formatTime(req.timestamp)">00:00:00</td>
+                                            <td>
+                                                <div style="font-weight: 500;" x-text="req.provider || 'unknown'">Provider</div>
+                                                <div class="label-12 text-muted mono" x-text="req.model || 'unknown'">model</div>
+                                            </td>
+                                            <td class="mono" x-text="formatNumber(req.input_tokens_original)">0</td>
+                                            <td class="mono" x-text="formatNumber(req.input_tokens_optimized)">0</td>
+                                            <td class="mono" style="font-weight: 600; color: var(--green-700)">
+                                                <span x-text="req.savings_percent.toFixed(1) + '%'">0%</span>
+                                                <div class="label-12 text-muted font-normal" x-text="'+' + formatNumber(req.tokens_saved)">+0</div>
+                                            </td>
+                                            <td class="mono">
+                                                <div x-text="(req.total_latency_ms || 0) + 'ms'">0ms</div>
+                                                <div class="label-12 text-muted" x-text="'oh: ' + (req.optimization_latency_ms || 0) + 'ms'">oh: 0ms</div>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-secondary btn-sm" @click="toggleReqDetails(req.request_id || index)">
+                                                    <span x-text="expandedReqId === (req.request_id || index) ? 'Hide' : 'Inspect'">Inspect</span>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr x-show="expandedReqId === (req.request_id || index)">
+                                            <td colspan="7" style="padding: 0; background-color: var(--background-200);">
+                                                <div class="expanded-row-details">
+                                                    <div class="main-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 16px;">
+                                                        <div>
+                                                            <span class="label-12 text-muted" style="display:block; margin-bottom:4px">Transforms Applied</span>
+                                                            <template x-if="!req.transforms_applied || req.transforms_applied.length === 0">
+                                                                <span class="label-13">None</span>
+                                                            </template>
+                                                            <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                                                                <template x-for="t in (req.transforms_applied || [])" :key="t">
+                                                                    <span class="brand-pill mono" x-text="t">transform</span>
+                                                                </template>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <span class="label-12 text-muted" style="display:block; margin-bottom:4px">Waste Signals Detected</span>
+                                                            <template x-if="!req.waste_signals || Object.keys(req.waste_signals).length === 0">
+                                                                <span class="label-13">None detected</span>
+                                                            </template>
+                                                            <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                                                                <template x-for="[sig, val] in Object.entries(req.waste_signals || {})" :key="sig">
+                                                                    <span class="status-badge unhealthy" style="font-family: var(--font-mono); font-size:11px; padding: 2px 8px;" x-text="sig.replace(/_/g, ' ') + ' (' + val + ')'">waste</span>
+                                                                </template>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <span class="label-12 text-muted" style="display:block; margin-bottom:4px">Raw JSON Log Node</span>
+                                                    <!-- We display the clean parsed JSON of the matching index in full logs -->
+                                                    <pre class="code-block" x-text="JSON.stringify(stats.request_logs.find(l => l.request_id === req.request_id) || req, null, 2)">{}</pre>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -1470,6 +1554,7 @@
                 refreshing: false,
                 autoRefresh: true,
                 activeTab: 'overview',
+                darkMode: false,
                 
                 // Config & KPI derived
                 dollarsSaved: 0,
@@ -1500,6 +1585,7 @@
                 summary: {},
                 summaryTip: '',
                 agentUsage: [],
+                wasteSignals: [],
 
                 // Chart state
                 chartMetric: 'usd', // 'usd' | 'tokens'
@@ -1536,6 +1622,12 @@
                 pollInterval: null,
 
                 async init() {
+                    if (localStorage.getItem('copiumDarkMode') === 'true' || 
+                        (!localStorage.getItem('copiumDarkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                        this.darkMode = true;
+                        document.body.classList.add('dark-theme');
+                    }
+
                     await this.fetchStats();
                     this.pollInterval = setInterval(() => {
                         if (this.autoRefresh) this.fetchStats(false);
@@ -1546,6 +1638,16 @@
                             this.fetchStats(true);
                         }
                     });
+                },
+
+                toggleTheme() {
+                    this.darkMode = !this.darkMode;
+                    if (this.darkMode) {
+                        document.body.classList.add('dark-theme');
+                    } else {
+                        document.body.classList.remove('dark-theme');
+                    }
+                    localStorage.setItem('copiumDarkMode', this.darkMode);
                 },
 
                 async fetchStats(manual = false) {
@@ -1642,6 +1744,15 @@
                             count,
                             pct: Math.round((count / reqTotal) * 100)
                         }));
+
+                        // Extract waste signals
+                        const wasteObj = data.waste_signals || {};
+                        const wasteTotal = Object.values(wasteObj).reduce((a, b) => a + b, 0) || 1;
+                        this.wasteSignals = Object.entries(wasteObj).map(([name, count]) => ({
+                            name: this.wasteLabel(name),
+                            count,
+                            pct: Math.round((count / wasteTotal) * 100)
+                        })).sort((a, b) => b.count - a.count);
 
                         this.failedRequests = data.requests?.failed || 0;
                         this.cachedRequests = data.requests?.cached || 0;
@@ -1860,12 +1971,31 @@
                     return labels[signal] || signal.replace(/_/g, ' ');
                 },
 
-                handleAction() {
-                    if (this.actionButton === 'Purge Memories') {
-                        alert('Garbage collection triggered on memory database.');
-                    } else {
-                        alert('Analyzing active context shaper rules.');
+                async handleAction() {
+                    try {
+                        if (this.actionButton === 'Purge Memories') {
+                            const res = await fetch('/cache/clear', { method: 'POST' });
+                            if (res.ok) {
+                                this.actionText = 'Proxy cache cleared successfully.';
+                            } else {
+                                this.actionText = 'Failed to clear cache.';
+                            }
+                        } else {
+                            const res = await fetch('/stats/reset', { method: 'POST' });
+                            if (res.ok) {
+                                this.actionText = 'Stats reset successfully.';
+                                this.fetchStats();
+                            } else {
+                                this.actionText = 'Failed to reset stats.';
+                            }
+                        }
+                    } catch (e) {
+                        this.actionText = 'Error executing action.';
                     }
+                    setTimeout(() => {
+                        this.actionText = '';
+                        this.actionButton = '';
+                    }, 3000);
                 },
 
                 toggleReqDetails(id) {
