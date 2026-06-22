@@ -94,19 +94,19 @@ def format_telemetry_notice(*, prefix: str = "") -> str:
 
     Returns an empty string when telemetry or warnings are disabled so callers
     can unconditionally include the result in their output.
+
+    Also returns an empty string when telemetry is disabled — the notice is
+    only emitted when telemetry is actively enabled (opt-in), to inform users
+    of the data they are sending and how to opt out.
     """
-    if is_telemetry_enabled():
-        if not is_telemetry_warn_enabled():
-            return ""
-        return (
-            f"{prefix}Telemetry:    ENABLED (anonymous aggregate stats) | "
-            "Disable: COPIUM_TELEMETRY=off or copium telemetry --disable"
-        )
-    else:
-        return (
-            f"{prefix}Telemetry:    DISABLED (your data stays local)   | "
-            "Enable:  COPIUM_TELEMETRY=on or copium telemetry --enable"
-        )
+    if not is_telemetry_enabled():
+        return ""
+    if not is_telemetry_warn_enabled():
+        return ""
+    return (
+        f"{prefix}Telemetry:    ENABLED (anonymous aggregate stats) | "
+        "Disable: COPIUM_TELEMETRY=off or copium telemetry --disable"
+    )
 
 
 class TelemetryBeacon:

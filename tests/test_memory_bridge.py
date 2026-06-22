@@ -256,6 +256,10 @@ def bridge_config(tmp_dir):
 @pytest.fixture
 async def backend(tmp_dir):
     """Create a LocalBackend with temp database."""
+    sentence_transformers = pytest.importorskip(
+        "sentence_transformers",
+        reason="sentence-transformers is required for LocalEmbedder (install copium-ai[memory])",
+    )
     from copium.memory.backends.local import LocalBackend, LocalBackendConfig
 
     config = LocalBackendConfig(db_path=str(tmp_dir / "test_memory.db"))

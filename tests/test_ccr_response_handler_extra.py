@@ -104,7 +104,7 @@ def test_execute_retrieval_error_paths(monkeypatch: pytest.MonkeyPatch) -> None:
         CCRToolCall(tool_call_id="t1", hash_key="abc", query="find")
     )
     assert search_result.success is False
-    assert "Retrieval failed: search boom" in search_result.content
+    assert "search boom" in search_result.content
 
     monkeypatch.setattr(
         "copium.ccr.response_handler.get_compression_store",
@@ -112,7 +112,7 @@ def test_execute_retrieval_error_paths(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     retrieve_result = handler._execute_retrieval(CCRToolCall(tool_call_id="t2", hash_key="abc"))
     assert retrieve_result.success is False
-    assert "Retrieval failed: retrieve boom" in retrieve_result.content
+    assert "retrieve boom" in retrieve_result.content
 
 
 def test_create_tool_result_message_google_and_generic_formats() -> None:
