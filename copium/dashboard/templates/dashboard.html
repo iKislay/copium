@@ -723,6 +723,40 @@
             <!-- Tab 1: Overview Panel -->
             <div x-show="activeTab === 'overview'" x-transition.opacity.duration.200ms>
                 
+                <!-- Summary Banner -->
+                <div x-show="summary.mode" class="card mb-2" style="margin-bottom: 24px;">
+                    <div class="card-body" style="padding: 16px 20px;">
+                        <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="label-12 text-muted">Mode</span>
+                                <span class="brand-pill mono" x-text="summary.mode || '—'">—</span>
+                            </div>
+                            <div x-show="summary.primary_model" style="display: flex; align-items: center; gap: 8px;">
+                                <span class="label-12 text-muted">Primary Model</span>
+                                <span class="label-13 mono" style="font-weight: 500;" x-text="summary.primary_model || '—'">—</span>
+                            </div>
+                            <div x-show="summary.api_requests" style="display: flex; align-items: center; gap: 8px;">
+                                <span class="label-12 text-muted">API Requests</span>
+                                <span class="label-13 mono" style="font-weight: 500;" x-text="formatNumber(summary.api_requests || 0)">0</span>
+                            </div>
+                            <div x-show="summary.compression" style="display: flex; align-items: center; gap: 8px;">
+                                <span class="label-12 text-muted">Compressed</span>
+                                <span class="label-13 mono" style="font-weight: 500;" x-text="(summary.compression?.requests_compressed || 0) + ' requests'">0</span>
+                            </div>
+                            <div x-show="summary.compression?.avg_compression_pct" style="display: flex; align-items: center; gap: 8px;">
+                                <span class="label-12 text-muted">Avg Compression</span>
+                                <span class="label-13 mono" style="font-weight: 500; color: var(--green-700);" x-text="(summary.compression?.avg_compression_pct || 0).toFixed(1) + '%'">0%</span>
+                            </div>
+                        </div>
+                        <div x-show="summaryTip" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--gray-400);">
+                            <div style="display: flex; align-items: flex-start; gap: 8px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blue-700)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                                <span class="copy-13" style="color: var(--secondary);" x-text="summaryTip"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Main Analytics Chart Section -->
                 <div class="card mb-2" style="margin-bottom: 24px;">
                     <div class="card-header">
@@ -1313,6 +1347,11 @@
                 baselineCost: 0,
                 actualCost: 0,
 
+                // Summary data
+                summary: {},
+                summaryTip: '',
+                agentUsage: [],
+
                 // Chart state
                 chartMetric: 'usd', // 'usd' | 'tokens'
                 chartRollup: 'history', // 'history' | 'hourly' | 'daily'
@@ -1361,6 +1400,22 @@
                         
                         // Extract request log items
                         this.recentRequests = data.recent_requests || [];
+
+                        // Extract summary data
+                        this.summary = data.summary || {};
+                        this.summaryTip = data.summary?.tip || '';
+
+                        // Extract agent usage
+                        const agentData = data.agent_usage?.agents || [];
+                        this.agentUsage = agentData.map(a => ({
+                            agent: a.agent || 'unknown',
+                            label: a.label || a.agent || 'unknown',
+                            requests: a.requests || 0,
+                            tokens_input: a.tokens_input || 0,
+                            tokens_saved: a.tokens_saved || 0,
+                            savings_pct: a.savings_pct || 0,
+                            cost_usd: a.cost_usd || 0
+                        }));
                         
                         // Compute core KPI metrics
                         this.proxySavedTokens = data.tokens?.proxy_compression_saved || 0;
