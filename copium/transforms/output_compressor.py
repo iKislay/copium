@@ -13,69 +13,10 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from ..config import TransformResult
+from ..config import OutputCompressorConfig, TransformResult
 from ..tokenizer import Tokenizer
 from ..utils import deep_copy_messages
 from .base import Transform
-
-
-@dataclass
-class OutputCompressorConfig:
-    """Configuration for output compression.
-
-    Output compression trims verbose assistant responses by removing:
-    - Filler phrases and ceremony
-    - Repeated restatements
-    - Unnecessary meta-commentary
-    - Overly verbose code explanations
-
-    This is applied AFTER the model has generated its response (in the proxy
-    response path) or to assistant messages already in the message list.
-    """
-
-    enabled: bool = True
-
-    # Filler phrases to remove (case-insensitive)
-    filler_phrases: list[str] = field(
-        default_factory=lambda: [
-            r"^Certainly[!.]*\s*",
-            r"^Of course[!.]*\s*",
-            r"^Sure[!.]*\s*",
-            r"^Here's the thing[:\s]*\s*",
-            r"^Let me (?:help|explain|show)[^.]*\.\s*",
-            r"^I'd be happy to (?:help|assist)[^.]*\.\s*",
-            r"^Great question[!.]*\s*",
-            r"^That's a (?:good|great|excellent) (?:question|point)[!.]*\s*",
-            r"^Absolutely[!.]*\s*",
-            r"^Of course[!,]* I (?:can|will|would)[^.]*\.\s*",
-            r"^No problem[!.]*\s*",
-            r"^You're welcome[!.]*\s*",
-        ]
-    )
-
-    # Minimum token savings to bother compressing an output message
-    min_tokens_to_compress: int = 50
-
-    # Remove duplicate paragraphs (exact match)
-    dedup_paragraphs: bool = True
-
-    # Remove trailing code block repetitions
-    dedup_trailing_code: bool = True
-
-    # Max lines to keep per code block (0 = unlimited)
-    max_code_block_lines: int = 0
-
-    # Patterns for repeated section headers
-    section_header_pattern: str = r"^(?:#{1,6}|={3,}|-{3,})\s+"
-
-    # Meta-commentary patterns to strip
-    meta_patterns: list[str] = field(
-        default_factory=lambda: [
-            r"(?m)^\s*# This (?:file|function|class|module)[^\n]*\n",
-            r"(?m)^\s*# (?:Created|Modified|Updated|Written|Generated)[^\n]*\n",
-            r"(?m)^\s*// (?:Created|Modified|Updated|Written|Generated)[^\n]*\n",
-        ]
-    )
 
 
 # Compiled regex cache

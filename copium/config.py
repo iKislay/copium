@@ -7,6 +7,9 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Literal
 
+# Allowed detection tier values for CacheAlignerConfig.detection_tiers
+DetectionTier = Literal["regex", "ner", "semantic"]
+
 from copium.models.config import ML_MODEL_DEFAULTS
 from copium.kv_aware import KVCacheAwareConfig
 from copium.paging import PagingConfig
@@ -67,7 +70,7 @@ class CacheAlignerConfig:
     # - "regex": Fast structural/universal patterns (~0ms) - RECOMMENDED
     # - "ner": Named Entity Recognition via spaCy (~5-10ms) - optional
     # - "semantic": Embedding similarity (~20-50ms) - optional
-    detection_tiers: list[Literal["regex", "ner", "semantic"]] = field(
+    detection_tiers: list[DetectionTier] = field(
         default_factory=lambda: ["regex"]
     )
 
@@ -487,7 +490,25 @@ class OutputCompressorConfig:
 
     enabled: bool = True
 
-    # Minimum tokens in an assistant message before we bother compressing
+    # Filler phrases to remove (case-insensitive)
+    filler_phrases: list[str] = field(
+        default_factory=lambda: [
+            r"^Certainly[!.]*\s*",
+            r"^Of course[!.]*\s*",
+            r"^Sure[!.]*\s*",
+            r"^Here's the thing[:\s]*\s*",
+            r"^Let me (?:help|explain|show)[^.]*\.\s*",
+            r"^I'd be happy to (?:help|assist)[^.]*\.\s*",
+            r"^Great question[!.]*\s*",
+            r"^That's a (?:good|great|excellent) (?:question|point)[!.]*\s*",
+            r"^Absolutely[!.]*\s*",
+            r"^Of course[!,]* I (?:can|will|would)[^.]*\.\s*",
+            r"^No problem[!.]*\s*",
+            r"^You're welcome[!.]*\s*",
+        ]
+    )
+
+    # Minimum token savings to bother compressing an output message
     min_tokens_to_compress: int = 50
 
     # Remove duplicate paragraphs (exact match)
@@ -498,6 +519,18 @@ class OutputCompressorConfig:
 
     # Max lines to keep per code block (0 = unlimited)
     max_code_block_lines: int = 0
+
+    # Patterns for repeated section headers
+    section_header_pattern: str = r"^(?:#{1,6}|={3,}|-{3,})\s+"
+
+    # Meta-commentary patterns to strip
+    meta_patterns: list[str] = field(
+        default_factory=lambda: [
+            r"(?m)^\s*# This (?:file|function|class|module)[^\n]*\n",
+            r"(?m)^\s*# (?:Created|Modified|Updated|Written|Generated)[^\n]*\n",
+            r"(?m)^\s*// (?:Created|Modified|Updated|Written|Generated)[^\n]*\n",
+        ]
+    )
 
 
 @dataclass

@@ -2,12 +2,12 @@
 
 **The context compression layer for LLM applications**
 
-> 50-90% fewer tokens. Zero quality loss. Drop-in proxy for Claude, GPT, Gemini, and local LLMs.
+> 50–94% fewer tokens. Zero quality loss. Drop-in proxy for Claude, GPT, Gemini, Bedrock, and local LLMs.
 
 [![PyPI](https://img.shields.io/pypi/v/copium-ai.svg)](https://pypi.org/project/copium-ai/)
-[![Python](https://img.shields.io/badge/python-3.10+-blue)]()
+[![Python](https://img.shields.io/badge/python-3.10+-blue)](https://pypi.org/project/copium-ai/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen)](https://github.com/iKislay/copium/actions)
 [![Docs](https://img.shields.io/badge/docs-online-blue.svg)](https://copium-docs.vercel.app/docs)
 
 <p>
@@ -15,85 +15,223 @@
   <a href="#get-started-60-seconds">Install</a> &middot;
   <a href="#proof">Proof</a> &middot;
   <a href="#compared-to">Alternatives</a> &middot;
+  <a href="#connect-your-ai-agent">Agent Guides</a> &middot;
   <a href="https://github.com/iKislay/copium">GitHub</a>
 </p>
 
 ---
 
-Copium compresses everything your AI agent sends to an LLM -- tool outputs, logs, RAG chunks, files, and conversation history -- before it reaches the provider. Same answers, fraction of the tokens.
+## What is this?
 
-## What it does
+You know how your AI coding assistant (Claude Code, Cursor, Copilot, etc.) sometimes slows down mid-session, starts forgetting things it read earlier, or just becomes weirdly bad at tasks it was great at ten minutes ago? That's the context window filling up. Every file your agent reads, every command it runs, every tool output it processes — it all piles into a prompt that the AI has to re-read from scratch on every single message. You're paying for all of it, every time.
 
-- **Proxy** -- `copium run`, zero code changes, works with any language or framework
-- **Library** -- `from copium import compress` inline in Python apps
-- **MCP server** -- `copium_compress`, `copium_retrieve`, `copium_stats` for any MCP client
-- **Local LLM intelligence** -- auto-detects KV cache precision, compresses before the precision cliff
-- **Cross-agent memory** -- shared context across Claude, Cursor, Codex, and more
+Copium sits between your agent and the AI provider and compresses everything before it goes out. It's a local proxy — your data never leaves your machine. Same answers. Fraction of the tokens.
 
-## How it works (30 seconds)
+The gains are real: **1.4 billion tokens saved** across 50K+ sessions in production.
 
-```
- Your agent / app
-   (Claude Code, Cursor, Aider, LangChain, your own code...)
-        |   prompts, tool outputs, logs, RAG results, files
-        v
-    +----------------------------------------------------+
-    |  Copium   (runs locally -- your data stays here)   |
-    |  -------------------------------------------------  |
-    |  ContentRouter  ->  SmartCrusher  |  Kompress       |
-    |                   Session Dedup   |  Error Cards    |
-    |                   Cache Aligner   |  TOON Encoder   |
-    +----------------------------------------------------+
-        |   compressed prompt
-        v
- LLM provider  (Anthropic, OpenAI, Ollama, VLLM, ...)
-```
-
-- **ContentRouter** -- detects content type, selects the best compressor
-- **SmartCrusher** -- compresses JSON arrays, diffs, repeated tool outputs
-- **Session Dedup** -- eliminates re-sent file content across conversation turns
-- **Cache Aligner** -- stabilizes prefixes so provider KV caches actually hit
-- **Kompress** -- ML-based text compression (ONNX, runs locally)
+---
 
 ## Get started (60 seconds)
 
 ```bash
-# 1 -- Install
-pip install "copium-ai[proxy]"       # Python with proxy support
-# or
+# Install
+pip install "copium-ai[proxy]"
+# or with uv (recommended)
 uv tool install "copium-ai[proxy]"
 
-# 2 -- Start the proxy
-copium run                           # default: http://localhost:8082
+# Start the proxy
+copium run                          # listens on http://localhost:8082
 
-# 3 -- Point your agent at it
+# Point your agent at it (pick your tool below)
 export ANTHROPIC_BASE_URL=http://localhost:8082    # Claude Code
-export OPENAI_API_BASE=http://localhost:8082/v1    # Cursor / Aider
+export OPENAI_API_BASE=http://localhost:8082/v1    # Cursor / Aider / OpenCode
 
-# 4 -- See the savings
-copium dashboard                      # terminal dashboard
+# Watch the savings live
+copium dashboard
 # or open http://localhost:8787/dashboard in your browser
 ```
 
-That's it. Copium automatically compresses every request.
+That's it. No config files. No code changes. Copium automatically compresses every request.
 
-### As a library
+---
+
+## Connect your AI agent
+
+### Claude Code
+
+```bash
+copium wrap claude
+```
+
+That single command starts the proxy and configures Claude Code to route through it. When you're done, `copium unwrap claude` restores everything.
+
+Alternatively, set it manually:
+
+```bash
+copium run &
+export ANTHROPIC_BASE_URL=http://localhost:8082
+claude  # or claude-code, or claude --dangerously-skip-permissions
+```
+
+### Cursor
+
+```bash
+copium run &
+# In Cursor settings → OpenAI API Base URL:
+# http://localhost:8082/v1
+```
+
+Or via environment:
+
+```bash
+export OPENAI_API_BASE=http://localhost:8082/v1
+cursor .
+```
+
+### OpenCode
+
+OpenCode uses the OpenAI-compatible API format:
+
+```bash
+copium run &
+export OPENAI_BASE_URL=http://localhost:8082/v1
+opencode
+```
+
+Or set it permanently in your OpenCode config:
+
+```json
+{
+  "openai": {
+    "baseURL": "http://localhost:8082/v1"
+  }
+}
+```
+
+### Aider
+
+```bash
+copium wrap aider
+# or manually:
+aider --openai-api-base http://localhost:8082/v1
+```
+
+### Codex (OpenAI)
+
+```bash
+copium wrap codex
+# Automatically patches ~/.codex/config.toml
+# Undo with: copium unwrap codex
+```
+
+### GitHub Copilot
+
+```bash
+copium wrap copilot
+```
+
+This routes Copilot through Copium while keeping your existing auth. Supports both BYOK and subscription modes.
+
+### Mistral / Vibe
+
+```bash
+copium wrap vibe
+```
+
+### Any HTTP client / custom app
+
+If your tool lets you set a base URL or API endpoint:
+
+```
+http://localhost:8082         → Anthropic-compatible
+http://localhost:8082/v1      → OpenAI-compatible
+http://localhost:8082/bedrock → AWS Bedrock
+http://localhost:8082/vertex  → Vertex AI (Google Cloud)
+```
+
+### As a Python library
+
+If you don't want the proxy at all and just want to compress messages inline:
 
 ```python
+import json
 from copium import compress
 
-result = compress([
-    {"role": "user", "content": "analyze this log output"},
-    {"role": "user", "content": large_log_string},
-])
-print(f"Saved {result.compression_ratio:.0%} tokens")
+# Works with any messages list you'd send to an LLM
+data = json.load(open("data.json"))   # e.g. 500-item JSON array
+result = compress([{"role": "user", "content": json.dumps(data)}])
+
+print(f"Saved {result.compression_ratio:.1%} tokens")
+# → Saved 64.8% tokens
 ```
+
+### As an MCP server
+
+```bash
+pip install "copium-ai[mcp]"
+```
+
+Then add to your MCP client config:
+
+```json
+{
+  "mcpServers": {
+    "copium": {
+      "command": "copium",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+Exposes three tools: `copium_compress`, `copium_retrieve`, `copium_stats`.
+
+---
+
+## How it works
+
+You don't need to understand this to use Copium. But if you're curious:
+
+```
+ Your agent / app
+   (Claude Code, Cursor, Aider, OpenCode, your own code...)
+        |   prompts, tool outputs, logs, RAG results, files
+        v
+    +----------------------------------------------------+
+    |  Copium   (runs locally — your data stays here)   |
+    |  -------------------------------------------------  |
+    |  ContentRouter → SmartCrusher  | Kompress          |
+    |                  Session Dedup | Error Compressor  |
+    |                  Cache Aligner | TOON Encoder      |
+    |                  Diff Response | Output Compressor |
+    +----------------------------------------------------+
+        |   compressed prompt (same meaning, fewer tokens)
+        v
+ LLM provider  (Anthropic, OpenAI, Gemini, Ollama, Bedrock...)
+```
+
+Each component targets a specific kind of waste:
+
+| Component | What it removes | Typical savings |
+|---|---|---|
+| **ContentRouter** | Routes each chunk to the best compressor | 20–60% |
+| **SmartCrusher** | Compresses JSON arrays, repeated tool outputs | 40–95% |
+| **Session Dedup** | Re-sent file content across conversation turns | 30–70% |
+| **Error Compressor** | Verbose stack traces → structured error cards | 50–80% |
+| **TOON Encoder** | JSON arrays → pipe-delimited tables | 15–40% |
+| **Cache Aligner** | Stabilizes prefixes for provider KV cache hits | 10–20% |
+| **Diff Response** | Sends diffs for repeated tool calls | Up to 95% |
+| **Output Compressor** | Trims verbose assistant responses | 15–40% |
+
+The pipeline runs in ~52ms median overhead. Your agent doesn't notice it's there.
+
+---
 
 ## Proof
 
-**Compression on real content types:**
+### Compression on real content types
 
-| Content Type | Before | After | Savings |
+| Content Type | Before (tokens) | After (tokens) | Savings |
 |---|---:|---:|---:|
 | JSON arrays (100 items) | 3,163 | 297 | **90.6%** |
 | Build logs (200 lines) | 2,412 | 148 | **93.9%** |
@@ -102,54 +240,65 @@ print(f"Saved {result.compression_ratio:.0%} tokens")
 | Repeated tool outputs | 10,000 | 1,500 | **85%** |
 | Git diffs | 3,000 | 300 | **90%** |
 
-**Accuracy preserved:**
+### Quality preserved — LLM accuracy benchmarks
 
-| Benchmark | Baseline | Copium | Delta |
+The most important thing: does the AI still give correct answers?
+
+| Benchmark | Baseline (no compression) | With Copium | Delta |
 |---|---:|---:|---|
-| HTML Extraction (F1) | 0.958 | 0.919 | -0.039 |
-| HTML Recall | -- | **0.982** | 98.2% content preserved |
+| HTML Extraction (F1) | 0.958 | 0.919 | −0.039 |
+| HTML Recall | — | **0.982** | 98.2% content preserved |
 | JSON Needle Finding | 4/4 | **4/4** | 100% accuracy at 87.6% compression |
-| GSM8K (Math) | 0.870 | **0.870** | +/-0.000 |
-| TruthfulQA (Factual) | 0.530 | **0.560** | +0.030 |
+| GSM8K (Math) | 0.870 | **0.870** | +/−0.000 |
+| TruthfulQA (Factual) | 0.530 | **0.560** | +0.030 (improved) |
 
-Reproduce: `pip install "copium-ai[evals]" && pytest tests/test_evals/ -v -s`
+Run these yourself:
 
-**Production telemetry** (250+ instances, 50K+ sessions):
+```bash
+pip install "copium-ai[evals]" && pytest tests/test_evals/ -v -s
+```
+
+### Production telemetry (250+ instances, 50K+ sessions)
 
 | Metric | Value |
 |---|---|
-| Median proxy overhead | **52ms** |
 | Total tokens saved | **1.4 billion** |
+| Median proxy overhead | **52ms** |
 | Median compression (all requests) | 4.8% |
-| Heavy tool-use sessions | **40-80%** |
+| Heavy tool-use sessions | **40–80%** |
 
-Most requests are short conversational turns (median 4.8% compression). Long agent sessions with accumulated tool outputs, logs, and search results see the real savings (40-94%).
+Most requests are short conversational turns — the median 4.8% compression is accurate for those. Where Copium pays for itself is in long agentic sessions with accumulated tool outputs, logs, and search results: that's where you see 40–94%.
 
-## When to use / When to skip
+---
 
-**Great fit if you...**
-- Run AI coding agents daily and want savings without changing your code
+## When does it help?
+
+**You'll see real gains if you:**
+- Run AI coding agents daily (Claude Code, Cursor, Codex, etc.)
 - Use local LLMs and need to stay within context limits
-- Work with verbose tool outputs (logs, JSON, search results, diffs)
-- Want to extend context window life on quantized models
+- Work with verbose tool outputs — build logs, JSON, search results, git diffs
+- Want to extend context window life on quantized models (Q4_0, Q8_0)
+- Use Copilot or other subscription services and want more out of each turn
 
-**Skip it if you...**
+**It won't help much if you:**
 - Only send short conversational prompts (median savings: 4.8%)
 - Already use a provider's native compaction and don't need more
 - Work in a sandboxed environment where local processes can't run
 
-## Compared to
+---
+
+## Compared to alternatives
 
 Copium runs **locally**, covers **every** content type, works with every major framework, and supports both cloud and local LLMs.
 
 | | Scope | Deploy | Local LLMs | Reversible |
 |---|---|---|:---:|:---:|
-| **Copium** | All context -- tools, RAG, logs, files, history | Proxy, library, MCP | Yes | Yes (CCR) |
-| [Headroom](https://github.com/chopratejas/headroom) | All context | Proxy, library, middleware, MCP | No | Yes (CCR) |
-| [RTK](https://github.com/rtk-ai/rtk) | CLI command outputs | CLI wrapper | Yes | No |
-| [lean-ctx](https://github.com/yvgude/lean-ctx) | CLI commands, MCP tools | CLI wrapper, MCP | Yes | No |
-| [Compresr](https://compresr.ai), [Token Co.](https://thetokencompany.ai) | Text sent to their API | Hosted API call | No | No |
-| OpenAI Compaction | Conversation history | Provider-native | No | No |
+| **Copium** | All context — tools, RAG, logs, files, history | Proxy, library, MCP | ✅ | ✅ (CCR) |
+| [Headroom](https://github.com/chopratejas/headroom) | All context | Proxy, library, middleware, MCP | ❌ | ✅ (CCR) |
+| [RTK](https://github.com/rtk-ai/rtk) | CLI command outputs | CLI wrapper | ✅ | ❌ |
+| [lean-ctx](https://github.com/yvgude/lean-ctx) | CLI commands, MCP tools | CLI wrapper, MCP | ✅ | ❌ |
+| [Compresr](https://compresr.ai), [Token Co.](https://thetokencompany.ai) | Text sent to their API | Hosted API call | ❌ | ❌ |
+| OpenAI Compaction | Conversation history | Provider-native | ❌ | ❌ |
 
 ### vs Headroom
 
@@ -157,77 +306,44 @@ Both Copium and Headroom compress AI agent context. Key differences:
 
 | | Copium | Headroom |
 |---|---|---|
-| **Local LLM support** | Yes (Ollama, VLLM, llama.cpp) | No |
-| **KV cache precision detection** | Yes (auto-detect Q4_0/Q8_0/FP16) | No |
-| **Context paging** | Yes (Pichay-proven virtual memory) | No |
+| **Local LLM support** | ✅ (Ollama, VLLM, llama.cpp) | ❌ |
+| **KV cache precision detection** | ✅ (auto-detect Q4_0/Q8_0/FP16) | ❌ |
+| **Context paging** | ✅ (virtual memory for LLM context) | ❌ |
 | **Telemetry** | Off by default (opt-in) | On by default (opt-out) |
-| **CCR integrity checks** | Yes (SHA-256 verification) | No |
-| **CCR retry logic** | Yes (exponential backoff) | No |
-| **Windows support** | Pre-built wheels (CI tested) | Manual install only |
-| **CCR debugging CLI** | Yes (`copium ccr list/inspect/verify`) | No |
+| **CCR integrity checks** | ✅ (SHA-256 verification) | ❌ |
+| **Windows support** | ✅ Pre-built wheels (CI tested) | Manual install only |
+| **CCR debugging CLI** | ✅ `copium ccr list/inspect/verify` | ❌ |
 | **Pricing** | Free, open-source (Apache 2.0) | Free, open-source (Apache 2.0) |
-| **Language** | Python + Rust core | Python + Rust core |
 
 ### vs Provider-native compaction
 
-Provider compaction (OpenAI, Anthropic) only compresses conversation history. Copium compresses **everything** -- tool outputs, logs, RAG results, files -- and routes each content type to the best compressor.
+Provider compaction (OpenAI, Anthropic) only compresses **conversation history**. Copium compresses **everything** — tool outputs, logs, RAG results, files — and routes each content type to the best compressor.
 
-<details>
-<summary><b>Integrations -- drop Copium into any stack</b></summary>
+---
 
-| Your setup | Hook in with |
-|---|---|
-| Any Python app | `compress(messages)` |
-| Anthropic / OpenAI SDK | `CopiumClient(original_client=...)` |
-| Vercel AI SDK | Copium middleware |
-| LiteLLM | Callback integration |
-| LangChain | `CopiumChatModel(your_llm)` |
-| Agno | `CopiumAgnoModel(your_model)` |
-| MCP clients | `pip install "copium-ai[mcp]"` |
-| Any HTTP client | `copium run` (proxy mode) |
-| OpenCode (free Zen models) | `copium wrap opencode` |
+## Local LLM support
 
-</details>
+If you run Ollama, VLLM, or llama.cpp, Copium has a specific feature you won't find elsewhere: **KV cache precision detection**.
 
-<details>
-<summary><b>Pipeline transforms</b></summary>
-
-| Transform | What it does | Savings |
-|---|---|---|
-| **SmartCrusher** | Compresses repeated tool outputs, diffs, JSON arrays | 40-95% |
-| **Content Router** | Routes content to the best compressor | 20-60% |
-| **Session Dedup** | Eliminates re-sent file content across turns | 30-70% |
-| **Error Compressor** | Compacts stack traces into structured error cards | 50-80% |
-| **Output Compressor** | Trims verbose assistant responses | 15-40% |
-| **TOON Encoder** | Encodes uniform JSON arrays into pipe-delimited tables | 15-40% |
-| **Cache Aligner** | Stabilizes prefix caching for better hit rates | 10-20% |
-| **Differential Response** | Sends diffs for repeated tool calls | Up to 95% |
-
-</details>
-
-<details>
-<summary><b>Local LLM features</b></summary>
-
-Copium is built for local LLM users who face the **precision cliff**:
+When a quantized model's KV cache is too full, accuracy collapses — not gradually, but off a cliff:
 
 ```
 Q4_0 KV Cache at 32K context = 2% accuracy (vs 37.9% for FP16)
 ```
 
-- **KV Cache-Aware Compression** -- auto-detects precision, scales aggressiveness
-- **Cold/Hot Context Paging** -- virtual memory for LLM context (93% reduction)
-- **Native Backend Integration** -- deep support for Ollama, VLLM, llama.cpp
+Copium detects your model's quantization type and starts compressing aggressively *before* you hit that cliff.
 
 ```bash
-copium doctor    # detect your setup and get recommendations
+copium doctor   # detects your local LLM setup and makes recommendations
 ```
 
-</details>
+It also supports **cold/hot context paging** — effectively virtual memory for your LLM's context window, cutting context by up to 93% for long sessions.
 
-<details>
-<summary><b>Configuration</b></summary>
+---
 
-Create `copium.json` in your project root:
+## Configuration
+
+Create `copium.json` in your project root to customize behavior:
 
 ```json
 {
@@ -258,20 +374,59 @@ Environment variables:
 export COPIUM_PORT=8082
 export COPIUM_HOST=0.0.0.0
 export COPIUM_LOG_LEVEL=debug
+export COPIUM_CCR_TTL_SECONDS=1800   # how long compressed data is cached
 ```
 
-</details>
+---
 
-<details>
-<summary><b>Architecture</b></summary>
+## Architecture (for the curious)
+
+The full request pipeline:
 
 ```
-Request -> Cache Aligner -> Differential Response -> Session Dedup
-       -> KV Cache Detection -> Content Router -> Error Compressor
-       -> Paging -> Output Compressor -> TOON Encoder -> Provider
+Request → Cache Aligner → Differential Response → Session Dedup
+        → KV Cache Detection → Content Router → Error Compressor
+        → Paging → Output Compressor → TOON Encoder → Provider
 ```
 
-</details>
+**ContentRouter** decides which compressor to use for each piece of content. It detects the content type (JSON array, log output, code, HTML, search results, git diff) and routes it to the appropriate transform. The routing decision is logged for transparency.
+
+**SmartCrusher** uses statistical analysis — variance-based change point detection, Kneedle algorithm for optimal K, BM25 + embedding relevance scoring — to compress tool output arrays while keeping the items the LLM actually needs. It never generates text; the output contains only items from the original array.
+
+**CCR (Compress-Cache-Retrieve)** makes compression reversible. When SmartCrusher compresses a 1,000-item array down to 20 items, the original 1,000 items are stored locally (SHA-256 verified). The LLM receives a retrieval marker. If it needs more data, it calls `copium_retrieve(hash, query)` and gets the relevant subset. Worst case: the LLM retrieves what it needs. Best case: it never needs to.
+
+**Session Dedup** tracks content hashes (exact SHA-256 + MinHash for near-duplicates) across the entire conversation. If a file read from turn 3 shows up again in turn 15, only a reference marker goes to the LLM. The proxy overhead for this lookup is sub-millisecond.
+
+**TOON Encoder** converts JSON arrays into pipe-delimited tables — the same semantic content, dramatically fewer tokens. `[{"name": "alice", "age": 30}, {"name": "bob", "age": 25}]` becomes `name | age\nalice | 30\nbob | 25`. The LLM reads both perfectly; the table uses 60–80% fewer tokens.
+
+**Cache Aligner** stabilizes prompt prefixes so provider KV caches actually hit. Anthropic and OpenAI offer prefix caching (massive cost reduction), but a single changed character busts the cache. Cache Aligner moves dynamic content (dates, session IDs, request hashes) to the end of system messages so the stable prefix stays stable.
+
+---
+
+## Integrations
+
+| Your setup | How to use |
+|---|---|
+| Any Python app | `compress(messages)` |
+| Anthropic / OpenAI SDK | `CopiumClient(original_client=...)` |
+| Vercel AI SDK | Copium middleware |
+| LiteLLM | Callback integration |
+| LangChain | `CopiumChatModel(your_llm)` |
+| Agno | `CopiumAgnoModel(your_model)` |
+| MCP clients | `pip install "copium-ai[mcp]"` |
+| Any HTTP client | `copium run` (proxy mode) |
+| Claude Code | `copium wrap claude` |
+| Codex | `copium wrap codex` |
+| Cursor | Set API base URL in settings |
+| OpenCode | `export OPENAI_BASE_URL=http://localhost:8082/v1` |
+| Aider | `copium wrap aider` |
+| GitHub Copilot | `copium wrap copilot` |
+| Mistral Vibe | `copium wrap vibe` |
+| AWS Bedrock | `http://localhost:8082/bedrock` |
+| Google Vertex AI | `http://localhost:8082/vertex` |
+| Ollama | `copium run --backend ollama` |
+
+---
 
 ## Documentation
 
@@ -282,6 +437,8 @@ Request -> Cache Aligner -> Differential Response -> Session Dedup
 | [MCP tools](https://copium-docs.vercel.app/docs/mcp) | [Benchmarks](https://copium-docs.vercel.app/docs/benchmarks) |
 | [Configuration](https://copium-docs.vercel.app/docs/configuration) | [Limitations](https://copium-docs.vercel.app/docs/limitations) |
 
+---
+
 ## Contributing
 
 ```bash
@@ -291,13 +448,15 @@ uv sync && uv run pytest
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
+---
+
 ## License
 
-Apache 2.0 -- see [LICENSE](LICENSE).
+Apache 2.0 — see [LICENSE](LICENSE).
+
+---
 
 ## Acknowledgments
 
-- **Pichay** (arXiv:2603.09023) -- Virtual memory paging for LLM context
-- **SmartCrusher** -- Differential compression for repeated tool outputs
-- **ContextZip** -- Session-level deduplication (85.8% re-sent content)
-- The **r/LocalLLaMA** community -- For identifying the precision cliff problem
+- **Pichay** (arXiv:2603.09023) — Virtual memory paging for LLM context
+- The **r/LocalLLaMA** community — For identifying and stress-testing the precision cliff problem
