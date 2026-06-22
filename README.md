@@ -184,6 +184,7 @@ Provider compaction (OpenAI, Anthropic) only compresses conversation history. Co
 | Agno | `CopiumAgnoModel(your_model)` |
 | MCP clients | `pip install "copium-ai[mcp]"` |
 | Any HTTP client | `copium run` (proxy mode) |
+| OpenCode (free Zen models) | `copium wrap opencode` |
 
 </details>
 
