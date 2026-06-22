@@ -2,30 +2,20 @@
 //!
 //! Exposes core compression functionality to Python, Kotlin, Swift, Ruby via FFI.
 
-use crate::tokenizer::count_tokens;
-use crate::transforms::smart_crusher::SmartCrusher;
+use crate::tokenizer::get_tokenizer;
+use crate::transforms::smart_crusher::{SmartCrusher, SmartCrusherConfig};
 
 /// Compress a JSON string using Copium's SmartCrusher algorithm.
-pub fn compress_json(input: &str, query_context: Option<&str>, max_items: u64) -> String {
-    let config = crate::compression_policy::CompressionPolicy::default();
+pub fn compress_json(input: &str, query_context: Option<&str>, _max_items: u64) -> String {
+    let config = SmartCrusherConfig::default();
     let crusher = SmartCrusher::new(config);
-
-    // Parse input as JSON value
-    let json_value: serde_json::Value = match serde_json::from_str(input) {
-        Ok(v) => v,
-        Err(_) => return input.to_string(), // Return original if not valid JSON
-    };
-
-    // Compress
-    match crusher.compress(&json_value, query_context, max_items as usize) {
-        Ok(compressed) => compressed.to_string(),
-        Err(_) => input.to_string(), // Return original on error
-    }
+    let query = query_context.unwrap_or("");
+    crusher.crush(input, query, 0.5).compressed
 }
 
 /// Count tokens in a text string using tiktoken-compatible counting.
 pub fn count_tokens(text: &str) -> u64 {
-    count_tokens(text) as u64
+    get_tokenizer("gpt-4o").count_text(text) as u64
 }
 
 /// Compress a tool output with relevance scoring.
@@ -33,22 +23,12 @@ pub fn compress_tool_output(
     content: &str,
     tool_name: &str,
     user_query: Option<&str>,
-    max_tokens: u64,
+    _max_tokens: u64,
 ) -> String {
-    let config = crate::compression_policy::CompressionPolicy::default();
+    let config = SmartCrusherConfig::default();
     let crusher = SmartCrusher::new(config);
-
-    // Parse content as JSON
-    let json_value: serde_json::Value = match serde_json::from_str(content) {
-        Ok(v) => v,
-        Err(_) => return content.to_string(),
-    };
-
-    // Compress with tool-specific settings
-    match crusher.compress_tool_output(&json_value, tool_name, user_query, max_tokens as usize) {
-        Ok(compressed) => compressed.to_string(),
-        Err(_) => content.to_string(),
-    }
+    let query = user_query.unwrap_or(tool_name);
+    crusher.crush(content, query, 0.5).compressed
 }
 
 /// Compression statistics.
