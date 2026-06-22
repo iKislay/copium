@@ -44,6 +44,7 @@ import httpx
 
 from copium.agent_savings import proxy_pipeline_kwargs
 from copium.copilot_auth import apply_copilot_api_auth, build_copilot_upstream_url
+from copium.opencode_go import get_opencode_go_key, is_opencode_go_model
 from copium.pipeline import PipelineStage, summarize_routing_markers
 from copium.proxy.auth_mode import (
     classify_auth_mode,
@@ -599,6 +600,42 @@ class OpenAIHandlerMixin:
 
     OPENAI_RESPONSES_ROUTER_MIN_BYTES = 512
     OPENAI_RESPONSES_OUTPUT_TYPES = _RESPONSES_OUTPUT_ITEM_TYPES
+
+    def _resolve_openai_upstream(
+        self, model: str, headers: dict[str, str]
+    ) -> tuple[str, dict[str, str]]:
+        """Resolve the upstream base URL and headers for an OpenAI-style request.
+
+        When ``model`` is an OpenCode Go model ID, routes to the Go upstream
+        (``OPENCODE_GO_API_URL``) and injects ``Authorization: Bearer <key>``
+        from ``~/.local/share/opencode/auth.json``. Otherwise falls back to the
+        standard OpenAI upstream (``OPENAI_API_URL``) with the caller's headers
+        unchanged.
+
+        Returns ``(base_url, headers)`` where ``base_url`` is the normalized
+        upstream root (no ``/v1`` suffix) and ``headers`` is the headers dict
+        to send upstream.
+        """
+        if not is_opencode_go_model(model):
+            return self.OPENAI_API_URL, headers
+
+        go_key = get_opencode_go_key()
+        if not go_key:
+            logger.warning(
+                "Model %r is an OpenCode Go model but no opencode-go API key "
+                "was found in ~/.local/share/opencode/auth.json. Run /connect "
+                "in opencode and select OpenCode Go. Falling back to the "
+                "standard OpenAI upstream (this will likely fail).",
+                model,
+            )
+            return self.OPENAI_API_URL, headers
+
+        out_headers = dict(headers)
+        out_headers["Authorization"] = f"Bearer {go_key}"
+        # Remove any opencode-internal auth hints that the Go upstream won't
+        # understand; the Bearer token above is the only auth it expects.
+        out_headers.pop("x-api-key", None)
+        return self.OPENCODE_GO_API_URL, out_headers
 
     def _openai_responses_unit_cache(self) -> tuple[Any, OrderedDict[str, Any]]:
         with _OPENAI_RESPONSES_UNIT_CACHE_INIT_LOCK:
@@ -2434,7 +2471,10 @@ class OpenAIHandlerMixin:
                 )
 
         # Direct OpenAI API (no backend configured)
-        url = build_copilot_upstream_url(self.OPENAI_API_URL, "/v1/chat/completions")
+        # Per-model dispatch: OpenCode Go models route to the Go upstream
+        # with auth injected from ~/.local/share/opencode/auth.json.
+        _openai_base, headers = self._resolve_openai_upstream(model, headers)
+        url = build_copilot_upstream_url(_openai_base, "/v1/chat/completions")
 
         try:
             if stream:
@@ -3164,10 +3204,12 @@ class OpenAIHandlerMixin:
 
         # Route to correct endpoint based on auth mode.
         # ChatGPT session auth (codex login) uses chatgpt.com, not api.openai.com.
+        # OpenCode Go models route to the Go upstream with injected auth.
         if is_chatgpt_auth:
             url = "https://chatgpt.com/backend-api/codex/responses"
         else:
-            url = build_copilot_upstream_url(self.OPENAI_API_URL, "/v1/responses")
+            _openai_base, headers = self._resolve_openai_upstream(model, headers)
+            url = build_copilot_upstream_url(_openai_base, "/v1/responses")
 
         # The standalone Rust proxy has native /v1/responses item handling,
         # but the default CLI runtime is this Python proxy. Compress the
