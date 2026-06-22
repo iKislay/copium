@@ -97,6 +97,7 @@ from copium.providers.registry import (
     DEFAULT_CLOUDCODE_API_URL,
     DEFAULT_GEMINI_API_URL,
     DEFAULT_OPENAI_API_URL,
+    DEFAULT_OPENCODE_GO_API_URL,
     DEFAULT_VERTEX_API_URL,
     build_proxy_provider_runtime,
     create_proxy_backend,
@@ -554,6 +555,7 @@ class CopiumProxy(
     GEMINI_API_URL = DEFAULT_GEMINI_API_URL
     CLOUDCODE_API_URL = DEFAULT_CLOUDCODE_API_URL
     VERTEX_API_URL = DEFAULT_VERTEX_API_URL
+    OPENCODE_GO_API_URL = DEFAULT_OPENCODE_GO_API_URL
 
     def __init__(self, config: ProxyConfig):
         self.config = config
@@ -578,6 +580,7 @@ class CopiumProxy(
         CopiumProxy.GEMINI_API_URL = api_targets.gemini
         CopiumProxy.CLOUDCODE_API_URL = api_targets.cloudcode
         CopiumProxy.VERTEX_API_URL = api_targets.vertex
+        CopiumProxy.OPENCODE_GO_API_URL = api_targets.opencode_go
         self.anthropic_provider = self.provider_runtime.pipeline_provider("anthropic")
         self.openai_provider = self.provider_runtime.pipeline_provider("openai")
 
@@ -2053,6 +2056,7 @@ def create_app(config: ProxyConfig | None = None) -> FastAPI:
                 "openai_api_url": config.openai_api_url,
                 "gemini_api_url": config.gemini_api_url,
                 "cloudcode_api_url": config.cloudcode_api_url,
+                "opencode_go_api_url": config.opencode_go_api_url,
                 "savings_profile": config.savings_profile,
                 "target_ratio": effective_target_ratio,
                 "target_savings_percent": (
@@ -4012,6 +4016,10 @@ if __name__ == "__main__":
         "--vertex-api-url",
         help=f"Custom Vertex AI regional API URL (default: {DEFAULT_VERTEX_API_URL})",
     )
+    parser.add_argument(
+        "--opencode-go-api-url",
+        help=f"Custom OpenCode Go API URL (default: {DEFAULT_OPENCODE_GO_API_URL})",
+    )
 
     # Backend (anthropic direct, bedrock, openrouter, anyllm, or litellm-<provider>)
     parser.add_argument(
@@ -4181,6 +4189,7 @@ if __name__ == "__main__":
         openai_api_url=_get_env_str("OPENAI_TARGET_API_URL", args.openai_api_url),
         anthropic_api_url=_get_env_str("ANTHROPIC_TARGET_API_URL", args.anthropic_api_url),
         vertex_api_url=_get_env_str("VERTEX_TARGET_API_URL", args.vertex_api_url),
+        opencode_go_api_url=_get_env_str("OPENCODE_GO_TARGET_API_URL", args.opencode_go_api_url),
         # Backend settings
         backend=_get_env_str("COPIUM_BACKEND", args.backend),  # type: ignore[arg-type]
         bedrock_region=_get_env_str("COPIUM_BEDROCK_REGION", args.bedrock_region),

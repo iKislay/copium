@@ -104,6 +104,10 @@ class ProxyConfig:
     cloudcode_api_url: str | None = None  # Custom Cloud Code Assist API URL override
     vertex_api_url: str | None = None  # Custom Vertex AI regional API URL override
     xai_api_url: str | None = None  # Custom xAI/Grok API URL override
+    # OpenCode Go upstream (OpenAI-compatible). Per-model routing in the OpenAI
+    # handler dispatches Go model IDs to this slot with auth from
+    # ``~/.local/share/opencode/auth.json`` (the ``opencode-go`` key).
+    opencode_go_api_url: str | None = None
 
     # Backend: "anthropic" (direct API), "litellm-*" (via LiteLLM), or "anyllm" (via any-llm)
     backend: str = "anthropic"
@@ -369,4 +373,5 @@ class ProxyConfig:
             cloudcode=self.cloudcode_api_url,
             vertex=self.vertex_api_url,
             xai=self.xai_api_url,
+            opencode_go=self.opencode_go_api_url,
         )

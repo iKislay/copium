@@ -15,6 +15,10 @@ from copium.providers.gemini import DEFAULT_API_URL as DEFAULT_GEMINI_API_URL
 DEFAULT_CLOUDCODE_API_URL = "https://cloudcode-pa.googleapis.com"
 DEFAULT_VERTEX_API_URL = "https://us-central1-aiplatform.googleapis.com"
 DEFAULT_XAI_API_URL = "https://api.x.ai"
+# OpenCode Go is a low-cost subscription upstream (OpenAI-compatible) that
+# serves curated open coding models (GLM, Kimi, DeepSeek, MiMo, Qwen, MiniMax).
+# Per-model routing in the OpenAI handler decides when to use this slot.
+DEFAULT_OPENCODE_GO_API_URL = "https://opencode.ai/zen/go"
 
 if TYPE_CHECKING:
     from copium.backends.base import Backend
@@ -34,6 +38,7 @@ class ProviderApiOverrides:
     cloudcode: str | None = None
     vertex: str | None = None
     xai: str | None = None
+    opencode_go: str | None = None
 
 
 @dataclass(frozen=True)
@@ -46,6 +51,7 @@ class ProviderApiTargets:
     cloudcode: str = DEFAULT_CLOUDCODE_API_URL
     vertex: str = DEFAULT_VERTEX_API_URL
     xai: str = DEFAULT_XAI_API_URL
+    opencode_go: str = DEFAULT_OPENCODE_GO_API_URL
 
 
 @dataclass(frozen=True)
@@ -64,6 +70,7 @@ class ProxyProviderRuntime:
             "cloudcode": self.api_targets.cloudcode,
             "vertex": self.api_targets.vertex,
             "xai": self.api_targets.xai,
+            "opencode_go": self.api_targets.opencode_go,
         }[provider_name]
 
     def pipeline_provider(self, provider_name: str) -> Provider:
@@ -111,6 +118,7 @@ def resolve_api_overrides(
     cloudcode_api_url: str | None,
     vertex_api_url: str | None = None,
     xai_api_url: str | None = None,
+    opencode_go_api_url: str | None = None,
     environ: Mapping[str, str] | None = None,
 ) -> ProviderApiOverrides:
     """Resolve provider API URL overrides from CLI/config inputs and environment."""
@@ -124,6 +132,7 @@ def resolve_api_overrides(
         cloudcode=cloudcode_api_url or env.get("CLOUDCODE_TARGET_API_URL"),
         vertex=vertex_api_url or env.get("VERTEX_TARGET_API_URL"),
         xai=xai_api_url or env.get("XAI_TARGET_API_URL"),
+        opencode_go=opencode_go_api_url or env.get("OPENCODE_GO_TARGET_API_URL"),
     )
 
 
@@ -136,6 +145,7 @@ def resolve_api_targets(overrides: ProviderApiOverrides) -> ProviderApiTargets:
         cloudcode=_normalize_api_url(overrides.cloudcode, default=DEFAULT_CLOUDCODE_API_URL),
         vertex=_normalize_api_url(overrides.vertex, default=DEFAULT_VERTEX_API_URL),
         xai=_normalize_api_url(overrides.xai, default=DEFAULT_XAI_API_URL),
+        opencode_go=_normalize_api_url(overrides.opencode_go, default=DEFAULT_OPENCODE_GO_API_URL),
     )
 
 

@@ -590,6 +590,14 @@ def _selected_context_tool() -> str:
     help="Custom xAI/Grok API URL for passthrough endpoints (env: XAI_TARGET_API_URL)",
 )
 @click.option(
+    "--opencode-go-api-url",
+    default=None,
+    help=(
+        "Custom OpenCode Go API URL for Go model routing (env: OPENCODE_GO_TARGET_API_URL). "
+        "Go model IDs are routed here with auth from ~/.local/share/opencode/auth.json."
+    ),
+)
+@click.option(
     "--region",
     default="us-west-2",
     envvar="COPIUM_REGION",
@@ -706,6 +714,7 @@ def proxy(
     cloudcode_api_url: str | None,
     vertex_api_url: str | None,
     xai_api_url: str | None,
+    opencode_go_api_url: str | None,
     region: str,
     bedrock_region: str | None,
     bedrock_profile: str | None,
@@ -810,6 +819,7 @@ def proxy(
         cloudcode_api_url=cloudcode_api_url,
         vertex_api_url=vertex_api_url,
         xai_api_url=xai_api_url,
+        opencode_go_api_url=opencode_go_api_url,
         environ=os.environ,
     )
 
@@ -870,6 +880,7 @@ def proxy(
         cloudcode_api_url=provider_api_overrides.cloudcode,
         vertex_api_url=provider_api_overrides.vertex,
         xai_api_url=provider_api_overrides.xai,
+        opencode_go_api_url=provider_api_overrides.opencode_go,
         mode=effective_mode,
         optimize=not no_optimize,
         cache_enabled=not no_cache,
