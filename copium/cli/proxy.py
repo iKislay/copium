@@ -727,7 +727,7 @@ def proxy(
             _parse_tool_profiles,
             run_server,
         )
-    except ImportError as e:
+    except (ImportError, SyntaxError) as e:
         click.secho(
             "Error: Proxy dependencies not installed. Run: pip install copium-ai[proxy]",
             fg="red",

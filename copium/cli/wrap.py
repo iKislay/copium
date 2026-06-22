@@ -318,6 +318,28 @@ def _get_log_path() -> Path:
     return log_dir / "proxy.log"
 
 
+def _extract_log_error(log_tail: str) -> str:
+    """Extract the last meaningful error line from a proxy log tail.
+
+    Avoids dumping raw Python traceback (file paths, caret lines, etc.)
+    which is confusing for users.  Falls back to the raw tail when no
+    recognizable error line is found.
+    """
+    for line in reversed(log_tail.splitlines()):
+        stripped = line.strip()
+        # Skip empty lines, caret indicator lines, and raw traceback frames
+        if (
+            not stripped
+            or stripped.startswith("^")
+            or stripped.startswith("File ")
+            or stripped.startswith("Traceback")
+            or stripped.startswith('"""')
+        ):
+            continue
+        return stripped
+    return log_tail.strip()[-200:] if log_tail.strip() else "(no log output)"
+
+
 def _start_proxy(
     port: int,
     *,
@@ -430,7 +452,11 @@ def _start_proxy(
                 tail = log_path.read_text()[-500:]
             except Exception:
                 tail = "(no log output)"
-            raise RuntimeError(f"Proxy exited with code {proc.returncode}: {tail}")
+            # Extract the last meaningful error line instead of raw traceback
+            error_msg = _extract_log_error(tail)
+            raise RuntimeError(
+                f"Proxy exited with code {proc.returncode}: {error_msg}"
+            )
 
     proc.kill()
     log_file.close()
