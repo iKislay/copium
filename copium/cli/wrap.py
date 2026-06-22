@@ -5024,6 +5024,9 @@ def opencode(
 
             config.setdefault("provider", {})["copium"] = copium_provider
 
+            # Auto-select the copium model so requests route through the proxy
+            config["model"] = "copium/mimo-v2.5-free"
+
             config_path.parent.mkdir(parents=True, exist_ok=True)
             config_path.write_text(
                 json.dumps(config, indent=2, ensure_ascii=False) + "\n",
