@@ -1579,20 +1579,20 @@
 
                 getLayerPct(layerKey) {
                     const layers = this.stats.savings?.by_layer || {};
-                    let current = 0;
-                    if (layerKey === 'prefix_cache') {
-                        current = layers.prefix_cache?.discount_usd || 0;
-                    } else {
-                        current = layers[layerKey]?.tokens || 0;
-                    }
-
-                    // Compute total denominator
-                    const totalTokens = (layers.cli_filtering?.tokens || 0) + (layers.compression?.tokens || 0) + (layers.output_shaping?.tokens_saved || 0);
-                    const totalUsd = layers.prefix_cache?.discount_usd || 0;
+                    const cliTokens = layers.cli_filtering?.tokens || 0;
+                    const compTokens = layers.compression?.tokens || 0;
+                    const outTokens = layers.output_shaping?.tokens_saved || 0;
+                    const cacheUsd = layers.prefix_cache?.discount_usd || 0;
 
                     if (layerKey === 'prefix_cache') {
-                        return totalUsd > 0 ? 100 : 0;
+                        if (cacheUsd <= 0) return 0;
+                        const maxVal = Math.max(cliTokens, compTokens, outTokens, 1);
+                        const normalizedCache = cacheUsd * 200000;
+                        return Math.min(100, Math.round((normalizedCache / maxVal) * 100));
                     }
+
+                    const current = layers[layerKey]?.tokens || 0;
+                    const totalTokens = cliTokens + compTokens + outTokens;
                     return totalTokens > 0 ? Math.round((current / totalTokens) * 100) : 0;
                 },
 
