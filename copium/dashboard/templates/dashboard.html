@@ -661,7 +661,10 @@
                 <div class="card kpi-card">
                     <div class="card-body">
                         <div class="kpi-label">Lifetime Dollars Saved</div>
-                        <div class="kpi-val" x-text="'$' + formatCurrency(dollarsSaved)">$0.00</div>
+                        <div class="kpi-val" style="display: flex; align-items: baseline; gap: 8px;">
+                            <span x-text="'$' + formatCurrency(dollarsSaved)">$0.00</span>
+                            <span x-show="isEstimatedCost" class="label-12 text-muted" style="font-weight: normal;">(Est)</span>
+                        </div>
                         <div class="kpi-change positive">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
                             <span class="mono" x-text="'$' + formatCurrency(sessionDollarsSaved) + ' this session'">$0.00</span>
@@ -1005,7 +1008,10 @@
                                 <hr style="border: none; border-top: 1px solid var(--gray-400); margin: 8px 0;">
                                 <div class="flex-between">
                                     <span class="label-14" style="font-weight: 600">Net Dollars Saved</span>
-                                    <span class="label-14-mono" style="font-weight: 600; color: var(--green-700)" x-text="'$' + formatCurrency(dollarsSaved)">$0.00</span>
+                                    <div style="display: flex; align-items: center; gap: 4px;">
+                                        <span class="label-14-mono" style="font-weight: 600; color: var(--green-700)" x-text="'$' + formatCurrency(dollarsSaved)">$0.00</span>
+                                        <span x-show="isEstimatedCost" class="label-12 text-muted">(Est)</span>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -1324,10 +1330,24 @@
             <!-- Tab 4: Logs Inspector Panel -->
             <div x-show="activeTab === 'logs'" x-transition.opacity.duration.200ms>
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <span class="h-16" style="display:block">Recent Request Log</span>
                             <span class="copy-13">Inspect full payloads, compression rates and latency breakdown</span>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <select x-model="logFilterProvider" style="padding: 4px 8px; border: 1px solid var(--gray-400); border-radius: 4px; font-size: 13px; background-color: var(--background-100); color: var(--primary); outline: none;">
+                                <option value="">All Providers</option>
+                                <template x-for="p in providers" :key="p.name">
+                                    <option :value="p.name" x-text="p.name"></option>
+                                </template>
+                            </select>
+                            <select x-model="logFilterModel" style="padding: 4px 8px; border: 1px solid var(--gray-400); border-radius: 4px; font-size: 13px; background-color: var(--background-100); color: var(--primary); outline: none;">
+                                <option value="">All Models</option>
+                                <template x-for="m in models" :key="m.name">
+                                    <option :value="m.name" x-text="m.name"></option>
+                                </template>
+                            </select>
                         </div>
                     </div>
                     <table class="geist-table">
@@ -1343,12 +1363,12 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <template x-if="recentRequests.length === 0">
+                            <template x-if="filteredRequests.length === 0">
                                 <tr>
-                                    <td colspan="7" style="text-align: center; color: var(--tertiary); padding: 32px;">No request logs available. Run requests through Copium.</td>
+                                    <td colspan="7" style="text-align: center; color: var(--tertiary); padding: 32px;">No request logs match the criteria.</td>
                                 </tr>
                             </template>
-                            <template x-for="(req, index) in recentRequests" :key="req.request_id || index">
+                            <template x-for="(req, index) in filteredRequests" :key="req.request_id || index">
                                 <template x-fragment>
                                     <tr>
                                         <td class="mono" x-text="formatTime(req.timestamp)">00:00:00</td>
@@ -1463,6 +1483,7 @@
                 // Cost calculation factors
                 baselineCost: 0,
                 actualCost: 0,
+                isEstimatedCost: false,
 
                 // Summary data
                 summary: {},
@@ -1487,6 +1508,18 @@
                 failedRequests: 0,
                 cachedRequests: 0,
                 rateLimitedRequests: 0,
+
+                // Log filtering
+                logFilterProvider: '',
+                logFilterModel: '',
+
+                get filteredRequests() {
+                    return this.recentRequests.filter(req => {
+                        if (this.logFilterProvider && req.provider !== this.logFilterProvider) return false;
+                        if (this.logFilterModel && req.model !== this.logFilterModel) return false;
+                        return true;
+                    });
+                },
 
                 // Polling interval pointer
                 pollInterval: null,
@@ -1544,9 +1577,11 @@
                         this.cliSavedTokens = data.tokens?.cli_filtering_saved || 0;
                         this.totalTokensSaved = data.persistent_savings?.lifetime?.tokens_saved || 0;
 
+                        this.isEstimatedCost = false;
                         this.dollarsSaved = data.persistent_savings?.lifetime?.compression_savings_usd || 0;
                         if (this.dollarsSaved === 0 && this.totalTokensSaved > 0) {
                             this.dollarsSaved = this.totalTokensSaved * 0.000002; // Est at $2.00 / M tokens
+                            this.isEstimatedCost = true;
                         }
 
                         this.sessionDollarsSaved = data.persistent_savings?.display_session?.compression_savings_usd || 0;
