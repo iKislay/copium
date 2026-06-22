@@ -5102,7 +5102,7 @@ def opencode(
         except (json.JSONDecodeError, OSError) as e:
             click.echo(f"  Warning: could not update {config_path}: {e}")
             click.echo("  You can manually add the copium provider to your config.")
-            raise SystemExit(1)
+            raise SystemExit(1) from e
 
         click.echo()
         click.echo("  Launching OpenCode (API routed through Copium)...")
