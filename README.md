@@ -433,7 +433,27 @@ export COPIUM_LOG_LEVEL=debug
 export COPIUM_CCR_TTL_SECONDS=1800   # how long compressed data is cached
 ```
 
----
+### Compression presets
+
+```bash
+copium proxy --preset minimal      # Structural transforms only; safest
+copium proxy --preset standard     # Full stack; recommended (default)
+copium proxy --preset aggressive   # Maximum savings; more aggressive
+copium proxy --preset local-llm    # Optimized for Ollama/VLLM/llama.cpp
+copium proxy --preset lossless     # Zero quality loss transforms only
+
+# Inspect any preset without starting the proxy:
+copium preset aggressive
+```
+
+### View your savings
+
+```bash
+copium stats                   # All-time summary
+copium stats --period session  # Current session only
+copium stats --json            # Machine-readable output
+```
+
 
 ## Architecture (for the curious)
 
@@ -492,6 +512,7 @@ Request → Cache Aligner → Differential Response → Session Dedup
 | [Proxy](https://copium-docs.vercel.app/docs/proxy) | [How compression works](https://copium-docs.vercel.app/docs/compression) |
 | [MCP tools](https://copium-docs.vercel.app/docs/mcp) | [Benchmarks](https://copium-docs.vercel.app/docs/benchmarks) |
 | [Configuration](https://copium-docs.vercel.app/docs/configuration) | [Limitations](https://copium-docs.vercel.app/docs/limitations) |
+| [Migration guide](https://copium-docs.vercel.app/docs/migration) | [Presets](https://copium-docs.vercel.app/docs/configuration#presets) |
 
 ---
 
