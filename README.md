@@ -71,7 +71,8 @@ export ANTHROPIC_BASE_URL=http://localhost:8082    # Claude Code
 export OPENAI_API_BASE=http://localhost:8082/v1    # Cursor / Aider
 
 # 4 -- See the savings
-copium dashboard
+copium dashboard                      # terminal dashboard
+# or open http://localhost:8787/dashboard in your browser
 ```
 
 That's it. Copium automatically compresses every request.
