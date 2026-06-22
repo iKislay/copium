@@ -12,6 +12,7 @@ from typing import Any, Literal
 
 from copium.memory import qdrant_env
 from copium.providers.registry import ProviderApiOverrides
+from copium.transforms.model_router import ModelRouterConfig
 
 # =============================================================================
 # Data Models
@@ -189,6 +190,9 @@ class ProxyConfig:
     # the Python proxy; accepting this avoids breaking old config constructors
     # while keeping it out of runtime state.
     smart_routing: InitVar[bool | None] = None
+
+    # Model routing: route simple requests to cheaper models
+    model_router: ModelRouterConfig = field(default_factory=ModelRouterConfig)
 
     # Caching
     cache_enabled: bool = True
