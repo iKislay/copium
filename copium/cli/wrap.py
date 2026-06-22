@@ -352,6 +352,7 @@ def _start_proxy(
     region: str | None = None,
     openai_api_url: str | None = None,
     anthropic_api_url: str | None = None,
+    opencode_go_api_url: str | None = None,
     copilot_api_token: str | None = None,
 ) -> subprocess.Popen:
     """Start Copium proxy as a background subprocess.
@@ -398,6 +399,9 @@ def _start_proxy(
     if anthropic_api_url:
         cmd.extend(["--anthropic-api-url", anthropic_api_url])
 
+    if opencode_go_api_url:
+        cmd.extend(["--opencode-go-api-url", opencode_go_api_url])
+
     timeout_seconds = _resolve_wrap_proxy_timeout_seconds()
     log_path = _get_log_path()
     log_file = open(log_path, "a")  # noqa: SIM115
@@ -419,6 +423,8 @@ def _start_proxy(
         proxy_env["OPENAI_TARGET_API_URL"] = openai_api_url
     if anthropic_api_url:
         proxy_env["ANTHROPIC_TARGET_API_URL"] = anthropic_api_url
+    if opencode_go_api_url:
+        proxy_env["OPENCODE_GO_TARGET_API_URL"] = opencode_go_api_url
     # Pin the wrapper-validated Copilot token for this proxy instance only.
     # Injected into the subprocess env here (not the parent's os.environ) so it
     # never leaks into shared state. The proxy's CopilotTokenProvider honours
@@ -2292,6 +2298,7 @@ def _ensure_proxy(
     region: str | None = None,
     openai_api_url: str | None = None,
     anthropic_api_url: str | None = None,
+    opencode_go_api_url: str | None = None,
     copilot_api_token: str | None = None,
 ) -> subprocess.Popen | None:
     """Start or verify proxy. Returns process handle if we started it."""
@@ -2411,6 +2418,13 @@ def _ensure_proxy(
                     requested_openai_url = _normalize_proxy_api_url(openai_api_url)
                     if running_openai_url != requested_openai_url:
                         missing.append("openai-api-url")
+                if opencode_go_api_url:
+                    running_go_url = _normalize_proxy_api_url(
+                        running_config.get("opencode_go_api_url")
+                    )
+                    requested_go_url = _normalize_proxy_api_url(opencode_go_api_url)
+                    if running_go_url != requested_go_url:
+                        missing.append("opencode-go-api-url")
 
                 if missing:
                     flags_str = ", ".join(
@@ -2483,6 +2497,7 @@ def _ensure_proxy(
                     region=region,
                     openai_api_url=openai_api_url,
                     anthropic_api_url=anthropic_api_url,
+                    opencode_go_api_url=opencode_go_api_url,
                     copilot_api_token=copilot_api_token,
                 ),
             )
@@ -4907,19 +4922,22 @@ def opencode(
 
     \b
     Temporarily adds a "copium" provider to opencode.json that routes all
-    API calls through the local Copium proxy. Supports all OpenCode free
-    Zen models: mimo-v2.5-free, deepseek-v4-flash-free, big-pickle,
-    nemotron-3-ultra-free, north-mini-code-free.
+    API calls through the local Copium proxy. Supports OpenCode free Zen
+    models (mimo-v2.5-free, deepseek-v4-flash-free, big-pickle,
+    nemotron-3-ultra-free, north-mini-code-free) plus OpenCode Go
+    subscription models (GLM-5.2, GLM-5.1, Kimi K2.7 Code, Kimi K2.6,
+    DeepSeek V4 Pro, DeepSeek V4 Flash, MiMo V2.5, MiMo V2.5 Pro).
 
     \b
-    The upstream target is OpenCode Zen (https://opencode.ai/zen/v1).
-    Copium compresses requests before forwarding to Zen. Free models
-    do not require an API key.
+    Free Zen models route to https://opencode.ai/zen/v1 (no API key needed).
+    Go models route to https://opencode.ai/zen/go/v1 and require an
+    opencode-go API key in ~/.local/share/opencode/auth.json (set via
+    opencode's /connect command). Copium compresses both before forwarding.
 
     \b
     Examples:
         copium wrap opencode
-        copium wrap opencode -- -m opencode/mimo-v2.5-free
+        copium wrap opencode -- -m opencode/glm-5.2
         copium wrap opencode --no-proxy
         copium wrap opencode --verbose
     """
@@ -4943,6 +4961,9 @@ def opencode(
     # Build the copium provider entry.
     # Free Zen models use @ai-sdk/openai-compatible against the local proxy.
     # The proxy forwards to https://opencode.ai/zen/v1 (set via openai_api_url).
+    # Go subscription models are also OpenAI-compatible; the proxy's per-model
+    # dispatch routes them to https://opencode.ai/zen/go/v1 with auth from
+    # ~/.local/share/opencode/auth.json (set via opencode_go_api_url).
     copium_provider: dict = {
         "npm": "@ai-sdk/openai-compatible",
         "name": "Copium (Compressed)",
@@ -4950,6 +4971,7 @@ def opencode(
             "baseURL": f"http://127.0.0.1:{port}/v1",
         },
         "models": {
+            # --- Free Zen models (no API key required) ---
             "mimo-v2.5-free": {
                 "name": "MiMo V2.5 Free (Copium)",
                 "tool_call": True,
@@ -4970,6 +4992,46 @@ def opencode(
             "north-mini-code-free": {
                 "name": "North Mini Code Free (Copium)",
                 "tool_call": True,
+            },
+            # --- OpenCode Go subscription models (require opencode-go API key) ---
+            "glm-5.2": {
+                "name": "GLM 5.2 (Copium Go)",
+                "tool_call": True,
+                "reasoning": True,
+            },
+            "glm-5.1": {
+                "name": "GLM 5.1 (Copium Go)",
+                "tool_call": True,
+                "reasoning": True,
+            },
+            "kimi-k2.7-code": {
+                "name": "Kimi K2.7 Code (Copium Go)",
+                "tool_call": True,
+                "reasoning": True,
+            },
+            "kimi-k2.6": {
+                "name": "Kimi K2.6 (Copium Go)",
+                "tool_call": True,
+                "reasoning": True,
+            },
+            "deepseek-v4-pro": {
+                "name": "DeepSeek V4 Pro (Copium Go)",
+                "tool_call": True,
+                "reasoning": True,
+            },
+            "deepseek-v4-flash": {
+                "name": "DeepSeek V4 Flash (Copium Go)",
+                "tool_call": True,
+            },
+            "mimo-v2.5": {
+                "name": "MiMo V2.5 (Copium Go)",
+                "tool_call": True,
+                "reasoning": True,
+            },
+            "mimo-v2.5-pro": {
+                "name": "MiMo V2.5 Pro (Copium Go)",
+                "tool_call": True,
+                "reasoning": True,
             },
         },
     }
@@ -5004,7 +5066,9 @@ def opencode(
         click.echo("  ╚═══════════════════════════════════════════════╝")
         click.echo()
 
-        # Start the proxy, forwarding to OpenCode Zen upstream
+        # Start the proxy, forwarding to OpenCode Zen upstream.
+        # The Go upstream is also configured so Go model IDs route to
+        # https://opencode.ai/zen/go/v1 with auth from auth.json.
         proxy_holder[0] = _ensure_proxy(
             port,
             no_proxy,
@@ -5012,6 +5076,7 @@ def opencode(
             memory=memory,
             agent_type="opencode",
             openai_api_url="https://opencode.ai/zen/v1",
+            opencode_go_api_url="https://opencode.ai/zen/go/v1",
         )
         _push_runtime_env(port, no_proxy)
 
@@ -5043,11 +5108,21 @@ def opencode(
         click.echo("  Launching OpenCode (API routed through Copium)...")
         click.echo()
         click.echo("  Free Zen models available via the 'copium' provider:")
-        click.echo("    opencode/mimo-v2.5-free          (reasoning, tool call)")
-        click.echo("    opencode/deepseek-v4-flash-free  (tool call)")
-        click.echo("    opencode/big-pickle              (tool call)")
-        click.echo("    opencode/nemotron-3-ultra-free   (tool call)")
-        click.echo("    opencode/north-mini-code-free    (tool call)")
+        click.echo("    copium/mimo-v2.5-free          (reasoning, tool call)")
+        click.echo("    copium/deepseek-v4-flash-free  (tool call)")
+        click.echo("    copium/big-pickle              (tool call)")
+        click.echo("    copium/nemotron-3-ultra-free   (tool call)")
+        click.echo("    copium/north-mini-code-free    (tool call)")
+        click.echo()
+        click.echo("  OpenCode Go subscription models (require /connect Go key):")
+        click.echo("    copium/glm-5.2                 (reasoning, tool call)")
+        click.echo("    copium/glm-5.1                 (reasoning, tool call)")
+        click.echo("    copium/kimi-k2.7-code          (reasoning, tool call)")
+        click.echo("    copium/kimi-k2.6               (reasoning, tool call)")
+        click.echo("    copium/deepseek-v4-pro         (reasoning, tool call)")
+        click.echo("    copium/deepseek-v4-flash       (tool call)")
+        click.echo("    copium/mimo-v2.5               (reasoning, tool call)")
+        click.echo("    copium/mimo-v2.5-pro           (reasoning, tool call)")
         click.echo()
         click.echo("  Select the 'copium' provider in OpenCode to use compressed models.")
         click.echo("  Models are prefixed with 'copium/' in the model picker.")
