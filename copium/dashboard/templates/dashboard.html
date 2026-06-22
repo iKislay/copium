@@ -692,8 +692,8 @@
                 <!-- Token Throughput / Burn Rate Card -->
                 <div class="card kpi-card">
                     <div class="card-body">
-                        <div class="kpi-label">Tokens Per Minute</div>
-                        <div class="kpi-val" x-text="formatNumber(tpm)">0</div>
+                        <div class="kpi-label">Input Throughput (p50)</div>
+                        <div class="kpi-val" x-text="formatNumber(tpm) + ' tps'">0 tps</div>
                         <div class="kpi-change neutral">
                             <span class="mono" x-text="formatNumber(stats.tokens?.input || 0) + ' input tokens processed'">0 input</span>
                         </div>
@@ -746,6 +746,18 @@
                             <div x-show="summary.compression?.avg_compression_pct" style="display: flex; align-items: center; gap: 8px;">
                                 <span class="label-12 text-muted">Avg Compression</span>
                                 <span class="label-13 mono" style="font-weight: 500; color: var(--green-700);" x-text="(summary.compression?.avg_compression_pct || 0).toFixed(1) + '%'">0%</span>
+                            </div>
+                            <div x-show="failedRequests > 0" style="display: flex; align-items: center; gap: 8px;">
+                                <span class="label-12 text-muted" style="color: var(--red-700);">Failed</span>
+                                <span class="label-13 mono" style="font-weight: 500; color: var(--red-700);" x-text="failedRequests">0</span>
+                            </div>
+                            <div x-show="cachedRequests > 0" style="display: flex; align-items: center; gap: 8px;">
+                                <span class="label-12 text-muted">Cached</span>
+                                <span class="label-13 mono" style="font-weight: 500;" x-text="cachedRequests">0</span>
+                            </div>
+                            <div x-show="rateLimitedRequests > 0" style="display: flex; align-items: center; gap: 8px;">
+                                <span class="label-12 text-muted" style="color: var(--amber-700);">Rate Limited</span>
+                                <span class="label-13 mono" style="font-weight: 500; color: var(--amber-700);" x-text="rateLimitedRequests">0</span>
                             </div>
                         </div>
                         <div x-show="summaryTip" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--gray-400);">
@@ -1471,6 +1483,11 @@
                 // Details inspector
                 expandedReqId: null,
 
+                // Request status counts
+                failedRequests: 0,
+                cachedRequests: 0,
+                rateLimitedRequests: 0,
+
                 // Polling interval pointer
                 pollInterval: null,
 
@@ -1579,6 +1596,10 @@
                             count,
                             pct: Math.round((count / reqTotal) * 100)
                         }));
+
+                        this.failedRequests = data.requests?.failed || 0;
+                        this.cachedRequests = data.requests?.cached || 0;
+                        this.rateLimitedRequests = data.requests?.rate_limited || 0;
 
                         // Estimate cost numbers
                         this.actualCost = data.persistent_savings?.lifetime?.total_input_cost_usd || 0;
