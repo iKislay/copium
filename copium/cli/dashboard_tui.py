@@ -309,3 +309,6 @@ def tui(ctx: click.Context) -> None:
 
 
 tui.add_command(dashboard, "dashboard")
+
+# Also register as a top-level command so `copium dashboard` works
+main.add_command(dashboard, "dashboard")
