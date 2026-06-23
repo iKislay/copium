@@ -26,6 +26,7 @@ from . import (  # noqa: F401
     perf,
     proxy,
     quickstart,
+    remove,
     stats,
     telemetry,
     tools,

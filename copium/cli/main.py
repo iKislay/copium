@@ -68,6 +68,7 @@ def _register_commands() -> None:
         proxy,  # noqa: F401
         quickstart,  # noqa: F401
         recipe,  # noqa: F401
+        remove,  # noqa: F401
         report_cmd,  # noqa: F401
         stats,  # noqa: F401
         tools,  # noqa: F401
