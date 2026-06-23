@@ -472,16 +472,21 @@ def _start_proxy(
     )
 
 
-def _setup_rtk(verbose: bool = False) -> Path | None:
-    """Ensure rtk is installed and hooks are registered."""
-    from copium.rtk import get_rtk_path
+def _setup_rtk(verbose: bool = False, *, port: int | None = None) -> Path | None:
+    """Ensure rtk is installed and hooks are registered.
+
+    In verbose mode, prints detailed setup information including rtk version,
+    proxy port, active transforms, and agent savings profile.
+    Plan §3.2.4: Enhanced --verbose output.
+    """
+    from copium.rtk import RTK_VERSION, get_rtk_path
     from copium.rtk.installer import ensure_rtk, register_claude_hooks
 
     rtk_path = get_rtk_path()
 
     if rtk_path:
         if verbose:
-            click.echo(f"  rtk found at {rtk_path}")
+            click.echo(f"  Context tool: rtk {RTK_VERSION} at {rtk_path}")
     else:
         click.echo("  Downloading rtk (Rust Token Killer)...")
         rtk_path = ensure_rtk()
@@ -494,9 +499,15 @@ def _setup_rtk(verbose: bool = False) -> Path | None:
     # Register hooks (idempotent)
     if register_claude_hooks(rtk_path):
         if verbose:
-            click.echo("  rtk hooks registered in Claude Code")
+            click.echo("  RTK instructions: injected into Claude Code hooks")
     else:
         click.echo("  rtk hook registration failed — continuing without it")
+
+    if verbose and port is not None:
+        click.echo(f"  Proxy: started on port {port} (token mode)")
+        # Show agent savings profile
+        profile = os.environ.get("COPIUM_SAVINGS_PROFILE", _DEFAULT_AGENT_SAVINGS_PROFILE)
+        click.echo(f"  Agent savings profile: {profile}")
 
     return rtk_path
 
@@ -3340,7 +3351,7 @@ def claude(
                 _setup_lean_ctx_agent("claude", verbose=verbose)
             else:
                 click.echo("  Setting up rtk...")
-                _setup_rtk(verbose=verbose)
+                _setup_rtk(verbose=verbose, port=port)
         elif verbose:
             click.echo("  Skipping CLI context tool (--no-context-tool)")
 
