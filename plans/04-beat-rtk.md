@@ -60,7 +60,7 @@ Stage 4: RTK sunset              → Copium's native transforms make RTK binary 
 
 Every `copium wrap <agent>` command must:
 
-1. **Include RTK by default** — RTK binary is downloaded and configured automatically (already done in `copium/rtk/installer.py:72`).
+1. **Include RTK by default** — RTK binary is downloaded and configured automatically (already done in `copium/rtk/installer.py:72`). RTK is vendored at a pinned version (`RTK_VERSION = "v0.28.2"` at `copium/rtk/__init__.py:15`); see `docs/rtk-architecture.md` for why RTK stays on the wrap-CLI side only.
 2. **RTK instructions are injected** — The `RTK_INSTRUCTIONS_BLOCK` at `copium/cli/wrap.py:993` tells the agent to prefix commands with `rtk`.
 3. **Proxy handles everything RTK doesn't** — File reads, search results, conversation history, tool_result blocks.
 4. **Show combined savings** — `copium perf` reports both RTK savings (`tokens_saved_rtk`) and proxy savings in one dashboard.
@@ -774,6 +774,7 @@ copium_compress_diff() { copium compress-diff "$@"; }
 | Hook compatibility breaks | Version-pin RTK binary; test against RTK's latest release |
 | Proxy overhead deters users | Show overhead is <52ms (already measured); `--no-proxy` bypass |
 | Feature bloat confuses users | Progressive disclosure; `copium doctor` validates setup; clean defaults |
+| RTK proxy-side integration requested | Rejected per decision in `docs/rtk-architecture.md` — cache hot zone risk + parallel impl with `log_compressor.rs`; RTK stays wrap-CLI only |
 
 ---
 
