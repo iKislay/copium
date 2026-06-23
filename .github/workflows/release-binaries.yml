@@ -1,0 +1,126 @@
+name: Release Binaries
+
+# Builds standalone Rust binaries (no Python required) and uploads them
+# to GitHub Releases. Triggered after release-please merges a release PR
+# (same trigger as release.yml). Users download a single binary:
+#   curl -Lo copium https://github.com/iKislay/copium/releases/latest/download/copium-linux-x86_64
+#   chmod +x copium && sudo mv copium /usr/local/bin/
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v0.26.0)"
+        required: true
+      dry_run:
+        description: "Skip upload"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-binaries:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            artifact_name: copium-linux-x86_64
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            artifact_name: copium-linux-aarch64
+          - os: macos-14
+            target: aarch64-apple-darwin
+            artifact_name: copium-macos-aarch64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact_name: copium-windows-x86_64.exe
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache cargo registry + build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+          key: ${{ matrix.target }}
+
+      - name: Build release binary
+        run: |
+          cargo build --release --target ${{ matrix.target }} -p copium-proxy
+        env:
+          CARGO_TARGET_DIR: target
+
+      - name: Locate binary (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          BINARY="target/${{ matrix.target }}/release/copium-proxy"
+          if [ "${{ matrix.target }}" = "aarch64-apple-darwin" ] || [ "${{ matrix.target }}" = "x86_64-unknown-linux-gnu" ] || [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
+            cp "$BINARY" "${{ matrix.artifact_name }}"
+          fi
+          echo "BINARY_PATH=${{ matrix.artifact_name }}" >> "$GITHUB_ENV"
+
+      - name: Locate binary (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $src = "target/${{ matrix.target }}/release/copium-proxy.exe"
+          $dst = "${{ matrix.artifact_name }}"
+          Copy-Item $src $dst
+          echo "BINARY_PATH=$dst" >> $env:GITHUB_ENV
+
+      - name: Strip symbols (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          strip "${{ matrix.artifact_name }}" 2>/dev/null || true
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: binary-${{ matrix.target }}
+          path: ${{ matrix.artifact_name }}
+          if-no-files-found: error
+
+  upload-to-release:
+    needs: build-binaries
+    runs-on: ubuntu-latest
+    if: github.event.inputs.dry_run != 'true'
+    steps:
+      - name: Download all binary artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: binary-*
+          path: binaries/
+          merge-multiple: true
+
+      - name: List binaries
+        run: ls -la binaries/
+
+      - name: Determine tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload binaries to GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          echo "Uploading binaries to release $TAG..."
+          gh release upload "$TAG" binaries/* --clobber

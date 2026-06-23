@@ -33,13 +33,24 @@ The gains are real: **1.4 billion tokens saved** across 50K+ sessions in product
 
 ## Get started (60 seconds)
 
-```bash
-# Install
-pip install "copium-ai[proxy]"
-# or with uv (recommended)
-uv tool install "copium-ai[proxy]"
+### Install
 
-# Start the proxy
+```bash
+# Recommended — installs globally in an isolated environment
+pipx install copium-ai          # or: pipx install "copium-ai[proxy]"
+
+# If you use uv
+uv tool install copium-ai       # or: uv tool install "copium-ai[proxy]"
+
+# Project-local install (less recommended for CLI use)
+pip install "copium-ai[proxy]"
+```
+
+> **Why `pipx`?** It installs CLI tools into isolated environments so `copium` is available globally without polluting any project's dependencies. If you don't have `pipx`: `pip install pipx && pipx ensurepath`.
+
+### Start the proxy
+
+```bash
 copium run                          # listens on http://localhost:8082
 
 # Point your agent at it (pick your tool below)
