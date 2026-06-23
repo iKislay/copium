@@ -127,7 +127,8 @@ doc.
 
 The above sections document *why* RTK is wrap-CLI only. This section
 documents *how* Copium absorbs RTK's audience. See `plans/04-beat-rtk.md`
-for the full competitive analysis.
+for the full competitive analysis, implementation roadmap, and success
+metrics.
 
 ### Positioning
 

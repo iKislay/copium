@@ -21,6 +21,9 @@
    - [11-phase-I-test-infra.md](./11-phase-I-test-infra.md) — test/CI gates (parallel)
 5. [12-decisions-needed.md](./12-decisions-needed.md) — open questions
 
+**Strategic plans:**
+- [plans/04-beat-rtk.md](../plans/04-beat-rtk.md) — RTK audience absorption strategy ("RTK on Steroids")
+
 ## Conventions
 
 - **Branch name:** `realign-<phase-letter><pr-num>-<slug>`. Example: `realign-A1-icm-passthrough`.
