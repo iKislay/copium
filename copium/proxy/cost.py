@@ -139,19 +139,35 @@ def build_prefix_cache_stats(
         read_mult: float = econ["read_multiplier"]  # type: ignore[assignment]
         write_mult: float = econ["write_multiplier"]  # type: ignore[assignment]
 
-        # Get the base input price per token for the most-used model on this provider
+        # Get the base input price per token for the most-used model on this provider.
+        # Match model names to their provider so we only look up pricing for
+        # models that actually belong to this provider's cache economics entry.
         input_price_per_token = None
         if cost_tracker:
+            _openai_prefixes = ("gpt", "o1", "o3", "o4")
+            _opencode_identifiers = ("mimo", "glm", "kimi", "deepseek")
             for model_name in cost_tracker._tokens_sent_by_model:
-                # Match model to provider
-                _openai_prefixes = ("gpt", "o1", "o3", "o4")
                 is_match = (
                     (provider == "anthropic" and "claude" in model_name)
-                    or (provider == "openai" and any(p in model_name for p in _openai_prefixes))
+                    or (
+                        provider == "openai"
+                        and (
+                            any(p in model_name for p in _openai_prefixes)
+                            or any(m in model_name for m in _opencode_identifiers)
+                        )
+                    )
                     or (provider == "gemini" and "gemini" in model_name)
                     or (provider == "bedrock" and "claude" in model_name)
                 )
                 if is_match:
+                    price_per_1m = cost_tracker._get_list_price(model_name)
+                    if price_per_1m:
+                        input_price_per_token = price_per_1m / 1_000_000
+                        break
+            # Fallback: if no prefix match found a price, try the first model
+            # for this provider that litellm can price (handles new/unknown models).
+            if input_price_per_token is None:
+                for model_name in cost_tracker._tokens_sent_by_model:
                     price_per_1m = cost_tracker._get_list_price(model_name)
                     if price_per_1m:
                         input_price_per_token = price_per_1m / 1_000_000
