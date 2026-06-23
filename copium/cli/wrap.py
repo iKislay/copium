@@ -3003,13 +3003,26 @@ def _print_wrap_savings_summary(port: int, rtk_only: bool = False) -> None:
     click.echo()
 
 
-@main.group()
-def wrap() -> None:
+# Ordered list of (agent_name, binary_name, copium_subcommand) for auto-detection.
+# Plan §3.2.3: `copium wrap` with no args auto-detects installed agents.
+_WRAP_DETECTABLE_AGENTS: list[tuple[str, str, str]] = [
+    ("Claude Code", "claude", "claude"),
+    ("Codex", "codex", "codex"),
+    ("Aider", "aider", "aider"),
+    ("Goose", "goose", "goose"),
+    ("OpenHands", "openhands", "openhands"),
+]
+
+
+@main.group(invoke_without_command=True)
+@click.pass_context
+def wrap(ctx: click.Context) -> None:
     """Wrap CLI tools to run through Copium.
 
     \b
     Starts a Copium proxy, configures the environment, and launches
     the target tool so all API calls route through Copium automatically.
+    When called with no subcommand, auto-detects installed agents.
 
     \b
     Supported tools (one Click subcommand per tool):
@@ -3034,6 +3047,57 @@ def wrap() -> None:
           OpenAI/Anthropic-compatible client by setting
           ANTHROPIC_BASE_URL / OPENAI_BASE_URL yourself.
     """
+    if ctx.invoked_subcommand is not None:
+        return  # A subcommand was given — proceed normally.
+
+    # Auto-detection: find installed agents in PATH.
+    detected = [
+        (name, binary, subcommand)
+        for name, binary, subcommand in _WRAP_DETECTABLE_AGENTS
+        if shutil.which(binary) is not None
+    ]
+
+    if not detected:
+        click.echo()
+        click.echo("  No supported agents found in PATH.")
+        click.echo()
+        click.echo("  Install one of:")
+        click.echo("    Claude Code:  https://docs.anthropic.com/en/docs/claude-code")
+        click.echo("    Codex:        npm install -g @openai/codex")
+        click.echo("    Aider:        pip install aider-chat")
+        click.echo()
+        click.echo("  Then run: copium wrap claude (or codex / aider)")
+        raise SystemExit(1)
+
+    if len(detected) == 1:
+        name, binary, subcommand = detected[0]
+        click.echo(f"  Detected: {name} — launching `copium wrap {subcommand}`...")
+        ctx.invoke(ctx.command.commands[subcommand])  # type: ignore[attr-defined]
+        return
+
+    # Multiple agents found — prompt for choice.
+    click.echo()
+    click.echo("  Multiple agents detected. Which would you like to wrap?")
+    click.echo()
+    for i, (name, binary, _) in enumerate(detected, start=1):
+        path = shutil.which(binary) or binary
+        click.echo(f"    {i}. {name} ({path})")
+    click.echo()
+    choice_str = click.prompt(
+        "  Enter number",
+        default="1",
+    ).strip()
+    try:
+        choice_idx = int(choice_str) - 1
+        if not (0 <= choice_idx < len(detected)):
+            raise ValueError
+    except ValueError:
+        click.echo("  Invalid choice. Aborting.")
+        raise SystemExit(1)
+
+    name, binary, subcommand = detected[choice_idx]
+    click.echo(f"  Launching `copium wrap {subcommand}`...")
+    ctx.invoke(ctx.command.commands[subcommand])  # type: ignore[attr-defined]
 
 
 @main.group()
