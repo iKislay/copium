@@ -88,8 +88,10 @@ The wrap system already supports:
 - `copium wrap cursor` — Proxy + RTK + Cursor config
 - `copium wrap copilot` — Proxy + RTK + Copilot launch
 - `copium wrap openclaw` — Plugin installation
-
-Phase G (ROADMAP/09) adds: `cline`, `continue`, `goose`, `openhands`.
+- `copium wrap cline` — Proxy + RTK + Cline launch (VS Code)
+- `copium wrap continue` — Proxy + RTK + Continue launch (VS Code/JetBrains)
+- `copium wrap goose` — Proxy + RTK + Goose launch (Block CLI)
+- `copium wrap openhands` — Proxy + RTK + OpenHands launch
 
 ### 3.2 Proposed Improvements
 
@@ -590,10 +592,10 @@ From `copium/cli/wrap.py` and `copium/rtk/installer.py:162`:
 | **Aider** | `CONVENTIONS.md` injection | AGENTS.md injection | `OPENAI_API_BASE` env var |
 | **Cursor** | `.cursorrules` injection | `.cursorrules` injection | Proxy URL config instructions |
 | **Copilot** | `ANTHROPIC_BASE_URL` env var | RTK hooks | Proxy env var |
-| **Cline** | `.clinerules` injection (Phase G) | `.clinerules` injection | VS Code settings |
-| **Continue** | `config.json` system message (Phase G) | Config injection | Config injection |
-| **Goose** | `.goose/config.yaml` hints (Phase G) | Hints injection | Env var |
-| **OpenHands** | `OPENHANDS_INSTRUCTIONS` env var (Phase G) | Env var | Env var |
+| **Cline** | `.clinerules` injection | `.clinerules` injection | VS Code settings |
+| **Continue** | `config.json` system message injection | Config injection | Config injection |
+| **Goose** | `.goosehints` injection | Hints injection | Env var |
+| **OpenHands** | `OPENHANDS_INSTRUCTIONS` env var | Env var | Env var |
 
 ### 8.2 Claude Code Deep Integration
 
