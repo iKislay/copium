@@ -714,41 +714,41 @@ copium_compress_diff() { copium compress-diff "$@"; }
 
 ### Phase 1: Drop-in RTK Replacement (Week 1-2)
 
-| Task | Files | LOC Est. |
-|---|---|---|
-| Add `--rtk-only` flag to all wrap commands | `copium/cli/wrap.py` | +150 |
-| Enhance savings summary output | `copium/cli/wrap.py` | +200 |
-| Add agent auto-detection | `copium/cli/wrap.py` | +300 |
-| Add `copium doctor` command | `copium/cli/doctor.py` (new) | +400 |
-| Strangeness tax quality gate | `copium/transforms/quality_gate.py` (new) | +500 |
+| Task | Files | LOC Est. | Status |
+|---|---|---|---|
+| Add `--rtk-only` flag to all wrap commands | `copium/cli/wrap.py` | +150 | TODO |
+| Enhance savings summary output | `copium/cli/wrap.py` | +200 | TODO |
+| Add agent auto-detection | `copium/cli/wrap.py` | +300 | TODO |
+| Add `copium doctor` command | `copium/cli/doctor.py` | +400 | **Done** |
+| Strangeness tax quality gate | `copium/transforms/quality_gate.py` | +500 | **Done** |
 
 ### Phase 2: Beyond Stdout (Week 3-4)
 
-| Task | Files | LOC Est. |
-|---|---|---|
-| File read compressor | `crates/copium-core/src/transforms/file_read.rs` | +800 |
-| Search result compressor | `crates/copium-core/src/transforms/search.rs` | +600 |
-| Diff compressor enhancement | `crates/copium-core/src/transforms/diff.rs` | +400 |
-| Test output compressor | `crates/copium-core/src/transforms/test_output.rs` | +500 |
-| Content preservation rules | `copium/transforms/preservation.py` | +300 |
+| Task | Files | LOC Est. | Status |
+|---|---|---|---|
+| File read compressor | `crates/copium-core/src/transforms/file_read.rs` (new) | +800 | TODO |
+| Search result compressor | `crates/copium-core/src/transforms/search_compressor.rs` (exists) | +600 | TODO |
+| Diff compressor enhancement | `crates/copium-core/src/transforms/diff_compressor.rs` (exists) | +400 | TODO |
+| Test output compressor | `crates/copium-core/src/transforms/test_output.rs` (new) | +500 | TODO |
+| Content preservation rules | `copium/transforms/preservation.py` (new) | +300 | TODO |
 
 ### Phase 3: Agent Deep Integration (Week 5-6)
 
-| Task | Files | LOC Est. |
-|---|---|---|
-| Claude Code Read/Grep hooks | `copium/cli/wrap.py`, `copium/hooks/` | +400 |
-| Universal hook generator | `copium/cli/hook.py` (new) | +300 |
-| Cursor auto-configuration | `copium/providers/cursor.py` | +200 |
-| Enhanced verbose output | `copium/cli/wrap.py` | +150 |
+| Task | Files | LOC Est. | Status |
+|---|---|---|---|
+| Claude Code Read/Grep hooks | `copium/cli/wrap.py`, `copium/hooks/` | +400 | TODO |
+| Universal hook generator | `copium/cli/hook.py` (new) | +300 | TODO |
+| Cursor auto-configuration | `copium/providers/cursor.py` (new) | +200 | TODO |
+| Enhanced verbose output | `copium/cli/wrap.py` | +150 | TODO |
 
 ### Phase 4: Marketing + Migration (Week 7-8)
 
-| Task | Files | LOC Est. |
-|---|---|---|
-| RTK migration guide | `docs/migrating-from-rtk.md` | docs |
-| Benchmark comparison | `benchmarks/rtk-vs-copium/` | tooling |
-| README update | `README.md` | docs |
-| Strangeness tax benchmark | `tests/test_evals/strangeness.py` | +500 |
+| Task | Files | LOC Est. | Status |
+|---|---|---|---|
+| RTK migration guide | `docs/migrating-from-rtk.md` (new) | docs | TODO |
+| Benchmark comparison | `benchmarks/rtk-vs-copium/` (new) | tooling | TODO |
+| README update | `README.md` | docs | TODO |
+| Strangeness tax benchmark | `tests/test_evals/strangeness.py` (new) | +500 | TODO |
 
 ---
 
