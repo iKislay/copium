@@ -120,3 +120,81 @@ doc.
   proxy-side log compressor RTK would parallel.
 - 2026-05-01 user direction message archived in
   `project_compression_roadmap_2026_05` memory note.
+
+---
+
+## Beat-RTK strategy (2026-06)
+
+The above sections document *why* RTK is wrap-CLI only. This section
+documents *how* Copium absorbs RTK's audience. See `plans/04-beat-rtk.md`
+for the full competitive analysis.
+
+### Positioning
+
+```
+RTK:    rtk git status       → compresses CLI stdout    → 60-90% on stdout
+Copium: copium wrap claude   → compresses EVERYTHING    → 40-90% on all context
+                               (includes RTK for stdout)
+```
+
+**Pitch:** "Copium includes RTK for free, plus compresses everything RTK can't reach."
+
+### RTK-only mode (`--rtk-only`)
+
+RTK users can start with an exact drop-in replacement:
+
+```bash
+copium wrap claude --rtk-only
+```
+
+This:
+- Downloads RTK binary and registers hooks
+- Launches the agent (Claude Code, Codex, Aider, etc.)
+- Does **not** start the proxy
+- Shows RTK savings at session end via `_print_wrap_savings_summary`
+
+When they're ready to unlock proxy savings, they drop `--rtk-only`.
+
+### Agent auto-detection
+
+```bash
+copium wrap   # no args
+```
+
+Auto-detects installed agents in PATH (claude, codex, aider, goose,
+openhands). Single agent found → auto-launches. Multiple found → numbered
+menu. None found → install guidance.
+
+### Strangeness tax mitigation (Gate 4)
+
+RTK's most criticised flaw: compressed CLI output confuses LLMs because
+the compressed format doesn't match training data. Copium's `QualityGate`
+now implements **Gate 4: content-type-aware critical marker preservation**.
+
+When a compressor drops critical structural markers:
+- `git_status`: branch name, file paths, status codes
+- `git_diff`: hunk headers (`@@`), `+++`/`---` file names
+- `test_output`: pass/fail summary, `FAILED` test names
+- `build_output`: error/warning lines with file:line references
+- `grep`/`ripgrep`: file:line:content match lines
+
+…the gate reverts that compression step rather than sending semantically
+degraded output to the LLM. This targets ≥98% accuracy on compressed vs
+baseline output (plan §4.3 benchmark target).
+
+See `copium/transforms/quality_gate.py` for the implementation.
+
+### Migration path
+
+See `docs/migrating-from-rtk.md` for the full step-by-step guide RTK users
+should follow.
+
+### Enhanced `copium doctor`
+
+`copium doctor` now validates the full RTK + Copium installation:
+- RTK binary version
+- Agents in PATH
+- Claude RTK hook registration
+- Proxy health at `/health`
+- MCP retrieve tool registration
+- CCR store, telemetry, API keys
