@@ -2931,6 +2931,78 @@ def _copy_openclaw_plugin_into_extensions(
     return target_dir
 
 
+def _print_wrap_savings_summary(port: int, rtk_only: bool = False) -> None:
+    """Print a combined RTK + proxy savings summary at end of a wrap session.
+
+    Reads RTK token savings from the subscription tracker and proxy savings
+    from the session tracker, then prints a formatted savings table.
+
+    Plan §3.2.2: Savings Summary.
+    """
+    rtk_tokens: int = 0
+    proxy_tokens: int = 0
+    cache_hit_rate: float = 0.0
+
+    # Try to read RTK savings from the tracker
+    try:
+        from copium.subscription.tracker import get_session_tracker
+
+        tracker = get_session_tracker()
+        if tracker is not None:
+            c = tracker._state.contribution
+            rtk_tokens = getattr(c, "tokens_saved_rtk", 0) or 0
+    except Exception:
+        pass
+
+    # Try to read proxy savings from the proxy health endpoint
+    if not rtk_only:
+        try:
+            import json as _json
+
+            import httpx
+
+            resp = httpx.get(f"http://127.0.0.1:{port}/health", timeout=2)
+            if resp.status_code == 200:
+                data = resp.json()
+                stats = data.get("stats", {})
+                proxy_tokens = int(stats.get("tokens_saved", 0))
+                hits = int(stats.get("cache_hits", 0))
+                total = int(stats.get("total_requests", 0))
+                cache_hit_rate = hits / total if total > 0 else 0.0
+        except Exception:
+            pass
+
+    total_tokens = rtk_tokens + proxy_tokens
+    if total_tokens <= 0 and not rtk_only:
+        return  # Nothing to show
+
+    # Estimate cost saved (Claude Sonnet ~$3 per million input tokens)
+    cost_saved = total_tokens * 3.0 / 1_000_000
+
+    width = 45
+    click.echo()
+    click.echo(f"  ┌{'─' * width}┐")
+    click.echo(f"  │{'COPIUM SAVINGS SUMMARY':^{width}}│")
+    click.echo(f"  │{'─' * width}│")
+    if rtk_tokens > 0:
+        label = f"  RTK (CLI stdout): {rtk_tokens:,} tokens"
+        click.echo(f"  │{label:<{width}}│")
+    if proxy_tokens > 0:
+        label = f"  Proxy (all traffic): {proxy_tokens:,} tokens"
+        click.echo(f"  │{label:<{width}}│")
+    click.echo(f"  │{'─' * width}│")
+    label = f"  Total saved: {total_tokens:,} tokens"
+    click.echo(f"  │{label:<{width}}│")
+    if cost_saved > 0:
+        label = f"  Estimated cost saved: ${cost_saved:.2f}"
+        click.echo(f"  │{label:<{width}}│")
+    if cache_hit_rate > 0:
+        label = f"  Cache hit rate: {cache_hit_rate:.0%}"
+        click.echo(f"  │{label:<{width}}│")
+    click.echo(f"  └{'─' * width}┘")
+    click.echo()
+
+
 @main.group()
 def wrap() -> None:
     """Wrap CLI tools to run through Copium.
@@ -2984,6 +3056,13 @@ def unwrap() -> None:
     help="Skip CLI context-tool setup",
 )
 @click.option(
+    "--rtk-only",
+    "rtk_only",
+    is_flag=True,
+    help="RTK-only mode: configure RTK for CLI stdout compression without starting the proxy. "
+    "Drop-in RTK replacement — identical UX to plain `rtk`. Proxy features are opt-in later.",
+)
+@click.option(
     "--no-mcp",
     is_flag=True,
     help="Skip copium MCP server registration (compression markers will be unactionable)",
@@ -3030,6 +3109,7 @@ def unwrap() -> None:
 def claude(
     port: int,
     no_rtk: bool,
+    rtk_only: bool,
     no_mcp: bool,
     no_serena: bool,
     code_graph: bool,
@@ -3052,6 +3132,7 @@ def claude(
     \b
     Examples:
         copium wrap claude                    # Start everything
+        copium wrap claude --rtk-only         # RTK-only (no proxy) — RTK drop-in replacement
         copium wrap claude --memory           # With persistent memory
         copium wrap claude --resume <id>      # Resume a session
         copium wrap claude -- -p              # Claude in print mode
@@ -3067,6 +3148,30 @@ def claude(
             else:
                 _prepare_wrap_rtk(verbose=verbose, label="Claude")
         return
+
+    # --rtk-only: behave exactly like RTK but without the proxy.
+    # RTK users coming from `brew install rtk` can use this as a drop-in.
+    if rtk_only:
+        claude_bin = shutil.which("claude")
+        if not claude_bin:
+            click.echo("Error: 'claude' not found in PATH.")
+            click.echo("Install Claude Code: https://docs.anthropic.com/en/docs/claude-code")
+            raise SystemExit(1)
+        click.echo()
+        click.echo("  ╔═══════════════════════════════════════════════╗")
+        click.echo("  ║        COPIUM WRAP: CLAUDE (RTK-ONLY)       ║")
+        click.echo("  ╚═══════════════════════════════════════════════╝")
+        click.echo()
+        click.echo("  Mode: RTK-only (no proxy). CLI stdout compression only.")
+        click.echo("  Tip: Run without --rtk-only to unlock proxy savings too.")
+        click.echo()
+        if not no_rtk:
+            click.echo("  Setting up rtk...")
+            _setup_rtk(verbose=verbose)
+        env = os.environ.copy()
+        result = subprocess.run([claude_bin, *claude_args], env=env)
+        _print_wrap_savings_summary(port, rtk_only=True)
+        raise SystemExit(result.returncode)
 
     claude_bin = shutil.which("claude")
     if not claude_bin:
@@ -3259,6 +3364,7 @@ def claude(
         click.echo(f"  Error: {e}")
         raise SystemExit(1) from e
     finally:
+        _print_wrap_savings_summary(port)
         _restore_claude_wrap_base_url(_saved_base_url[0], foundry_mode=_settings_foundry[0])
         cleanup()
 
