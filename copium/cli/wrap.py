@@ -2450,10 +2450,21 @@ def _ensure_proxy(
                             f"  Proxy on port {port} is missing: {flags_str}, but "
                             f"{len(other_wrappers)} other wrapper(s) are attached."
                         )
-                        click.echo(
-                            "  Leaving it running to avoid disrupting them; this "
-                            "session will use the existing proxy as-is."
-                        )
+                        url_mismatch = "openai-api-url" in missing or "opencode-go-api-url" in missing
+                        if url_mismatch:
+                            click.echo(
+                                "  ⚠ Upstream URL mismatch — requests may fail or "
+                                "be routed to the wrong provider."
+                            )
+                            click.echo(
+                                "  Run 'copium stop' to stop the existing proxy, "
+                                "then retry."
+                            )
+                        else:
+                            click.echo(
+                                "  Leaving it running to avoid disrupting them; this "
+                                "session will use the existing proxy as-is."
+                            )
                     else:
                         needs_restart = True
                         click.echo(f"  Proxy on port {port} is missing: {flags_str}")
