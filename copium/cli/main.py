@@ -56,6 +56,7 @@ def _register_commands() -> None:
         dashboard_tui,  # noqa: F401
         doctor,  # noqa: F401
         evals,  # noqa: F401
+        hooks_compress,  # noqa: F401
         init,  # noqa: F401
         install,  # noqa: F401
         learn,  # noqa: F401
