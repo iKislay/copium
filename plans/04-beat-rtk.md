@@ -1,7 +1,8 @@
 # Plan: Absorb RTK's Audience — "RTK on Steroids"
 
-**Status:** Draft
+**Status:** In Progress (Phase 1 complete)
 **Date:** 2026-06-22
+**Updated:** 2026-06-23
 **Goal:** Position Copium as the definitive RTK replacement, capturing its 28K+ GitHub stars audience by fixing every RTK limitation while keeping the one-command simplicity users love.
 
 ---
@@ -712,30 +713,33 @@ copium_compress_diff() { copium compress-diff "$@"; }
 
 ## 9. Implementation Roadmap
 
-### Phase 1: Drop-in RTK Replacement (Week 1-2)
+### Phase 1: Drop-in RTK Replacement (Week 1-2) ✅ COMPLETE
 
 | Task | Files | LOC Est. | Status |
 |---|---|---|---|
-| Add `--rtk-only` flag to all wrap commands | `copium/cli/wrap.py` | +150 | TODO |
-| Enhance savings summary output | `copium/cli/wrap.py` | +200 | TODO |
-| Add agent auto-detection | `copium/cli/wrap.py` | +300 | TODO |
-| Add `copium doctor` command | `copium/cli/doctor.py` | +400 | **Done** |
-| Strangeness tax quality gate | `copium/transforms/quality_gate.py` | +500 | **Done** |
+| Add `--rtk-only` flag to all wrap commands | `copium/cli/wrap.py` | +150 | ✅ Done |
+| Enhance savings summary output | `copium/cli/wrap.py` | +200 | ✅ Done |
+| Add agent auto-detection | `copium/cli/wrap.py` | +300 | ✅ Done |
+| Add `copium doctor` command | `copium/cli/doctor.py` | +400 | ✅ Done (enhanced) |
+| Strangeness tax quality gate | `copium/transforms/quality_gate.py` | +500 | ✅ Done (Gate 4) |
+| Content preservation rules | `copium/transforms/preservation.py` | +300 | ✅ Done |
+| Read/Grep hook commands | `copium/cli/hooks_compress.py` | +200 | ✅ Done |
+| Enhanced verbose output | `copium/cli/wrap.py` | +150 | ✅ Done |
+| RTK migration guide | `docs/migrating-from-rtk.md` | docs | ✅ Done |
+| Update rtk-architecture.md | `docs/rtk-architecture.md` | docs | ✅ Done |
 
 ### Phase 2: Beyond Stdout (Week 3-4)
 
-| Task | Files | LOC Est. | Status |
-|---|---|---|---|
-| File read compressor | `crates/copium-core/src/transforms/file_read.rs` (new) | +800 | TODO |
-| Search result compressor | `crates/copium-core/src/transforms/search_compressor.rs` (exists) | +600 | TODO |
-| Diff compressor enhancement | `crates/copium-core/src/transforms/diff_compressor.rs` (exists) | +400 | TODO |
-| Test output compressor | `crates/copium-core/src/transforms/test_output.rs` (new) | +500 | TODO |
-| Content preservation rules | `copium/transforms/preservation.py` (new) | +300 | TODO |
+| Task | Files | LOC Est. |
+|---|---|---|
+| File read compressor | `crates/copium-core/src/transforms/file_read.rs` | +800 |
+| Search result compressor | `crates/copium-core/src/transforms/search.rs` | +600 |
+| Diff compressor enhancement | `crates/copium-core/src/transforms/diff.rs` | +400 |
+| Test output compressor | `crates/copium-core/src/transforms/test_output.rs` | +500 |
+| Wire Read/Grep hooks into `copium wrap claude` | `copium/cli/wrap.py` | +200 |
 
 ### Phase 3: Agent Deep Integration (Week 5-6)
 
-| Task | Files | LOC Est. | Status |
-|---|---|---|---|
 | Claude Code Read/Grep hooks | `copium/cli/wrap.py`, `copium/hooks/` | +400 | TODO |
 | Universal hook generator | `copium/cli/hook.py` (new) | +300 | TODO |
 | Cursor auto-configuration | `copium/providers/cursor.py` (new) | +200 | TODO |
