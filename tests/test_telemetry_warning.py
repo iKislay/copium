@@ -97,7 +97,7 @@ class TestProxyCLITelemetryBanner:
         return CliRunner()
 
     def test_banner_shows_telemetry_enabled(self, runner, monkeypatch):
-        monkeypatch.delenv("COPIUM_TELEMETRY", raising=False)
+        monkeypatch.setenv("COPIUM_TELEMETRY", "on")
 
         from copium.cli.main import main
 
@@ -130,7 +130,7 @@ class TestProxyCLITelemetryBanner:
         assert "DISABLED" in result.output
 
     def test_banner_shows_opt_out_instructions_when_enabled(self, runner, monkeypatch):
-        monkeypatch.delenv("COPIUM_TELEMETRY", raising=False)
+        monkeypatch.setenv("COPIUM_TELEMETRY", "on")
 
         from copium.cli.main import main
 

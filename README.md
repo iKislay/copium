@@ -138,6 +138,33 @@ This routes Copilot through Copium while keeping your existing auth. Supports bo
 copium wrap vibe
 ```
 
+### VS Code Extensions
+
+#### Cline
+
+```bash
+copium wrap cline
+# Then configure in VS Code:
+#   Settings > Cline > API Provider > Anthropic
+#   Base URL: http://localhost:8082
+```
+
+#### Continue
+
+```bash
+copium wrap continue
+# Auto-injects into .continue/config.json
+```
+
+### Antigravity (Google)
+
+> **Note:** As of June 2026, Google transitioned Gemini CLI to Antigravity CLI. The new Antigravity 2.0 Desktop App and CLI use Google Sign-In OAuth authentication and route through Vertex AI — they do **not** expose proxy/base URL settings. Copium cannot currently intercept Antigravity traffic.
+
+**Workarounds:**
+- Use the old Gemini CLI (if available) which routes through Cloud Code Assist
+- For enterprise users: configure Vertex AI with Copium proxy separately
+- Wait for Google to add proxy configuration support
+
 ### Any HTTP client / custom app
 
 If your tool lets you set a base URL or API endpoint:
@@ -498,6 +525,9 @@ Request → Cache Aligner → Differential Response → Session Dedup
 | Aider | `copium wrap aider` |
 | GitHub Copilot | `copium wrap copilot` |
 | Mistral Vibe | `copium wrap vibe` |
+| Cline (VS Code) | `copium wrap cline` |
+| Continue (VS Code/JetBrains) | `copium wrap continue` |
+| Antigravity | ⚠️ Not supported (no proxy settings) |
 | AWS Bedrock | `http://localhost:8082/bedrock` |
 | Google Vertex AI | `http://localhost:8082/vertex` |
 | Ollama | `copium run --backend ollama` |
