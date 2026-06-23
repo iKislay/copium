@@ -1443,6 +1443,12 @@
                             </select>
                         </div>
                     </div>
+                    <template x-if="stats.request_logging_enabled === false">
+                        <div style="padding: 16px; background-color: #fef3cd; border-bottom: 1px solid #ffc107; color: #856404;">
+                            <span style="font-weight: 600;">Request logging is disabled.</span>
+                            <span> Start the proxy without <code>--no-request-logging</code> to enable the request log.</span>
+                        </div>
+                    </template>
                     <div class="table-responsive">
                         <table class="geist-table">
                             <thead>

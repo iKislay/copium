@@ -2968,6 +2968,7 @@ def create_app(config: ProxyConfig | None = None) -> FastAPI:
             "cache": await proxy.cache.stats() if proxy.cache else None,
             "rate_limiter": await proxy.rate_limiter.stats() if proxy.rate_limiter else None,
             **recent_request_payload,
+            "request_logging_enabled": proxy.logger is not None,
             "log_full_messages": proxy.config.log_full_messages if proxy else False,
             **get_quota_registry().get_all_stats(),
             "throughput": throughput,
