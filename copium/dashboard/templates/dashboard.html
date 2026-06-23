@@ -1025,7 +1025,7 @@
                                 <tbody>
                                     <tr>
                                         <td><strong>Input Tokens</strong></td>
-                                        <td class="mono" x-text="formatNumber(stats.tokens?.input || 0)">0</td>
+                                        <td class="mono" x-text="formatNumber(stats.display_session?.total_input_tokens || 0)">0</td>
                                         <td class="mono" x-text="formatNumber(stats.persistent_savings?.lifetime?.total_input_tokens || 0)">0</td>
                                     </tr>
                                     <tr>
@@ -1035,7 +1035,7 @@
                                     </tr>
                                     <tr>
                                         <td><strong>Proxy Compression Saved</strong></td>
-                                        <td class="mono" x-text="formatNumber(stats.tokens?.proxy_compression_saved || 0)">0</td>
+                                        <td class="mono" x-text="formatNumber(stats.display_session?.tokens_saved || 0)">0</td>
                                         <td class="mono" x-text="formatNumber(stats.persistent_savings?.lifetime?.tokens_saved || 0)">0</td>
                                     </tr>
                                     <tr>
@@ -1045,7 +1045,7 @@
                                     </tr>
                                     <tr>
                                         <td><strong>Total Saved</strong></td>
-                                        <td class="mono" x-text="formatNumber(stats.tokens?.saved || 0)" style="font-weight: 600; color: var(--green-700)">0</td>
+                                        <td class="mono" x-text="formatNumber((stats.display_session?.tokens_saved || 0) + (stats.tokens?.cli_filtering_saved || 0))" style="font-weight: 600; color: var(--green-700)">0</td>
                                         <td class="mono" x-text="formatNumber(totalTokensSaved)" style="font-weight: 600; color: var(--green-700)">0</td>
                                     </tr>
                                 </tbody>
@@ -1686,9 +1686,16 @@
                         }));
                         
                         // Compute core KPI metrics
-                        this.proxySavedTokens = data.tokens?.proxy_compression_saved || 0;
+                        // Use persisted display_session for proxy compression saved
+                        // (resets after 60 min inactivity, consistent with lifetime source).
+                        this.proxySavedTokens = data.display_session?.tokens_saved || 0;
                         this.cliSavedTokens = data.tokens?.cli_filtering_saved || 0;
                         this.totalTokensSaved = data.persistent_savings?.lifetime?.tokens_saved || 0;
+
+                        // Clamp session proxy saved to never exceed lifetime
+                        if (this.proxySavedTokens > this.totalTokensSaved && this.totalTokensSaved > 0) {
+                            this.proxySavedTokens = this.totalTokensSaved;
+                        }
 
                         this.isEstimatedCost = false;
                         this.dollarsSaved = data.persistent_savings?.lifetime?.compression_savings_usd || 0;
@@ -1698,9 +1705,9 @@
                         }
 
                         this.sessionDollarsSaved = data.persistent_savings?.display_session?.compression_savings_usd || 0;
-                        const sessionSaved = data.tokens?.saved || 0;
-                        if (this.sessionDollarsSaved === 0 && sessionSaved > 0) {
-                            this.sessionDollarsSaved = sessionSaved * 0.000002;
+                        // Clamp session dollars to never exceed lifetime
+                        if (this.sessionDollarsSaved > this.dollarsSaved && this.dollarsSaved > 0) {
+                            this.sessionDollarsSaved = this.dollarsSaved;
                         }
 
                         this.activeSavingsPercent = data.tokens?.active_savings_percent || 0;
