@@ -5325,8 +5325,8 @@ def opencode(
 
         # Modify opencode.json to add the copium provider
         try:
-            if original_config_text:
-                config = json.loads(original_config_text)
+            if had_existing_config:
+                config = json.loads(config_path.read_text(encoding="utf-8"))
             else:
                 config = {"$schema": "https://opencode.ai/config.json"}
 
