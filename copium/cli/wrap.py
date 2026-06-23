@@ -460,9 +460,7 @@ def _start_proxy(
                 tail = "(no log output)"
             # Extract the last meaningful error line instead of raw traceback
             error_msg = _extract_log_error(tail)
-            raise RuntimeError(
-                f"Proxy exited with code {proc.returncode}: {error_msg}"
-            )
+            raise RuntimeError(f"Proxy exited with code {proc.returncode}: {error_msg}")
 
     proc.kill()
     log_file.close()
@@ -2122,9 +2120,7 @@ def _echo_unwrap_proxy_stop_status(status: str, port: int) -> None:
             f"  Warning: port {port} is in use, but it did not look like Copium; left it running."
         )
     elif status == "no_pid":
-        click.echo(
-            f"  Warning: Copium proxy on port {port} did not expose a PID; left it running."
-        )
+        click.echo(f"  Warning: Copium proxy on port {port} did not expose a PID; left it running.")
     else:
         click.echo(f"  Warning: failed to stop Copium proxy on port {port}; stop it manually.")
 
@@ -2193,8 +2189,7 @@ def _restart_persistent_proxy(manifest: Any, port: int) -> bool:
     from copium.install.supervisors import start_supervisor
 
     click.echo(
-        f"  Restarting persistent deployment '{manifest.profile}' "
-        f"with Copium {_COPIUM_VERSION}..."
+        f"  Restarting persistent deployment '{manifest.profile}' with Copium {_COPIUM_VERSION}..."
     )
     try:
         if manifest.preset == InstallPreset.PERSISTENT_DOCKER.value:
@@ -2450,15 +2445,16 @@ def _ensure_proxy(
                             f"  Proxy on port {port} is missing: {flags_str}, but "
                             f"{len(other_wrappers)} other wrapper(s) are attached."
                         )
-                        url_mismatch = "openai-api-url" in missing or "opencode-go-api-url" in missing
+                        url_mismatch = (
+                            "openai-api-url" in missing or "opencode-go-api-url" in missing
+                        )
                         if url_mismatch:
                             click.echo(
                                 "  ⚠ Upstream URL mismatch — requests may fail or "
                                 "be routed to the wrong provider."
                             )
                             click.echo(
-                                "  Run 'copium stop' to stop the existing proxy, "
-                                "then retry."
+                                "  Run 'copium stop' to stop the existing proxy, then retry."
                             )
                         else:
                             click.echo(
@@ -3544,9 +3540,7 @@ def unwrap_claude(
     default=None,
     help="Provider for any-llm backend: openai, mistral, groq, etc. (env: COPIUM_ANYLLM_PROVIDER)",
 )
-@click.option(
-    "--region", default=None, help="Cloud region for Bedrock/Vertex (env: COPIUM_REGION)"
-)
+@click.option("--region", default=None, help="Cloud region for Bedrock/Vertex (env: COPIUM_REGION)")
 @click.option(
     "--provider-type",
     type=click.Choice(["auto", "anthropic", "openai"]),
@@ -3845,9 +3839,7 @@ def copilot(
     default=None,
     help="Provider for any-llm backend: openai, mistral, groq, etc. (env: COPIUM_ANYLLM_PROVIDER)",
 )
-@click.option(
-    "--region", default=None, help="Cloud region for Bedrock/Vertex (env: COPIUM_REGION)"
-)
+@click.option("--region", default=None, help="Cloud region for Bedrock/Vertex (env: COPIUM_REGION)")
 @click.option("--memory", is_flag=True, help="Enable persistent cross-session memory")
 @click.option("--verbose", "-v", is_flag=True, help="Verbose output")
 @click.option("--prepare-only", is_flag=True, hidden=True)
@@ -5151,6 +5143,7 @@ def opencode(
     had_existing_config = config_path.exists()
     if had_existing_config and not backup_path.exists():
         import shutil as _shutil
+
         _shutil.copy2(config_path, backup_path)
 
     # Build the copium provider entry.
@@ -5292,6 +5285,7 @@ def opencode(
         if backup_path.exists():
             # Restore from backup (pre-wrap state)
             import shutil as _shutil
+
             _shutil.copy2(backup_path, config_path)
             backup_path.unlink(missing_ok=True)
             if verbose:
@@ -5503,6 +5497,7 @@ def _remove_opencode_copium_provider(config_path: Path) -> str:
     if backup.exists():
         try:
             import shutil as _shutil
+
             _shutil.copy2(backup, config_path)
             backup.unlink(missing_ok=True)
             return "restored"

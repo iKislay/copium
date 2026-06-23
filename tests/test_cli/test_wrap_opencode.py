@@ -35,7 +35,9 @@ class TestRemoveOpencodeCopiumProvider:
         config = tmp_path / "opencode.json"
         backup = tmp_path / "opencode.json.copium-backup"
         original = '{"provider": {"lmstudio": {}}}\n'
-        config.write_text('{"provider": {"copium": {}, "lmstudio": {}}, "model": "copium/mimo-v2.5-free"}\n')
+        config.write_text(
+            '{"provider": {"copium": {}, "lmstudio": {}}, "model": "copium/mimo-v2.5-free"}\n'
+        )
         backup.write_text(original)
 
         status = wrap_mod._remove_opencode_copium_provider(config)
@@ -179,9 +181,7 @@ def _patch_opencode_config_path(tmp_path: Path):
     return patch.object(wrap_mod, "_OPENCODE_CONFIG_PATH", config_path)
 
 
-def test_unwrap_opencode_restores_from_backup(
-    runner: CliRunner, tmp_path: Path
-) -> None:
+def test_unwrap_opencode_restores_from_backup(runner: CliRunner, tmp_path: Path) -> None:
     config_dir = tmp_path / ".config" / "opencode"
     config_dir.mkdir(parents=True)
     config = config_dir / "opencode.json"
@@ -192,8 +192,10 @@ def test_unwrap_opencode_restores_from_backup(
         '{"provider": {"copium": {}, "lmstudio": {}}, "model": "copium/mimo-v2.5-free"}\n'
     )
 
-    with _patch_opencode_config_path(tmp_path), \
-         patch("copium.cli.wrap._stop_local_proxy_for_unwrap", return_value="stopped"):
+    with (
+        _patch_opencode_config_path(tmp_path),
+        patch("copium.cli.wrap._stop_local_proxy_for_unwrap", return_value="stopped"),
+    ):
         result = runner.invoke(main, ["unwrap", "opencode"])
 
     assert result.exit_code == 0, result.output
@@ -202,9 +204,7 @@ def test_unwrap_opencode_restores_from_backup(
     assert "Restored" in result.output
 
 
-def test_unwrap_opencode_surgical_without_backup(
-    runner: CliRunner, tmp_path: Path
-) -> None:
+def test_unwrap_opencode_surgical_without_backup(runner: CliRunner, tmp_path: Path) -> None:
     config_dir = tmp_path / ".config" / "opencode"
     config_dir.mkdir(parents=True)
     config = config_dir / "opencode.json"
@@ -216,8 +216,10 @@ def test_unwrap_opencode_surgical_without_backup(
         + "\n"
     )
 
-    with _patch_opencode_config_path(tmp_path), \
-         patch("copium.cli.wrap._stop_local_proxy_for_unwrap", return_value="stopped"):
+    with (
+        _patch_opencode_config_path(tmp_path),
+        patch("copium.cli.wrap._stop_local_proxy_for_unwrap", return_value="stopped"),
+    ):
         result = runner.invoke(main, ["unwrap", "opencode"])
 
     assert result.exit_code == 0, result.output
@@ -227,25 +229,23 @@ def test_unwrap_opencode_surgical_without_backup(
     assert "Removed Copium provider/model" in result.output
 
 
-def test_unwrap_opencode_idempotent(
-    runner: CliRunner, tmp_path: Path
-) -> None:
+def test_unwrap_opencode_idempotent(runner: CliRunner, tmp_path: Path) -> None:
     config_dir = tmp_path / ".config" / "opencode"
     config_dir.mkdir(parents=True)
     config = config_dir / "opencode.json"
     config.write_text(json.dumps({"provider": {"lmstudio": {}}}, indent=2) + "\n")
 
-    with _patch_opencode_config_path(tmp_path), \
-         patch("copium.cli.wrap._stop_local_proxy_for_unwrap", return_value="stopped"):
+    with (
+        _patch_opencode_config_path(tmp_path),
+        patch("copium.cli.wrap._stop_local_proxy_for_unwrap", return_value="stopped"),
+    ):
         result = runner.invoke(main, ["unwrap", "opencode"])
 
     assert result.exit_code == 0, result.output
     assert "already has no Copium entries" in result.output
 
 
-def test_unwrap_opencode_missing_config(
-    runner: CliRunner, tmp_path: Path
-) -> None:
+def test_unwrap_opencode_missing_config(runner: CliRunner, tmp_path: Path) -> None:
     with _patch_opencode_config_path(tmp_path):
         result = runner.invoke(main, ["unwrap", "opencode"])
 
@@ -253,9 +253,7 @@ def test_unwrap_opencode_missing_config(
     assert "does not exist" in result.output
 
 
-def test_unwrap_opencode_no_stop_proxy(
-    runner: CliRunner, tmp_path: Path
-) -> None:
+def test_unwrap_opencode_no_stop_proxy(runner: CliRunner, tmp_path: Path) -> None:
     config_dir = tmp_path / ".config" / "opencode"
     config_dir.mkdir(parents=True)
     config = config_dir / "opencode.json"
@@ -263,8 +261,10 @@ def test_unwrap_opencode_no_stop_proxy(
     backup.write_text("{}\n")
     config.write_text('{"provider": {"copium": {}}}\n')
 
-    with _patch_opencode_config_path(tmp_path), \
-         patch("copium.cli.wrap._stop_local_proxy_for_unwrap") as stop_proxy:
+    with (
+        _patch_opencode_config_path(tmp_path),
+        patch("copium.cli.wrap._stop_local_proxy_for_unwrap") as stop_proxy,
+    ):
         result = runner.invoke(main, ["unwrap", "opencode", "--no-stop-proxy"])
 
     assert result.exit_code == 0, result.output
@@ -309,9 +309,7 @@ def test_start_proxy_passes_zen_upstream_urls(
     assert env["OPENCODE_GO_TARGET_API_URL"] == "https://opencode.ai/zen/go/v1"
 
 
-def test_start_proxy_sets_agent_type_env(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_start_proxy_sets_agent_type_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     popen_kwargs: dict[str, object] = {}
 
     class FakeProc:
