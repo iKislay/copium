@@ -789,3 +789,5 @@ copium_compress_diff() { copium compress-diff "$@"; }
 4. **Should we contribute back to RTK?** PRs that improve RTK's `--format json` output (for `copium perf` integration) benefit both projects. Good for community goodwill.
 
 5. **Timeline alignment with Phase G (ROADMAP/09)?** Phase G extends wrap breadth to cline/continue/goose/openhands and adds observability. This plan builds on top of that foundation. Phase G should land first.
+
+6. **Phase B (ROADMAP/04) prerequisite?** Section 5 ("Beyond Stdout") assumes the live-zone compression engine from Phase B is in place. The new compressors (file_read, search, test_output) dispatch through `ContentRouter` which is part of the live-zone architecture. Phase B should complete before Phase 2 of this plan begins.
