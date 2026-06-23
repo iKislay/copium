@@ -918,6 +918,9 @@
                                     <div class="flex-center">
                                         <span class="label-14" style="font-weight:600">CLI Output Filtering</span>
                                         <span class="brand-pill" x-text="stats.savings?.by_layer?.cli_filtering?.label || 'RTK'">RTK</span>
+                                        <template x-if="stats.context_tool?.available === false">
+                                            <span class="brand-pill" style="background-color: #f8d7da; color: #842029;">Not Installed</span>
+                                        </template>
                                     </div>
                                     <span class="label-13-mono" x-text="formatNumber(cliSavedTokens) + ' tokens saved'">0</span>
                                 </div>
@@ -925,7 +928,12 @@
                                     <div class="progress-bar-fill blue" :style="'width: ' + getLayerPct('cli_filtering') + '%'"></div>
                                 </div>
                                 <span class="label-12 text-muted" style="display:block; margin-top:4px">
-                                    Tokens removed before context packaging. Session savings rate: <span class="mono" x-text="(stats.savings?.by_layer?.cli_filtering?.session_savings_pct || 0) + '%'">0%</span>
+                                    <template x-if="stats.context_tool?.available === false">
+                                        <span>Context tool (<span x-text="stats.context_tool?.label || 'RTK'"></span>) not installed. Run <code>copium wrap</code> to enable.</span>
+                                    </template>
+                                    <template x-if="stats.context_tool?.available !== false">
+                                        <span>Tokens removed before context packaging. Session savings rate: <span class="mono" x-text="(stats.savings?.by_layer?.cli_filtering?.session_savings_pct || 0) + '%'">0%</span></span>
+                                    </template>
                                 </span>
                             </div>
 
