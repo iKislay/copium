@@ -59,6 +59,18 @@ _SUPPORTED_TARGETS = ("claude", "copilot", "codex", "openclaw", "cursor", "aider
 _LOCAL_TARGETS = {"claude", "codex", "cursor", "aider"}
 _GLOBAL_TARGETS = {"claude", "copilot", "codex", "openclaw", "cursor", "aider"}
 _STARTUP_READY_TIMEOUT_SECONDS = 15
+
+# Shell rc file markers for copium env vars (plan §3a)
+_COPIUM_ENV_MARKER_START = "# >>> copium start <<<"
+_COPIUM_ENV_MARKER_END = "# <<< copium end <<<"
+_COPIUM_ENV_PATTERN = re.compile(
+    re.escape(_COPIUM_ENV_MARKER_START) + r".*?" + re.escape(_COPIUM_ENV_MARKER_END),
+    re.DOTALL,
+)
+
+# Global config path
+_GLOBAL_CONFIG_DIR = Path.home() / ".copium"
+_GLOBAL_CONFIG_PATH = _GLOBAL_CONFIG_DIR / "config.toml"
 _TOML_TABLE_HEADER_RE = re.compile(r"^[ \t]*(?:\[\[[^\]\r\n]+\]\]|\[[^\]\r\n]+\])[ \t]*(?:#.*)?$")
 _TOML_FEATURES_NAME_RE = r"(?:features|\"features\"|'features')"
 _TOML_CODEX_HOOKS_NAME_RE = r"(?:codex_hooks|\"codex_hooks\"|'codex_hooks')"
@@ -69,6 +81,133 @@ _CODEX_FEATURES_DOTTED_LEGACY_RE = re.compile(
     rf"^[ \t]*{_TOML_FEATURES_NAME_RE}[ \t]*\.[ \t]*{_TOML_CODEX_HOOKS_NAME_RE}[ \t]*="
 )
 _CODEX_FEATURES_LEGACY_KEY_RE = re.compile(rf"^[ \t]*{_TOML_CODEX_HOOKS_NAME_RE}[ \t]*=")
+
+
+def _get_user_shell_rc_files() -> list[Path]:
+    """Return shell rc files that exist and can be patched with copium env vars."""
+    home = Path.home()
+    candidates = [
+        home / ".zshrc",
+        home / ".bashrc",
+        home / ".profile",
+        home / ".bash_profile",
+    ]
+    return [f for f in candidates if f.exists()]
+
+
+def _build_copium_env_block(port: int) -> str:
+    """Build the copium env var block to insert into shell rc files."""
+    return (
+        f"{_COPIUM_ENV_MARKER_START}\n"
+        f'export ANTHROPIC_BASE_URL="http://127.0.0.1:{port}"\n'
+        f'export OPENAI_API_BASE="http://127.0.0.1:{port}/v1"\n'
+        f"{_COPIUM_ENV_MARKER_END}"
+    )
+
+
+def _patch_shell_rc_files(port: int) -> list[Path]:
+    """Patch shell rc files with copium env vars. Returns list of patched files."""
+    block = _build_copium_env_block(port)
+    patched: list[Path] = []
+
+    for rc_file in _get_user_shell_rc_files():
+        try:
+            content = rc_file.read_text(encoding="utf-8") if rc_file.exists() else ""
+            if _COPIUM_ENV_MARKER_START in content:
+                content = _COPIUM_ENV_PATTERN.sub(block, content)
+            else:
+                content = content.rstrip() + "\n\n" + block + "\n"
+            rc_file.write_text(content, encoding="utf-8")
+            patched.append(rc_file)
+            logger.debug("patched shell rc: %s", rc_file)
+        except Exception as e:
+            logger.debug("failed to patch %s: %s", rc_file, e)
+
+    return patched
+
+
+def _remove_copium_from_shell_rc_files() -> list[Path]:
+    """Remove copium env var blocks from shell rc files. Returns list of cleaned files."""
+    cleaned: list[Path] = []
+
+    for rc_file in _get_user_shell_rc_files():
+        try:
+            if not rc_file.exists():
+                continue
+            content = rc_file.read_text(encoding="utf-8")
+            if _COPIUM_ENV_MARKER_START not in content:
+                continue
+            content = _COPIUM_ENV_PATTERN.sub("", content).strip() + "\n"
+            rc_file.write_text(content, encoding="utf-8")
+            cleaned.append(rc_file)
+            logger.debug("cleaned shell rc: %s", rc_file)
+        except Exception as e:
+            logger.debug("failed to clean %s: %s", rc_file, e)
+
+    return cleaned
+
+
+def _create_global_config(port: int, backend: str) -> Path:
+    """Create the global config at ~/.copium/config.toml."""
+    _GLOBAL_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+
+    config_content = (
+        "# Copium global configuration\n"
+        "# Project-level config (copium.json) overrides these defaults.\n\n"
+        "[proxy]\n"
+        f"port = {port}\n"
+        'host = "127.0.0.1"\n\n'
+        "[compression]\n"
+        'preset = "standard"\n'
+        "quality_gate = true\n\n"
+        "[dashboard]\n"
+        "port = 8787\n"
+        "open_on_start = false\n\n"
+        "[telemetry]\n"
+        "enabled = false  # opt-in only\n"
+    )
+
+    _GLOBAL_CONFIG_PATH.write_text(config_content, encoding="utf-8")
+    logger.debug("created global config: %s", _GLOBAL_CONFIG_PATH)
+    return _GLOBAL_CONFIG_PATH
+
+
+def _remove_global_config() -> bool:
+    """Remove the global config file. Returns True if removed."""
+    if _GLOBAL_CONFIG_PATH.exists():
+        _GLOBAL_CONFIG_PATH.unlink()
+        logger.debug("removed global config: %s", _GLOBAL_CONFIG_PATH)
+        return True
+    return False
+
+
+def _print_next_steps(patched_rc_files: list[Path], config_path: Path, targets: list[str]) -> None:
+    """Print the confirmation and next steps after successful init."""
+    click.echo()
+    click.secho("  Setup complete!", fg="green", bold=True)
+    click.echo()
+
+    if patched_rc_files:
+        for rc_file in patched_rc_files:
+            click.secho(f"  ✓ Shell config updated ({rc_file})", fg="green")
+
+    if config_path.exists():
+        click.secho(f"  ✓ Global config written ({config_path})", fg="green")
+
+    click.echo()
+    click.secho("  Next steps:", bold=True)
+    click.echo()
+
+    click.echo("  1. Reload your shell:")
+    click.secho("     source ~/.zshrc  # or ~/.bashrc", fg="yellow")
+    click.echo()
+    click.echo("  2. Start your agent normally - Copium will be active automatically:")
+    for target in targets:
+        click.secho(f"     {target}", fg="yellow")
+    click.echo()
+    click.echo("  3. View savings at any time:")
+    click.secho("     copium status", fg="yellow")
+    click.echo()
 
 
 def _command_string(parts: list[str]) -> str:
@@ -866,6 +1005,8 @@ def _run_init_targets(
     anyllm_provider: str | None,
     region: str | None,
     memory: bool,
+    skip_shell_rc: bool = False,
+    skip_global_config: bool = False,
 ) -> None:
     logger.debug(
         "run_init_targets: targets=%s global_scope=%s port=%s backend=%s memory=%s",
@@ -907,6 +1048,18 @@ def _run_init_targets(
     # touching the call sites.
     _install_copium_mcp_for_targets(targets=targets, port=port)
 
+    # Plan §3a: Patch shell rc files with env vars and create global config
+    patched_rc_files: list[Path] = []
+    config_path = _GLOBAL_CONFIG_PATH
+
+    if not skip_shell_rc and global_scope:
+        patched_rc_files = _patch_shell_rc_files(port)
+
+    if not skip_global_config:
+        config_path = _create_global_config(port, backend)
+
+    _print_next_steps(patched_rc_files, config_path, targets)
+
 
 def _install_copium_mcp_for_targets(*, targets: list[str], port: int) -> None:
     """Install the copium MCP server into each detected target agent."""
@@ -941,6 +1094,16 @@ def _install_copium_mcp_for_targets(*, targets: list[str], port: int) -> None:
     help="Show what would be configured without making changes.",
 )
 @click.option(
+    "--skip-shell-rc",
+    is_flag=True,
+    help="Skip patching shell rc files with env vars.",
+)
+@click.option(
+    "--skip-global-config",
+    is_flag=True,
+    help="Skip creating global config at ~/.copium/config.toml.",
+)
+@click.option(
     "-v",
     "--verbose",
     is_flag=True,
@@ -957,6 +1120,8 @@ def init(
     region: str | None,
     memory: bool,
     dry_run: bool,
+    skip_shell_rc: bool,
+    skip_global_config: bool,
     verbose: bool,
 ) -> None:
     """Install durable Copium integrations for supported agents."""
@@ -964,7 +1129,7 @@ def init(
         _enable_verbose_logging()
     logger.debug(
         "init: global_scope=%s port=%s backend=%s anyllm_provider=%s region=%s memory=%s "
-        "dry_run=%s invoked_subcommand=%s",
+        "dry_run=%s skip_shell_rc=%s skip_global_config=%s invoked_subcommand=%s",
         global_scope,
         port,
         backend,
@@ -972,6 +1137,8 @@ def init(
         region,
         memory,
         dry_run,
+        skip_shell_rc,
+        skip_global_config,
         ctx.invoked_subcommand,
     )
     if ctx.invoked_subcommand is not None:
@@ -983,6 +1150,8 @@ def init(
             "region": region,
             "memory": memory,
             "dry_run": dry_run,
+            "skip_shell_rc": skip_shell_rc,
+            "skip_global_config": skip_global_config,
             "verbose": verbose,
         }
         return
@@ -1000,6 +1169,8 @@ def init(
         click.echo(f"\nPort: {port}")
         click.echo(f"Backend: {backend}")
         click.echo(f"Memory: {'enabled' if memory else 'disabled'}")
+        click.echo(f"Shell rc patching: {'enabled' if not skip_shell_rc else 'disabled'}")
+        click.echo(f"Global config: {'enabled' if not skip_global_config else 'disabled'}")
         return
 
     _run_init_targets(
@@ -1010,6 +1181,8 @@ def init(
         anyllm_provider=anyllm_provider,
         region=region,
         memory=memory,
+        skip_shell_rc=skip_shell_rc,
+        skip_global_config=skip_global_config,
     )
 
 
