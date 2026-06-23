@@ -318,17 +318,17 @@ Most requests are short conversational turns — the median 4.8% compression is 
 
 Copium runs **locally**, covers **every** content type, works with every major framework, and supports both cloud and local LLMs.
 
-| | Scope | Deploy | Local LLMs | Reversible |
-|---|---|---|:---:|:---:|
-| **Copium** | All context — tools, RAG, logs, files, history | Proxy, library, MCP | ✅ | ✅ (CCR) |
-| [Kompact](https://github.com/kompact) | Prompt text & schemas | Python library | ❌ | ❌ |
-| [Claw Compactor](https://github.com/claw) | Prompt text & structure | Python library | ❌ | ❌ |
-| [Headroom](https://github.com/chopratejas/headroom) | All context | Proxy, library, middleware, MCP | ❌ | ✅ (CCR) |
-| [ContextZip](https://github.com/contextzip) | Session history / JSONL | Python CLI | ✅ | ✅ (Static) |
-| [RTK](https://github.com/rtk-ai/rtk) | CLI command outputs | CLI wrapper | ✅ | ❌ |
-| [lean-ctx](https://github.com/yvgude/lean-ctx) | CLI commands, MCP tools | CLI wrapper, MCP | ✅ | ❌ |
-| [Compresr](https://compresr.ai), [Token Co.](https://thetokencompany.ai) | Text sent to their API | Hosted API call | ❌ | ❌ |
-| OpenAI Compaction | Conversation history | Provider-native | ❌ | ❌ |
+| | Scope | Deploy | Local LLMs | Reversible | Observability |
+|---|---|---|:---:|:---:|:---:|
+| **Copium** | All context — tools, RAG, logs, files, history | Proxy, library, MCP | ✅ | ✅ (CCR) | Full metrics |
+| [Kompact](https://github.com/kompact) | Prompt text & schemas | Python library | ❌ | ❌ | ❌ |
+| [Claw Compactor](https://github.com/claw) | Prompt text & structure | Python library | ❌ | ❌ | ❌ |
+| [Headroom](https://github.com/chopratejas/headroom) | All context | Proxy, library, middleware, MCP | ❌ | ✅ (CCR) | ❌ |
+| [ContextZip](https://github.com/contextzip) | Session history / JSONL | Python CLI | ✅ | ✅ (Static) | ❌ |
+| [RTK](https://github.com/rtk-ai/rtk) | CLI command outputs only | CLI wrapper | ✅ | ❌ | ❌ |
+| [lean-ctx](https://github.com/yvgude/lean-ctx) | CLI commands, MCP tools | CLI wrapper, MCP | ✅ | ❌ | ❌ |
+| [Compresr](https://compresr.ai), [Token Co.](https://thetokencompany.ai) | Text sent to their API | Hosted API call | ❌ | ❌ | ❌ |
+| OpenAI Compaction | Conversation history | Provider-native | ❌ | ❌ | ❌ |
 
 <details>
 <summary><b>vs Kompact</b></summary>
@@ -391,7 +391,19 @@ ContextZip operates on static conversation archives (e.g., `.jsonl` files) to co
 <details>
 <summary><b>vs RTK</b></summary>
 
-RTK requires you to manually wrap individual CLI commands (`rtk git status`). Copium wraps the entire agent (`copium wrap claude`), automatically capturing and compressing every tool output without changing how you type commands.
+RTK saves 60-90% on **CLI stdout only** (`rtk git status`). Copium saves 40-90% on **all context** — tool outputs, file reads, search results, conversation history, RAG chunks — and includes RTK for free via `copium wrap`.
+
+**Key differences:**
+
+| | RTK | Copium |
+|---|---|---|
+| Scope | CLI stdout only | Everything (tools, files, search, history) |
+| Setup | `rtk git status` per command | `copium wrap claude` (one command) |
+| Reversibility | None | CCR — LLM can retrieve originals |
+| Observability | None | Full metrics dashboard |
+| Strangeness tax | High (abbreviated output confuses LLMs) | Low (quality gate preserves critical markers) |
+
+**Migration:** `pip install "copium-ai[proxy]" && copium wrap claude` — drops in as a superset of RTK. Use `--rtk-only` to start with RTK-only compression, then unlock proxy features when ready.
 
 </details>
 
