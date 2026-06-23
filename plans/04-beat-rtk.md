@@ -218,7 +218,7 @@ Each compressor preserves the **semantic structure** the LLM expects, not just r
 
 #### Layer 2: Quality Gate (Proposed)
 
-From `COPIUM_FEATURE_BRAINSTORM.md:35`:
+From `COPIUM_FEATURE_BRAINSTORM.md:35`. See also `plans/03-beat-claw-compactor.md` §3.1 for the Rust-based ROUGE-L quality gate implementation that integrates with the Claw-inspired 14-stage pipeline.
 
 After each lossy compression step, re-measure with the tokenizer. If it doesn't actually save tokens (or drops quality below threshold), auto-revert the step.
 
