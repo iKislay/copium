@@ -5134,10 +5134,13 @@ def opencode(
     # --- Config paths ---
     config_path = Path.home() / ".config" / "opencode" / "opencode.json"
 
-    # Read existing config for restoration
-    original_config_text: str | None = None
-    if config_path.exists():
-        original_config_text = config_path.read_text(encoding="utf-8")
+    # Read existing config + create a backup for crash-resilient restore.
+    # The backup survives SIGKILL so `copium unwrap opencode` can recover.
+    backup_path = config_path.with_suffix(".json.copium-backup")
+    had_existing_config = config_path.exists()
+    if had_existing_config and not backup_path.exists():
+        import shutil as _shutil
+        _shutil.copy2(config_path, backup_path)
 
     # Build the copium provider entry.
     # Free Zen models use @ai-sdk/openai-compatible against the local proxy.
@@ -5270,19 +5273,26 @@ def opencode(
     }
 
     def _restore_config() -> None:
-        """Restore the original opencode.json after wrap exits."""
-        if not config_path.exists():
-            return
-        if original_config_text is not None:
-            config_path.write_text(original_config_text, encoding="utf-8")
+        """Restore the original opencode.json after wrap exits.
+
+        Uses the backup file written before injection so the restore is
+        crash-resilient (survives SIGKILL, not just SIGINT/SIGTERM).
+        """
+        if backup_path.exists():
+            # Restore from backup (pre-wrap state)
+            import shutil as _shutil
+            _shutil.copy2(backup_path, config_path)
+            backup_path.unlink(missing_ok=True)
             if verbose:
-                click.echo(f"  Restored {config_path}")
-        else:
+                click.echo(f"  Restored {config_path} from backup")
+        elif not had_existing_config and config_path.exists():
             # Config was created by us — remove it
             try:
                 config_path.unlink()
             except OSError:
                 pass
+        # If no backup and config existed before, we can't restore — leave it.
+        # `copium unwrap opencode` will do a surgical removal instead.
 
     # --- Start proxy + launch ---
     proxy_holder: list[subprocess.Popen | None] = [None]
@@ -5454,5 +5464,118 @@ def unwrap_codex(port: int, no_stop_proxy: bool) -> None:
     click.echo()
     click.echo("✓ Codex is no longer routed through the Copium proxy.")
     if not no_stop_proxy and status != "noop":
+        _echo_unwrap_proxy_stop_status(_stop_local_proxy_for_unwrap(port), port)
+    click.echo()
+
+
+# =============================================================================
+# OpenCode (unwrap)
+# =============================================================================
+
+_OPENCODE_CONFIG_PATH = Path.home() / ".config" / "opencode" / "opencode.json"
+_OPENCODE_BACKUP_PATH = _OPENCODE_CONFIG_PATH.with_suffix(".json.copium-backup")
+
+
+def _remove_opencode_copium_provider(config_path: Path) -> str:
+    """Surgically remove the 'copium' provider and model from opencode.json.
+
+    Returns:
+        "restored" — restored from backup file (pre-wrap state).
+        "cleaned"  — surgically removed copium provider/model from existing config.
+        "clean"    — no copium provider was present; nothing done.
+        "missing"  — config file does not exist.
+        "error"    — could not parse or write config.
+    """
+    backup = config_path.with_suffix(".json.copium-backup")
+
+    # Prefer backup restore (cleanest, byte-exact)
+    if backup.exists():
+        try:
+            import shutil as _shutil
+            _shutil.copy2(backup, config_path)
+            backup.unlink(missing_ok=True)
+            return "restored"
+        except OSError:
+            pass  # Fall through to surgical removal
+
+    if not config_path.exists():
+        return "missing"
+
+    try:
+        data = json.loads(config_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return "error"
+
+    changed = False
+
+    # Remove copium provider
+    providers = data.get("provider", {})
+    if "copium" in providers:
+        del providers["copium"]
+        changed = True
+
+    # Remove copium model selection
+    if data.get("model", "").startswith("copium/"):
+        del data["model"]
+        changed = True
+
+    if not changed:
+        return "clean"
+
+    try:
+        config_path.write_text(
+            json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
+    except OSError:
+        return "error"
+
+    return "cleaned"
+
+
+@unwrap.command("opencode")
+@click.option("--port", "-p", default=8787, type=int, help="Proxy port (default: 8787)")
+@click.option("--no-stop-proxy", is_flag=True, help="Do not stop the local Copium proxy")
+def unwrap_opencode(port: int, no_stop_proxy: bool) -> None:
+    """Undo ``copium wrap opencode`` changes to opencode.json.
+
+    \\b
+    Removes the 'copium' provider entry and the 'model: copium/...' key
+    from ~/.config/opencode/opencode.json. Useful when a wrap session was
+    killed (SIGKILL, terminal closed) and opencode is stuck routing through
+    a dead proxy.
+
+    \\b
+    Behaviour:
+      - If a pre-wrap backup exists (opencode.json.copium-backup), restores
+        it byte-for-byte and removes the backup.
+      - Otherwise, surgically removes the copium provider/model from the
+        current config, preserving all other settings (e.g. lmstudio).
+      - If no copium entries are found, reports success (idempotent).
+    """
+    click.echo()
+    click.echo("  ╔═══════════════════════════════════════════════╗")
+    click.echo("  ║         COPIUM UNWRAP: OPENCODE             ║")
+    click.echo("  ╚═══════════════════════════════════════════════╝")
+    click.echo()
+
+    config_path = _OPENCODE_CONFIG_PATH
+    status = _remove_opencode_copium_provider(config_path)
+
+    if status == "restored":
+        click.echo(f"  ✓ Restored {config_path} from pre-wrap backup.")
+    elif status == "cleaned":
+        click.echo(f"  ✓ Removed Copium provider/model from {config_path}.")
+        click.echo("    Your other providers (e.g. lmstudio) are preserved.")
+    elif status == "clean":
+        click.echo(f"  ✓ {config_path} already has no Copium entries — nothing to do.")
+    elif status == "missing":
+        click.echo(f"  - {config_path} does not exist — nothing to unwrap.")
+    elif status == "error":
+        click.echo(f"  ✗ Could not read or write {config_path}.")
+        click.echo("    Check file permissions and JSON validity.")
+
+    click.echo()
+    click.echo("✓ OpenCode is no longer routed through the Copium proxy.")
+    if not no_stop_proxy and status in {"restored", "cleaned"}:
         _echo_unwrap_proxy_stop_status(_stop_local_proxy_for_unwrap(port), port)
     click.echo()

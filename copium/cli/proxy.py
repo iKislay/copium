@@ -1270,3 +1270,84 @@ def run(ctx: click.Context) -> None:
     _sys.argv = argv
     from .main import main as _main
     _main(standalone_mode=True)
+
+
+@main.command("stop")
+@click.option("--port", "-p", default=8787, type=int, help="Port the proxy is running on (default: 8787)")
+@click.option("--quiet", "-q", is_flag=True, help="Suppress output")
+def stop(port: int, quiet: bool) -> None:
+    """Stop the running Copium proxy.
+
+    \\b
+    Finds the proxy process on the given port and stops it cleanly.
+    Use this when you started the proxy with `copium proxy` or `copium run`
+    and want to stop it without Ctrl-C.
+
+    \\b
+    Examples:
+        copium stop                  Stop proxy on default port 8787
+        copium stop --port 9000      Stop proxy on port 9000
+        copium stop --quiet          Stop silently (exit 0 stopped, 1 not found)
+    """
+    import socket
+
+    def _port_open(p: int) -> bool:
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(1.0)
+                s.connect(("127.0.0.1", p))
+                return True
+        except (TimeoutError, ConnectionRefusedError, OSError):
+            return False
+
+    if not _port_open(port):
+        if not quiet:
+            click.echo(f"  No proxy running on port {port}.")
+        raise SystemExit(0)
+
+    # Check it's actually Copium before killing
+    pid = None
+    try:
+        import httpx
+        resp = httpx.get(f"http://127.0.0.1:{port}/health", timeout=2)
+        if resp.status_code == 200 and "copium" in resp.text.lower():
+            pid = resp.json().get("config", {}).get("pid")
+    except Exception:
+        pass
+
+    if pid is None:
+        if not quiet:
+            click.echo(f"  Could not identify Copium proxy on port {port}. Not stopping.")
+        raise SystemExit(1)
+
+    import os
+    import signal as _signal
+    import time
+
+    try:
+        os.kill(pid, _signal.SIGTERM)
+    except ProcessLookupError:
+        if not quiet:
+            click.echo(f"  Proxy PID {pid} already gone.")
+        raise SystemExit(0)
+    except PermissionError:
+        if not quiet:
+            click.echo(f"  Permission denied. Try: kill {pid}")
+        raise SystemExit(1)
+
+    # Wait up to 3s for port to close
+    for _ in range(30):
+        time.sleep(0.1)
+        if not _port_open(port):
+            if not quiet:
+                click.echo(f"  ✓ Stopped (PID {pid}, port {port}).")
+            raise SystemExit(0)
+
+    # Still running — SIGKILL
+    try:
+        os.kill(pid, _signal.SIGKILL)
+        if not quiet:
+            click.echo(f"  ✓ Force-stopped (SIGKILL PID {pid}).")
+    except (ProcessLookupError, PermissionError):
+        pass
+    raise SystemExit(0)
