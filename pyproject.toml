@@ -4,8 +4,8 @@ build-backend = "maturin"
 
 [project]
 name = "copium-ai"
-version = "0.26.0"
-description = "The Context Optimization Layer for LLM Applications - Cut costs by 50-90%"
+version = "0.26.2"
+description = "The Context Optimization Layer for LLM Applications - Cut costs by 65-90%"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
