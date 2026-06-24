@@ -1304,7 +1304,7 @@ def stop(port: int, quiet: bool) -> None:
             click.secho(f"  \u25cb No proxy running on port {port}.", fg="yellow")
         raise SystemExit(0)
 
-    # \u2500\u2500 Session summary (\u00a710b) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    # ── Session summary (§10b) ─────────────────────────────────────────────
     if not quiet:
         try:
             from copium.proxy.savings_tracker import SavingsTracker
@@ -1312,8 +1312,11 @@ def stop(port: int, quiet: bool) -> None:
             tracker = SavingsTracker()
             data = tracker.stats_preview()
             session = data.get("display_session", {})
+            lifetime = data.get("lifetime", {})
 
             def _fmt_t(n: int) -> str:
+                if n >= 1_000_000_000:
+                    return f"{n / 1_000_000_000:.1f}B"
                 if n >= 1_000_000:
                     return f"{n / 1_000_000:.1f}M"
                 if n >= 1_000:
@@ -1323,23 +1326,61 @@ def stop(port: int, quiet: bool) -> None:
             def _fmt_usd(v: float) -> str:
                 return f"${v:.4f}" if v < 1 else f"${v:.2f}"
 
+            def _duration_str(started_at_iso: str | None) -> str:
+                if not started_at_iso:
+                    return ""
+                try:
+                    from datetime import datetime, timezone
+                    started = datetime.fromisoformat(
+                        started_at_iso.replace("Z", "+00:00")
+                    )
+                    elapsed = int(
+                        (datetime.now(timezone.utc) - started).total_seconds()
+                    )
+                    h, rem = divmod(elapsed, 3600)
+                    m, s = divmod(rem, 60)
+                    if h:
+                        return f"{h}h {m}m"
+                    if m:
+                        return f"{m}m {s}s"
+                    return f"{s}s"
+                except Exception:
+                    return ""
+
             reqs = session.get("requests", 0)
             tok = session.get("tokens_saved", 0)
             usd = session.get("compression_savings_usd", 0.0)
             pct = session.get("savings_percent", 0.0)
+            duration = _duration_str(session.get("started_at"))
+            duration_label = f" ({duration})" if duration else ""
+
+            lt_tok = lifetime.get("tokens_saved", 0)
+            lt_reqs = lifetime.get("requests", 0)
 
             click.echo()
-            click.secho("  Session summary", fg="cyan", bold=True)
+            click.secho("  Copium stopped.", fg="green", bold=True)
+            click.echo()
+            click.secho(f"  Session summary{duration_label}", fg="cyan", bold=True)
             click.echo("  " + "\u2500" * 36)
             if reqs > 0:
                 click.echo(f"  Requests proxied   {reqs:>8,}")
-                click.echo(f"  Tokens saved       {_fmt_t(tok):>8}  ({pct:.0f}% avg compression)")
+                click.echo(
+                    f"  Tokens saved       {_fmt_t(tok):>8}  (avg {pct:.0f}% compression)"
+                )
                 click.echo(f"  Est. cost saved    {_fmt_usd(usd):>8}")
             else:
                 click.echo("  No requests proxied this session.")
             click.echo()
+            if lt_tok > 0:
+                click.secho(
+                    f"  All-time: {_fmt_t(lt_tok)} tokens saved across {lt_reqs:,} requests.",
+                    dim=True,
+                )
+            click.echo()
         except Exception:
             pass
+
+
 
     # Check it's actually Copium before killing
     pid = None

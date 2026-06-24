@@ -121,6 +121,13 @@ def remove(force: bool, verbose: bool) -> None:
             click.secho(f"  ✓ Removed {copium_dir}", fg="green")
             steps.append(("data-dir", str(copium_dir)))
         else:
+            # Data dir kept — still reset the first-request toast flag so a
+            # reinstall feels fresh (§10a). Best-effort; never fail the remove.
+            try:
+                from copium.proxy.first_request_toast import reset_toast_state
+                reset_toast_state()
+            except Exception:
+                pass
             click.secho(
                 f"  ⚠ Skipped removing {copium_dir}. You can remove it manually:",
                 fg="yellow",
@@ -128,6 +135,7 @@ def remove(force: bool, verbose: bool) -> None:
             click.secho(f"    rm -rf {copium_dir}", fg="yellow")
     else:
         click.echo("  - No Copium data directory found")
+
 
     click.echo()
     click.echo("  " + "=" * 50)
