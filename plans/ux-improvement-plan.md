@@ -387,64 +387,79 @@ Key features:
 
 ---
 
-## 8. Transparency Layer — "Show Your Work"
+## [x] 8. Transparency Layer — "Show Your Work"
 
-Developers don't trust black boxes. Copium's biggest trust problem is that it's invisible. Solve this with a transparency layer:
+> **Implemented** in `copium/cli/explain.py`, `copium/proxy/audit_writer.py`, `copium/proxy/outcome.py`, `copium/proxy/handlers/anthropic.py`
 
-### [ ] 8a. `copium explain <request-id>`
+Developers don't trust black boxes. Copium's biggest trust problem is that it's invisible. Solved with a three-part transparency layer:
 
-Every proxied request gets a short ID (shown in the TUI live feed). The developer can inspect exactly what happened:
+### [x] 8a. `copium explain <request-id>`
+
+Every proxied request gets a unique ID (shown in `copium tui` live feed and in the `X-Copium-Request-Id` response header). Inspect exactly what happened:
 
 ```bash
-copium explain req_7f3a2b
+copium explain hr_1719162271_000042
+copium explain hr_1719162271_000042 --json   # machine-readable
 ```
 
 Output:
 ```
-Request req_7f3a2b — POST /v1/messages — 12:04:31
+Request hr_1719162271_000042  POST /v1/messages  12:04:31  anthropic/claude-sonnet-4
+────────────────────────────────────────────────────────────
 
 Input
-  Original:   4,812 tokens
-  Compressed: 892 tokens  (81.5% saved)
+  Original:    4,812 tokens
+  Compressed:    892 tokens  (81.5% saved, ~$0.012 estimated)
 
-Transforms applied (in order)
-  1. ContentRouter    → detected JSON array (500 items), routed to SmartCrusher
-  2. SmartCrusher     → 500 items → 23 items (BM25 + variance selection)
-                        CCR hash: sha256:8f3a... stored for retrieval
-  3. CacheAligner     → moved session_id to suffix (prefix stabilized)
-  4. TOON Encoder     → skipped (not a uniform-structure array)
+Transforms applied
+  1. SmartCrusher
 
-Quality check
-  ✓ No inflation detected (892 < 4812)
-  ✓ Critical markers preserved (errors, warnings: 3/3)
-  ✓ CCR index written to ~/.copium/ccr/req_7f3a2b.bin
+  Overhead: 48 ms
 
-Retrieve original at any time:
-  copium retrieve req_7f3a2b
+Quality guard
+  ✓ No inflation detected (892 ≤ 4,812)
+  ○ Cached: No (live request to upstream)
+
+Inspect the full audit log:
+  tail -f ~/.copium/logs/audit.jsonl | jq .
 ```
 
-### [ ] 8b. Inline `X-Copium-*` Response Headers
+Works **offline** (reads `~/.copium/logs/audit.jsonl`) and **live** (queries proxy `/audit/<id>` endpoint).
 
-Every response from the proxy includes headers the developer can inspect with `curl -i` or browser devtools:
+### [x] 8b. Inline `X-Copium-*` Response Headers
+
+Every response from the proxy includes the full header set, visible via `curl -i` or browser devtools:
 
 ```
-X-Copium-Request-Id: req_7f3a2b
-X-Copium-Tokens-In: 4812
-X-Copium-Tokens-Out: 892
-X-Copium-Savings: 81.5%
-X-Copium-Transforms: SmartCrusher,CacheAligner
+X-Copium-Request-Id:  hr_1719162271_000042
+X-Copium-Tokens-Before: 4812
+X-Copium-Tokens-After:  892
+X-Copium-Tokens-Saved:  3920
+X-Copium-Savings:     81.5%
+X-Copium-Transforms:  SmartCrusher,CacheAligner
 X-Copium-Overhead-Ms: 48
+X-Copium-Model:       claude-sonnet-4-20250514
 ```
 
-### [ ] 8c. Audit Log
+### [x] 8c. Audit Log
 
-Every compression decision is written to `~/.copium/logs/audit.jsonl`:
+Every compression decision is appended to `~/.copium/logs/audit.jsonl` via `audit_writer.py`, called as effect #5 in the canonical `emit_request_outcome()` funnel:
 
 ```json
-{"ts":"2026-06-23T19:04:31Z","req":"req_7f3a2b","transforms":["SmartCrusher","CacheAligner"],"tokens_in":4812,"tokens_out":892,"savings":0.815,"overhead_ms":48}
+{"ts":"2026-06-23T19:04:31Z","req":"hr_...","provider":"anthropic","model":"claude-sonnet-4","path":"/v1/messages","transforms":["SmartCrusher","CacheAligner"],"tokens_in":4812,"tokens_out":892,"savings":0.81463,"overhead_ms":48.3,"cached":false}
 ```
 
-This lets developers grep their own history, pipe to `jq`, and build their own analysis. A developer who can verify the tool is doing what it says will recommend it to teammates.
+```bash
+tail -f ~/.copium/logs/audit.jsonl | jq .       # live stream
+grep SmartCrusher ~/.copium/logs/audit.jsonl | jq .savings  # analyse
+```
+
+The proxy also exposes the log via REST:
+```bash
+curl http://localhost:8787/audit?limit=20         # last 20 entries
+curl http://localhost:8787/audit/hr_...           # single entry by ID
+```
+
 
 ---
 
