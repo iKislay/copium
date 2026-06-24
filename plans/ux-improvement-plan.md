@@ -339,50 +339,51 @@ This should be auto-suggested at the end of `copium init`. Tab completion on sub
 
 ---
 
-## [ ] 7. Terminal UI (TUI) Dashboard
+## [x] 7. Terminal UI (TUI) Dashboard
 
-The web dashboard is great for initial exploration but most devs live in the terminal. A TUI (built with `ratatui` — already a Rust crate in the ecosystem) gives an always-visible live view.
+> **Implemented** in `copium/cli/dashboard_tui.py`
+
+The web dashboard is great for initial exploration but most devs live in the terminal. The TUI (built with `rich.live` + `rich.layout`) gives an always-visible live view.
 
 ```bash
-copium tui
+copium tui                    # live TUI dashboard
+copium tui --snapshot         # one-shot snapshot (non-interactive)
+copium tui --json             # machine-readable JSON
+copium dashboard              # alias (backwards compat)
+copium dashboard -w           # same as `copium tui`
 ```
 
 ### Layout (80-column terminal)
 
 ```
-╭─ Copium ─────────────────────────────────────────────── v0.9.0 ● Running ─╮
-│                                                                              │
-│  SESSION ─────────────────────────────  ALL TIME ──────────────────────── │
-│  Agent:     Claude Code                 Tokens saved:    1.4B               │
-│  Duration:  1h 42m                      Sessions:        50,412              │
-│  Tokens in: 284,312                     Avg compression: 38%                │
-│  Saved:     141,203 (49.7%)             Est. saved:      $4,218              │
-│  Cost saved: ~$0.42                                                          │
-│                                                                              │
-│  TRANSFORMS ──────────────────────────────────────────────────────────────  │
-│  SmartCrusher    ████████████████░░░░  82%   12 hits                        │
-│  Session Dedup   ████████████░░░░░░░░  61%    8 hits                        │
-│  TOON Encoder    ██████░░░░░░░░░░░░░░  31%    5 hits                        │
-│  Error Compres.  █████████████████░░░  87%    3 hits                        │
-│  Cache Aligner   ████░░░░░░░░░░░░░░░░  20%   all requests                  │
-│                                                                              │
-│  LIVE REQUESTS ────────────────────────────────────────────────────────── │
-│  12:04:31  POST /v1/messages   in:4812  out:892   saved:81.5%  SmartCrush  │
-│  12:04:28  POST /v1/messages   in:1204  out:947   saved:21.3%  CacheAlign  │
-│  12:04:21  POST /v1/messages   in:8341  out:1203  saved:85.6%  SessionDed  │
-│  12:04:15  POST /v1/messages   in:2103  out:1891  saved: 9.9%  Passthru    │
-│                                                                              │
-│  [q] quit  [p] pause  [r] reset session  [c] config  [?] help              │
-╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Copium ──────────────────────────────────── v0.x.x  ● Running ─╮
+│╭────── SESSION ──────╮ ╭────── ALL TIME ──────────────────────╮│
+││ Requests  132       │ │ Tokens saved    288.5K               ││
+││ Duration  27m 44s   │ │ Requests        249                  ││
+││ Tokens in 8.6M      │ │ Avg savings     1.7%                 ││
+││ Saved  287.7K (3.2%)│ │ Est. saved      $0.0000              ││
+│╰─────────────────────╯ ╰──────────────────────────────────────╯│
+│                                                                  │
+│╭────── TRANSFORMS ────────────────────────────────────────────╮│
+││ SmartCrusher  ████████████████░░░░  82%  288.5K  12x        ││
+││ Session Dedup ████████████░░░░░░░░  61%   45.2K   8x        ││
+│╰──────────────────────────────────────────────────────────────╯│
+│                                                                  │
+│╭────── LIVE REQUESTS ──────────────────── newest first ────────╮│
+││ 12:04:31  POST /v1  4.8K  892   81.5%  12ms  SmartCrusher   ││
+│╰──────────────────────────────────────────────────────────────╯│
+│  [q] quit  [p] pause  [r] reset  [?] help                       │
+╰──────────────────────────────────────────────────────────────────╯
 ```
 
 Key features:
-- Real-time updates (100ms refresh)
-- Per-transform breakdown with bar charts
-- Live request stream showing which transform fired
-- Keyboard shortcuts for common actions
-- Works in any 80+ column terminal
-- No network dependency (reads from local proxy socket)
+- Real-time updates (2s data poll, 0.5s display refresh via `rich.Live`)
+- Per-transform breakdown with block-character bar charts
+- Live request stream polled from proxy `/audit` endpoint (degrades gracefully when proxy is offline)
+- Background `_DataPoller` thread — UI never blocks on I/O
+- Keyboard shortcuts: `q` quit, `p` pause, `r` reset feed, `?` help toggle
+- Works in any 80+ column terminal; falls back to snapshot mode for non-TTY
+- No network dependency — reads from local `SavingsTracker` JSON when proxy is offline
 
 ---
 
