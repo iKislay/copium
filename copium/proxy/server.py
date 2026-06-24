@@ -3115,6 +3115,93 @@ def create_app(config: ProxyConfig | None = None) -> FastAPI:
 
         return {"transformations": transformations, "log_full_messages": log_full_messages}
 
+    @app.get("/audit")
+    async def audit_feed(limit: int = 50, since: str | None = None):
+        """Recent request audit log (§8c).
+
+        Returns the last *limit* entries from ~/.copium/logs/audit.jsonl,
+        optionally filtered to entries after *since* (by request_id match).
+
+        Each entry: {ts, req, provider, model, path, transforms,
+                      tokens_in, tokens_out, savings, overhead_ms, cached}
+        """
+        if limit > 500:
+            limit = 500
+        from copium.proxy.audit_writer import read_recent
+        entries = read_recent(n=limit)
+
+        # Optional: also merge in-memory request logger entries that may not
+        # be persisted yet (e.g. first request before flush).
+        if proxy and proxy.logger:
+            mem_logs = proxy.logger.get_recent(limit)
+            seen_ids = {e.get("req") for e in entries}
+            for log in reversed(mem_logs):
+                rid = log.get("request_id", "")
+                if rid and rid not in seen_ids:
+                    t_in = log.get("input_tokens_original", 0) or 0
+                    t_out = log.get("input_tokens_optimized", t_in) or t_in
+                    savings = round((t_in - t_out) / t_in, 6) if t_in > 0 else 0.0
+                    entries.insert(0, {
+                        "ts": log.get("timestamp", ""),
+                        "req": rid,
+                        "provider": log.get("provider", "unknown"),
+                        "model": log.get("model", "unknown"),
+                        "path": "/v1/messages",
+                        "transforms": log.get("transforms_applied", []),
+                        "tokens_in": t_in,
+                        "tokens_out": t_out,
+                        "savings": savings,
+                        "overhead_ms": log.get("optimization_latency_ms", 0),
+                        "cached": log.get("cache_hit", False),
+                    })
+                    seen_ids.add(rid)
+
+        # Clip to requested limit, newest first
+        entries = entries[-limit:]
+        if since:
+            # Return only entries after the one matching since (exclusive)
+            since_idx = next((i for i, e in enumerate(entries) if e.get("req") == since), None)
+            if since_idx is not None:
+                entries = entries[since_idx + 1:]
+
+        return JSONResponse(
+            status_code=200,
+            content={"entries": entries, "count": len(entries)},
+        )
+
+    @app.get("/audit/{request_id}")
+    async def audit_single(request_id: str):
+        """Fetch a single audit entry by request_id (§8a support)."""
+        from copium.proxy.audit_writer import read_recent
+        entries = read_recent(n=10_000, request_id=request_id)
+
+        # Fallback to in-memory request logger
+        if not entries and proxy and proxy.logger:
+            mem_logs = proxy.logger.get_recent(10_000)
+            for log in mem_logs:
+                if log.get("request_id") == request_id:
+                    t_in = log.get("input_tokens_original", 0) or 0
+                    t_out = log.get("input_tokens_optimized", t_in) or t_in
+                    savings = round((t_in - t_out) / t_in, 6) if t_in > 0 else 0.0
+                    entries.append({
+                        "ts": log.get("timestamp", ""),
+                        "req": request_id,
+                        "provider": log.get("provider", "unknown"),
+                        "model": log.get("model", "unknown"),
+                        "path": "/v1/messages",
+                        "transforms": log.get("transforms_applied", []),
+                        "tokens_in": t_in,
+                        "tokens_out": t_out,
+                        "savings": savings,
+                        "overhead_ms": log.get("optimization_latency_ms", 0),
+                        "cached": log.get("cache_hit", False),
+                    })
+                    break
+
+        if not entries:
+            return JSONResponse(status_code=404, content={"error": f"Request {request_id!r} not found"})
+        return JSONResponse(status_code=200, content={"entry": entries[-1]})
+
     @app.get("/subscription-window")
     async def subscription_window():
         """Current Anthropic subscription window utilisation and Copium contribution.
