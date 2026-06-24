@@ -2494,11 +2494,16 @@ class AnthropicHandlerMixin:
                         "content-length", None
                     )  # Length changed after decompression
 
-                    # Inject Copium compression metrics (for SaaS metering)
+                    # Inject Copium compression metrics (§8b — visible via curl -i or devtools)
+                    response_headers["x-copium-request-id"] = str(request_id)
                     response_headers["x-copium-tokens-before"] = str(original_tokens)
                     response_headers["x-copium-tokens-after"] = str(optimized_tokens)
                     response_headers["x-copium-tokens-saved"] = str(tokens_saved)
                     response_headers["x-copium-model"] = model
+                    if original_tokens > 0:
+                        _savings_pct = round(tokens_saved / original_tokens * 100, 1)
+                        response_headers["x-copium-savings"] = f"{_savings_pct}%"
+                    response_headers["x-copium-overhead-ms"] = f"{optimization_latency:.0f}"
                     if transforms_applied:
                         from copium.proxy.cost import header_safe_transforms
 
