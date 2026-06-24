@@ -34,17 +34,28 @@ from typing import Sequence
 
 logger = logging.getLogger(__name__)
 
-_lock = threading.Lock()
+_write_lock = threading.Lock()
+_read_lock = threading.Lock()
 _log_path: Path | None = None
 _enabled = True
 
 
-def _default_audit_path() -> Path:
+def get_audit_path() -> Path:
+    """Return the audit log file path, resolving from workspace or default.
+
+    This is the public accessor — use this instead of reaching into internals.
+    """
+    if _log_path is not None:
+        return _log_path
     try:
         from copium.paths import workspace_dir
         return workspace_dir() / "logs" / "audit.jsonl"
     except Exception:
         return Path.home() / ".copium" / "logs" / "audit.jsonl"
+
+
+# Keep the old name as a private alias for any remaining internal callers.
+_default_audit_path = get_audit_path
 
 
 def configure(path: str | Path | None = None, *, enabled: bool = True) -> None:
@@ -54,19 +65,28 @@ def configure(path: str | Path | None = None, *, enabled: bool = True) -> None:
     if path is not None:
         _log_path = Path(path)
     else:
-        _log_path = _default_audit_path()
+        _log_path = get_audit_path()
 
 
-def _ensure_path() -> Path | None:
+def _ensure_write_path() -> Path | None:
+    """Resolve the audit log path, creating parent dirs if needed (write path)."""
     global _log_path
     if _log_path is None:
-        _log_path = _default_audit_path()
+        _log_path = get_audit_path()
     try:
         _log_path.parent.mkdir(parents=True, exist_ok=True)
         return _log_path
     except OSError as exc:
         logger.debug("audit_writer: cannot create log dir: %s", exc)
         return None
+
+
+def _get_read_path() -> Path | None:
+    """Resolve the audit log path without creating directories (read path)."""
+    global _log_path
+    if _log_path is None:
+        _log_path = get_audit_path()
+    return _log_path if _log_path.exists() else None
 
 
 def record(
@@ -85,7 +105,7 @@ def record(
     """Append one JSONL entry.  Never raises — errors are logged at DEBUG."""
     if not _enabled:
         return
-    log_path = _ensure_path()
+    log_path = _ensure_write_path()
     if log_path is None:
         return
 
@@ -110,7 +130,7 @@ def record(
 
     line = json.dumps(entry, ensure_ascii=False)
     try:
-        with _lock:
+        with _write_lock:
             with open(log_path, "a", encoding="utf-8") as f:
                 f.write(line + "\n")
     except OSError as exc:
@@ -123,15 +143,12 @@ def read_recent(n: int = 100, request_id: str | None = None) -> list[dict]:
     If *request_id* is supplied, returns only entries matching that ID.
     Falls back to an empty list on any error.
     """
-    log_path = _ensure_path()
-    if log_path is None or not log_path.exists():
+    log_path = _get_read_path()
+    if log_path is None:
         return []
     try:
-        lines: list[str] = []
-        with _lock:
+        with _read_lock:
             with open(log_path, encoding="utf-8", errors="replace") as f:
-                # Efficient tail: read whole file into lines, slice last n.
-                # audit.jsonl is expected to stay small (< 50k lines / ~10 MB).
                 lines = f.readlines()
 
         entries: list[dict] = []
@@ -150,3 +167,30 @@ def read_recent(n: int = 100, request_id: str | None = None) -> list[dict]:
     except OSError as exc:
         logger.debug("audit_writer: read failed: %s", exc)
         return []
+
+
+def find_by_id(request_id: str) -> dict | None:
+    """Find a single audit entry by request ID with early return.
+
+    Scans the file line-by-line and returns the first match without reading
+    the entire file into memory.  Returns ``None`` if not found or on error.
+    """
+    log_path = _get_read_path()
+    if log_path is None:
+        return None
+    try:
+        with _read_lock:
+            with open(log_path, encoding="utf-8", errors="replace") as f:
+                for raw_line in f:
+                    stripped = raw_line.strip()
+                    if not stripped:
+                        continue
+                    try:
+                        obj = json.loads(stripped)
+                        if obj.get("req") == request_id:
+                            return obj
+                    except json.JSONDecodeError:
+                        continue
+    except OSError as exc:
+        logger.debug("audit_writer: find_by_id failed: %s", exc)
+    return None

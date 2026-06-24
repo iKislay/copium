@@ -3156,7 +3156,7 @@ def create_app(config: ProxyConfig | None = None) -> FastAPI:
                     })
                     seen_ids.add(rid)
 
-        # Clip to requested limit, newest first
+        # Clip to requested limit, oldest first (file order)
         entries = entries[-limit:]
         if since:
             # Return only entries after the one matching since (exclusive)

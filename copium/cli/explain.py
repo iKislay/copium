@@ -44,17 +44,20 @@ from .main import main
 # ---------------------------------------------------------------------------
 
 def _load_entry_offline(request_id: str) -> dict | None:
-    """Read from local audit.jsonl — works even when proxy is offline."""
+    """Read from local audit.jsonl — works even when proxy is offline.
+
+    Uses ``find_by_id`` for O(1) early-return instead of reading the entire
+    file into memory.
+    """
     try:
-        from copium.proxy.audit_writer import read_recent
-        entries = read_recent(n=100_000, request_id=request_id)
-        return entries[-1] if entries else None
+        from copium.proxy.audit_writer import find_by_id
+        return find_by_id(request_id)
     except Exception:
         pass
     # Fallback: raw path read without importing audit_writer
     try:
-        from copium.paths import workspace_dir
-        log_path = workspace_dir() / "logs" / "audit.jsonl"
+        from copium.proxy.audit_writer import get_audit_path
+        log_path = get_audit_path()
     except Exception:
         log_path = Path.home() / ".copium" / "logs" / "audit.jsonl"
     if not log_path.exists():
@@ -111,25 +114,58 @@ def _fmt_tokens(n: int) -> str:
 
 
 def _rough_usd(tokens_saved: int, model: str) -> str:
-    """Rough cost estimate — uses a blended ~$3/MTok rate."""
-    rate = 3.0 / 1_000_000
-    model_l = model.lower()
-    if "opus" in model_l:
-        rate = 15.0 / 1_000_000
-    elif "sonnet" in model_l:
-        rate = 3.0 / 1_000_000
-    elif "haiku" in model_l:
-        rate = 0.25 / 1_000_000
-    elif "gpt-4" in model_l:
-        rate = 10.0 / 1_000_000
-    elif "gpt-3" in model_l:
-        rate = 0.5 / 1_000_000
+    """Rough cost estimate — pulls from provider pricing when available.
+
+    Falls back to hardcoded estimates when provider modules are unavailable.
+    Rates last verified: 2026-06-24.
+    """
+    rate = _estimate_rate(model)
     usd = tokens_saved * rate
     if usd < 0.0001:
         return f"~${usd:.5f}"
     if usd < 0.01:
         return f"~${usd:.4f}"
     return f"~${usd:.3f}"
+
+
+def _estimate_rate(model: str) -> float:
+    """Return per-token cost rate (USD) for a model, trying provider modules first."""
+    model_l = model.lower()
+
+    # Try Anthropic provider pricing (most comprehensive)
+    try:
+        from copium.providers.anthropic import ANTHROPIC_PRICING, _PATTERN_DEFAULTS
+        # Exact match first
+        if model_l in ANTHROPIC_PRICING:
+            return ANTHROPIC_PRICING[model_l]["input"] / 1_000_000
+        # Pattern match (opus/sonnet/haiku)
+        for pattern, info in _PATTERN_DEFAULTS.items():
+            if pattern in model_l:
+                return info["pricing"]["input"] / 1_000_000
+    except Exception:
+        pass
+
+    # Try OpenAI provider pricing
+    try:
+        from copium.providers.openai import _PRICING
+        for prefix, pricing in _PRICING.items():
+            if model_l.startswith(prefix):
+                return pricing[0] / 1_000_000  # input price
+    except Exception:
+        pass
+
+    # Hardcoded fallbacks (rates last verified: 2026-06-24)
+    if "opus" in model_l:
+        return 15.0 / 1_000_000
+    if "sonnet" in model_l:
+        return 3.0 / 1_000_000
+    if "haiku" in model_l:
+        return 0.25 / 1_000_000
+    if "gpt-4" in model_l:
+        return 10.0 / 1_000_000
+    if "gpt-3" in model_l:
+        return 0.5 / 1_000_000
+    return 3.0 / 1_000_000  # blended default
 
 
 def _fmt_ts(ts: str) -> str:
@@ -151,7 +187,7 @@ def _render_explain(entry: dict, detail: dict | None) -> None:
 
     req_id = entry.get("req", "?")
     ts = _fmt_ts(entry.get("ts", ""))
-    path = entry.get("path", "/v1/messages")
+    req_path = entry.get("path", "/v1/messages")
     model = entry.get("model", "?")
     provider = entry.get("provider", "?")
     tokens_in = int(entry.get("tokens_in", 0))
@@ -171,7 +207,7 @@ def _render_explain(entry: dict, detail: dict | None) -> None:
     console.print()
     console.print(
         f"[bold cyan]Request[/bold cyan] [bold]{req_id}[/bold]"
-        f"  [dim]POST {path}[/dim]"
+        f"  [dim]{req_path}[/dim]"
         f"  [dim]{ts}[/dim]"
         f"  [dim]{provider}/{model}[/dim]"
     )
@@ -225,8 +261,8 @@ def _render_explain(entry: dict, detail: dict | None) -> None:
 
     # ── Audit log hint ───────────────────────────────────────────────────
     try:
-        from copium.proxy.audit_writer import _default_audit_path
-        log_path = _default_audit_path()
+        from copium.proxy.audit_writer import get_audit_path
+        log_path = get_audit_path()
     except Exception:
         log_path = Path.home() / ".copium" / "logs" / "audit.jsonl"
     console.print(f"\n[dim]Inspect the full audit log:[/dim]")
@@ -270,7 +306,7 @@ def explain(request_id: str, port: int, as_json: bool) -> None:
         raise click.ClickException(
             f"Request {request_id!r} not found.\n"
             f"  • Is the request ID correct? (check `copium tui` or X-Copium-Request-Id header)\n"
-            f"  • Was it from a recent session? (audit log keeps last 10,000 requests)\n"
+            f"  • Was it from a recent session? (older entries may have been rotated)\n"
             f"  • Try: copium tui --snapshot  to see recent request IDs."
         )
 
