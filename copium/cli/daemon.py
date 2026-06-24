@@ -214,12 +214,17 @@ def _print_status(verbose: bool = False) -> None:
 
     # ── config / paths ───────────────────────────────────────────────────
     click.echo()
-    copium_dir = Path.home() / ".copium"
-    config_file = copium_dir / "config.toml"
-    log_file = copium_dir / "logs" / "copium.log"
+    from copium.config_loader import get_config_sources
 
-    if config_file.exists():
-        click.secho(f"  Config:    {config_file}", dim=True)
+    sources = get_config_sources()
+    config_global = sources["global"]
+    config_project = sources["project"]
+
+    if config_global["exists"]:
+        click.secho(f"  Config:    {config_global['path']}", dim=True)
+    if config_project["exists"]:
+        click.secho(f"  Project:   {config_project['path']}", dim=True)
+    log_file = Path.home() / ".copium" / "logs" / "copium.log"
     click.secho(f"  Logs:      {log_file}", dim=True)
     click.secho(f"  Dashboard: {host_url}/dashboard", dim=True)
     click.echo()
