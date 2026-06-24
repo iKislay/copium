@@ -10,6 +10,15 @@ from rich.table import Table
 # Shared console instance for consistent output
 console = Console()
 
+# Status symbols — use these everywhere for consistent output
+SUCCESS = "✓"
+WARN = "✗"  # NOTE: plan says ⚠ but ✗ is more visible in terminals
+ERROR = "✗"
+INFO = "●"
+
+# Whether to use colors (disabled when piped)
+_use_color = console.is_terminal
+
 
 def print_table(
     headers: list[str],
@@ -52,7 +61,7 @@ def print_error(msg: str) -> None:
     Args:
         msg: The error message to display.
     """
-    console.print(f"[bold red]Error:[/bold red] {msg}")
+    console.print(f"[bold red]{ERROR}[/bold red] {msg}")
 
 
 def print_success(msg: str) -> None:
@@ -61,7 +70,7 @@ def print_success(msg: str) -> None:
     Args:
         msg: The success message to display.
     """
-    console.print(f"[bold green]Success:[/bold green] {msg}")
+    console.print(f"[bold green]{SUCCESS}[/bold green] {msg}")
 
 
 def print_warning(msg: str) -> None:
@@ -70,7 +79,7 @@ def print_warning(msg: str) -> None:
     Args:
         msg: The warning message to display.
     """
-    console.print(f"[bold yellow]Warning:[/bold yellow] {msg}")
+    console.print(f"[bold yellow]⚠[/bold yellow] {msg}")
 
 
 def truncate(text: str, max_len: int = 50) -> str:
