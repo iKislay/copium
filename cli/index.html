@@ -3233,6 +3233,31 @@
 <td><strong>native in container</strong></td>
 </tr>
 <tr>
+<td><code>copium agents</code></td>
+<td>List detected AI agents and wrap status</td>
+<td><strong>native in container</strong></td>
+</tr>
+<tr>
+<td><code>copium logs</code></td>
+<td>Tail proxy logs</td>
+<td><strong>native in container</strong></td>
+</tr>
+<tr>
+<td><code>copium completions</code></td>
+<td>Generate shell completion scripts</td>
+<td><strong>native in container</strong></td>
+</tr>
+<tr>
+<td><code>copium version</code></td>
+<td>Show version, platform, and install info</td>
+<td><strong>native in container</strong></td>
+</tr>
+<tr>
+<td><code>copium doctor</code></td>
+<td>Diagnose installation and configuration</td>
+<td><strong>native in container</strong></td>
+</tr>
+<tr>
 <td><code>copium wrap claude</code></td>
 <td>Start proxy and launch Claude Code</td>
 <td><strong>host-bridged</strong></td>
@@ -3321,11 +3346,109 @@
 </details>
 
 <details>
+<summary><code>copium agents --help</code></summary>
+
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Usage: copium agents [OPTIONS]
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  List all detected AI agents and their wrap status.
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  Shows which agents are installed on your system and whether they are
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>  configured to route through the Copium proxy.
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>  Examples:
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>      copium agents              Show all known agents
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>      copium agents --installed  Show only installed agents
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>      copium agents --json       Machine-readable output
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>Options:
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>  --json       Output as JSON.
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>  --installed  Show only installed agents.
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>  -?, --help   Show this message and exit.
+</span></code></pre></div>
+
+</details>
+
+<details>
+<summary><code>copium logs --help</code></summary>
+
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Usage: copium logs [OPTIONS]
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  Tail Copium proxy logs.
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>  Shows recent log entries from the Copium proxy. Use --follow to watch
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>  logs in real time (Ctrl+C to stop).
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>  Examples:
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>      copium logs              Show last 100 lines
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>      copium logs -n 50        Show last 50 lines
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>      copium logs -f           Follow logs in real time
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>      copium logs --level ERROR  Show only errors
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>Options:
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>  -n, --tail INTEGER    Number of lines to show from the end.  [default: 100]
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>  -f, --follow          Follow log output (like tail -f).
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>  --level [DEBUG|INFO|WARNING|ERROR]
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>                        Filter by log level.
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>  --json                Output as JSON.
+</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>  -?, --help            Show this message and exit.
+</span></code></pre></div>
+
+</details>
+
+<details>
+<summary><code>copium completions --help</code></summary>
+
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Usage: copium completions [OPTIONS] SHELL
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>  Generate shell completion scripts.
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>  Outputs a completion script to stdout. Redirect to the appropriate
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>  file to install.
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>  Examples:
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>      copium completions bash &gt;&gt; ~/.bash_completion
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>      copium completions zsh &gt;&gt; ~/.zshrc
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>      copium completions fish &gt; ~/.config/fish/completions/copium.fish
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>      copium completions powershell | Out-String | Invoke-Expression
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>  After installing, reload your shell or run:
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>      source ~/.bash_completion   # bash
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>      source ~/.zshrc             # zsh
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>      exec fish                   # fish
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>Options:
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>  -?, --help  Show this message and exit.
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>Arguments:
+</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>  SHELL  Required. One of: bash, zsh, fish, powershell
+</span></code></pre></div>
+
+</details>
+
+<details>
+<summary><code>copium version --help</code></summary>
+
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Usage: copium version [OPTIONS]
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  Show Copium version, platform, and install info.
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  Examples:
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>      copium version            Show version info
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>      copium version --json     Machine-readable output
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>Options:
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>  --json     Output as JSON.
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>  -?, --help  Show this message and exit.
+</span></code></pre></div>
+
+</details>
+
+<details>
 <summary><code>copium learn --help</code></summary>
 
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Usage: copium learn [OPTIONS]
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  Learn from past tool call failures to prevent future ones.
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Usage: copium learn [OPTIONS]
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>  Learn from past tool call failures to prevent future ones.
 </span></code></pre></div>
 
 </details>
@@ -3333,9 +3456,9 @@
 <details>
 <summary><code>copium perf --help</code></summary>
 
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Usage: copium perf [OPTIONS]
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  Analyze proxy performance from logs.
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Usage: copium perf [OPTIONS]
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>  Analyze proxy performance from logs.
 </span></code></pre></div>
 
 </details>
@@ -3343,13 +3466,13 @@
 <details>
 <summary><code>copium evals --help</code></summary>
 
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Usage: copium evals [OPTIONS] COMMAND [ARGS]...
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>  Memory evaluation commands.
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>Commands:
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>  memory     Run LoCoMo memory evaluation benchmark.
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>  memory-v2  Run LoCoMo V2 evaluation with LLM-controlled memory tools.
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Usage: copium evals [OPTIONS] COMMAND [ARGS]...
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>  Memory evaluation commands.
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>Commands:
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>  memory     Run LoCoMo memory evaluation benchmark.
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>  memory-v2  Run LoCoMo V2 evaluation with LLM-controlled memory tools.
 </span></code></pre></div>
 
 </details>
@@ -3357,20 +3480,20 @@
 <details>
 <summary><code>copium memory --help</code></summary>
 
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Usage: copium memory [OPTIONS] COMMAND [ARGS]...
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  Manage memories stored in Copium.
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>Commands:
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>  delete  Delete one or more memories by ID.
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>  edit    Edit a memory&#39;s content or importance.
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>  export  Export all memories to JSON.
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>  import  Import memories from a JSON file.
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>  list    List stored memories with optional filters.
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>  prune   Prune memories matching specified criteria.
-</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>  purge   Delete ALL memories from the database.
-</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>  show    Show full details of a single memory.
-</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>  stats   Show memory store statistics.
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Usage: copium memory [OPTIONS] COMMAND [ARGS]...
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>  Manage memories stored in Copium.
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>Commands:
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>  delete  Delete one or more memories by ID.
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>  edit    Edit a memory&#39;s content or importance.
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>  export  Export all memories to JSON.
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>  import  Import memories from a JSON file.
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>  list    List stored memories with optional filters.
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>  prune   Prune memories matching specified criteria.
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>  purge   Delete ALL memories from the database.
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>  show    Show full details of a single memory.
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>  stats   Show memory store statistics.
 </span></code></pre></div>
 
 </details>
@@ -3378,15 +3501,15 @@
 <details>
 <summary><code>copium mcp --help</code></summary>
 
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Usage: copium mcp [OPTIONS] COMMAND [ARGS]...
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>  MCP server for Claude Code integration.
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>Commands:
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>  install    Install Copium MCP server into Claude Code config.
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>  serve      Start the MCP server (called by Claude Code).
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>  status     Check Copium MCP configuration status.
-</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>  uninstall  Remove Copium MCP server from Claude Code config.
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Usage: copium mcp [OPTIONS] COMMAND [ARGS]...
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>  MCP server for Claude Code integration.
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>Commands:
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>  install    Install Copium MCP server into Claude Code config.
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>  serve      Start the MCP server (called by Claude Code).
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>  status     Check Copium MCP configuration status.
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>  uninstall  Remove Copium MCP server from Claude Code config.
 </span></code></pre></div>
 
 </details>
@@ -3394,20 +3517,20 @@
 <details>
 <summary><code>copium install --help</code></summary>
 
-<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Usage: copium install [OPTIONS] COMMAND [ARGS]...
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>  Install and manage persistent Copium deployments.
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>Options:
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>  -?, --help  Show this message and exit.
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>Commands:
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>  apply    Install a persistent Copium deployment.
-</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>  remove   Remove a persistent deployment and undo managed config.
-</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>  restart  Restart a persistent deployment.
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>  start    Start a persistent deployment.
-</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>  status   Show persistent deployment status.
-</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>  stop     Stop a persistent deployment.
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Usage: copium install [OPTIONS] COMMAND [ARGS]...
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>  Install and manage persistent Copium deployments.
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>Options:
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>  -?, --help  Show this message and exit.
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>Commands:
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>  apply    Install a persistent Copium deployment.
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>  remove   Remove a persistent deployment and undo managed config.
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>  restart  Restart a persistent deployment.
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>  start    Start a persistent deployment.
+</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>  status   Show persistent deployment status.
+</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>  stop     Stop a persistent deployment.
 </span></code></pre></div>
 
 </details>
@@ -3415,17 +3538,17 @@
 <details>
 <summary><code>copium wrap --help</code></summary>
 
-<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Usage: copium wrap [OPTIONS] COMMAND [ARGS]...
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>  Wrap CLI tools to run through Copium.
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>Commands:
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>  aider     Launch aider through Copium proxy.
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>  claude    Launch Claude Code through Copium proxy.
-</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>  copilot   Launch GitHub Copilot CLI through Copium proxy.
-</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>  codex     Launch OpenAI Codex CLI through Copium proxy.
-</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>  cursor    Start Copium proxy for use with Cursor.
-</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>  openclaw  Install and configure Copium OpenClaw plugin in one command.
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Usage: copium wrap [OPTIONS] COMMAND [ARGS]...
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>  Wrap CLI tools to run through Copium.
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>Commands:
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>  aider     Launch aider through Copium proxy.
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>  claude    Launch Claude Code through Copium proxy.
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>  copilot   Launch GitHub Copilot CLI through Copium proxy.
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>  codex     Launch OpenAI Codex CLI through Copium proxy.
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>  cursor    Start Copium proxy for use with Cursor.
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>  openclaw  Install and configure Copium OpenClaw plugin in one command.
 </span></code></pre></div>
 
 </details>
@@ -3433,21 +3556,21 @@
 <details>
 <summary><code>copium unwrap --help</code></summary>
 
-<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Usage: copium unwrap [OPTIONS] COMMAND [ARGS]...
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>  Undo durable Copium wrapping for supported tools.
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>Commands:
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>  openclaw  Disable the Copium OpenClaw plugin and restore the legacy engine slot.
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>Usage: copium unwrap [OPTIONS] COMMAND [ARGS]...
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>  Undo durable Copium wrapping for supported tools.
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>Commands:
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>  openclaw  Disable the Copium OpenClaw plugin and restore the legacy engine slot.
 </span></code></pre></div>
 
 </details>
 
 <h2 id="copium-proxy"><code>copium proxy</code><a class="headerlink" href="#copium-proxy" title="Permanent link">&para;</a></h2>
 <p>Start the optimization proxy server.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>copium<span class="w"> </span>proxy
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>copium<span class="w"> </span>proxy<span class="w"> </span>--port<span class="w"> </span><span class="m">8787</span>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>copium<span class="w"> </span>proxy<span class="w"> </span>--mode<span class="w"> </span>cache
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>copium<span class="w"> </span>proxy
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>copium<span class="w"> </span>proxy<span class="w"> </span>--port<span class="w"> </span><span class="m">8787</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>copium<span class="w"> </span>proxy<span class="w"> </span>--mode<span class="w"> </span>cache
 </span></code></pre></div>
 <table>
 <thead>
@@ -3644,9 +3767,9 @@
 <p>See also: <a href="../proxy/">Proxy Server</a>, <a href="../configuration/">Configuration</a></p>
 <h2 id="copium-learn"><code>copium learn</code><a class="headerlink" href="#copium-learn" title="Permanent link">&para;</a></h2>
 <p>Learn from past tool-call failures and produce agent guidance.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>copium<span class="w"> </span>learn
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>copium<span class="w"> </span>learn<span class="w"> </span>--apply
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>copium<span class="w"> </span>learn<span class="w"> </span>--agent<span class="w"> </span>codex<span class="w"> </span>--all
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>copium<span class="w"> </span>learn
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>copium<span class="w"> </span>learn<span class="w"> </span>--apply
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>copium<span class="w"> </span>learn<span class="w"> </span>--agent<span class="w"> </span>codex<span class="w"> </span>--all
 </span></code></pre></div>
 <table>
 <thead>
@@ -3693,9 +3816,9 @@
 <p>See also: <a href="../learn/">Failure Learning</a></p>
 <h2 id="copium-perf"><code>copium perf</code><a class="headerlink" href="#copium-perf" title="Permanent link">&para;</a></h2>
 <p>Summarize recent proxy performance from the local proxy log.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>copium<span class="w"> </span>perf
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>copium<span class="w"> </span>perf<span class="w"> </span>--hours<span class="w"> </span><span class="m">24</span>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>copium<span class="w"> </span>perf<span class="w"> </span>--raw
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>copium<span class="w"> </span>perf
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>copium<span class="w"> </span>perf<span class="w"> </span>--hours<span class="w"> </span><span class="m">24</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>copium<span class="w"> </span>perf<span class="w"> </span>--raw
 </span></code></pre></div>
 <table>
 <thead>
@@ -3725,8 +3848,8 @@ to <code>~/.copium/logs/proxy.log</code> — see the
 <p>Memory evaluation command group.</p>
 <h3 id="copium-evals-memory"><code>copium evals memory</code><a class="headerlink" href="#copium-evals-memory" title="Permanent link">&para;</a></h3>
 <p>Run the LoCoMo memory evaluation benchmark.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>copium<span class="w"> </span>evals<span class="w"> </span>memory<span class="w"> </span>-n<span class="w"> </span><span class="m">3</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>copium<span class="w"> </span>evals<span class="w"> </span>memory<span class="w"> </span>--answer-model<span class="w"> </span>gpt-4o<span class="w"> </span>--llm-judge
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>copium<span class="w"> </span>evals<span class="w"> </span>memory<span class="w"> </span>-n<span class="w"> </span><span class="m">3</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>copium<span class="w"> </span>evals<span class="w"> </span>memory<span class="w"> </span>--answer-model<span class="w"> </span>gpt-4o<span class="w"> </span>--llm-judge
 </span></code></pre></div>
 <table>
 <thead>
@@ -3816,8 +3939,8 @@ to <code>~/.copium/logs/proxy.log</code> — see the
 </table>
 <h3 id="copium-evals-memory-v2"><code>copium evals memory-v2</code><a class="headerlink" href="#copium-evals-memory-v2" title="Permanent link">&para;</a></h3>
 <p>Run the V2 memory evaluation flow with LLM-controlled tools.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>copium<span class="w"> </span>evals<span class="w"> </span>memory-v2
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>copium<span class="w"> </span>evals<span class="w"> </span>memory-v2<span class="w"> </span>--save-model<span class="w"> </span>gpt-4o-mini<span class="w"> </span>--llm-judge
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>copium<span class="w"> </span>evals<span class="w"> </span>memory-v2
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>copium<span class="w"> </span>evals<span class="w"> </span>memory-v2<span class="w"> </span>--save-model<span class="w"> </span>gpt-4o-mini<span class="w"> </span>--llm-judge
 </span></code></pre></div>
 <table>
 <thead>
@@ -3904,9 +4027,9 @@ to <code>~/.copium/logs/proxy.log</code> — see the
 <h2 id="copium-memory"><code>copium memory</code><a class="headerlink" href="#copium-memory" title="Permanent link">&para;</a></h2>
 <p>Memory management command group. This group is only registered when the optional memory dependencies import successfully.</p>
 <h3 id="copium-memory-list"><code>copium memory list</code><a class="headerlink" href="#copium-memory-list" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>copium<span class="w"> </span>memory<span class="w"> </span>list
-</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>copium<span class="w"> </span>memory<span class="w"> </span>list<span class="w"> </span>--scope<span class="w"> </span>USER<span class="w"> </span>--since<span class="w"> </span>7d
-</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>copium<span class="w"> </span>memory<span class="w"> </span>list<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;budget&quot;</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>copium<span class="w"> </span>memory<span class="w"> </span>list
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>copium<span class="w"> </span>memory<span class="w"> </span>list<span class="w"> </span>--scope<span class="w"> </span>USER<span class="w"> </span>--since<span class="w"> </span>7d
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>copium<span class="w"> </span>memory<span class="w"> </span>list<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;budget&quot;</span>
 </span></code></pre></div>
 <table>
 <thead>
@@ -3950,8 +4073,8 @@ to <code>~/.copium/logs/proxy.log</code> — see the
 </tbody>
 </table>
 <h3 id="copium-memory-show-memory_id"><code>copium memory show &lt;memory_id&gt;</code><a class="headerlink" href="#copium-memory-show-memory_id" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>copium<span class="w"> </span>memory<span class="w"> </span>show<span class="w"> </span>1234abcd
-</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>copium<span class="w"> </span>memory<span class="w"> </span>show<span class="w"> </span>1234abcd<span class="w"> </span>--json
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>copium<span class="w"> </span>memory<span class="w"> </span>show<span class="w"> </span>1234abcd
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>copium<span class="w"> </span>memory<span class="w"> </span>show<span class="w"> </span>1234abcd<span class="w"> </span>--json
 </span></code></pre></div>
 <table>
 <thead>
@@ -3980,7 +4103,7 @@ to <code>~/.copium/logs/proxy.log</code> — see the
 </tbody>
 </table>
 <h3 id="copium-memory-stats"><code>copium memory stats</code><a class="headerlink" href="#copium-memory-stats" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>copium<span class="w"> </span>memory<span class="w"> </span>stats
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>copium<span class="w"> </span>memory<span class="w"> </span>stats
 </span></code></pre></div>
 <table>
 <thead>
@@ -3999,8 +4122,8 @@ to <code>~/.copium/logs/proxy.log</code> — see the
 </tbody>
 </table>
 <h3 id="copium-memory-edit-memory_id"><code>copium memory edit &lt;memory_id&gt;</code><a class="headerlink" href="#copium-memory-edit-memory_id" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>copium<span class="w"> </span>memory<span class="w"> </span>edit<span class="w"> </span>1234abcd<span class="w"> </span>--content<span class="w"> </span><span class="s2">&quot;Updated note&quot;</span>
-</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>copium<span class="w"> </span>memory<span class="w"> </span>edit<span class="w"> </span>1234abcd<span class="w"> </span>--importance<span class="w"> </span><span class="m">0</span>.9
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>copium<span class="w"> </span>memory<span class="w"> </span>edit<span class="w"> </span>1234abcd<span class="w"> </span>--content<span class="w"> </span><span class="s2">&quot;Updated note&quot;</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>copium<span class="w"> </span>memory<span class="w"> </span>edit<span class="w"> </span>1234abcd<span class="w"> </span>--importance<span class="w"> </span><span class="m">0</span>.9
 </span></code></pre></div>
 <table>
 <thead>
@@ -4035,8 +4158,8 @@ to <code>~/.copium/logs/proxy.log</code> — see the
 </table>
 <p>At least one of <code>--content</code> or <code>--importance</code> is required.</p>
 <h3 id="copium-memory-delete-memory_ids"><code>copium memory delete &lt;memory_ids...&gt;</code><a class="headerlink" href="#copium-memory-delete-memory_ids" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>copium<span class="w"> </span>memory<span class="w"> </span>delete<span class="w"> </span>1234abcd<span class="w"> </span>5678efgh
-</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>copium<span class="w"> </span>memory<span class="w"> </span>delete<span class="w"> </span>1234abcd<span class="w"> </span>--force
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>copium<span class="w"> </span>memory<span class="w"> </span>delete<span class="w"> </span>1234abcd<span class="w"> </span>5678efgh
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>copium<span class="w"> </span>memory<span class="w"> </span>delete<span class="w"> </span>1234abcd<span class="w"> </span>--force
 </span></code></pre></div>
 <table>
 <thead>
@@ -4065,8 +4188,8 @@ to <code>~/.copium/logs/proxy.log</code> — see the
 </tbody>
 </table>
 <h3 id="copium-memory-prune"><code>copium memory prune</code><a class="headerlink" href="#copium-memory-prune" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>copium<span class="w"> </span>memory<span class="w"> </span>prune<span class="w"> </span>--older-than<span class="w"> </span>30d<span class="w"> </span>--dry-run
-</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>copium<span class="w"> </span>memory<span class="w"> </span>prune<span class="w"> </span>--scope<span class="w"> </span>SESSION<span class="w"> </span>--force
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>copium<span class="w"> </span>memory<span class="w"> </span>prune<span class="w"> </span>--older-than<span class="w"> </span>30d<span class="w"> </span>--dry-run
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>copium<span class="w"> </span>memory<span class="w"> </span>prune<span class="w"> </span>--scope<span class="w"> </span>SESSION<span class="w"> </span>--force
 </span></code></pre></div>
 <table>
 <thead>
@@ -4116,7 +4239,7 @@ to <code>~/.copium/logs/proxy.log</code> — see the
 </table>
 <p>At least one filter is required. Filters combine with <strong>AND</strong> semantics.</p>
 <h3 id="copium-memory-purge"><code>copium memory purge</code><a class="headerlink" href="#copium-memory-purge" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>copium<span class="w"> </span>memory<span class="w"> </span>purge<span class="w"> </span>--confirm
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>copium<span class="w"> </span>memory<span class="w"> </span>purge<span class="w"> </span>--confirm
 </span></code></pre></div>
 <table>
 <thead>
@@ -4140,8 +4263,8 @@ to <code>~/.copium/logs/proxy.log</code> — see the
 </tbody>
 </table>
 <h3 id="copium-memory-export"><code>copium memory export</code><a class="headerlink" href="#copium-memory-export" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>copium<span class="w"> </span>memory<span class="w"> </span><span class="nb">export</span>
-</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>copium<span class="w"> </span>memory<span class="w"> </span><span class="nb">export</span><span class="w"> </span>--output<span class="w"> </span>export.json
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>copium<span class="w"> </span>memory<span class="w"> </span><span class="nb">export</span>
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>copium<span class="w"> </span>memory<span class="w"> </span><span class="nb">export</span><span class="w"> </span>--output<span class="w"> </span>export.json
 </span></code></pre></div>
 <table>
 <thead>
@@ -4165,8 +4288,8 @@ to <code>~/.copium/logs/proxy.log</code> — see the
 </tbody>
 </table>
 <h3 id="copium-memory-import-file"><code>copium memory import &lt;file&gt;</code><a class="headerlink" href="#copium-memory-import-file" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>copium<span class="w"> </span>memory<span class="w"> </span>import<span class="w"> </span>export.json
-</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>copium<span class="w"> </span>memory<span class="w"> </span>import<span class="w"> </span>export.json<span class="w"> </span>--force
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>copium<span class="w"> </span>memory<span class="w"> </span>import<span class="w"> </span>export.json
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>copium<span class="w"> </span>memory<span class="w"> </span>import<span class="w"> </span>export.json<span class="w"> </span>--force
 </span></code></pre></div>
 <table>
 <thead>
@@ -4198,8 +4321,8 @@ to <code>~/.copium/logs/proxy.log</code> — see the
 <h2 id="copium-mcp"><code>copium mcp</code><a class="headerlink" href="#copium-mcp" title="Permanent link">&para;</a></h2>
 <p>Manage the Copium MCP server integration.</p>
 <h3 id="copium-mcp-install"><code>copium mcp install</code><a class="headerlink" href="#copium-mcp-install" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>copium<span class="w"> </span>mcp<span class="w"> </span>install
-</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>copium<span class="w"> </span>mcp<span class="w"> </span>install<span class="w"> </span>--proxy-url<span class="w"> </span>http://127.0.0.1:9000
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>copium<span class="w"> </span>mcp<span class="w"> </span>install
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>copium<span class="w"> </span>mcp<span class="w"> </span>install<span class="w"> </span>--proxy-url<span class="w"> </span>http://127.0.0.1:9000
 </span></code></pre></div>
 <table>
 <thead>
@@ -4223,16 +4346,16 @@ to <code>~/.copium/logs/proxy.log</code> — see the
 </tbody>
 </table>
 <h3 id="copium-mcp-uninstall"><code>copium mcp uninstall</code><a class="headerlink" href="#copium-mcp-uninstall" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>copium<span class="w"> </span>mcp<span class="w"> </span>uninstall
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>copium<span class="w"> </span>mcp<span class="w"> </span>uninstall
 </span></code></pre></div>
 <p>This removes the Copium MCP server entry from the Claude configuration.</p>
 <h3 id="copium-mcp-status"><code>copium mcp status</code><a class="headerlink" href="#copium-mcp-status" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>copium<span class="w"> </span>mcp<span class="w"> </span>status
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>copium<span class="w"> </span>mcp<span class="w"> </span>status
 </span></code></pre></div>
 <p>This inspects MCP SDK availability, Claude config state, and proxy reachability.</p>
 <h3 id="copium-mcp-serve"><code>copium mcp serve</code><a class="headerlink" href="#copium-mcp-serve" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>copium<span class="w"> </span>mcp<span class="w"> </span>serve
-</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>copium<span class="w"> </span>mcp<span class="w"> </span>serve<span class="w"> </span>--proxy-url<span class="w"> </span>http://127.0.0.1:9000<span class="w"> </span>--debug
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>copium<span class="w"> </span>mcp<span class="w"> </span>serve
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>copium<span class="w"> </span>mcp<span class="w"> </span>serve<span class="w"> </span>--proxy-url<span class="w"> </span>http://127.0.0.1:9000<span class="w"> </span>--debug
 </span></code></pre></div>
 <table>
 <thead>
@@ -4265,43 +4388,43 @@ to <code>~/.copium/logs/proxy.log</code> — see the
 <h2 id="copium-install"><code>copium install</code><a class="headerlink" href="#copium-install" title="Permanent link">&para;</a></h2>
 <p>Install and manage persistent local Copium deployments.</p>
 <h3 id="copium-install-apply-help"><code>copium install apply --help</code><a class="headerlink" href="#copium-install-apply-help" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>Usage: copium install apply [OPTIONS]
-</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>
-</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>  Install a persistent Copium deployment.
-</span><span id="__span-28-4"><a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>
-</span><span id="__span-28-5"><a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a>Options:
-</span><span id="__span-28-6"><a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a>  --preset [persistent-service|persistent-task|persistent-docker]
-</span><span id="__span-28-7"><a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a>                                  Persistent runtime preset to install.
-</span><span id="__span-28-8"><a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a>                                  [default: persistent-service]
-</span><span id="__span-28-9"><a id="__codelineno-28-9" name="__codelineno-28-9" href="#__codelineno-28-9"></a>  --runtime [python|docker]       Runtime used to execute Copium for
-</span><span id="__span-28-10"><a id="__codelineno-28-10" name="__codelineno-28-10" href="#__codelineno-28-10"></a>                                  service/task modes.  [default: python]
-</span><span id="__span-28-11"><a id="__codelineno-28-11" name="__codelineno-28-11" href="#__codelineno-28-11"></a>  --scope [provider|user|system]  Where to apply persistent configuration.
-</span><span id="__span-28-12"><a id="__codelineno-28-12" name="__codelineno-28-12" href="#__codelineno-28-12"></a>                                  [default: user]
-</span><span id="__span-28-13"><a id="__codelineno-28-13" name="__codelineno-28-13" href="#__codelineno-28-13"></a>  --providers [auto|all|manual]   Target selection mode for direct tool
-</span><span id="__span-28-14"><a id="__codelineno-28-14" name="__codelineno-28-14" href="#__codelineno-28-14"></a>                                  configuration.  [default: auto]
-</span><span id="__span-28-15"><a id="__codelineno-28-15" name="__codelineno-28-15" href="#__codelineno-28-15"></a>  --target [claude|copilot|codex|aider|cursor|openclaw]
-</span><span id="__span-28-16"><a id="__codelineno-28-16" name="__codelineno-28-16" href="#__codelineno-28-16"></a>                                  Tool target to configure when --providers
-</span><span id="__span-28-17"><a id="__codelineno-28-17" name="__codelineno-28-17" href="#__codelineno-28-17"></a>                                  manual is used.
-</span><span id="__span-28-18"><a id="__codelineno-28-18" name="__codelineno-28-18" href="#__codelineno-28-18"></a>  --profile TEXT                  Deployment profile name.  [default: default]
-</span><span id="__span-28-19"><a id="__codelineno-28-19" name="__codelineno-28-19" href="#__codelineno-28-19"></a>  -p, --port INTEGER              Persistent proxy port.  [default: 8787]
-</span><span id="__span-28-20"><a id="__codelineno-28-20" name="__codelineno-28-20" href="#__codelineno-28-20"></a>  --backend TEXT                  Proxy backend for the persistent runtime.
-</span><span id="__span-28-21"><a id="__codelineno-28-21" name="__codelineno-28-21" href="#__codelineno-28-21"></a>                                  [default: anthropic]
-</span><span id="__span-28-22"><a id="__codelineno-28-22" name="__codelineno-28-22" href="#__codelineno-28-22"></a>  --anyllm-provider TEXT          Provider for any-llm backends when --backend
-</span><span id="__span-28-23"><a id="__codelineno-28-23" name="__codelineno-28-23" href="#__codelineno-28-23"></a>                                  anyllm is used.
-</span><span id="__span-28-24"><a id="__codelineno-28-24" name="__codelineno-28-24" href="#__codelineno-28-24"></a>  --region TEXT                   Cloud region for Bedrock / Vertex style
-</span><span id="__span-28-25"><a id="__codelineno-28-25" name="__codelineno-28-25" href="#__codelineno-28-25"></a>                                  backends.
-</span><span id="__span-28-26"><a id="__codelineno-28-26" name="__codelineno-28-26" href="#__codelineno-28-26"></a>  --mode TEXT                     Proxy optimization mode.  [default: token]
-</span><span id="__span-28-27"><a id="__codelineno-28-27" name="__codelineno-28-27" href="#__codelineno-28-27"></a>  --memory                        Enable persistent memory in the proxy runtime.
-</span><span id="__span-28-28"><a id="__codelineno-28-28" name="__codelineno-28-28" href="#__codelineno-28-28"></a>  --no-telemetry                  Disable anonymous telemetry in the runtime.
-</span><span id="__span-28-29"><a id="__codelineno-28-29" name="__codelineno-28-29" href="#__codelineno-28-29"></a>  --image TEXT                    Docker image to use when runtime=docker or
-</span><span id="__span-28-30"><a id="__codelineno-28-30" name="__codelineno-28-30" href="#__codelineno-28-30"></a>                                  preset=persistent-docker.  [default:
-</span><span id="__span-28-31"><a id="__codelineno-28-31" name="__codelineno-28-31" href="#__codelineno-28-31"></a>                                  ghcr.io/iKislay/copium:latest]
-</span><span id="__span-28-32"><a id="__codelineno-28-32" name="__codelineno-28-32" href="#__codelineno-28-32"></a>  -?, --help                      Show this message and exit.
+<div class="language-text highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>Usage: copium install apply [OPTIONS]
+</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>
+</span><span id="__span-32-3"><a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>  Install a persistent Copium deployment.
+</span><span id="__span-32-4"><a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a>
+</span><span id="__span-32-5"><a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a>Options:
+</span><span id="__span-32-6"><a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a>  --preset [persistent-service|persistent-task|persistent-docker]
+</span><span id="__span-32-7"><a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a>                                  Persistent runtime preset to install.
+</span><span id="__span-32-8"><a id="__codelineno-32-8" name="__codelineno-32-8" href="#__codelineno-32-8"></a>                                  [default: persistent-service]
+</span><span id="__span-32-9"><a id="__codelineno-32-9" name="__codelineno-32-9" href="#__codelineno-32-9"></a>  --runtime [python|docker]       Runtime used to execute Copium for
+</span><span id="__span-32-10"><a id="__codelineno-32-10" name="__codelineno-32-10" href="#__codelineno-32-10"></a>                                  service/task modes.  [default: python]
+</span><span id="__span-32-11"><a id="__codelineno-32-11" name="__codelineno-32-11" href="#__codelineno-32-11"></a>  --scope [provider|user|system]  Where to apply persistent configuration.
+</span><span id="__span-32-12"><a id="__codelineno-32-12" name="__codelineno-32-12" href="#__codelineno-32-12"></a>                                  [default: user]
+</span><span id="__span-32-13"><a id="__codelineno-32-13" name="__codelineno-32-13" href="#__codelineno-32-13"></a>  --providers [auto|all|manual]   Target selection mode for direct tool
+</span><span id="__span-32-14"><a id="__codelineno-32-14" name="__codelineno-32-14" href="#__codelineno-32-14"></a>                                  configuration.  [default: auto]
+</span><span id="__span-32-15"><a id="__codelineno-32-15" name="__codelineno-32-15" href="#__codelineno-32-15"></a>  --target [claude|copilot|codex|aider|cursor|openclaw]
+</span><span id="__span-32-16"><a id="__codelineno-32-16" name="__codelineno-32-16" href="#__codelineno-32-16"></a>                                  Tool target to configure when --providers
+</span><span id="__span-32-17"><a id="__codelineno-32-17" name="__codelineno-32-17" href="#__codelineno-32-17"></a>                                  manual is used.
+</span><span id="__span-32-18"><a id="__codelineno-32-18" name="__codelineno-32-18" href="#__codelineno-32-18"></a>  --profile TEXT                  Deployment profile name.  [default: default]
+</span><span id="__span-32-19"><a id="__codelineno-32-19" name="__codelineno-32-19" href="#__codelineno-32-19"></a>  -p, --port INTEGER              Persistent proxy port.  [default: 8787]
+</span><span id="__span-32-20"><a id="__codelineno-32-20" name="__codelineno-32-20" href="#__codelineno-32-20"></a>  --backend TEXT                  Proxy backend for the persistent runtime.
+</span><span id="__span-32-21"><a id="__codelineno-32-21" name="__codelineno-32-21" href="#__codelineno-32-21"></a>                                  [default: anthropic]
+</span><span id="__span-32-22"><a id="__codelineno-32-22" name="__codelineno-32-22" href="#__codelineno-32-22"></a>  --anyllm-provider TEXT          Provider for any-llm backends when --backend
+</span><span id="__span-32-23"><a id="__codelineno-32-23" name="__codelineno-32-23" href="#__codelineno-32-23"></a>                                  anyllm is used.
+</span><span id="__span-32-24"><a id="__codelineno-32-24" name="__codelineno-32-24" href="#__codelineno-32-24"></a>  --region TEXT                   Cloud region for Bedrock / Vertex style
+</span><span id="__span-32-25"><a id="__codelineno-32-25" name="__codelineno-32-25" href="#__codelineno-32-25"></a>                                  backends.
+</span><span id="__span-32-26"><a id="__codelineno-32-26" name="__codelineno-32-26" href="#__codelineno-32-26"></a>  --mode TEXT                     Proxy optimization mode.  [default: token]
+</span><span id="__span-32-27"><a id="__codelineno-32-27" name="__codelineno-32-27" href="#__codelineno-32-27"></a>  --memory                        Enable persistent memory in the proxy runtime.
+</span><span id="__span-32-28"><a id="__codelineno-32-28" name="__codelineno-32-28" href="#__codelineno-32-28"></a>  --no-telemetry                  Disable anonymous telemetry in the runtime.
+</span><span id="__span-32-29"><a id="__codelineno-32-29" name="__codelineno-32-29" href="#__codelineno-32-29"></a>  --image TEXT                    Docker image to use when runtime=docker or
+</span><span id="__span-32-30"><a id="__codelineno-32-30" name="__codelineno-32-30" href="#__codelineno-32-30"></a>                                  preset=persistent-docker.  [default:
+</span><span id="__span-32-31"><a id="__codelineno-32-31" name="__codelineno-32-31" href="#__codelineno-32-31"></a>                                  ghcr.io/iKislay/copium:latest]
+</span><span id="__span-32-32"><a id="__codelineno-32-32" name="__codelineno-32-32" href="#__codelineno-32-32"></a>  -?, --help                      Show this message and exit.
 </span></code></pre></div>
 <h3 id="copium-install-apply"><code>copium install apply</code><a class="headerlink" href="#copium-install-apply" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>copium<span class="w"> </span>install<span class="w"> </span>apply<span class="w"> </span>--preset<span class="w"> </span>persistent-service<span class="w"> </span>--providers<span class="w"> </span>auto
-</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>copium<span class="w"> </span>install<span class="w"> </span>apply<span class="w"> </span>--preset<span class="w"> </span>persistent-task<span class="w"> </span>--providers<span class="w"> </span>manual<span class="w"> </span>--target<span class="w"> </span>claude<span class="w"> </span>--target<span class="w"> </span>codex
-</span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>copium<span class="w"> </span>install<span class="w"> </span>apply<span class="w"> </span>--preset<span class="w"> </span>persistent-docker<span class="w"> </span>--scope<span class="w"> </span>user
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>copium<span class="w"> </span>install<span class="w"> </span>apply<span class="w"> </span>--preset<span class="w"> </span>persistent-service<span class="w"> </span>--providers<span class="w"> </span>auto
+</span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>copium<span class="w"> </span>install<span class="w"> </span>apply<span class="w"> </span>--preset<span class="w"> </span>persistent-task<span class="w"> </span>--providers<span class="w"> </span>manual<span class="w"> </span>--target<span class="w"> </span>claude<span class="w"> </span>--target<span class="w"> </span>codex
+</span><span id="__span-33-3"><a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>copium<span class="w"> </span>install<span class="w"> </span>apply<span class="w"> </span>--preset<span class="w"> </span>persistent-docker<span class="w"> </span>--scope<span class="w"> </span>user
 </span></code></pre></div>
 <table>
 <thead>
@@ -4390,25 +4513,25 @@ to <code>~/.copium/logs/proxy.log</code> — see the
 configuration, starts the chosen runtime, and waits for <code>readyz</code>.</p>
 <p>Docker-native host wrappers expose a narrower <code>copium install</code> subset for <code>persistent-docker</code> only: <code>apply</code>, <code>status</code>, <code>start</code>, <code>stop</code>, <code>restart</code>, and <code>remove</code>. Those wrapper flows preserve the same port and manifest behavior, but they intentionally reject <code>persistent-service</code>, <code>persistent-task</code>, and provider mutation flags like <code>--scope</code>, <code>--providers</code>, and <code>--target</code>.</p>
 <h3 id="copium-install-status"><code>copium install status</code><a class="headerlink" href="#copium-install-status" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>copium<span class="w"> </span>install<span class="w"> </span>status
-</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>copium<span class="w"> </span>install<span class="w"> </span>status<span class="w"> </span>--profile<span class="w"> </span>default
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>copium<span class="w"> </span>install<span class="w"> </span>status
+</span><span id="__span-34-2"><a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>copium<span class="w"> </span>install<span class="w"> </span>status<span class="w"> </span>--profile<span class="w"> </span>default
 </span></code></pre></div>
 <p>Shows the stored profile, preset, runtime, supervisor kind, scope, port, runtime status, readiness, and backend from <code>/health</code>.</p>
 <h3 id="copium-install-start"><code>copium install start</code><a class="headerlink" href="#copium-install-start" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>copium<span class="w"> </span>install<span class="w"> </span>start
-</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>copium<span class="w"> </span>install<span class="w"> </span>start<span class="w"> </span>--profile<span class="w"> </span>default
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>copium<span class="w"> </span>install<span class="w"> </span>start
+</span><span id="__span-35-2"><a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>copium<span class="w"> </span>install<span class="w"> </span>start<span class="w"> </span>--profile<span class="w"> </span>default
 </span></code></pre></div>
 <p>Starts a previously installed deployment profile without reapplying mutations.</p>
 <h3 id="copium-install-stop"><code>copium install stop</code><a class="headerlink" href="#copium-install-stop" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>copium<span class="w"> </span>install<span class="w"> </span>stop
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-36-1"><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>copium<span class="w"> </span>install<span class="w"> </span>stop
 </span></code></pre></div>
 <p>Stops the managed runtime for an installed deployment profile.</p>
 <h3 id="copium-install-restart"><code>copium install restart</code><a class="headerlink" href="#copium-install-restart" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>copium<span class="w"> </span>install<span class="w"> </span>restart
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-37-1"><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>copium<span class="w"> </span>install<span class="w"> </span>restart
 </span></code></pre></div>
 <p>Stops and starts the selected deployment profile.</p>
 <h3 id="copium-install-remove"><code>copium install remove</code><a class="headerlink" href="#copium-install-remove" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>copium<span class="w"> </span>install<span class="w"> </span>remove
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-38-1"><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>copium<span class="w"> </span>install<span class="w"> </span>remove
 </span></code></pre></div>
 <p>Stops the runtime, removes installed supervisor artifacts, reverts managed configuration changes, and deletes the stored manifest.</p>
 <p>See also: <a href="../persistent-installs/">Persistent Installs</a></p>
@@ -4423,9 +4546,9 @@ configuration, starts the chosen runtime, and waits for <code>readyz</code>.</p>
 <li>Hidden <code>--prepare-only</code> exists for internal Docker-native bridge flows and is intentionally omitted from normal usage</li>
 </ul>
 <h3 id="copium-wrap-claude"><code>copium wrap claude</code><a class="headerlink" href="#copium-wrap-claude" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>copium<span class="w"> </span>wrap<span class="w"> </span>claude
-</span><span id="__span-35-2"><a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>copium<span class="w"> </span>wrap<span class="w"> </span>claude<span class="w"> </span>--resume<span class="w"> </span>&lt;session-id&gt;
-</span><span id="__span-35-3"><a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a>copium<span class="w"> </span>wrap<span class="w"> </span>claude<span class="w"> </span>--port<span class="w"> </span><span class="m">9999</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-39-1"><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>copium<span class="w"> </span>wrap<span class="w"> </span>claude
+</span><span id="__span-39-2"><a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a>copium<span class="w"> </span>wrap<span class="w"> </span>claude<span class="w"> </span>--resume<span class="w"> </span>&lt;session-id&gt;
+</span><span id="__span-39-3"><a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a>copium<span class="w"> </span>wrap<span class="w"> </span>claude<span class="w"> </span>--port<span class="w"> </span><span class="m">9999</span>
 </span></code></pre></div>
 <table>
 <thead>
@@ -4470,9 +4593,9 @@ configuration, starts the chosen runtime, and waits for <code>readyz</code>.</p>
 </table>
 <p>Requires the <code>claude</code> binary on the host.</p>
 <h3 id="copium-wrap-codex"><code>copium wrap codex</code><a class="headerlink" href="#copium-wrap-codex" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-36-1"><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>copium<span class="w"> </span>wrap<span class="w"> </span>codex
-</span><span id="__span-36-2"><a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a>copium<span class="w"> </span>wrap<span class="w"> </span>codex<span class="w"> </span>--<span class="w"> </span><span class="s2">&quot;fix the bug&quot;</span>
-</span><span id="__span-36-3"><a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a>copium<span class="w"> </span>wrap<span class="w"> </span>codex<span class="w"> </span>--backend<span class="w"> </span>anyllm<span class="w"> </span>--anyllm-provider<span class="w"> </span>groq
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-40-1"><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a>copium<span class="w"> </span>wrap<span class="w"> </span>codex
+</span><span id="__span-40-2"><a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a>copium<span class="w"> </span>wrap<span class="w"> </span>codex<span class="w"> </span>--<span class="w"> </span><span class="s2">&quot;fix the bug&quot;</span>
+</span><span id="__span-40-3"><a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a>copium<span class="w"> </span>wrap<span class="w"> </span>codex<span class="w"> </span>--backend<span class="w"> </span>anyllm<span class="w"> </span>--anyllm-provider<span class="w"> </span>groq
 </span></code></pre></div>
 <table>
 <thead>
@@ -4532,8 +4655,8 @@ configuration, starts the chosen runtime, and waits for <code>readyz</code>.</p>
 </table>
 <p>Requires the <code>codex</code> binary on the host.</p>
 <h3 id="copium-wrap-copilot"><code>copium wrap copilot</code><a class="headerlink" href="#copium-wrap-copilot" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-37-1"><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>copium<span class="w"> </span>wrap<span class="w"> </span>copilot<span class="w"> </span>--<span class="w"> </span>--model<span class="w"> </span>claude-sonnet-4-20250514
-</span><span id="__span-37-2"><a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a>copium<span class="w"> </span>wrap<span class="w"> </span>copilot<span class="w"> </span>--backend<span class="w"> </span>anyllm<span class="w"> </span>--anyllm-provider<span class="w"> </span>groq<span class="w"> </span>--<span class="w"> </span>--model<span class="w"> </span>gpt-4o
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-41-1"><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a>copium<span class="w"> </span>wrap<span class="w"> </span>copilot<span class="w"> </span>--<span class="w"> </span>--model<span class="w"> </span>claude-sonnet-4-20250514
+</span><span id="__span-41-2"><a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a>copium<span class="w"> </span>wrap<span class="w"> </span>copilot<span class="w"> </span>--backend<span class="w"> </span>anyllm<span class="w"> </span>--anyllm-provider<span class="w"> </span>groq<span class="w"> </span>--<span class="w"> </span>--model<span class="w"> </span>gpt-4o
 </span></code></pre></div>
 <table>
 <thead>
@@ -4603,9 +4726,9 @@ configuration, starts the chosen runtime, and waits for <code>readyz</code>.</p>
 </table>
 <p>Requires the <code>copilot</code> binary on the host. When a matching persistent deployment exists on the requested port, <code>wrap copilot</code> reuses or recovers it before falling back to an ephemeral proxy.</p>
 <h3 id="copium-wrap-aider"><code>copium wrap aider</code><a class="headerlink" href="#copium-wrap-aider" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-38-1"><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>copium<span class="w"> </span>wrap<span class="w"> </span>aider
-</span><span id="__span-38-2"><a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a>copium<span class="w"> </span>wrap<span class="w"> </span>aider<span class="w"> </span>--<span class="w"> </span>--model<span class="w"> </span>gpt-4o
-</span><span id="__span-38-3"><a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a>copium<span class="w"> </span>wrap<span class="w"> </span>aider<span class="w"> </span>--backend<span class="w"> </span>litellm-vertex<span class="w"> </span>--region<span class="w"> </span>us-central1
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-42-1"><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a>copium<span class="w"> </span>wrap<span class="w"> </span>aider
+</span><span id="__span-42-2"><a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a>copium<span class="w"> </span>wrap<span class="w"> </span>aider<span class="w"> </span>--<span class="w"> </span>--model<span class="w"> </span>gpt-4o
+</span><span id="__span-42-3"><a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a>copium<span class="w"> </span>wrap<span class="w"> </span>aider<span class="w"> </span>--backend<span class="w"> </span>litellm-vertex<span class="w"> </span>--region<span class="w"> </span>us-central1
 </span></code></pre></div>
 <table>
 <thead>
@@ -4665,9 +4788,9 @@ configuration, starts the chosen runtime, and waits for <code>readyz</code>.</p>
 </table>
 <p>Requires the <code>aider</code> binary on the host.</p>
 <h3 id="copium-wrap-cursor"><code>copium wrap cursor</code><a class="headerlink" href="#copium-wrap-cursor" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-39-1"><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>copium<span class="w"> </span>wrap<span class="w"> </span>cursor
-</span><span id="__span-39-2"><a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a>copium<span class="w"> </span>wrap<span class="w"> </span>cursor<span class="w"> </span>--port<span class="w"> </span><span class="m">9999</span>
-</span><span id="__span-39-3"><a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a>copium<span class="w"> </span>wrap<span class="w"> </span>cursor<span class="w"> </span>--no-rtk
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-43-1"><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a>copium<span class="w"> </span>wrap<span class="w"> </span>cursor
+</span><span id="__span-43-2"><a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a>copium<span class="w"> </span>wrap<span class="w"> </span>cursor<span class="w"> </span>--port<span class="w"> </span><span class="m">9999</span>
+</span><span id="__span-43-3"><a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a>copium<span class="w"> </span>wrap<span class="w"> </span>cursor<span class="w"> </span>--no-rtk
 </span></code></pre></div>
 <table>
 <thead>
@@ -4707,8 +4830,8 @@ configuration, starts the chosen runtime, and waits for <code>readyz</code>.</p>
 </table>
 <p>This command prints Cursor configuration instructions and waits while the proxy stays up. It does <strong>not</strong> launch Cursor directly.</p>
 <h3 id="copium-wrap-openclaw"><code>copium wrap openclaw</code><a class="headerlink" href="#copium-wrap-openclaw" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-40-1"><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a>copium<span class="w"> </span>wrap<span class="w"> </span>openclaw
-</span><span id="__span-40-2"><a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a>copium<span class="w"> </span>wrap<span class="w"> </span>openclaw<span class="w"> </span>--plugin-path<span class="w"> </span>./plugins/openclaw
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-44-1"><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a>copium<span class="w"> </span>wrap<span class="w"> </span>openclaw
+</span><span id="__span-44-2"><a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a>copium<span class="w"> </span>wrap<span class="w"> </span>openclaw<span class="w"> </span>--plugin-path<span class="w"> </span>./plugins/openclaw
 </span></code></pre></div>
 <table>
 <thead>
@@ -4780,8 +4903,8 @@ configuration, starts the chosen runtime, and waits for <code>readyz</code>.</p>
 <h2 id="copium-unwrap"><code>copium unwrap</code><a class="headerlink" href="#copium-unwrap" title="Permanent link">&para;</a></h2>
 <p>Undo durable wrapping for supported tools.</p>
 <h3 id="copium-unwrap-openclaw"><code>copium unwrap openclaw</code><a class="headerlink" href="#copium-unwrap-openclaw" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-41-1"><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a>copium<span class="w"> </span>unwrap<span class="w"> </span>openclaw
-</span><span id="__span-41-2"><a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a>copium<span class="w"> </span>unwrap<span class="w"> </span>openclaw<span class="w"> </span>--no-restart
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-45-1"><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a>copium<span class="w"> </span>unwrap<span class="w"> </span>openclaw
+</span><span id="__span-45-2"><a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a>copium<span class="w"> </span>unwrap<span class="w"> </span>openclaw<span class="w"> </span>--no-restart
 </span></code></pre></div>
 <table>
 <thead>
