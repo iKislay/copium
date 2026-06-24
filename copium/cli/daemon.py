@@ -327,15 +327,19 @@ def start(
         no_telemetry=no_telemetry,
     )
 
-    try:
-        start_detached_agent(manifest.profile)
-    except Exception as exc:
-        click.secho(f"  ✗  Failed to launch proxy: {exc}", fg="red", err=True)
-        raise SystemExit(1) from None
+    # Use spinner for startup
+    from ._utils.progress import spinner
+
+    with spinner("Launching proxy process..."):
+        try:
+            start_detached_agent(manifest.profile)
+        except Exception as exc:
+            click.secho(f"  ✗  Failed to launch proxy: {exc}", fg="red", err=True)
+            raise SystemExit(1) from None
 
     if wait:
-        click.echo("  Waiting for proxy to become ready…", nl=False)
-        ready = wait_ready(manifest, timeout_seconds=30)
+        with spinner("Waiting for proxy to be ready..."):
+            ready = wait_ready(manifest, timeout_seconds=30)
         if not ready:
             click.echo()
             click.secho(
