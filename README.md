@@ -55,8 +55,10 @@ pip install "copium-ai[proxy]"
 ```bash
 copium start               # starts on http://localhost:8787, detaches from terminal
 copium status              # check health, port, today's savings
-copium stop                # stop gracefully (prints session summary)
+copium status --prompt     # minimal output for shell prompts (⚡ 38%)
+copium stop                # stop gracefully (prints session summary with duration + all-time totals)
 copium restart             # restart to pick up config changes
+copium ping                # fast health check — exit 0 running, exit 1 stopped
 ```
 
 **One-shot foreground mode (blocks the terminal):**
@@ -520,6 +522,7 @@ copium preset aggressive
 copium status                  # proxy health, uptime, today's savings
 copium status --verbose        # also show all-time stats
 copium status --json           # machine-readable JSON
+copium status --prompt         # one-liner for shell prompts: ⚡ 38% (empty when stopped)
 copium stats                   # detailed savings breakdown
 copium stats --period session  # current session only
 copium stats --json            # machine-readable output
@@ -560,15 +563,59 @@ The biggest daily friction with a proxy tool is keeping it running. Copium solve
 
 ```bash
 copium start                  # start proxy, detach from terminal — survives shell exit
-copium stop                   # stop gracefully (shows session summary first)
+copium stop                   # stop gracefully (shows session summary: duration, tokens saved, all-time totals)
 copium restart                # restart (picks up config changes)
 copium status                 # check running/stopped, uptime, savings today
 copium status --json          # machine-readable output (for scripts / shell prompts)
+copium status --prompt        # minimal one-liner (⚡ 38%) — empty string when stopped
+copium ping                   # fast health check: exit 0 running, exit 1 stopped
+copium ping --json            # {"status":"running","uptime_s":15423,"tokens_saved_today":312481}
 ```
 
 `copium start` auto-creates a deployment profile on first run. The PID file lives at `~/.copium/deploy/default/runner.pid`; logs at `~/.copium/deploy/default/runner.log`.
 
-Flags:
+### Shell prompt integration
+
+Show a live `⚡ 38%` indicator in your shell prompt when the proxy is active:
+
+**Starship** — add to `~/.config/starship.toml` (or run `copium init` to add it automatically):
+
+```toml
+[custom.copium]
+command = "copium status --prompt"
+when    = "copium ping"
+format  = "[$output]($style) "
+style   = "bold yellow"
+```
+
+**bash / zsh** — add to `~/.zshrc` or `~/.bashrc`:
+
+```bash
+_copium_prompt() {
+  local _s
+  _s="$(copium status --prompt 2>/dev/null)"
+  echo "${_s:+[$_s] }"
+}
+PROMPT_COMMAND='_copium_prompt_val=$(_copium_prompt); ${PROMPT_COMMAND:-:}'
+export PS1='${_copium_prompt_val}${PS1}'
+```
+
+`copium status --prompt` outputs nothing when the proxy is stopped, so the segment disappears automatically. `copium remove` cleans this up along with everything else.
+
+### First-request feedback
+
+The first time any request is compressed, Copium prints a one-time celebration to your terminal:
+
+```
+🎉 First request compressed!
+   Tokens: 4.8K → 892  (81.5% saved, ~$0.01 saved on this request)
+
+   View live savings:  copium tui
+   Or open:           http://localhost:8787/dashboard
+```
+
+This only ever shows once — the flag is stored in `~/.copium/state.json`.
+
 
 ```bash
 copium start --port 9090          # custom port

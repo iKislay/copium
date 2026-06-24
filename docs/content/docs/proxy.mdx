@@ -231,6 +231,82 @@ ANTHROPIC_BASE_URL=http://localhost:8787 claude
 OPENAI_BASE_URL=http://localhost:8787/v1 cursor
 ```
 
+## Active status & feedback
+
+### Shell prompt integration
+
+Know at a glance whether the proxy is running — right in your terminal prompt.
+
+`copium status --prompt` outputs a compact string (`⚡ 38%`) when the proxy is active and compressing, or nothing when it is stopped. Shell prompt segments that produce empty output are automatically hidden by most prompt frameworks.
+
+**Starship** — add to `~/.config/starship.toml`:
+
+```toml
+[custom.copium]
+description = "Copium compression proxy status"
+command     = "copium status --prompt"
+when        = "copium ping"
+format      = "[$output]($style) "
+style       = "bold yellow"
+```
+
+**bash / zsh** — add to `~/.zshrc` or `~/.bashrc`:
+
+```bash
+_copium_prompt() {
+  local _s
+  _s="$(copium status --prompt 2>/dev/null)"
+  echo "${_s:+[$_s] }"
+}
+PROMPT_COMMAND='_copium_prompt_val=$(_copium_prompt); ${PROMPT_COMMAND:-:}'
+export PS1='${_copium_prompt_val}${PS1}'
+```
+
+`copium init` offers to set this up automatically at the end of the guided setup flow. `copium remove` cleans it up from both Starship config and shell rc files.
+
+### `copium ping` — fast health check
+
+A sub-100 ms liveness check for scripts, CI, and prompt integration:
+
+```bash
+copium ping            # exit 0 if running, exit 1 if not
+copium ping -v         # verbose: ● Copium v0.x.x running on port 8787  uptime 4h 23m
+copium ping --json     # {"status":"running","uptime_s":15423,"tokens_saved_today":312481}
+copium ping || copium start   # start if not already running
+```
+
+### First-request toast
+
+The first time any request is compressed through the proxy, Copium prints a one-time message to let you know it's working:
+
+```
+🎉 First request compressed!
+   Tokens: 4.8K → 892  (81.5% saved, ~$0.01 saved on this request)
+
+   View live savings:  copium tui
+   Or open:           http://localhost:8787/dashboard
+```
+
+The message also appears in the proxy log (`copium logs`). It fires once per installation — the flag is persisted in `~/.copium/state.json`. Running `copium remove` resets it so a reinstall sees the toast again.
+
+### Session summary on `copium stop`
+
+When you run `copium stop`, the proxy prints a full session summary before shutting down:
+
+```
+  Copium stopped.
+
+  Session summary (2h 14m)
+  ────────────────────────────────────
+  Requests proxied          312
+  Tokens saved           421.8K  (avg 44% compression)
+  Est. cost saved          $1.27
+
+  All-time: 1.4B tokens saved across 50,412 requests.
+```
+
+Pass `--quiet` to suppress the summary (useful in scripts).
+
 ## Cloud providers
 
 ```bash
