@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 import click
 
-from . import console
+from ._utils.formatting import console
 
 # Known agent binaries and their display names
 KNOWN_AGENTS: dict[str, str] = {
@@ -95,7 +95,7 @@ def agents(as_json: bool, installed: bool) -> None:
 
     from rich.table import Table
 
-    from . import SUCCESS
+    SUCCESS = "✓"
 
     table = Table(title="Detected AI Agents")
     table.add_column("Agent", style="bold")

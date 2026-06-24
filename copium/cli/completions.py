@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import click
 
-from . import console
+from ._utils.formatting import console
 
 # All top-level commands (for completion)
 COMMANDS = [

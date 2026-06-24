@@ -81,7 +81,7 @@ class CopiumGroup(click.Group):
         formatter.write_usage(ctx.command_path, ctx.args_path if hasattr(ctx, "args_path") else "[ARGS]")
 
         # Write the description
-        description = self.get_short_help_str(ctx)
+        description = self.help or ""
         if description:
             formatter.write_paragraph()
             formatter.write_text(description)
@@ -243,6 +243,7 @@ def _register_commands() -> None:
         dashboard_tui,  # noqa: F401
         doctor,  # noqa: F401
         evals,  # noqa: F401
+        explain,  # noqa: F401 — copium explain <request-id> (§8a)
         hooks_compress,  # noqa: F401
         init,  # noqa: F401
         install,  # noqa: F401
@@ -251,6 +252,7 @@ def _register_commands() -> None:
         mcp,  # noqa: F401
         output_savings,  # noqa: F401
         perf,  # noqa: F401
+        ping,  # noqa: F401 — copium ping (§9b)
         preset_cmd,  # noqa: F401
         prioritize,  # noqa: F401
         proxy,  # noqa: F401

@@ -9,7 +9,7 @@ from pathlib import Path
 
 import click
 
-from . import console
+from ._utils.formatting import console
 
 
 def _get_log_path() -> Path:
