@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 
+* **cli:** add `copium agents` command to list detected AI agents and their wrap status
+* **cli:** add `copium logs` command to tail proxy logs with `--follow`, `--tail`, and `--level` options
+* **cli:** add `copium completions` command to generate shell completion scripts for bash, zsh, fish, and powershell
+* **cli:** add `copium version` standalone command (previously only available via `--version` flag)
+* **cli:** group help text by category with importance ordering for better discoverability
+* **cli:** add progress/spinner utilities for better visual feedback during long operations
+* **cli:** standardize output formatting with symbols (✓/⚠/✗) and TTY detection
+* **cli:** add shared `--json`/`--quiet` options for consistent flag handling across commands
 * **proxy:** measure and surface rolling and current token throughput metrics (active/wall-clock input, compression, effective forward, and streamed generation) in `copium perf` CLI and the dashboard ([#959](https://github.com/iKislay/copium/issues/959)).
 * **vibe:** add Mistral Vibe CLI support with `copium wrap vibe`.
 * **proxy:** per-project savings breakdown on the dashboard for all wrapped agents — Claude Code, Codex, aider, Copilot, and Cursor ([#802](https://github.com/iKislay/copium/issues/802)). `copium wrap claude`/`codex` tag requests with an `X-Copium-Project` header (launch-directory name); `wrap aider`/`copilot`/`cursor` — whose clients cannot send custom headers — use a `/p/<name>` base-URL prefix the proxy strips. Savings are aggregated per project (persisted, schema v3 with transparent v2 migration), exposed as `savings.per_project` in `/stats` and `projects` in `/stats-history`, and shown in a Per-Project Savings dashboard table.
