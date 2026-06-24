@@ -57,11 +57,12 @@ _FLAT_KEY_MAP: dict[str, str] = {
 
 def _load_toml(path: Path) -> dict[str, Any]:
     """Parse a TOML file into a plain dict."""
+    result: dict[str, Any]
     if sys.version_info >= (3, 11):
         import tomllib
 
         with open(path, "rb") as f:
-            return tomllib.load(f)
+            result = tomllib.load(f)
     else:
         try:
             import tomli as tomllib  # type: ignore[no-redef]
@@ -71,7 +72,8 @@ def _load_toml(path: Path) -> dict[str, Any]:
                 "Install it with: pip install tomli"
             ) from None
         with open(path, "rb") as f:
-            return tomllib.load(f)
+            result = tomllib.load(f)
+    return result
 
 
 def _write_toml(path: Path, data: dict[str, Any]) -> None:
@@ -151,7 +153,8 @@ def load_project_config(cwd: Path | None = None) -> dict[str, Any]:
         candidate = current / _PROJECT_CONFIG_NAME
         if candidate.exists():
             try:
-                return json.loads(candidate.read_text(encoding="utf-8"))
+                result: dict[str, Any] = json.loads(candidate.read_text(encoding="utf-8"))
+                return result
             except Exception as exc:
                 logger.warning("Failed to parse %s: %s", candidate, exc)
                 return {}
