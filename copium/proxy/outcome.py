@@ -440,3 +440,23 @@ async def emit_request_outcome(handler: Any, outcome: RequestOutcome) -> None:
         f"transforms={_summarize_transforms(list(outcome.transforms_applied))}"
         f"{client_part}"
     )
+
+    # 5. Audit JSONL log (§8c — ~/.copium/logs/audit.jsonl).
+    #    Best-effort: any error must never break a response. The call is
+    #    synchronous (a fast file append behind a threading.Lock) but always
+    #    < 1 ms; no thread hop needed.
+    try:
+        from copium.proxy.audit_writer import record as _audit_record
+
+        _audit_record(
+            request_id=outcome.request_id,
+            provider=outcome.provider,
+            model=outcome.model,
+            transforms=list(outcome.transforms_applied),
+            tokens_in=outcome.original_tokens,
+            tokens_out=outcome.optimized_tokens,
+            overhead_ms=outcome.overhead_ms,
+            cached=outcome.cache_hit,
+        )
+    except Exception:  # pragma: no cover — defensive
+        pass
