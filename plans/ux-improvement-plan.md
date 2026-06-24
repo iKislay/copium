@@ -153,20 +153,26 @@ Trust comes from knowing you can easily undo something.
 
 The biggest daily friction: `copium run` blocks your terminal. Developers solve this with `copium run &`, but then it dies when the terminal closes.
 
-### [ ] 4a. `copium start` / `copium stop` (Daemon Mode)
+### [x] 4a. `copium start` / `copium stop` (Daemon Mode)
+
+> **Implemented** in `copium/cli/daemon.py`
 
 ```bash
 copium start    # start as background daemon, detach from terminal
-copium stop     # gracefully stop the daemon
+copium stop     # gracefully stop the daemon (prints session summary)
 copium restart  # restart (picks up config changes)
 copium status   # show if running, uptime, port, tokens saved today
 ```
 
-`copium start` writes a PID file to `~/.copium/copium.pid`. Logs go to `~/.copium/logs/copium.log`. The proxy runs detached. `copium stop` reads the PID and sends SIGTERM.
+`copium start` auto-creates a deployment profile on first run and launches the proxy detached from the terminal (via the existing `start_detached_agent` runtime). The PID file lives at `~/.copium/deploy/default/runner.pid`; logs go to `~/.copium/deploy/default/runner.log`. `copium stop` reads the PID and sends SIGTERM, printing a session summary first.
+
+All commands support `--json` / `--verbose`. `copium status` renders the §6b output style with savings, config path, and dashboard URL.
 
 This is how `nginx`, `redis-server`, and `postgresql` all work. It's the expected pattern for a server process.
 
-### [ ] 4b. System Service Integration
+### [x] 4b. System Service Integration
+
+> **Implemented** in `copium/cli/service_cmd.py`
 
 For users who want the proxy available immediately after login (before they even open a terminal):
 
@@ -174,17 +180,18 @@ For users who want the proxy available immediately after login (before they even
 copium service install   # install as systemd unit (Linux) or launchd plist (macOS)
 copium service remove    # uninstall the service
 copium service status    # show service health
-copium service logs      # tail the service logs
+copium service logs      # tail the service logs (journalctl on Linux, file fallback)
 ```
 
-**Linux (systemd user unit)**:
+**Linux (systemd user unit)** — written to `~/.config/systemd/user/copium.service`:
 ```ini
 [Unit]
 Description=Copium context compression proxy
 After=network.target
 
 [Service]
-ExecStart=/home/<user>/.local/bin/copium run
+Type=simple
+ExecStart=<path-to-run-copium.sh>
 Restart=on-failure
 RestartSec=5
 
@@ -192,7 +199,11 @@ RestartSec=5
 WantedBy=default.target
 ```
 
-**macOS (launchd plist)** — written to `~/Library/LaunchAgents/dev.copium.plist`.
+**macOS (launchd plist)** — written to `~/Library/LaunchAgents/com.copium.default.plist`.
+
+**Windows** — Windows Service (sc.exe) or Task Scheduler, depending on scope.
+
+`copium service logs` uses `journalctl` natively on Linux and falls back to reading the runner log file on other platforms.
 
 This means developers never have to think about starting Copium. It's just always there.
 
@@ -817,8 +828,8 @@ $ copium docker stop     # stop the Docker container
 
 | Item | Why |
 |---|---|
-| `copium start` / `copium stop` daemon mode | Eliminates the biggest daily friction point |
-| `copium status` with rich output | Instant feedback that it's working |
+| ~~`copium start` / `copium stop` daemon mode~~ ✓ **Done** | Eliminates the biggest daily friction point |
+| ~~`copium status` with rich output~~ ✓ **Done** | Instant feedback that it's working |
 | Shell completion + `copium completions` command | Makes the tool feel professional immediately |
 | `copium remove` | Builds trust by making it reversible |
 | Response headers (`X-Copium-*`) | Transparency without any extra work from the user |

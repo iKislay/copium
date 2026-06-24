@@ -1280,8 +1280,7 @@ def stop(port: int, quiet: bool) -> None:
 
     \\b
     Finds the proxy process on the given port and stops it cleanly.
-    Use this when you started the proxy with `copium proxy` or `copium run`
-    and want to stop it without Ctrl-C.
+    Prints a session summary (tokens saved, cost) before shutting down.
 
     \\b
     Examples:
@@ -1302,8 +1301,45 @@ def stop(port: int, quiet: bool) -> None:
 
     if not _port_open(port):
         if not quiet:
-            click.echo(f"  No proxy running on port {port}.")
+            click.secho(f"  \u25cb No proxy running on port {port}.", fg="yellow")
         raise SystemExit(0)
+
+    # \u2500\u2500 Session summary (\u00a710b) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    if not quiet:
+        try:
+            from copium.proxy.savings_tracker import SavingsTracker
+
+            tracker = SavingsTracker()
+            data = tracker.stats_preview()
+            session = data.get("display_session", {})
+
+            def _fmt_t(n: int) -> str:
+                if n >= 1_000_000:
+                    return f"{n / 1_000_000:.1f}M"
+                if n >= 1_000:
+                    return f"{n / 1_000:.1f}K"
+                return str(n)
+
+            def _fmt_usd(v: float) -> str:
+                return f"${v:.4f}" if v < 1 else f"${v:.2f}"
+
+            reqs = session.get("requests", 0)
+            tok = session.get("tokens_saved", 0)
+            usd = session.get("compression_savings_usd", 0.0)
+            pct = session.get("savings_percent", 0.0)
+
+            click.echo()
+            click.secho("  Session summary", fg="cyan", bold=True)
+            click.echo("  " + "\u2500" * 36)
+            if reqs > 0:
+                click.echo(f"  Requests proxied   {reqs:>8,}")
+                click.echo(f"  Tokens saved       {_fmt_t(tok):>8}  ({pct:.0f}% avg compression)")
+                click.echo(f"  Est. cost saved    {_fmt_usd(usd):>8}")
+            else:
+                click.echo("  No requests proxied this session.")
+            click.echo()
+        except Exception:
+            pass
 
     # Check it's actually Copium before killing
     pid = None
@@ -1340,14 +1376,14 @@ def stop(port: int, quiet: bool) -> None:
         time.sleep(0.1)
         if not _port_open(port):
             if not quiet:
-                click.echo(f"  ✓ Stopped (PID {pid}, port {port}).")
+                click.secho("  \u2713 Copium stopped.", fg="green")
             raise SystemExit(0)
 
-    # Still running — SIGKILL
+    # Still running \u2014 SIGKILL
     try:
         os.kill(pid, _signal.SIGKILL)
         if not quiet:
-            click.echo(f"  ✓ Force-stopped (SIGKILL PID {pid}).")
+            click.secho(f"  \u2713 Force-stopped (SIGKILL PID {pid}).", fg="yellow")
     except (ProcessLookupError, PermissionError):
         pass
     raise SystemExit(0)

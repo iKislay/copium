@@ -53,6 +53,7 @@ def _register_commands() -> None:
         benchmark_cmd,  # noqa: F401
         capture,  # noqa: F401
         copilot_auth,  # noqa: F401
+        daemon,  # noqa: F401 — start / stop / restart / status (§4a)
         dashboard_tui,  # noqa: F401
         doctor,  # noqa: F401
         evals,  # noqa: F401
@@ -70,6 +71,7 @@ def _register_commands() -> None:
         recipe,  # noqa: F401
         remove,  # noqa: F401
         report_cmd,  # noqa: F401
+        service_cmd,  # noqa: F401 — service install/remove/status/logs (§4b)
         stats,  # noqa: F401
         tools,  # noqa: F401
         update,  # noqa: F401
