@@ -171,6 +171,40 @@ X-Copium-Cache-Hit: false
 
 ---
 
+## Audit Log (§8c)
+
+Every proxied request is logged to `~/.copium/logs/audit.jsonl` as one JSON object per line. The audit writer (`copium.proxy.audit_writer`) is thread-safe and append-only.
+
+**Entry format:**
+```json
+{
+  "ts": "2026-06-23T19:04:31Z",
+  "req": "req_7f3a2b",
+  "provider": "anthropic",
+  "model": "claude-sonnet-4",
+  "path": "/v1/messages",
+  "transforms": ["SmartCrusher", "CacheAligner"],
+  "tokens_in": 4812,
+  "tokens_out": 892,
+  "savings": 0.815,
+  "overhead_ms": 48.3,
+  "cached": false
+}
+```
+
+**Public API:**
+- `get_audit_path()` — Returns the audit log file path.
+- `record(...)` — Append one entry. Never raises (errors logged at DEBUG).
+- `read_recent(n, request_id=None)` — Read last *n* entries, optionally filtered by ID.
+- `find_by_id(request_id)` — Find a single entry by request ID with early return (O(n) scan, but stops at first match).
+- `configure(path, enabled)` — Set log path and enabled flag (call once at proxy startup).
+
+**Integration:** The audit writer is called from `emit_request_outcome()` as the 5th effect (after Prometheus, cost tracker, request logger, and PERF log). Errors are caught and swallowed to preserve proxy liveness.
+
+**CLI access:** `copium explain <request-id>` reads from audit.jsonl (offline) or queries the proxy `/audit/<id>` endpoint (live) to show detailed transformation info for any request.
+
+---
+
 ## Version History
 
 | Version | Date | Changes |
