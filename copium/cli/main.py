@@ -1,5 +1,8 @@
 """Main CLI entry point for Copium."""
 
+import platform
+import sys
+
 import click
 
 CLI_CONTEXT_SETTINGS = {"help_option_names": ["--help", "-?"]}
@@ -42,6 +45,57 @@ def main(ctx: click.Context) -> None:
             maybe_check_async()
         except Exception:  # noqa: BLE001 — update check must never break the CLI
             pass
+
+
+@main.command()
+@click.option("--json", "as_json", is_flag=True, help="Output as JSON.")
+def version(as_json: bool) -> None:
+    """Show Copium version, platform, and install info."""
+    ver = get_version()
+    python_ver = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    platform_info = f"{platform.system().lower()}-{platform.machine()}"
+
+    # Detect install method
+    install_method = "unknown"
+    try:
+        import importlib.metadata
+
+        dist = importlib.metadata.distribution("copium-ai")
+        if dist.read_text("INSTALLER") == "pipx":
+            install_method = "pipx"
+        elif dist.read_text("INSTALLER") == "uv":
+            install_method = "uv"
+        else:
+            install_method = "pip"
+    except Exception:
+        pass
+
+    if as_json:
+        import json
+
+        click.echo(
+            json.dumps(
+                {
+                    "version": ver,
+                    "python": python_ver,
+                    "platform": platform_info,
+                    "install_method": install_method,
+                }
+            )
+        )
+    else:
+        from rich.panel import Panel
+
+        from . import console
+
+        console.print(
+            Panel(
+                f"[bold]copium[/bold] {ver}\n"
+                f"Python {python_ver} on {platform_info}\n"
+                f"Install method: {install_method}",
+                title="Version Info",
+            )
+        )
 
 
 # Import subcommands - these register themselves with the main group
