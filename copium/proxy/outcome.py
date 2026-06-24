@@ -460,3 +460,41 @@ async def emit_request_outcome(handler: Any, outcome: RequestOutcome) -> None:
         )
     except Exception:  # pragma: no cover — defensive
         pass
+
+    # 6. First-request toast (§10a — ~/.copium/state.json).
+    #    Only fires when compression actually happened (tokens_saved > 0) and
+    #    never on a cache hit (the savings come from a prior request in that
+    #    case).  Best-effort: never breaks a response.
+    if outcome.tokens_saved > 0 and not outcome.from_response_cache:
+        try:
+            from copium.proxy.first_request_toast import maybe_emit_toast
+
+            # Estimate USD saved for this specific request from the cost tracker.
+            _usd_saved = 0.0
+            cost_tracker = getattr(handler, "cost_tracker", None)
+            if cost_tracker is not None:
+                try:
+                    from copium.proxy.savings_tracker import _estimate_compression_savings_usd
+                    _usd_saved = _estimate_compression_savings_usd(
+                        outcome.model, outcome.tokens_saved
+                    )
+                except Exception:
+                    pass
+
+            # Derive port from handler config if available.
+            _port = 8787
+            cfg = getattr(handler, "config", None)
+            if cfg is not None:
+                _port = getattr(cfg, "port", 8787)
+
+            maybe_emit_toast(
+                tokens_before=outcome.original_tokens,
+                tokens_after=outcome.optimized_tokens,
+                tokens_saved=outcome.tokens_saved,
+                savings_pct=outcome.savings_pct,
+                usd_saved=_usd_saved,
+                port=_port,
+            )
+        except Exception:  # pragma: no cover — defensive
+            pass
+
