@@ -181,6 +181,178 @@ def _remove_global_config() -> bool:
     return False
 
 
+# ── §9a: shell prompt integration helpers ────────────────────────────────────
+
+_COPIUM_PROMPT_MARKER_START = "# >>> copium prompt start <<<"
+_COPIUM_PROMPT_MARKER_END   = "# >>> copium prompt end <<<"
+_COPIUM_PROMPT_PATTERN = re.compile(
+    re.escape(_COPIUM_PROMPT_MARKER_START) + r".*?" + re.escape(_COPIUM_PROMPT_MARKER_END),
+    re.DOTALL,
+)
+
+# Starship TOML block that adds a [custom.copium] module
+_STARSHIP_COPIUM_MODULE = """
+# Copium active status indicator (§9a)
+[custom.copium]
+description = "Copium compression proxy status"
+command     = "copium status --prompt"
+when        = "copium ping"
+format      = "[$output]($style) "
+style       = "bold yellow"
+""".strip()
+
+# Shell function snippet for non-Starship prompts (bash/zsh PROMPT_COMMAND)
+_SHELL_PROMPT_SNIPPET = """\
+{marker_start}
+# Copium active status indicator — shows ⚡ 38% in your prompt when proxy is running
+_copium_prompt() {{
+  local _s
+  _s="$(copium status --prompt 2>/dev/null)"
+  echo "${{_s:+[$_s] }}"
+}}
+PROMPT_COMMAND='_copium_prompt_val=$(_copium_prompt); ${{PROMPT_COMMAND:-:}}'
+export PS1='${{_copium_prompt_val}}${{PS1}}'
+{marker_end}"""
+
+
+def _starship_config_path() -> Path:
+    """Return the Starship config path (honours $STARSHIP_CONFIG env var)."""
+    env = os.environ.get("STARSHIP_CONFIG")
+    if env:
+        return Path(env)
+    xdg = os.environ.get("XDG_CONFIG_HOME")
+    if xdg:
+        return Path(xdg) / "starship.toml"
+    return Path.home() / ".config" / "starship.toml"
+
+
+def _patch_starship_config() -> bool:
+    """Inject a [custom.copium] module into starship.toml. Returns True on success."""
+    star_cfg = _starship_config_path()
+    try:
+        content = star_cfg.read_text(encoding="utf-8") if star_cfg.exists() else ""
+        if "[custom.copium]" in content:
+            return True  # already present
+        content = content.rstrip() + "\n\n" + _STARSHIP_COPIUM_MODULE + "\n"
+        star_cfg.parent.mkdir(parents=True, exist_ok=True)
+        star_cfg.write_text(content, encoding="utf-8")
+        logger.debug("patched starship config: %s", star_cfg)
+        return True
+    except Exception as exc:
+        logger.debug("failed to patch starship config: %s", exc)
+        return False
+
+
+def _remove_starship_copium_module() -> bool:
+    """Remove the [custom.copium] block from starship.toml. Returns True if found."""
+    star_cfg = _starship_config_path()
+    if not star_cfg.exists():
+        return False
+    try:
+        content = star_cfg.read_text(encoding="utf-8")
+        if "[custom.copium]" not in content:
+            return False
+        # Strip the block (from [custom.copium] up to the next [ section or EOF)
+        import re as _re
+        content = _re.sub(
+            r"\n*# Copium active status indicator[^\[]*?\[custom\.copium\][^\[]+",
+            "\n",
+            content,
+            flags=_re.DOTALL,
+        )
+        star_cfg.write_text(content.rstrip() + "\n", encoding="utf-8")
+        return True
+    except Exception as exc:
+        logger.debug("failed to remove starship copium module: %s", exc)
+        return False
+
+
+def _patch_shell_rc_prompt(rc_file: Path) -> bool:
+    """Inject the _copium_prompt shell function into an rc file. Returns True on success."""
+    try:
+        content = rc_file.read_text(encoding="utf-8") if rc_file.exists() else ""
+        if _COPIUM_PROMPT_MARKER_START in content:
+            return True  # already present
+        snippet = _SHELL_PROMPT_SNIPPET.format(
+            marker_start=_COPIUM_PROMPT_MARKER_START,
+            marker_end=_COPIUM_PROMPT_MARKER_END,
+        )
+        content = content.rstrip() + "\n\n" + snippet + "\n"
+        rc_file.write_text(content, encoding="utf-8")
+        logger.debug("patched shell rc with prompt: %s", rc_file)
+        return True
+    except Exception as exc:
+        logger.debug("failed to patch rc with prompt: %s", exc)
+        return False
+
+
+def _remove_shell_rc_prompt(rc_file: Path) -> bool:
+    """Remove the _copium_prompt block from an rc file. Returns True if removed."""
+    try:
+        if not rc_file.exists():
+            return False
+        content = rc_file.read_text(encoding="utf-8")
+        if _COPIUM_PROMPT_MARKER_START not in content:
+            return False
+        content = _COPIUM_PROMPT_PATTERN.sub("", content).strip() + "\n"
+        rc_file.write_text(content, encoding="utf-8")
+        return True
+    except Exception as exc:
+        logger.debug("failed to remove prompt from rc: %s", exc)
+        return False
+
+
+def _offer_shell_prompt_integration(rc_files: list[Path]) -> None:
+    """Interactively offer to set up shell prompt integration (§9a).
+
+    Detects Starship automatically and patches its config. Falls back to
+    injecting a shell function into the first writable rc file.
+    """
+    has_starship = bool(shutil.which("starship"))
+    star_cfg = _starship_config_path()
+
+    click.echo()
+    click.secho("  Shell prompt integration", bold=True)
+    if has_starship:
+        click.echo(
+            f"  Starship detected. Copium can add a '⚡ 38%' segment\n"
+            f"  to your prompt when the proxy is active."
+        )
+        click.echo(f"  Config: {star_cfg}")
+    else:
+        click.echo(
+            "  Copium can show '⚡ 38%' in your shell prompt (PS1)\n"
+            "  when the proxy is active. Works with bash and zsh."
+        )
+    click.echo()
+
+    if not click.confirm("  Set up shell prompt integration?", default=False):
+        click.secho("  Skipped. Enable later with: copium status --prompt", dim=True)
+        return
+
+    if has_starship:
+        if _patch_starship_config():
+            click.secho(f"  ✓ Starship config updated ({star_cfg})", fg="green")
+            click.echo("    Restart your shell to activate.")
+        else:
+            click.secho("  ✗ Could not update Starship config — check permissions.", fg="red")
+    else:
+        patched = False
+        for rc in rc_files:
+            if _patch_shell_rc_prompt(rc):
+                click.secho(f"  ✓ Prompt integration added to {rc}", fg="green")
+                patched = True
+                break
+        if not patched:
+            click.secho("  ✗ Could not patch any shell rc file.", fg="red")
+            click.echo("    Add manually to ~/.zshrc:")
+            click.secho(
+                "    PROMPT_COMMAND='_copium_val=$(copium status --prompt 2>/dev/null); : ${PROMPT_COMMAND}'",
+                fg="yellow",
+            )
+            click.secho("    export PS1='${_copium_val}${PS1}'", fg="yellow")
+
+
 def _print_next_steps(patched_rc_files: list[Path], config_path: Path, targets: list[str]) -> None:
     """Print the confirmation and next steps after successful init."""
     click.echo()
@@ -207,6 +379,12 @@ def _print_next_steps(patched_rc_files: list[Path], config_path: Path, targets: 
     click.echo()
     click.echo("  3. View savings at any time:")
     click.secho("     copium status", fg="yellow")
+    click.echo()
+    click.secho("  Tip:", dim=True, nl=False)
+    click.secho(
+        " Show '⚡ 38%' in your shell prompt: copium status --prompt",
+        dim=True,
+    )
     click.echo()
 
 
@@ -1059,6 +1237,10 @@ def _run_init_targets(
         config_path = _create_global_config(port, backend)
 
     _print_next_steps(patched_rc_files, config_path, targets)
+
+    # §9a: offer shell prompt integration after setup (global scope only)
+    if global_scope and not skip_shell_rc:
+        _offer_shell_prompt_integration(_get_user_shell_rc_files())
 
 
 def _install_copium_mcp_for_targets(*, targets: list[str], port: int) -> None:

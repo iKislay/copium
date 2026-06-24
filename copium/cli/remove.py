@@ -21,7 +21,13 @@ import click
 from copium.install.runtime import stop_runtime
 from copium.install.state import delete_manifest, list_manifests
 
-from .init import _get_user_shell_rc_files, _remove_copium_from_shell_rc_files, _remove_global_config
+from .init import (
+    _get_user_shell_rc_files,
+    _remove_copium_from_shell_rc_files,
+    _remove_global_config,
+    _remove_shell_rc_prompt,
+    _remove_starship_copium_module,
+)
 from .main import main
 
 logger = logging.getLogger(__name__)
@@ -73,7 +79,7 @@ def remove(force: bool, verbose: bool) -> None:
 
     steps: list[tuple[str, str]] = []
 
-    # 1. Clean shell rc files
+    # 1a. Clean shell rc files (env vars)
     cleaned = _remove_copium_from_shell_rc_files()
     if cleaned:
         for rc in cleaned:
@@ -81,6 +87,17 @@ def remove(force: bool, verbose: bool) -> None:
             steps.append(("shell-rc", str(rc)))
     else:
         click.echo("  - No shell rc files needed cleaning")
+
+    # 1b. Clean shell prompt integration (§9a)
+    prompt_cleaned: list[str] = []
+    for rc_file in _get_user_shell_rc_files():
+        if _remove_shell_rc_prompt(rc_file):
+            click.secho(f"  ✓ Cleaned prompt integration from {rc_file}", fg="green")
+            prompt_cleaned.append(str(rc_file))
+            steps.append(("shell-prompt-rc", str(rc_file)))
+    if _remove_starship_copium_module():
+        click.secho("  ✓ Removed Copium module from starship.toml", fg="green")
+        steps.append(("starship", "removed"))
 
     # 2. Remove global config
     if _remove_global_config():
