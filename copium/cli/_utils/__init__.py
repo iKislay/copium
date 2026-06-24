@@ -12,6 +12,7 @@ from .formatting import (
     truncate,
 )
 from .parsers import parse_duration
+from .progress import download_bar, spinner, step_indicator, step_progress
 
 __all__ = [
     "console",
@@ -24,4 +25,8 @@ __all__ = [
     "format_age",
     "format_bytes",
     "parse_duration",
+    "download_bar",
+    "spinner",
+    "step_indicator",
+    "step_progress",
 ]
