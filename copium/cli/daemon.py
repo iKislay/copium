@@ -145,6 +145,29 @@ def _uptime_str(manifest: "copium.install.models.DeploymentManifest") -> str:  #
     return f"{s}s"
 
 
+def _prompt_string(port: int = _DEFAULT_PORT) -> str:
+    """Return a minimal prompt string for shell prompt integration (§9a).
+
+    Returns '⚡ 38%' when running with savings data, '⚡' when running but no
+    data yet, and '' (empty string) when the proxy is stopped — so shell
+    prompt integrations can simply hide the segment on empty output.
+    """
+    if not _is_running(port):
+        return ""
+
+    try:
+        from copium.proxy.savings_tracker import SavingsTracker
+
+        data = SavingsTracker().stats_preview()
+        pct = data.get("display_session", {}).get("savings_percent", 0.0)
+        if pct and pct > 0:
+            return f"⚡ {pct:.0f}%"
+    except Exception:
+        pass
+
+    return "⚡"
+
+
 def _print_status(verbose: bool = False) -> None:
     """Print a rich copium status block (§6b output style)."""
     manifest = load_manifest(_DEFAULT_PROFILE)
@@ -444,16 +467,34 @@ def restart(port: int | None) -> None:
 )
 @click.option("--json", "as_json", is_flag=True, help="Output machine-readable JSON.")
 @click.option("--verbose", "-v", is_flag=True, help="Show all-time stats alongside session stats.")
-def status(port: int, as_json: bool, verbose: bool) -> None:
+@click.option(
+    "--prompt",
+    is_flag=True,
+    help="Minimal one-line output for shell prompt integration (Starship, p10k, oh-my-zsh).",
+)
+def status(port: int, as_json: bool, verbose: bool, prompt: bool) -> None:
     """Show Copium proxy health, uptime, and savings.
+
+    \b
+    The --prompt flag emits a compact string (e.g. '⚡ 38%') for use inside
+    shell prompts. It outputs nothing when the proxy is stopped, so segments
+    automatically disappear when Copium is not active.
 
     \b
     Examples:
         copium status                 Compact status view
         copium status --verbose       Include all-time stats
         copium status --json          Machine-readable output
+        copium status --prompt        Prompt-friendly one-liner (e.g. for Starship)
     """
     import json as _json
+
+    # ── §9a: shell prompt integration ─────────────────────────────────────
+    if prompt:
+        # Output the minimal prompt string (or nothing when stopped), then exit.
+        # This path is optimised to be fast (<100 ms) so it doesn't slow prompts.
+        click.echo(_prompt_string(port), nl=True)
+        return
 
     manifest = load_manifest(_DEFAULT_PROFILE)
     running = _is_running(port)
