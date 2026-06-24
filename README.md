@@ -50,16 +50,34 @@ pip install "copium-ai[proxy]"
 
 ### Start the proxy
 
-```bash
-copium run                          # listens on http://localhost:8082
+**Recommended — background daemon (survives shell exit):**
 
-# Point your agent at it (pick your tool below)
-export ANTHROPIC_BASE_URL=http://localhost:8082    # Claude Code
-export OPENAI_API_BASE=http://localhost:8082/v1    # Cursor / Aider / OpenCode
+```bash
+copium start               # starts on http://localhost:8787, detaches from terminal
+copium status              # check health, port, today's savings
+copium stop                # stop gracefully (prints session summary)
+copium restart             # restart to pick up config changes
+```
+
+**One-shot foreground mode (blocks the terminal):**
+
+```bash
+copium proxy               # or: copium run
+```
+
+Point your agent at the proxy:
+
+```bash
+# Claude Code
+export ANTHROPIC_BASE_URL=http://localhost:8787
+
+# Cursor / Aider / OpenCode / any OpenAI-compatible client
+export OPENAI_API_BASE=http://localhost:8787/v1
 
 # Watch the savings live
-copium dashboard
-# or open http://localhost:8787/dashboard in your browser
+copium status
+# or: copium tui  (live terminal dashboard)
+# or: open http://localhost:8787/dashboard in your browser
 ```
 
 That's it. No config files. No code changes. Copium automatically compresses every request.
@@ -499,10 +517,62 @@ copium preset aggressive
 ### View your savings
 
 ```bash
-copium stats                   # All-time summary
-copium stats --period session  # Current session only
-copium stats --json            # Machine-readable output
+copium status                  # proxy health, uptime, today's savings
+copium status --verbose        # also show all-time stats
+copium status --json           # machine-readable JSON
+copium stats                   # detailed savings breakdown
+copium stats --period session  # current session only
+copium stats --json            # machine-readable output
 ```
+
+---
+
+## Always-on Background Service
+
+The biggest daily friction with a proxy tool is keeping it running. Copium solves this two ways:
+
+### Daemon mode (recommended for daily use)
+
+```bash
+copium start                  # start proxy, detach from terminal — survives shell exit
+copium stop                   # stop gracefully (shows session summary first)
+copium restart                # restart (picks up config changes)
+copium status                 # check running/stopped, uptime, savings today
+copium status --json          # machine-readable output (for scripts / shell prompts)
+```
+
+`copium start` auto-creates a deployment profile on first run. The PID file lives at `~/.copium/deploy/default/runner.pid`; logs at `~/.copium/deploy/default/runner.log`.
+
+Flags:
+
+```bash
+copium start --port 9090          # custom port
+copium start --preset aggressive  # aggressive compression
+copium start --memory             # enable persistent memory
+copium start --no-wait            # don't wait for ready signal (fire-and-forget)
+```
+
+### Auto-start on login (system service)
+
+For teams or power users who want the proxy running before they even open a terminal:
+
+```bash
+copium service install        # install as systemd user unit (Linux) or launchd agent (macOS)
+copium service status         # show service health
+copium service logs           # tail service logs (uses journalctl on Linux)
+copium service logs -f        # follow logs continuously
+copium service remove         # uninstall the service (keeps your data)
+```
+
+After `copium service install`, the proxy starts automatically at login and restarts on failure. You never have to think about it again.
+
+Platform details:
+
+| Platform | Mechanism | Config location |
+|---|---|---|
+| Linux | systemd user unit | `~/.config/systemd/user/copium.service` |
+| macOS | launchd LaunchAgent | `~/Library/LaunchAgents/com.copium.default.plist` |
+| Windows | Windows Service / Task Scheduler | via `sc.exe` or `schtasks` |
 
 
 ## Architecture (for the curious)

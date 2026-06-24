@@ -45,19 +45,58 @@ docker-compose up -d
 
 ---
 
-### Native Profile
+### Daemon Profile (recommended for daily use)
 
-**Installation:**
+Start the proxy in the background — it detaches from the terminal and survives shell exit.
+
 ```bash
-pip install copium-ai
+copium start               # start background daemon on port 8787
+copium status              # check health, uptime, today's savings
+copium stop                # stop gracefully (prints session summary)
+copium restart             # restart to pick up config changes
 ```
 
-**Run:**
+Flags:
+
+```bash
+copium start --port 9090          # custom port
+copium start --preset aggressive  # aggressive compression preset
+copium start --memory             # enable persistent memory
+copium start --no-wait            # fire-and-forget (don't wait for ready)
+```
+
+PID file: `~/.copium/deploy/default/runner.pid`  
+Logs: `~/.copium/deploy/default/runner.log`
+
+---
+
+### System Service Profile (auto-start on login)
+
+For users who want the proxy available before they open a terminal:
+
+```bash
+copium service install        # install as systemd (Linux) / launchd (macOS) / sc.exe (Windows)
+copium service status         # show service health
+copium service logs           # tail service logs (journalctl on Linux)
+copium service logs -f        # follow logs continuously
+copium service remove         # uninstall the service
+```
+
+| Platform | Mechanism | Config location |
+|---|---|---|
+| Linux | systemd user unit | `~/.config/systemd/user/copium.service` |
+| macOS | launchd LaunchAgent | `~/Library/LaunchAgents/com.copium.default.plist` |
+| Windows | Windows Service / Task Scheduler | via `sc.exe` or `schtasks` |
+
+---
+
+### Native Profile (foreground / manual)
+
+**Run (blocks the terminal):**
 ```bash
 copium proxy --host 0.0.0.0 --port 8787
 ```
 
----
 
 ### Embedded Profile
 
