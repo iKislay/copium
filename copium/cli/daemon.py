@@ -234,17 +234,15 @@ def _print_status(verbose: bool = False) -> None:
 @click.option(
     "--port",
     "-p",
-    default=_DEFAULT_PORT,
+    default=None,
     type=int,
     envvar="COPIUM_PORT",
-    show_default=True,
-    help="Port to run the proxy on.",
+    help="Port to run the proxy on (default: from config or 8787).",
 )
 @click.option(
     "--backend",
-    default="anthropic",
+    default=None,
     envvar="COPIUM_BACKEND",
-    show_default=True,
     help="API backend (anthropic, bedrock, openrouter, …).",
 )
 @click.option(
@@ -256,10 +254,9 @@ def _print_status(verbose: bool = False) -> None:
 )
 @click.option(
     "--mode",
-    default="token",
+    default=None,
     type=click.Choice(["token", "cache"]),
     envvar="COPIUM_MODE",
-    show_default=True,
     help="Optimization mode: token (max savings) or cache (prefix-cache friendly).",
 )
 @click.option("--memory", is_flag=True, help="Enable persistent memory.")
@@ -271,10 +268,10 @@ def _print_status(verbose: bool = False) -> None:
     help="Wait for the proxy to be ready before returning.",
 )
 def start(
-    port: int,
-    backend: str,
+    port: int | None,
+    backend: str | None,
     preset: str | None,
-    mode: str,
+    mode: str | None,
     memory: bool,
     no_telemetry: bool,
     wait: bool,
@@ -284,6 +281,8 @@ def start(
     \b
     The proxy runs detached from the terminal — it survives shell exit.
     Use `copium stop` to shut it down, `copium status` to check health.
+    Config file defaults (from `copium config`) are used when flags
+    are omitted. CLI flags always override config file values.
 
     \b
     Examples:
@@ -296,6 +295,20 @@ def start(
         click.secho(f"  ⚠  Copium is already running on port {port}.", fg="yellow")
         click.secho("     Use `copium restart` to restart, `copium status` to check.", dim=True)
         return
+
+    # ── resolve config-file defaults ─────────────────────────────────────
+    # CLI flags and env vars override config file values.
+    from copium.config_loader import load_proxy_defaults
+
+    cfg = load_proxy_defaults()
+    if port is None:
+        port = int(cfg.get("proxy.port", _DEFAULT_PORT))
+    if backend is None:
+        backend = cfg.get("proxy.backend", "anthropic")
+    if preset is None:
+        preset = cfg.get("compression.preset")
+    if mode is None:
+        mode = cfg.get("proxy.mode", "token")
 
     click.echo()
     click.secho("  Starting Copium proxy…", bold=True)
@@ -346,21 +359,28 @@ def start(
 @click.option(
     "--port",
     "-p",
-    default=_DEFAULT_PORT,
+    default=None,
     type=int,
     envvar="COPIUM_PORT",
-    show_default=True,
-    help="Port the proxy is running on.",
+    help="Port the proxy is running on (default: from config or 8787).",
 )
-def restart(port: int) -> None:
+def restart(port: int | None) -> None:
     """Restart the Copium background daemon.
 
     Picks up any configuration changes made since the last start.
+    Config file defaults (from `copium config`) are used when flags
+    are omitted.
 
     \b
     Examples:
         copium restart            Restart the default proxy
     """
+    from copium.config_loader import load_proxy_defaults
+
+    cfg = load_proxy_defaults()
+    if port is None:
+        port = int(cfg.get("proxy.port", _DEFAULT_PORT))
+
     manifest = load_manifest(_DEFAULT_PROFILE)
 
     click.echo()
