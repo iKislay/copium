@@ -107,6 +107,7 @@ def _register_commands() -> None:
         audit,  # noqa: F401
         benchmark_cmd,  # noqa: F401
         capture,  # noqa: F401
+        completions,  # noqa: F401
         config_cmd,  # noqa: F401 — config show/set/reset/path (§5)
         copilot_auth,  # noqa: F401
         daemon,  # noqa: F401 — start / stop / restart / status (§4a)
