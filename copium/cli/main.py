@@ -2,10 +2,139 @@
 
 import platform
 import sys
+from typing import Any
 
 import click
 
 CLI_CONTEXT_SETTINGS = {"help_option_names": ["--help", "-?"]}
+
+# Command categories with their commands (ordered by importance)
+COMMAND_CATEGORIES: dict[str, list[str]] = {
+    "Quick Start": [
+        "quickstart",
+        "init",
+        "start",
+        "stop",
+        "restart",
+        "status",
+    ],
+    "Agent Integration": [
+        "wrap",
+        "unwrap",
+        "agents",
+    ],
+    "Analytics": [
+        "stats",
+        "savings",
+        "dashboard",
+        "tui",
+        "perf",
+        "output-savings",
+        "agent-savings",
+    ],
+    "Configuration": [
+        "config",
+        "preset",
+        "completions",
+    ],
+    "Operations": [
+        "doctor",
+        "logs",
+        "service",
+        "remove",
+        "update",
+        "version",
+    ],
+    "Memory": [
+        "memory",
+        "learn",
+    ],
+    "Tools (Advanced)": [
+        "sg",
+        "diff",
+        "loc",
+        "capture",
+        "compress-read",
+        "compress-search",
+    ],
+    "Analysis (Advanced)": [
+        "benchmark",
+        "evals",
+        "report",
+        "prioritize",
+        "audit-reads",
+        "ccr",
+        "mcp",
+        "copilot-auth",
+        "recipe",
+        "install",
+    ],
+}
+
+
+class CopiumGroup(click.Group):
+    """Custom Click group with categorized help output."""
+
+    def format_help(self, ctx: click.Context, formatter: click.HelpFormatter) -> None:
+        """Format help with categorized command listing."""
+        # Write the usage line
+        formatter.write_usage(ctx.command_path, ctx.args_path if hasattr(ctx, "args_path") else "[ARGS]")
+
+        # Write the description
+        description = self.get_short_help_str(ctx)
+        if description:
+            formatter.write_paragraph()
+            formatter.write_text(description)
+
+        # Write examples
+        formatter.write_paragraph()
+        formatter.write("[bold]Examples:[/bold]")
+        formatter.write_text("  copium quickstart          Interactive setup wizard")
+        formatter.write_text("  copium start               Start the optimization proxy")
+        formatter.write_text("  copium stats               Show compression statistics")
+        formatter.write_text("  copium doctor              Diagnose your setup")
+
+        # Write categorized commands
+        formatter.write_paragraph()
+        formatter.write_text("[bold]Commands:[/bold]")
+
+        # Build a set of commands we've already listed
+        listed_commands: set[str] = set()
+
+        for category, commands in COMMAND_CATEGORIES.items():
+            # Filter to commands that actually exist
+            available = [c for c in commands if c in self.commands]
+            if not available:
+                continue
+
+            formatter.write_paragraph()
+            formatter.write(f"  [dim]{category}:[/dim]")
+            for cmd_name in available:
+                cmd = self.commands[cmd_name]
+                help_text = cmd.get_short_help_str(ctx)
+                # Truncate long help text
+                if len(help_text) > 50:
+                    help_text = help_text[:47] + "..."
+                cmd_line = f"    {cmd_name:<16} {help_text}"
+                formatter.write_text(cmd_line)
+                listed_commands.add(cmd_name)
+
+        # List any remaining commands not in a category
+        remaining = set(self.commands.keys()) - listed_commands
+        if remaining:
+            formatter.write_paragraph()
+            formatter.write(f"  [dim]Other:[/dim]")
+            for cmd_name in sorted(remaining):
+                cmd = self.commands[cmd_name]
+                help_text = cmd.get_short_help_str(ctx)
+                if len(help_text) > 50:
+                    help_text = help_text[:47] + "..."
+                cmd_line = f"    {cmd_name:<16} {help_text}"
+                formatter.write_text(cmd_line)
+
+        # Write footer
+        formatter.write_paragraph()
+        formatter.write_text("Use \"copium <command> --help\" for more information on a command.")
 
 
 def get_version() -> str:
@@ -18,7 +147,7 @@ def get_version() -> str:
         return "unknown"
 
 
-@click.group(context_settings=CLI_CONTEXT_SETTINGS)
+@click.group(context_settings=CLI_CONTEXT_SETTINGS, cls=CopiumGroup)
 @click.version_option(get_version(), "--version", "-v", prog_name="copium")
 @click.pass_context
 def main(ctx: click.Context) -> None:
