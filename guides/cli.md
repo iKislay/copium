@@ -29,6 +29,11 @@ This page is the authoritative reference for the **Python Copium CLI** exposed b
 | `copium evals ...` | Run memory evaluation workflows | **native in container** |
 | `copium memory ...` | Inspect and manage stored memories | **native in container** |
 | `copium mcp ...` | Install, inspect, remove, or serve MCP integration | **native in container** |
+| `copium agents` | List detected AI agents and wrap status | **native in container** |
+| `copium logs` | Tail proxy logs | **native in container** |
+| `copium completions` | Generate shell completion scripts | **native in container** |
+| `copium version` | Show version, platform, and install info | **native in container** |
+| `copium doctor` | Diagnose installation and configuration | **native in container** |
 | `copium wrap claude` | Start proxy and launch Claude Code | **host-bridged** |
 | `copium wrap copilot` | Start proxy and launch GitHub Copilot CLI | **python-native only** |
 | `copium wrap codex` | Start proxy and launch Codex CLI | **host-bridged** |
@@ -91,6 +96,108 @@ Usage: copium proxy [OPTIONS]
 
   Usage with OpenAI-compatible clients:
       OPENAI_BASE_URL=http://localhost:8787/v1 your-app
+```
+
+</details>
+
+<details>
+<summary><code>copium agents --help</code></summary>
+
+```text
+Usage: copium agents [OPTIONS]
+
+  List all detected AI agents and their wrap status.
+
+  Shows which agents are installed on your system and whether they are
+  configured to route through the Copium proxy.
+
+  Examples:
+      copium agents              Show all known agents
+      copium agents --installed  Show only installed agents
+      copium agents --json       Machine-readable output
+
+Options:
+  --json       Output as JSON.
+  --installed  Show only installed agents.
+  -?, --help   Show this message and exit.
+```
+
+</details>
+
+<details>
+<summary><code>copium logs --help</code></summary>
+
+```text
+Usage: copium logs [OPTIONS]
+
+  Tail Copium proxy logs.
+
+  Shows recent log entries from the Copium proxy. Use --follow to watch
+  logs in real time (Ctrl+C to stop).
+
+  Examples:
+      copium logs              Show last 100 lines
+      copium logs -n 50        Show last 50 lines
+      copium logs -f           Follow logs in real time
+      copium logs --level ERROR  Show only errors
+
+Options:
+  -n, --tail INTEGER    Number of lines to show from the end.  [default: 100]
+  -f, --follow          Follow log output (like tail -f).
+  --level [DEBUG|INFO|WARNING|ERROR]
+                        Filter by log level.
+  --json                Output as JSON.
+  -?, --help            Show this message and exit.
+```
+
+</details>
+
+<details>
+<summary><code>copium completions --help</code></summary>
+
+```text
+Usage: copium completions [OPTIONS] SHELL
+
+  Generate shell completion scripts.
+
+  Outputs a completion script to stdout. Redirect to the appropriate
+  file to install.
+
+  Examples:
+      copium completions bash >> ~/.bash_completion
+      copium completions zsh >> ~/.zshrc
+      copium completions fish > ~/.config/fish/completions/copium.fish
+      copium completions powershell | Out-String | Invoke-Expression
+
+  After installing, reload your shell or run:
+      source ~/.bash_completion   # bash
+      source ~/.zshrc             # zsh
+      exec fish                   # fish
+
+Options:
+  -?, --help  Show this message and exit.
+
+Arguments:
+  SHELL  Required. One of: bash, zsh, fish, powershell
+```
+
+</details>
+
+<details>
+<summary><code>copium version --help</code></summary>
+
+```text
+Usage: copium version [OPTIONS]
+
+  Show Copium version, platform, and install info.
+
+  Examples:
+      copium version            Show version info
+      copium version --json     Machine-readable output
+
+Options:
+  --json     Output as JSON.
+  -?, --help  Show this message and exit.
 ```
 
 </details>

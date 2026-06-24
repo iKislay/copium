@@ -525,6 +525,31 @@ copium stats --period session  # current session only
 copium stats --json            # machine-readable output
 ```
 
+### Check agent status
+
+```bash
+copium agents                  # list all detected agents and wrap status
+copium agents --installed      # show only installed agents
+copium agents --json           # machine-readable output
+```
+
+### View logs
+
+```bash
+copium logs                    # show last 100 lines of proxy logs
+copium logs -n 50              # show last 50 lines
+copium logs -f                 # follow logs in real time (Ctrl+C to stop)
+copium logs --level ERROR      # filter by log level
+```
+
+### Version and diagnostics
+
+```bash
+copium version                 # show version, Python, platform, install method
+copium version --json          # machine-readable output
+copium doctor                  # diagnose installation and configuration
+```
+
 ---
 
 ## Always-on Background Service
@@ -565,6 +590,26 @@ copium service remove         # uninstall the service (keeps your data)
 ```
 
 After `copium service install`, the proxy starts automatically at login and restarts on failure. You never have to think about it again.
+
+### Shell completion
+
+Enable tab completion for faster command lookup:
+
+```bash
+# Bash
+copium completions bash >> ~/.bash_completion
+
+# Zsh
+copium completions zsh >> ~/.zshrc
+
+# Fish
+copium completions fish > ~/.config/fish/completions/copium.fish
+
+# PowerShell
+copium completions powershell | Out-String | Invoke-Expression
+```
+
+After installing, reload your shell or run `source ~/.zshrc` (zsh) / `source ~/.bash_completion` (bash).
 
 Platform details:
 
