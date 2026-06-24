@@ -24,7 +24,6 @@ from copium.config_loader import (
     show_merged_flat,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -374,13 +373,13 @@ class TestResetConfig:
     ) -> None:
         config_file = global_config_dir / "config.toml"
         config_file.write_text("[proxy]\nport = 9000\n")
-        path = reset_config(global_scope=True)
+        reset_config(global_scope=True)
         assert not config_file.exists()
 
     def test_reset_project(self, project_dir: Path) -> None:
         config_file = project_dir / "copium.json"
         config_file.write_text("{}")
-        path = reset_config(global_scope=False)
+        reset_config(global_scope=False)
         assert not config_file.exists()
 
 
