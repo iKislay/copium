@@ -17,6 +17,7 @@
 
 pub mod adaptive_sizer;
 pub mod anchor_selector;
+pub mod code_analyzer;
 pub mod content_detector;
 pub mod detection;
 pub mod diff_compressor;
@@ -24,9 +25,11 @@ pub mod live_zone;
 pub mod log_compressor;
 pub mod magika_detector;
 pub mod pipeline;
+pub mod quality_gate;
 pub mod recommendations;
 pub mod safety;
 pub mod search_compressor;
+pub mod simhash;
 pub mod smart_crusher;
 pub mod tag_protector;
 pub mod unidiff_detector;
@@ -54,6 +57,7 @@ pub use pipeline::{
     JsonMinifier, JsonOffload, LogOffload, LogTemplate, OffloadOutput, OffloadTransform,
     PipelineConfig, PipelineResult, ReformatOutput, ReformatTransform, TransformError,
 };
+pub use quality_gate::{rouge_l, rouge_l_str, GateResult, QualityGate, QualityMetric};
 pub use recommendations::{Recommendation, RecommendationStore, RECOMMENDATIONS_PATH_ENV_VAR};
 pub use safety::{tool_pair_indices, ToolPair};
 pub use search_compressor::{

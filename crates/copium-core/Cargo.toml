@@ -121,6 +121,7 @@ redis = { version = "0.27", optional = true, default-features = false }
 # classifier live with the other Phase B/F policy primitives without
 # cycling through the proxy crate. Tiny crate (no I/O, just types).
 http = "1"
+unicode-normalization = "0.1"
 
 [target.'cfg(not(windows))'.dependencies]
 fastembed = { version = "5", default-features = false, features = [
@@ -158,6 +159,10 @@ harness = false
 
 [[bench]]
 name = "ccr_store"
+harness = false
+
+[[bench]]
+name = "rouge_l"
 harness = false
 
 [[bench]]

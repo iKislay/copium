@@ -921,10 +921,7 @@ mod tests {
         // No orphan-tag bytes appear anywhere in the output.
         let blocks = vec![
             ("{{COPIUM_TAG_0}}".to_string(), "<a>1</a>".to_string()),
-            (
-                "{{COPIUM_TAG_1}}".to_string(),
-                "<lost>x</lost>".to_string(),
-            ),
+            ("{{COPIUM_TAG_1}}".to_string(), "<lost>x</lost>".to_string()),
         ];
         let compressed = "head {{COPIUM_TAG_0}} tail";
         let restored = restore_tags(compressed, &blocks);

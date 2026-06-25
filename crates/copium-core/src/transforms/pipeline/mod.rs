@@ -96,7 +96,7 @@ pub use config::{
 // docs for rationale.
 pub use offloads::{DiffNoise, DiffOffload, JsonOffload, LogOffload};
 pub use orchestrator::{CompressionPipeline, CompressionPipelineBuilder, PipelineResult};
-pub use reformats::{JsonMinifier, LogTemplate};
+pub use reformats::{JsonMinifier, LogTemplate, SimhashDedup};
 pub use traits::{
     CompressionContext, OffloadOutput, OffloadTransform, ReformatOutput, ReformatTransform,
     TransformError,

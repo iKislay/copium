@@ -223,6 +223,14 @@ pub trait OffloadTransform: Send + Sync {
     /// Calibrated 0.0–1.0 quality score for telemetry. Future PR4
     /// may use it to select between competing offload transforms.
     fn confidence(&self) -> f32;
+
+    /// Optional quality gate for this offload. When present, the
+    /// orchestrator validates the candidate output against the original
+    /// before committing to CCR. Returns `None` by default so existing
+    /// offloads compile unchanged.
+    fn quality_gate(&self) -> Option<&crate::transforms::quality_gate::QualityGate> {
+        None
+    }
 }
 
 #[cfg(test)]

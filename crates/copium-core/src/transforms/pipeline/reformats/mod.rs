@@ -7,6 +7,8 @@
 
 pub mod json_minifier;
 pub mod log_template;
+pub mod simhash_dedup;
 
 pub use json_minifier::JsonMinifier;
 pub use log_template::LogTemplate;
+pub use simhash_dedup::SimhashDedup;

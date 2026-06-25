@@ -11,8 +11,8 @@
 //! The bench measures one classifier call per iteration. The
 //! `HeaderMap` is constructed once outside the timing loop.
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use copium_core::auth_mode::classify;
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use http::{HeaderMap, HeaderValue};
 
 fn build_headers(pairs: &[(&str, &str)]) -> HeaderMap {
