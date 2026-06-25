@@ -33,6 +33,101 @@ from .main import main
 logger = logging.getLogger(__name__)
 
 
+def _unwrap_all_agents(verbose: bool = False) -> list[tuple[str, str]]:
+    """Unwrap all wrapped agents (opencode, codex, claude).
+
+    Returns a list of (agent, status) tuples describing what was cleaned.
+    Silently catches errors so removal can proceed even if unwrap partially fails.
+    """
+    results: list[tuple[str, str]] = []
+
+    # --- OpenCode ---
+    try:
+        from .wrap import _remove_opencode_copium_provider, _OPENCODE_CONFIG_PATH
+
+        status = _remove_opencode_copium_provider(_OPENCODE_CONFIG_PATH)
+        if status in {"restored", "cleaned"}:
+            results.append(("opencode", status))
+        elif verbose and status == "clean":
+            results.append(("opencode", "no-copium-entries"))
+    except Exception as exc:
+        if verbose:
+            results.append(("opencode", f"error: {exc}"))
+        logger.debug("failed to unwrap opencode: %s", exc)
+
+    # --- Codex ---
+    try:
+        from .wrap import _restore_codex_provider_config
+
+        status, _config_file = _restore_codex_provider_config()
+        if status in {"restored", "cleaned", "removed"}:
+            results.append(("codex", status))
+        elif verbose and status == "noop":
+            results.append(("codex", "no-copium-entries"))
+    except Exception as exc:
+        if verbose:
+            results.append(("codex", f"error: {exc}"))
+        logger.debug("failed to unwrap codex: %s", exc)
+
+    # --- Claude ---
+    try:
+        from .wrap import _restore_claude_wrap_base_url, _remove_claude_rtk_hooks, _remove_copium_installed_serena_mcp
+
+        claude_cleaned = False
+        if _remove_claude_rtk_hooks():
+            claude_cleaned = True
+        _restore_claude_wrap_base_url(None)
+        _restore_claude_wrap_base_url(None, foundry_mode=True)
+
+        # Also remove Claude MCP registrations
+        try:
+            from copium.mcp_registry import ClaudeRegistrar
+
+            registrar = ClaudeRegistrar()
+            if registrar.detect():
+                removed_copium = registrar.unregister_server("copium")
+                removed_cbm = registrar.unregister_server("copium-codebase-memory")
+                serena_status = _remove_copium_installed_serena_mcp(registrar)
+                if removed_copium or removed_cbm or serena_status == "removed":
+                    claude_cleaned = True
+        except Exception:
+            pass
+
+        if claude_cleaned:
+            results.append(("claude", "cleaned"))
+        elif verbose:
+            results.append(("claude", "no-copium-entries"))
+    except Exception as exc:
+        if verbose:
+            results.append(("claude", f"error: {exc}"))
+        logger.debug("failed to unwrap claude: %s", exc)
+
+    return results
+
+
+def _cleanup_temp_files() -> None:
+    """Remove temp files left behind by the Copium SDK and proxy."""
+    import tempfile
+
+    temp_dir = Path(tempfile.gettempdir())
+
+    # SDK default store: /tmp/copium.db (shared across processes)
+    sdk_db = temp_dir / "copium.db"
+    if sdk_db.exists():
+        try:
+            sdk_db.unlink()
+            click.secho("  ✓ Removed temp file: /tmp/copium.db", fg="green")
+        except OSError:
+            pass
+
+    # Embed server Unix sockets
+    for sock in temp_dir.glob("copium-embed-*.sock"):
+        try:
+            sock.unlink()
+        except OSError:
+            pass
+
+
 def _remove_copium_directory(workspace_dir: Path) -> bool:
     """Remove the Copium workspace directory."""
     if not workspace_dir.exists():
@@ -60,9 +155,10 @@ def _remove_deployment_profiles() -> list[str]:
 def remove(force: bool, verbose: bool) -> None:
     """Fully remove Copium from your system.
 
-    Reverses everything `copium init` configured: cleans shell rc files,
-    removes the global config, deletes the Copium data directory, and
-    unregisters any system services.
+    Reverses everything `copium init` configured: unwraps all wrapped agents
+    (opencode, codex, claude), cleans shell rc files, removes the global
+    config, deletes the Copium data directory, and unregisters any system
+    services.
 
     \b
     Examples:
@@ -78,6 +174,19 @@ def remove(force: bool, verbose: bool) -> None:
     click.echo()
 
     steps: list[tuple[str, str]] = []
+
+    # 0. Unwrap all wrapped agents first (opencode, codex, claude)
+    #    This restores agent configs before we remove Copium's data directory.
+    click.echo("  Unwrapping agents...")
+    agent_results = _unwrap_all_agents(verbose=verbose)
+    for agent, status in agent_results:
+        if status in {"restored", "cleaned", "removed"}:
+            click.secho(f"  ✓ Unwrapped {agent} ({status})", fg="green")
+            steps.append((f"unwrap-{agent}", status))
+        elif verbose:
+            click.echo(f"  - {agent}: {status}")
+    if not agent_results:
+        click.echo("  - No wrapped agents found")
 
     # 1a. Clean shell rc files (env vars)
     cleaned = _remove_copium_from_shell_rc_files()
@@ -111,7 +220,10 @@ def remove(force: bool, verbose: bool) -> None:
             click.secho(f"  ✓ Stopped and removed profile: {profile}", fg="green")
             steps.append(("profile", profile))
 
-    # 4. Remove the Copium data directory
+    # 4. Clean up temp files left behind by the SDK
+    _cleanup_temp_files()
+
+    # 5. Remove the Copium data directory
     copium_dir = Path.home() / ".copium"
     if copium_dir.exists():
         if force or click.confirm(
