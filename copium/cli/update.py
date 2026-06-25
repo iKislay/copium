@@ -154,7 +154,7 @@ def _managed_env_guidance() -> str:
     if sys.platform == "darwin":
         hint = "`brew upgrade copium-ai` (if installed via Homebrew), or reinstall with pipx"
     elif sys.platform.startswith("win"):
-        hint = "reinstall with pipx (`pipx install copium-ai`) or use a virtualenv"
+        hint = "reinstall with pipx (`pipx install \"copium-ai[proxy]\"`) or use a virtualenv"
     else:
         hint = "use your distro package manager, or reinstall with pipx / a virtualenv"
     return (

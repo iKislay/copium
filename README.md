@@ -37,10 +37,10 @@ The gains are real: **1.4 billion tokens saved** across 50K+ sessions in product
 
 ```bash
 # Recommended — installs globally in an isolated environment
-pipx install copium-ai          # or: pipx install "copium-ai[proxy]"
+pipx install "copium-ai[proxy]"
 
 # If you use uv
-uv tool install copium-ai       # or: uv tool install "copium-ai[proxy]"
+uv tool install "copium-ai[proxy]"
 
 # Project-local install (less recommended for CLI use)
 pip install "copium-ai[proxy]"
