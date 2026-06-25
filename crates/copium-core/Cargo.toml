@@ -162,5 +162,9 @@ name = "ccr_store"
 harness = false
 
 [[bench]]
+name = "rouge_l"
+harness = false
+
+[[bench]]
 name = "auth_mode"
 harness = false
