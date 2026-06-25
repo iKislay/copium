@@ -5,9 +5,7 @@
 
 use std::time::Duration;
 
-use copium_core::ccr::backends::{
-    from_config, CcrBackendConfig, InMemoryCcrStore, SqliteCcrStore,
-};
+use copium_core::ccr::backends::{from_config, CcrBackendConfig, InMemoryCcrStore, SqliteCcrStore};
 use copium_core::ccr::{compute_key, CcrStore};
 
 #[test]

@@ -163,6 +163,18 @@ impl CompressionPipeline {
                         );
                         continue;
                     }
+                    // Quality gate: validate semantic preservation if configured.
+                    if let Some(gate) = offload.quality_gate() {
+                        let gate_result = gate.validate(&current, &out.output);
+                        if !gate_result.is_pass() {
+                            tracing::warn!(
+                                target: "copium::pipeline",
+                                offload = offload.name(),
+                                "quality gate failed, discarding candidate"
+                            );
+                            continue;
+                        }
+                    }
                     total_saved = total_saved.saturating_add(out.bytes_saved);
                     current = out.output;
                     steps.push(offload.name().to_string());

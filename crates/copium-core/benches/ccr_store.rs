@@ -20,8 +20,8 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use copium_core::ccr::{CcrStore, InMemoryCcrStore};
+use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 
 // ─── Baseline: the old single-Mutex<HashMap> design ────────────────
 //
