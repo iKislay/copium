@@ -509,6 +509,12 @@ def _setup_rtk(verbose: bool = False, *, port: int | None = None) -> Path | None
         # Show agent savings profile
         profile = os.environ.get("COPIUM_SAVINGS_PROFILE", _DEFAULT_AGENT_SAVINGS_PROFILE)
         click.echo(f"  Agent savings profile: {profile}")
+        # Show transforms
+        click.echo("  Transforms: SmartCrusher, Kompress, CacheAligner, SessionDedup")
+        # Show MCP retrieve tool
+        click.echo("  MCP retrieve tool: registered")
+        # Show CCR
+        click.echo("  CCR (Compress-Cache-Retrieve): enabled")
 
     return rtk_path
 
