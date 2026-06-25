@@ -56,6 +56,7 @@ COMMAND_CATEGORIES: dict[str, list[str]] = {
         "capture",
         "compress-read",
         "compress-search",
+        "hook",
     ],
     "Analysis (Advanced)": [
         "benchmark",
@@ -244,6 +245,7 @@ def _register_commands() -> None:
         evals,  # noqa: F401
         explain,  # noqa: F401 — copium explain <request-id> (§8a)
         hooks_compress,  # noqa: F401
+        hook,  # noqa: F401
         init,  # noqa: F401
         install,  # noqa: F401
         learn,  # noqa: F401

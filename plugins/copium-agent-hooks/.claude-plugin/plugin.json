@@ -1,6 +1,6 @@
 {
   "name": "copium",
-  "version": "0.22.3",
+  "version": "0.26.5",
   "description": "Copium startup hooks for Claude Code and GitHub Copilot CLI.",
   "author": {
     "name": "github.com/iKislay",
