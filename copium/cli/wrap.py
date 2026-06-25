@@ -5148,10 +5148,12 @@ def opencode(
 
     # Build the copium provider entry.
     # Free Zen models use @ai-sdk/openai-compatible against the local proxy.
-    # The proxy forwards to https://opencode.ai/zen/v1 (set via openai_api_url).
-    # Go subscription models are also OpenAI-compatible; the proxy's per-model
-    # dispatch routes them to https://opencode.ai/zen/go/v1 with auth from
-    # ~/.local/share/opencode/auth.json (set via opencode_go_api_url).
+    # The proxy forwards to https://opencode.ai/zen/v1/chat/completions
+    # (base URL https://opencode.ai/zen is set via openai_api_url; /v1 is
+    # appended by build_copilot_upstream_url). Go subscription models are
+    # also OpenAI-compatible; the proxy's per-model dispatch routes them to
+    # https://opencode.ai/zen/go/v1/chat/completions with auth from
+    # ~/.local/share/opencode/auth.json (base URL set via opencode_go_api_url).
     copium_provider: dict = {
         "npm": "@ai-sdk/openai-compatible",
         "name": "Copium (Compressed)",
@@ -5316,15 +5318,15 @@ def opencode(
 
         # Start the proxy, forwarding to OpenCode Zen upstream.
         # The Go upstream is also configured so Go model IDs route to
-        # https://opencode.ai/zen/go/v1 with auth from auth.json.
+        # https://opencode.ai/zen/go/v1/chat/completions with auth from auth.json.
         proxy_holder[0] = _ensure_proxy(
             port,
             no_proxy,
             learn=learn,
             memory=memory,
             agent_type="opencode",
-            openai_api_url="https://opencode.ai/zen/v1",
-            opencode_go_api_url="https://opencode.ai/zen/go/v1",
+            openai_api_url="https://opencode.ai/zen",
+            opencode_go_api_url="https://opencode.ai/zen/go",
         )
         _push_runtime_env(port, no_proxy)
 
