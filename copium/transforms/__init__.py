@@ -116,6 +116,11 @@ if TYPE_CHECKING:
         QualityGate,
         QualityGateResult,
     )
+    from copium.transforms.file_read_compressor import (  # noqa: F401
+        FileReadCompressor,
+        FileReadCompressorConfig,
+        FileReadCompressionResult,
+    )
 
 _HTML_EXTRACTOR_AVAILABLE = importlib.util.find_spec("trafilatura") is not None
 
@@ -184,6 +189,10 @@ __all__ = [
     # Quality gate
     "QualityGate",
     "QualityGateResult",
+    # File read compression
+    "FileReadCompressor",
+    "FileReadCompressorConfig",
+    "FileReadCompressionResult",
     # Model routing
     "ModelRouter",
     "ModelRouterConfig",
@@ -307,6 +316,9 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
     # Quality gate
     "QualityGate": ("copium.transforms.quality_gate", "QualityGate"),
     "QualityGateResult": ("copium.transforms.quality_gate", "QualityGateResult"),
+    "FileReadCompressor": ("copium.transforms.file_read_compressor", "FileReadCompressor"),
+    "FileReadCompressorConfig": ("copium.transforms.file_read_compressor", "FileReadCompressorConfig"),
+    "FileReadCompressionResult": ("copium.transforms.file_read_compressor", "FileReadCompressionResult"),
     # Model routing
     "ModelRouter": ("copium.transforms.model_router", "ModelRouter"),
     "ModelRouterConfig": ("copium.transforms.model_router", "ModelRouterConfig"),
