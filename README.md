@@ -48,6 +48,38 @@ pip install "copium-ai[proxy]"
 
 > **Why `pipx`?** It installs CLI tools into isolated environments so `copium` is available globally without polluting any project's dependencies. If you don't have `pipx`: `pip install pipx && pipx ensurepath`.
 
+### RTK (Rust Token Killer) — Included automatically
+
+RTK is bundled with Copium and auto-installed on first `copium wrap` run. No separate install needed.
+
+For RTK-only mode (CLI stdout compression without the proxy):
+```bash
+copium wrap claude --rtk-only
+```
+
+This gives you RTK's exact UX — `rtk git status`, `rtk grep`, etc. — then upgrade to full proxy compression anytime by dropping `--rtk-only`.
+
+To install RTK manually (standalone):
+```bash
+# Via Homebrew (macOS/Linux)
+brew install rtk
+
+# Via curl (Linux/macOS)
+curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/main/install.sh | bash
+
+# Via cargo
+cargo install --git https://github.com/rtk-ai/rtk
+```
+
+Then activate for your agent:
+```bash
+# Claude Code
+rtk init --claude-code
+
+# Verify savings
+rtk gain
+```
+
 ### Start the proxy
 
 **Recommended — background daemon (survives shell exit):**
