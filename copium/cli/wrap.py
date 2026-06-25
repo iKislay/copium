@@ -494,12 +494,15 @@ def _setup_rtk(verbose: bool = False, *, port: int | None = None) -> Path | None
             click.echo("  rtk download failed — continuing without it")
             return None
 
-    # Register hooks (idempotent)
+    # Register rtk hooks (idempotent)
     if register_claude_hooks(rtk_path):
         if verbose:
             click.echo("  RTK instructions: injected into Claude Code hooks")
     else:
         click.echo("  rtk hook registration failed — continuing without it")
+
+    # Register Copium hooks for Read and Grep tools
+    _register_copium_hooks(verbose)
 
     if verbose and port is not None:
         click.echo(f"  Proxy: started on port {port} (token mode)")
@@ -508,6 +511,73 @@ def _setup_rtk(verbose: bool = False, *, port: int | None = None) -> Path | None
         click.echo(f"  Agent savings profile: {profile}")
 
     return rtk_path
+
+
+def _register_copium_hooks(verbose: bool = False) -> None:
+    """Register copium compress-read and compress-search hooks for Claude Code.
+
+    Adds PreToolUse hooks for Read and Grep tools to compress large
+    file reads and search results before they enter the LLM context.
+    """
+    import json
+    from pathlib import Path
+
+    settings_path = Path.home() / ".claude" / "settings.json"
+    if not settings_path.exists():
+        return
+
+    try:
+        payload = json.loads(settings_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+
+    hooks = payload.get("hooks", {})
+    if not isinstance(hooks, dict):
+        hooks = {}
+
+    # Define the hooks we want to add
+    copium_hooks = {
+        "Read": "copium compress-read --max-lines 200",
+        "Grep": "copium compress-search --max-results 50",
+    }
+
+    changed = False
+    for matcher, command in copium_hooks.items():
+        pre_use = hooks.get("PreToolUse", [])
+        if not isinstance(pre_use, list):
+            pre_use = []
+
+        # Check if our hook already exists for this matcher
+        has_hook = False
+        for entry in pre_use:
+            if not isinstance(entry, dict):
+                continue
+            entry_matcher = entry.get("matcher")
+            if entry_matcher != matcher:
+                continue
+            hook_items = entry.get("hooks", [])
+            for item in hook_items:
+                if isinstance(item, dict) and item.get("command") == command:
+                    has_hook = True
+                    break
+            if has_hook:
+                break
+
+        if not has_hook:
+            new_entry = {
+                "matcher": matcher,
+                "hooks": [{"type": "command", "command": command}],
+            }
+            pre_use.append(new_entry)
+            changed = True
+            if verbose:
+                click.echo(f"  Copium hook registered: {matcher} -> {command}")
+
+    if changed:
+        hooks["PreToolUse"] = pre_use
+        payload["hooks"] = hooks
+        settings_path.parent.mkdir(parents=True, exist_ok=True)
+        settings_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
 def _setup_lean_ctx_agent(agent: str, verbose: bool = False) -> Path | None:
