@@ -26,8 +26,8 @@ mod common;
 
 use bytes::Bytes;
 use common::start_proxy_with;
-use futures_util::StreamExt;
 use copium_proxy::sse::{openai_responses::ResponseState, SseFramer};
+use futures_util::StreamExt;
 use serde_json::json;
 use sha2::{Digest, Sha256};
 use std::convert::Infallible;

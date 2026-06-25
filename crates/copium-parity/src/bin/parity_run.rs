@@ -6,10 +6,7 @@ use copium_parity::{builtin_comparators, run_comparator};
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
-#[command(
-    name = "parity-run",
-    about = "Run Copium Rust-vs-Python parity checks"
-)]
+#[command(name = "parity-run", about = "Run Copium Rust-vs-Python parity checks")]
 struct Cli {
     #[command(subcommand)]
     cmd: Cmd,
