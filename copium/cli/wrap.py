@@ -2309,6 +2309,7 @@ def _ensure_proxy(
 ) -> subprocess.Popen | None:
     """Start or verify proxy. Returns process handle if we started it."""
     helpers = _live_wrap_module()
+    _skip_persistent_recovery = False
     if not no_proxy:
         manifest = helpers._find_persistent_manifest(port)
         if manifest is not None:
@@ -2341,9 +2342,53 @@ def _ensure_proxy(
                         f"Persistent deployment '{manifest.profile}' on port {port} "
                         f"is running stale Copium {running_version} and could not be restarted."
                     )
-                click.echo(f"  Proxy already running on port {port}")
-                return None
-            if helpers._recover_persistent_proxy(port):
+                # Check if the running proxy has the correct upstream URLs.
+                # A persistent proxy started by `copium install agent` may
+                # route to a different upstream (e.g. OpenAI default) than
+                # the zen URLs the opencode wrap needs.  If URLs mismatch
+                # and no other clients are attached, restart the proxy.
+                _pcfg = helpers._proxy_health_config(health_payload)
+                if _pcfg is None:
+                    _pcfg = helpers._query_proxy_config(port)
+                _url_mismatch = False
+                if _pcfg is not None and openai_api_url:
+                    _rurl = _normalize_proxy_api_url(_pcfg.get("openai_api_url"))
+                    if _rurl != _normalize_proxy_api_url(openai_api_url):
+                        _url_mismatch = True
+                if _pcfg is not None and opencode_go_api_url:
+                    _rgo = _normalize_proxy_api_url(_pcfg.get("opencode_go_api_url"))
+                    if _rgo != _normalize_proxy_api_url(opencode_go_api_url):
+                        _url_mismatch = True
+                if _url_mismatch:
+                    _other = helpers._live_proxy_clients(port, exclude_self=True)
+                    if _other:
+                        click.echo(
+                            f"  Proxy on port {port} has mismatched upstream URLs, but "
+                            f"{len(_other)} other wrapper(s) are attached."
+                        )
+                        click.echo(
+                            "  ⚠ Upstream URL mismatch — requests may fail or "
+                            "be routed to the wrong provider."
+                        )
+                        click.echo(
+                            "  Run 'copium stop' to stop the existing proxy, then retry."
+                        )
+                        return None
+                    click.echo(
+                        f"  Proxy on port {port} has mismatched upstream URLs; "
+                        "restarting with correct configuration..."
+                    )
+                    _pid = _pcfg.get("pid") if _pcfg is not None else None
+                    if _pid is not None:
+                        helpers._kill_proxy_by_pid(int(_pid), port)
+                    # Skip persistent recovery — we killed the proxy because
+                    # its URLs were wrong; recovering it would just restart
+                    # with the same bad config.  Fall through to start fresh.
+                    _skip_persistent_recovery = True
+                else:
+                    click.echo(f"  Proxy already running on port {port}")
+                    return None
+            if not _skip_persistent_recovery and helpers._recover_persistent_proxy(port):
                 return None
             if helpers._check_proxy(port):
                 raise click.ClickException(
@@ -5379,9 +5424,17 @@ def opencode(
         _print_telemetry_notice()
         click.echo()
 
+        # Strip stale proxy env vars left behind by a previous `copium start`.
+        # These leak into the subprocess via os.environ and cause OpenCode to
+        # talk to a dead proxy (or worse, a stale proxy on the wrong port) if
+        # the user stopped copium without running `copium stop` first.
+        opencode_env = os.environ.copy()
+        for _stale_key in ("ANTHROPIC_BASE_URL", "OPENAI_API_BASE", "OPENAI_BASE_URL"):
+            opencode_env.pop(_stale_key, None)
+
         result = subprocess.run(
             [opencode_bin, *opencode_args],
-            env=os.environ.copy(),
+            env=opencode_env,
         )
         raise SystemExit(result.returncode)
 
