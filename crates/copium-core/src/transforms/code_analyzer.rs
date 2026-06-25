@@ -134,21 +134,25 @@ fn collapse_redundant_blank_lines(input: &str) -> String {
     for line in input.lines() {
         if line.trim().is_empty() {
             consecutive_blanks += 1;
-            if consecutive_blanks <= 1 {
-                result.push('\n');
-            }
         } else {
-            if consecutive_blanks > 0 && result.is_empty() {
-            } else if consecutive_blanks >= 3 && !result.is_empty() {
-                // Already wrote one blank line at count=1
-            }
-            consecutive_blanks = 0;
-            if !result.is_empty() {
-                // Only add newline if we haven't already
-                if !result.ends_with('\n') {
+            if consecutive_blanks >= 3 {
+                // Collapse to one preserved blank line + separator
+                if !result.is_empty() {
                     result.push('\n');
                 }
+                result.push('\n');
+            } else if consecutive_blanks > 0 {
+                // Keep 1-2 blank lines as-is + separator
+                if !result.is_empty() {
+                    result.push('\n');
+                }
+                for _ in 0..consecutive_blanks {
+                    result.push('\n');
+                }
+            } else if !result.is_empty() {
+                result.push('\n');
             }
+            consecutive_blanks = 0;
             result.push_str(line);
         }
     }
@@ -270,9 +274,12 @@ fn collapse_commented_code_blocks(input: &str) -> String {
 }
 
 /// Check if a line is a comment (starts with # or //).
-/// Excludes Rust-style attributes (#[...]).
+/// Excludes Rust-style attributes (#[...]) and shebangs (#!).
 fn is_comment_line(line: &str) -> bool {
     let trimmed = line.trim();
+    if trimmed.starts_with("#!") {
+        return false;
+    }
     if trimmed.starts_with("#[") {
         return false;
     }
@@ -518,12 +525,11 @@ pub fn estimate_bloat(input: &str) -> f32 {
         }
 
         // Count commented lines
-        if is_comment_line(line) {
+        if is_comment_line(line) && !trimmed.is_empty() {
             bloat_lines += 1;
         }
-
-        // Count repeated lines
-        if let Some(prev) = prev_line {
+        // Count repeated lines (non-comment only to avoid double-counting)
+        else if let Some(prev) = prev_line {
             if *line == prev {
                 repeat_count += 1;
                 if repeat_count >= 2 {
@@ -620,9 +626,11 @@ mod tests {
     fn shebang_preserved() {
         let input = "#!/usr/bin/env python3\n# comment\n# comment\n# comment\ncode\n";
         let result = analyze_generic(input);
-        // Shebang line is a comment line, so 4 consecutive comments get collapsed
-        // but we check the output still starts with shebang conceptually
-        assert!(result.output.starts_with('#'));
+        assert!(
+            result.output.starts_with("#!/usr/bin/env python3"),
+            "shebang must be preserved, got: {}",
+            result.output
+        );
     }
 
     #[test]
