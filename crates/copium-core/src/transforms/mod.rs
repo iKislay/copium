@@ -17,6 +17,7 @@
 
 pub mod adaptive_sizer;
 pub mod anchor_selector;
+pub mod code_analyzer;
 pub mod content_detector;
 pub mod detection;
 pub mod diff_compressor;
@@ -28,6 +29,7 @@ pub mod quality_gate;
 pub mod recommendations;
 pub mod safety;
 pub mod search_compressor;
+pub mod simhash;
 pub mod smart_crusher;
 pub mod tag_protector;
 pub mod unidiff_detector;
