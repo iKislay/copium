@@ -88,49 +88,48 @@ class CopiumGroup(click.Group):
 
         # Write examples
         formatter.write_paragraph()
-        formatter.write("[bold]Examples:[/bold]")
-        formatter.write_text("  copium quickstart          Interactive setup wizard")
-        formatter.write_text("  copium start               Start the optimization proxy")
-        formatter.write_text("  copium stats               Show compression statistics")
-        formatter.write_text("  copium doctor              Diagnose your setup")
+        with formatter.section("Examples"):
+            formatter.write_text("copium quickstart          Interactive setup wizard")
+            formatter.write_text("copium start               Start the optimization proxy")
+            formatter.write_text("copium stats               Show compression statistics")
+            formatter.write_text("copium doctor              Diagnose your setup")
 
         # Write categorized commands
         formatter.write_paragraph()
-        formatter.write_text("[bold]Commands:[/bold]")
+        with formatter.section("Commands"):
+            # Build a set of commands we've already listed
+            listed_commands: set[str] = set()
 
-        # Build a set of commands we've already listed
-        listed_commands: set[str] = set()
+            for category, commands in COMMAND_CATEGORIES.items():
+                # Filter to commands that actually exist
+                available = [c for c in commands if c in self.commands]
+                if not available:
+                    continue
 
-        for category, commands in COMMAND_CATEGORIES.items():
-            # Filter to commands that actually exist
-            available = [c for c in commands if c in self.commands]
-            if not available:
-                continue
+                formatter.write_paragraph()
+                with formatter.section(category):
+                    for cmd_name in available:
+                        cmd = self.commands[cmd_name]
+                        help_text = cmd.get_short_help_str(ctx)
+                        # Truncate long help text
+                        if len(help_text) > 50:
+                            help_text = help_text[:47] + "..."
+                        cmd_line = f"{cmd_name:<20} {help_text}"
+                        formatter.write_text(cmd_line)
+                        listed_commands.add(cmd_name)
 
-            formatter.write_paragraph()
-            formatter.write(f"  [dim]{category}:[/dim]")
-            for cmd_name in available:
-                cmd = self.commands[cmd_name]
-                help_text = cmd.get_short_help_str(ctx)
-                # Truncate long help text
-                if len(help_text) > 50:
-                    help_text = help_text[:47] + "..."
-                cmd_line = f"    {cmd_name:<16} {help_text}"
-                formatter.write_text(cmd_line)
-                listed_commands.add(cmd_name)
-
-        # List any remaining commands not in a category
-        remaining = set(self.commands.keys()) - listed_commands
-        if remaining:
-            formatter.write_paragraph()
-            formatter.write(f"  [dim]Other:[/dim]")
-            for cmd_name in sorted(remaining):
-                cmd = self.commands[cmd_name]
-                help_text = cmd.get_short_help_str(ctx)
-                if len(help_text) > 50:
-                    help_text = help_text[:47] + "..."
-                cmd_line = f"    {cmd_name:<16} {help_text}"
-                formatter.write_text(cmd_line)
+            # List any remaining commands not in a category
+            remaining = set(self.commands.keys()) - listed_commands
+            if remaining:
+                formatter.write_paragraph()
+                with formatter.section("Other"):
+                    for cmd_name in sorted(remaining):
+                        cmd = self.commands[cmd_name]
+                        help_text = cmd.get_short_help_str(ctx)
+                        if len(help_text) > 50:
+                            help_text = help_text[:47] + "..."
+                        cmd_line = f"{cmd_name:<20} {help_text}"
+                        formatter.write_text(cmd_line)
 
         # Write footer
         formatter.write_paragraph()
