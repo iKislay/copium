@@ -2476,6 +2476,18 @@ class OpenAIHandlerMixin:
         _openai_base, headers = self._resolve_openai_upstream(model, headers)
         url = build_copilot_upstream_url(_openai_base, "/v1/chat/completions")
 
+        # For OpenCode Zen free models, ensure an Authorization header is
+        # present. The Zen API accepts `Bearer public` for anonymous access
+        # to free-tier models. Without this, requests fail with an auth error
+        # because the OpenCode client may not send an Authorization header to
+        # the local proxy (it expects the proxy to handle upstream auth).
+        if _openai_base and "opencode.ai/zen" in _openai_base and not is_opencode_go_model(model):
+            has_auth = any(
+                k.lower() == "authorization" for k in headers
+            )
+            if not has_auth:
+                headers["Authorization"] = "Bearer public"
+
         try:
             if stream:
                 # Inject stream_options to get usage stats in streaming response

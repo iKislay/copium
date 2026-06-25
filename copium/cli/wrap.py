@@ -5125,6 +5125,57 @@ def unwrap_openclaw(
     click.echo()
 
 
+def _check_zen_upstream(port: int) -> None:
+    """Verify the Zen upstream is reachable through the proxy.
+
+    Sends a lightweight health check to the proxy and, if the proxy is up,
+    attempts a minimal request to the Zen endpoint to surface connectivity
+    issues before the user starts a session.
+    """
+    import urllib.error
+    import urllib.request
+
+    # Check proxy health
+    try:
+        req = urllib.request.Request(
+            f"http://127.0.0.1:{port}/health",
+            method="GET",
+        )
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            if resp.status != 200:
+                return
+    except (OSError, urllib.error.URLError):
+        click.echo("  Warning: could not reach Copium proxy for upstream check.")
+        return
+
+    # Quick reachability check to Zen upstream (GET /v1/models is lightweight)
+    try:
+        req = urllib.request.Request(
+            "https://opencode.ai/zen/v1/models",
+            method="GET",
+            headers={"Accept": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            if resp.status == 200:
+                click.echo("  Zen upstream reachable (https://opencode.ai/zen)")
+            else:
+                click.echo(
+                    f"  Warning: Zen upstream returned status {resp.status}. "
+                    "Free models may not work correctly."
+                )
+    except (OSError, urllib.error.URLError) as e:
+        click.echo(
+            "  Warning: Could not reach Zen upstream (https://opencode.ai/zen)."
+        )
+        click.echo(f"  Error: {e}")
+        click.echo(
+            "  Free models require internet access to https://opencode.ai/zen."
+        )
+        click.echo(
+            "  Check your network connection and firewall settings."
+        )
+
+
 # =============================================================================
 # OpenCode
 # =============================================================================
@@ -5211,42 +5262,42 @@ def opencode(
                 "name": "MiMo V2.5 Free (Copium)",
                 "tool_call": True,
                 "reasoning": True,
-                "contextWindow": 128000,
-                "maxOutputTokens": 16384,
-                "inputPrice": 3.0,
-                "outputPrice": 15.0,
+                "contextWindow": 131072,
+                "maxOutputTokens": 8192,
+                "inputPrice": 0.0,
+                "outputPrice": 0.0,
             },
             "deepseek-v4-flash-free": {
                 "name": "DeepSeek V4 Flash Free (Copium)",
                 "tool_call": True,
                 "contextWindow": 1000000,
                 "maxOutputTokens": 384000,
-                "inputPrice": 0.27,
-                "outputPrice": 1.10,
+                "inputPrice": 0.0,
+                "outputPrice": 0.0,
             },
             "big-pickle": {
                 "name": "Big Pickle (Copium)",
                 "tool_call": True,
                 "contextWindow": 128000,
                 "maxOutputTokens": 8192,
-                "inputPrice": 3.0,
-                "outputPrice": 15.0,
+                "inputPrice": 0.0,
+                "outputPrice": 0.0,
             },
             "nemotron-3-ultra-free": {
                 "name": "Nemotron 3 Ultra Free (Copium)",
                 "tool_call": True,
                 "contextWindow": 128000,
                 "maxOutputTokens": 8192,
-                "inputPrice": 3.0,
-                "outputPrice": 15.0,
+                "inputPrice": 0.0,
+                "outputPrice": 0.0,
             },
             "north-mini-code-free": {
                 "name": "North Mini Code Free (Copium)",
                 "tool_call": True,
                 "contextWindow": 128000,
                 "maxOutputTokens": 8192,
-                "inputPrice": 0.80,
-                "outputPrice": 4.0,
+                "inputPrice": 0.0,
+                "outputPrice": 0.0,
             },
             # --- OpenCode Go subscription models (require opencode-go API key) ---
             "glm-5.2": {
@@ -5421,6 +5472,10 @@ def opencode(
         click.echo()
         click.echo("  Select the 'copium' provider in OpenCode to use compressed models.")
         click.echo("  Models are prefixed with 'copium/' in the model picker.")
+        click.echo()
+        # Quick connectivity check for the Zen upstream
+        if not no_proxy:
+            _check_zen_upstream(port)
         _print_telemetry_notice()
         click.echo()
 

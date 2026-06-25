@@ -837,6 +837,15 @@ class StreamingMixin:
         # potentially rewrites headers for upstream.
         client = classify_client(headers)
         headers = await apply_copilot_api_auth(headers, url=url)
+
+        # For OpenCode Zen free models, ensure an Authorization header is
+        # present. The Zen API accepts `Bearer public` for anonymous access
+        # to free-tier models. Without this, requests fail with an auth error.
+        if "opencode.ai/zen" in url:
+            has_auth = any(k.lower() == "authorization" for k in headers)
+            if not has_auth:
+                headers["Authorization"] = "Bearer public"
+
         start_time = time.time()
 
         # Byte-faithful forwarding (PR-A3, fixes P0-2). Resolve outbound
