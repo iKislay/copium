@@ -845,6 +845,13 @@ class StreamingMixin:
             has_auth = any(k.lower() == "authorization" for k in headers)
             if not has_auth:
                 headers["Authorization"] = "Bearer public"
+            
+            # Cloudflare/CDN blocks requests without a valid User-Agent with 403 Forbidden
+            # Ensure we have a User-Agent that doesn't trigger generic block rules
+            ua_key = next((k for k in headers if k.lower() == "user-agent"), "user-agent")
+            ua_val = headers.get(ua_key, "").lower()
+            if not ua_val or "node" in ua_val or "fetch" in ua_val:
+                headers[ua_key] = "copium/1.0"
 
         start_time = time.time()
 

@@ -2464,6 +2464,37 @@ def _ensure_proxy(
                 else:
                     click.echo(f"  Proxy already running on port {port}")
                     return None
+            # Check if the deployment manifest's stored URLs match what we need.
+            # A persistent deployment created by a different wrap command (e.g.
+            # `copium wrap claude` or `copium install`) may not include
+            # --openai-api-url / --opencode-go-api-url.  Recovering such a
+            # deployment would start the proxy with the wrong upstream,
+            # routing Zen model requests to OpenAI's default API (which
+            # requires a real key).  Skip recovery and start fresh instead.
+            _manifest_args = getattr(manifest, "proxy_args", None) or []
+            _manifest_env = getattr(manifest, "base_env", None) or {}
+            _manifest_url_mismatch = False
+            if openai_api_url:
+                _has_arg = any(
+                    "--openai-api-url" in (a or "") for a in _manifest_args
+                )
+                _has_env = "OPENAI_TARGET_API_URL" in _manifest_env
+                if not _has_arg and not _has_env:
+                    _manifest_url_mismatch = True
+            if opencode_go_api_url:
+                _has_arg = any(
+                    "--opencode-go-api-url" in (a or "") for a in _manifest_args
+                )
+                _has_env = "OPENCODE_GO_TARGET_API_URL" in _manifest_env
+                if not _has_arg and not _has_env:
+                    _manifest_url_mismatch = True
+            if _manifest_url_mismatch:
+                click.echo(
+                    f"  Persistent deployment '{manifest.profile}' has mismatched "
+                    "upstream URLs; starting fresh with correct configuration..."
+                )
+                _skip_persistent_recovery = True
+
             if not _skip_persistent_recovery and helpers._recover_persistent_proxy(port):
                 return None
             if helpers._check_proxy(port):
@@ -5229,7 +5260,7 @@ def _check_zen_upstream(port: int) -> None:
         req = urllib.request.Request(
             "https://opencode.ai/zen/v1/models",
             method="GET",
-            headers={"Accept": "application/json"},
+            headers={"Accept": "application/json", "User-Agent": "copium/1.0"},
         )
         with urllib.request.urlopen(req, timeout=5) as resp:
             if resp.status == 200:

@@ -607,35 +607,34 @@ class OpenAIHandlerMixin:
         """Resolve the upstream base URL and headers for an OpenAI-style request.
 
         When ``model`` is an OpenCode Go model ID, routes to the Go upstream
-        (``OPENCODE_GO_API_URL``) and injects ``Authorization: Bearer <key>``
-        from ``~/.local/share/opencode/auth.json``. Otherwise falls back to the
-        standard OpenAI upstream (``OPENAI_API_URL``) with the caller's headers
-        unchanged.
+        (``OPENCODE_GO_API_URL``). If the target upstream is OpenCode (Go or Zen),
+        injects ``Authorization: Bearer <key>`` from ``~/.local/share/opencode/auth.json``.
+        Otherwise falls back to the standard OpenAI upstream (``OPENAI_API_URL``)
+        with the caller's headers unchanged.
 
         Returns ``(base_url, headers)`` where ``base_url`` is the normalized
         upstream root (no ``/v1`` suffix) and ``headers`` is the headers dict
         to send upstream.
         """
-        if not is_opencode_go_model(model):
-            return self.OPENAI_API_URL, headers
+        is_go = is_opencode_go_model(model)
+        target_url = self.OPENCODE_GO_API_URL if is_go else self.OPENAI_API_URL
 
-        go_key = get_opencode_go_key()
-        if not go_key:
-            logger.warning(
-                "Model %r is an OpenCode Go model but no opencode-go API key "
-                "was found in ~/.local/share/opencode/auth.json. Run /connect "
-                "in opencode and select OpenCode Go. Falling back to the "
-                "standard OpenAI upstream (this will likely fail).",
-                model,
-            )
-            return self.OPENAI_API_URL, headers
+        if "opencode.ai" in target_url:
+            opencode_key = get_opencode_go_key()
+            if not opencode_key:
+                logger.warning(
+                    "Target is OpenCode API but no auth.json key found. "
+                    "Run `/connect` in opencode. Falling back to default headers."
+                )
+                return target_url, headers
 
-        out_headers = dict(headers)
-        out_headers["Authorization"] = f"Bearer {go_key}"
-        # Remove any opencode-internal auth hints that the Go upstream won't
-        # understand; the Bearer token above is the only auth it expects.
-        out_headers.pop("x-api-key", None)
-        return self.OPENCODE_GO_API_URL, out_headers
+            out_headers = dict(headers)
+            out_headers["Authorization"] = f"Bearer {opencode_key}"
+            # Remove any internal auth hints; the Bearer token is the only auth expected.
+            out_headers.pop("x-api-key", None)
+            return target_url, out_headers
+
+        return target_url, headers
 
     def _openai_responses_unit_cache(self) -> tuple[Any, OrderedDict[str, Any]]:
         with _OPENAI_RESPONSES_UNIT_CACHE_INIT_LOCK:
@@ -2487,6 +2486,13 @@ class OpenAIHandlerMixin:
             )
             if not has_auth:
                 headers["Authorization"] = "Bearer public"
+            
+            # Cloudflare/CDN blocks requests without a valid User-Agent with 403 Forbidden
+            # Ensure we have a User-Agent that doesn't trigger generic block rules
+            ua_key = next((k for k in headers if k.lower() == "user-agent"), "user-agent")
+            ua_val = headers.get(ua_key, "").lower()
+            if not ua_val or "node" in ua_val or "fetch" in ua_val:
+                headers[ua_key] = "copium/1.0"
 
         try:
             if stream:
