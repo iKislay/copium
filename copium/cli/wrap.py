@@ -5262,7 +5262,7 @@ def _check_zen_upstream(port: int) -> None:
             method="GET",
             headers={"Accept": "application/json", "User-Agent": "copium/1.0"},
         )
-        with urllib.request.urlopen(req, timeout=5) as resp:
+        with urllib.request.urlopen(req, timeout=15) as resp:
             if resp.status == 200:
                 click.echo("  Zen upstream reachable (https://opencode.ai/zen)")
             else:
