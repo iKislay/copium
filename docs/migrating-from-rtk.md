@@ -1,7 +1,7 @@
 # Migrating from RTK to Copium
 
 **Status:** Current  
-**Last updated:** 2026-06-23  
+**Last updated:** 2026-06-27  
 **Target audience:** RTK users who want more savings, observability, and reversibility.
 
 ---
@@ -222,7 +222,8 @@ A: `~/.copium/logs/proxy.log`. The path is also printed on proxy startup.
 
 ## References
 
-- `plans/04-beat-rtk.md` — Full competitive analysis and implementation plan
+- `benchmarks/rtk-vs-copium/` — Reproducible head-to-head benchmark
+- `tests/test_evals/strangeness.py` — Strangeness tax evaluation
 - `docs/rtk-architecture.md` — Why RTK is wrap-CLI only (not proxy-side)
 - [RTK GitHub](https://github.com/rtk-ai/rtk) — The RTK project we integrate
 - `copium doctor` — Health check command
