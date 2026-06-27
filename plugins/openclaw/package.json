@@ -1,6 +1,6 @@
 {
   "name": "copium-openclaw",
-  "version": "0.26.5",
+  "version": "0.26.6",
   "description": "Copium context compression plugin for OpenClaw \u2014 70-90% token savings with zero LLM calls",
   "type": "module",
   "main": "./dist/index.js",
@@ -18,7 +18,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "copium-ai": "^0.26.5"
+    "copium-ai": "^0.26.6"
   },
   "peerDependencies": {
     "openclaw": "*"

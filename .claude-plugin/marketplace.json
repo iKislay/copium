@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "Copium marketplace for Claude Code and GitHub Copilot CLI plugins.",
-    "version": "0.26.5"
+    "version": "0.26.6"
   },
   "plugins": [
     {
       "name": "copium",
       "source": "./plugins/copium-agent-hooks",
       "description": "Copium startup hooks for Claude Code and GitHub Copilot CLI.",
-      "version": "0.26.5",
+      "version": "0.26.6",
       "author": {
         "name": "github.com/iKislay",
         "url": "https://github.com/iKislay/copium"
