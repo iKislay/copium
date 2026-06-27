@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import time
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -54,11 +53,56 @@ class ToolSchema:
 
 
 @dataclass
+class CategoryStub:
+    """Minimal category representation for hierarchical discovery."""
+
+    name: str
+    tool_count: int
+    short_description: str = ""
+    relevance_score: float = 0.0
+
+    @property
+    def token_estimate(self) -> int:
+        """Estimated tokens for this category stub."""
+        return (len(self.name) + len(self.short_description)) // 4
+
+
+@dataclass
+class PreloadedTool:
+    """Preloaded schema metadata for likely upcoming tool calls."""
+
+    name: str
+    schema_digest: str
+    parameter_names: list[str] = field(default_factory=list)
+    relevance_score: float = 0.0
+    token_estimate: int = 0
+
+
+@dataclass
+class FindToolsResponse:
+    """Structured response for hierarchical find-tools flow."""
+
+    categories: list[CategoryStub] = field(default_factory=list)
+    tools: list[ToolStub] = field(default_factory=list)
+    preloaded_tools: list[PreloadedTool] = field(default_factory=list)
+
+
+@dataclass
+class ExploreCategoryResponse:
+    """Tools surfaced from a specific category."""
+
+    category: str
+    tools: list[ToolStub] = field(default_factory=list)
+    total_tools: int = 0
+
+
+@dataclass
 class DisclosureMetrics:
     """Metrics for progressive disclosure effectiveness."""
 
     total_tools: int = 0
     tools_disclosed: int = 0
+    categories_disclosed: int = 0
     tokens_full_schema: int = 0
     tokens_disclosed: int = 0
 
@@ -80,23 +124,47 @@ class ToolRegistry:
         self._tools: dict[str, ToolSchema] = {}
         self._stubs: dict[str, ToolStub] = {}
         self._categories: dict[str, list[str]] = {}  # category -> tool names
+        self._category_descriptions: dict[str, str] = {}
+        self._tool_categories: dict[str, str] = {}
         self._access_counts: dict[str, int] = {}
 
-    def register(self, schema: ToolSchema, category: str = "general") -> None:
+    def register(
+        self,
+        schema: ToolSchema,
+        category: str = "general",
+        category_description: str = "",
+    ) -> None:
         """Register a tool schema."""
+        previous_category = self._tool_categories.get(schema.name)
+        if previous_category and previous_category in self._categories:
+            self._categories[previous_category] = [
+                name for name in self._categories[previous_category] if name != schema.name
+            ]
+
         self._tools[schema.name] = schema
         self._stubs[schema.name] = ToolStub(
             name=schema.name,
             short_description=self._compress_description(schema.description),
             category=category,
         )
-        if category not in self._categories:
-            self._categories[category] = []
-        self._categories[category].append(schema.name)
+        self._tool_categories[schema.name] = category
 
-    def get_schema(self, name: str) -> ToolSchema | None:
+        if category not in self._categories:
+            self._categories[category] = [schema.name]
+        elif schema.name not in self._categories[category]:
+            self._categories[category].append(schema.name)
+
+        if category_description:
+            self._category_descriptions[category] = category_description
+
+    def all_schemas(self) -> list[ToolSchema]:
+        """Get all full tool schemas."""
+        return list(self._tools.values())
+
+    def get_schema(self, name: str, *, count_access: bool = True) -> ToolSchema | None:
         """Get full tool schema by name."""
-        self._access_counts[name] = self._access_counts.get(name, 0) + 1
+        if count_access and name in self._tools:
+            self._access_counts[name] = self._access_counts.get(name, 0) + 1
         return self._tools.get(name)
 
     def get_stub(self, name: str) -> ToolStub | None:
@@ -137,12 +205,117 @@ class ToolRegistry:
 
     def by_category(self, category: str) -> list[ToolStub]:
         """Get tools in a category."""
-        names = self._categories.get(category, [])
+        resolved = self._resolve_category_key(category)
+        names = self._categories.get(resolved, [])
         return [self._stubs[n] for n in names if n in self._stubs]
+
+    def categories(self) -> list[CategoryStub]:
+        """Get all categories with counts."""
+        items: list[CategoryStub] = []
+        for category, names in self._categories.items():
+            if not names:
+                continue
+            desc = self._category_descriptions.get(
+                category,
+                self._derive_category_description(category),
+            )
+            items.append(
+                CategoryStub(
+                    name=category,
+                    tool_count=len(names),
+                    short_description=desc,
+                    relevance_score=0.0,
+                )
+            )
+        items.sort(key=lambda c: (-c.tool_count, c.name))
+        return items
+
+    def find_categories(self, query: str, limit: int = 5) -> list[CategoryStub]:
+        """Find relevant categories for a query."""
+        query_lower = query.lower().strip()
+        query_words = set(query_lower.split())
+        scored: list[tuple[float, CategoryStub]] = []
+
+        for category, names in self._categories.items():
+            if not names:
+                continue
+
+            score = 0.0
+            cat_lower = category.lower()
+
+            if query_lower and query_lower == cat_lower:
+                score += 1.0
+            elif query_lower and query_lower in cat_lower:
+                score += 0.7
+
+            cat_words = set(cat_lower.replace("_", " ").replace("-", " ").split())
+            overlap = query_words & cat_words
+            if query_words and overlap:
+                score += 0.4 * (len(overlap) / len(query_words))
+
+            if query_words:
+                tool_scores = 0.0
+                for name in names:
+                    stub = self._stubs.get(name)
+                    if not stub:
+                        continue
+                    tool_scores += self._score_match(query_words, query_lower, stub)
+                if names:
+                    score += min(0.7, tool_scores / len(names))
+
+            if score > 0:
+                scored.append(
+                    (
+                        score,
+                        CategoryStub(
+                            name=category,
+                            tool_count=len(names),
+                            short_description=self._category_descriptions.get(
+                                category,
+                                self._derive_category_description(category),
+                            ),
+                            relevance_score=min(score, 1.0),
+                        ),
+                    )
+                )
+
+        if not scored:
+            return self.categories()[:limit]
+
+        scored.sort(key=lambda item: item[0], reverse=True)
+        return [category for _, category in scored[:limit]]
+
+    def top_accessed(self, limit: int = 5) -> list[ToolStub]:
+        """Get most-accessed tools as prediction fallback."""
+        if not self._access_counts:
+            return []
+        ranked = sorted(
+            self._access_counts.items(),
+            key=lambda item: item[1],
+            reverse=True,
+        )
+        stubs: list[ToolStub] = []
+        for name, count in ranked[:limit]:
+            stub = self.get_stub(name)
+            if not stub:
+                continue
+            stubs.append(
+                ToolStub(
+                    name=stub.name,
+                    short_description=stub.short_description,
+                    category=stub.category,
+                    relevance_score=min(1.0, 0.2 + (count / 10.0)),
+                )
+            )
+        return stubs
 
     @property
     def tool_count(self) -> int:
         return len(self._tools)
+
+    @property
+    def category_count(self) -> int:
+        return len([name for name, tools in self._categories.items() if tools])
 
     def _score_match(
         self, query_words: set[str], query_lower: str, stub: ToolStub
@@ -188,6 +361,22 @@ class ToolRegistry:
             return first_sentence + "."
         return first_sentence[:97] + "..."
 
+    def _resolve_category_key(self, category: str) -> str:
+        if category in self._categories:
+            return category
+        lower = category.lower()
+        for key in self._categories:
+            if key.lower() == lower:
+                return key
+        return category
+
+    @staticmethod
+    def _derive_category_description(category: str) -> str:
+        humanized = category.replace("_", " ").replace("-", " ").strip()
+        if not humanized:
+            return "General tools"
+        return f"Tools related to {humanized}."
+
 
 class ProgressiveDisclosure:
     """Progressive tool schema disclosure controller.
@@ -205,6 +394,7 @@ class ProgressiveDisclosure:
     def __init__(self, registry: ToolRegistry):
         self._registry = registry
         self._disclosed: set[str] = set()  # Tools whose full schema has been sent
+        self._disclosed_categories: set[str] = set()
         self._metrics = DisclosureMetrics()
 
     def get_initial_tool_list(self) -> list[ToolStub]:
@@ -215,16 +405,30 @@ class ProgressiveDisclosure:
         """
         stubs = self._registry.all_stubs()
         self._metrics.total_tools = len(stubs)
-        self._metrics.tokens_disclosed = sum(s.token_estimate for s in stubs)
+        base_stub_tokens = sum(s.token_estimate for s in stubs)
 
         # Calculate what full schema would cost
         self._metrics.tokens_full_schema = sum(
-            schema.token_estimate for schema in self._registry._tools.values()
+            schema.token_estimate for schema in self._registry.all_schemas()
         )
+
+        disclosed_schema_tokens = 0
+        for tool_name in self._disclosed:
+            schema = self._registry.get_schema(tool_name, count_access=False)
+            if schema is not None:
+                disclosed_schema_tokens += schema.token_estimate
+
+        self._metrics.tokens_disclosed = base_stub_tokens + disclosed_schema_tokens
 
         return stubs
 
-    def find_tools(self, query: str, limit: int = 5) -> list[ToolStub]:
+    def find_tools(
+        self,
+        query: str,
+        limit: int = 5,
+        *,
+        context: str | list[str] | None = None,
+    ) -> list[ToolStub]:
         """Find relevant tools for a query.
 
         Args:
@@ -234,7 +438,180 @@ class ProgressiveDisclosure:
         Returns:
             Ranked tool stubs with relevance scores.
         """
-        return self._registry.search(query, limit=limit)
+        tools = self._registry.search(query, limit=max(limit, 1) * 2)
+        if not context:
+            return tools[:limit]
+
+        context_text = self._normalize_context(context)
+        if not context_text:
+            return tools[:limit]
+
+        reranked: list[tuple[float, ToolStub]] = []
+        for tool in tools:
+            score = tool.relevance_score
+            name = tool.name.lower()
+            if name in context_text:
+                score += 0.25
+            for token in name.replace("_", " ").replace("-", " ").split():
+                if token and token in context_text:
+                    score += 0.05
+            reranked.append(
+                (
+                    min(score, 1.0),
+                    ToolStub(
+                        name=tool.name,
+                        short_description=tool.short_description,
+                        category=tool.category,
+                        relevance_score=min(score, 1.0),
+                    ),
+                )
+            )
+
+        reranked.sort(key=lambda item: item[0], reverse=True)
+        return [tool for _, tool in reranked[:limit]]
+
+    def find_tools_hierarchical(
+        self,
+        query: str,
+        *,
+        context: str | list[str] | None = None,
+        category_limit: int = 4,
+        tool_limit: int = 6,
+        preload_limit: int = 3,
+    ) -> FindToolsResponse:
+        """Three-level discovery flow: categories -> tools -> preloaded schemas."""
+        categories = self._registry.find_categories(query, limit=category_limit)
+        self._disclosed_categories.update([c.name for c in categories])
+        self._metrics.categories_disclosed = len(self._disclosed_categories)
+
+        tools = self.find_tools(query, limit=tool_limit, context=context)
+        predicted = self.predict_tools(context, limit=preload_limit)
+        preloaded = self.preload_schemas(predicted)
+
+        return FindToolsResponse(
+            categories=categories,
+            tools=tools,
+            preloaded_tools=preloaded,
+        )
+
+    def explore_category(
+        self,
+        category: str,
+        *,
+        query: str = "",
+        context: str | list[str] | None = None,
+        limit: int | None = None,
+    ) -> ExploreCategoryResponse:
+        """Level-2 disclosure: reveal tool stubs inside a category."""
+        tools = self._registry.by_category(category)
+        self._disclosed_categories.add(category)
+        self._metrics.categories_disclosed = len(self._disclosed_categories)
+
+        if query:
+            query_lower = query.lower()
+            query_words = set(query_lower.split())
+            scored: list[tuple[float, ToolStub]] = []
+            for tool in tools:
+                score = self._registry._score_match(query_words, query_lower, tool)
+                scored.append(
+                    (
+                        score,
+                        ToolStub(
+                            name=tool.name,
+                            short_description=tool.short_description,
+                            category=tool.category,
+                            relevance_score=score,
+                        ),
+                    )
+                )
+            scored.sort(key=lambda item: item[0], reverse=True)
+            tools = [tool for _, tool in scored]
+
+        if context:
+            context_text = self._normalize_context(context)
+            if context_text:
+                tools = sorted(
+                    tools,
+                    key=lambda tool: (tool.name.lower() in context_text, tool.relevance_score),
+                    reverse=True,
+                )
+
+        total = len(tools)
+        if limit is not None:
+            tools = tools[: max(0, limit)]
+
+        return ExploreCategoryResponse(category=category, tools=tools, total_tools=total)
+
+    def predict_tools(self, context: str | list[str] | None, limit: int = 3) -> list[ToolStub]:
+        """Predict likely upcoming tools from conversation context and prior usage."""
+        if limit <= 0:
+            return []
+
+        context_text = self._normalize_context(context)
+        candidates: list[tuple[float, ToolStub]] = []
+
+        for tool in self._registry.all_stubs():
+            score = 0.0
+            access_count = self._registry._access_counts.get(tool.name, 0)
+            if access_count:
+                score += min(0.35, access_count * 0.05)
+
+            if context_text:
+                name_lower = tool.name.lower()
+                if name_lower in context_text:
+                    score += 0.8
+                for token in name_lower.replace("_", " ").replace("-", " ").split():
+                    if token and token in context_text:
+                        score += 0.08
+                if tool.category and tool.category.lower() in context_text:
+                    score += 0.12
+
+            if score > 0:
+                candidates.append(
+                    (
+                        min(score, 1.0),
+                        ToolStub(
+                            name=tool.name,
+                            short_description=tool.short_description,
+                            category=tool.category,
+                            relevance_score=min(score, 1.0),
+                        ),
+                    )
+                )
+
+        if not candidates:
+            return self._registry.top_accessed(limit=limit)
+
+        candidates.sort(key=lambda item: item[0], reverse=True)
+        seen: set[str] = set()
+        predicted: list[ToolStub] = []
+        for _, tool in candidates:
+            if tool.name in seen:
+                continue
+            seen.add(tool.name)
+            predicted.append(tool)
+            if len(predicted) >= limit:
+                break
+        return predicted
+
+    def preload_schemas(self, predicted_tools: list[ToolStub]) -> list[PreloadedTool]:
+        """Preload compact metadata for likely upcoming tool calls."""
+        preloaded: list[PreloadedTool] = []
+        for tool in predicted_tools:
+            schema = self._registry.get_schema(tool.name, count_access=False)
+            if schema is None:
+                continue
+            schema_digest = self._schema_digest(schema)
+            preloaded.append(
+                PreloadedTool(
+                    name=schema.name,
+                    schema_digest=schema_digest,
+                    parameter_names=list(schema.parameters.keys())[:8],
+                    relevance_score=tool.relevance_score,
+                    token_estimate=schema.token_estimate,
+                )
+            )
+        return preloaded
 
     def disclose_schema(self, tool_name: str) -> ToolSchema | None:
         """Disclose the full schema for a tool (when it's being called).
@@ -247,7 +624,9 @@ class ProgressiveDisclosure:
         """
         schema = self._registry.get_schema(tool_name)
         if schema:
-            self._disclosed.add(tool_name)
+            if tool_name not in self._disclosed:
+                self._disclosed.add(tool_name)
+                self._metrics.tokens_disclosed += schema.token_estimate
             self._metrics.tools_disclosed = len(self._disclosed)
         return schema
 
@@ -263,4 +642,18 @@ class ProgressiveDisclosure:
     def reset(self) -> None:
         """Reset disclosure state for a new conversation."""
         self._disclosed.clear()
+        self._disclosed_categories.clear()
         self._metrics = DisclosureMetrics()
+
+    @staticmethod
+    def _normalize_context(context: str | list[str] | None) -> str:
+        if context is None:
+            return ""
+        if isinstance(context, str):
+            return context.lower()
+        return " ".join(item for item in context if item).lower()
+
+    @staticmethod
+    def _schema_digest(schema: ToolSchema) -> str:
+        payload = f"{schema.name}|{schema.description}|{sorted(schema.parameters.keys())}"
+        return hashlib.sha256(payload.encode()).hexdigest()[:16]

@@ -5,7 +5,11 @@ from __future__ import annotations
 import pytest
 
 from copium.proxy.mcp_enhanced import (
+    CategoryStub,
     DisclosureMetrics,
+    ExploreCategoryResponse,
+    FindToolsResponse,
+    PreloadedTool,
     ProgressiveDisclosure,
     ToolRegistry,
     ToolSchema,
@@ -101,6 +105,19 @@ class TestToolRegistry:
         assert "read_file" in names
         assert "write_file" in names
 
+    def test_categories(self):
+        categories = self.registry.categories()
+        assert len(categories) == 2
+        assert all(isinstance(c, CategoryStub) for c in categories)
+        names = {c.name for c in categories}
+        assert "filesystem" in names
+        assert "search" in names
+
+    def test_find_categories(self):
+        categories = self.registry.find_categories("filesystem read")
+        assert len(categories) > 0
+        assert categories[0].name == "filesystem"
+
 
 # =============================================================================
 # ProgressiveDisclosure Tests
@@ -143,6 +160,47 @@ class TestProgressiveDisclosure:
         results = self.disclosure.find_tools("tool_5")
         assert len(results) > 0
         assert results[0].name == "tool_5"
+
+    def test_find_tools_hierarchical(self):
+        response = self.disclosure.find_tools_hierarchical(
+            "tool_5",
+            context="Need tool_5 for category_1 tasks",
+            category_limit=3,
+            tool_limit=5,
+            preload_limit=2,
+        )
+        assert isinstance(response, FindToolsResponse)
+        assert len(response.categories) > 0
+        assert len(response.tools) > 0
+        assert response.tools[0].name == "tool_5"
+        assert len(response.preloaded_tools) <= 2
+        assert all(isinstance(t, PreloadedTool) for t in response.preloaded_tools)
+
+    def test_explore_category(self):
+        response = self.disclosure.explore_category("category_1", query="tool_1")
+        assert isinstance(response, ExploreCategoryResponse)
+        assert response.category == "category_1"
+        assert response.total_tools >= len(response.tools)
+        assert all(tool.category == "category_1" for tool in response.tools)
+
+    def test_predict_tools_with_context(self):
+        predicted = self.disclosure.predict_tools("Please call tool_7 first", limit=3)
+        assert len(predicted) > 0
+        assert predicted[0].name == "tool_7"
+
+    def test_disclose_schema_updates_token_metrics(self):
+        self.disclosure.get_initial_tool_list()
+        before = self.disclosure.metrics.tokens_disclosed
+
+        schema = self.disclosure.disclose_schema("tool_0")
+        assert schema is not None
+        after_first = self.disclosure.metrics.tokens_disclosed
+        assert after_first > before
+
+        # Re-disclosing should not double-count schema tokens
+        self.disclosure.disclose_schema("tool_0")
+        after_second = self.disclosure.metrics.tokens_disclosed
+        assert after_second == after_first
 
     def test_disclose_schema(self):
         schema = self.disclosure.disclose_schema("tool_0")
