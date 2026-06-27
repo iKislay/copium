@@ -1,8 +1,8 @@
 # Plan: Absorb RTK's Audience — "RTK on Steroids"
 
-**Status:** In Progress (Phase 1 complete)
+**Status:** Complete (All phases done)
 **Date:** 2026-06-22
-**Updated:** 2026-06-23
+**Updated:** 2026-06-27
 **Goal:** Position Copium as the definitive RTK replacement, capturing its 28K+ GitHub stars audience by fixing every RTK limitation while keeping the one-command simplicity users love.
 
 ---
@@ -747,14 +747,14 @@ copium_compress_diff() { copium compress-diff "$@"; }
 | Cursor auto-configuration | `copium/providers/cursor.py` | +200 | ⏳ Deferred |
 | Enhanced verbose output | `copium/cli/wrap.py` | +150 | ✅ Done |
 
-### Phase 4: Marketing + Migration (Week 7-8)
+### Phase 4: Marketing + Migration (Week 7-8) ✅ COMPLETE
 
 | Task | Files | LOC Est. | Status |
 |---|---|---|---|
-| RTK migration guide | `docs/migrating-from-rtk.md` (new) | docs | TODO |
-| Benchmark comparison | `benchmarks/rtk-vs-copium/` (new) | tooling | TODO |
-| README update | `README.md` | docs | TODO |
-| Strangeness tax benchmark | `tests/test_evals/strangeness.py` (new) | +500 | TODO |
+| RTK migration guide | `docs/migrating-from-rtk.md` | docs | ✅ Done |
+| Benchmark comparison | `benchmarks/rtk-vs-copium/` | tooling | ✅ Done |
+| README update | `README.md` | docs | ✅ Done |
+| Strangeness tax benchmark | `tests/test_evals/strangeness.py` | +500 | ✅ Done |
 
 ---
 
