@@ -1,0 +1,48 @@
+{
+  "description": "RTK vs Copium benchmark scenarios - real-world CLI outputs",
+  "version": "1.0.0",
+  "scenarios": [
+    {
+      "id": "git_status_large_repo",
+      "type": "git_status",
+      "description": "Git status in a monorepo with 50+ changed files",
+      "rtk_expected_savings": "70-85%",
+      "copium_expected_savings": "70-85%"
+    },
+    {
+      "id": "git_diff_refactor",
+      "type": "git_diff",
+      "description": "Large refactoring diff with 500+ changed lines",
+      "rtk_expected_savings": "40-60%",
+      "copium_expected_savings": "60-80%"
+    },
+    {
+      "id": "pytest_large_suite",
+      "type": "test_output",
+      "description": "Pytest output from 1000+ test suite with 5 failures",
+      "rtk_expected_savings": "60-80%",
+      "copium_expected_savings": "80-95%"
+    },
+    {
+      "id": "grep_codebase_search",
+      "type": "grep",
+      "description": "Ripgrep search returning 200+ matches across 40 files",
+      "rtk_expected_savings": "0-10%",
+      "copium_expected_savings": "40-70%"
+    },
+    {
+      "id": "file_read_large",
+      "type": "file_read",
+      "description": "Reading a 500-line source file when only a function is needed",
+      "rtk_expected_savings": "0%",
+      "copium_expected_savings": "60-80%"
+    },
+    {
+      "id": "cargo_build_verbose",
+      "type": "build_log",
+      "description": "Verbose cargo build output with warnings and errors",
+      "rtk_expected_savings": "50-70%",
+      "copium_expected_savings": "70-90%"
+    }
+  ]
+}
