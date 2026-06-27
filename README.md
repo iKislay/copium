@@ -468,6 +468,10 @@ RTK saves 60-90% on **CLI stdout only** (`rtk git status`). Copium saves 40-90% 
 
 **Migration:** `pip install "copium-ai[proxy]" && copium wrap claude` — drops in as a superset of RTK. Use `--rtk-only` to start with RTK-only compression, then unlock proxy features when ready.
 
+See [docs/migrating-from-rtk.md](docs/migrating-from-rtk.md) for the full migration guide.
+
+**Reproduce the benchmark:** `python -m benchmarks.rtk-vs-copium.bench_rtk_vs_copium`
+
 </details>
 
 <details>
