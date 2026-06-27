@@ -57,6 +57,7 @@ COMMAND_CATEGORIES: dict[str, list[str]] = {
         "compress-read",
         "compress-search",
         "hook",
+        "session",
     ],
     "Analysis (Advanced)": [
         "benchmark",
@@ -262,6 +263,7 @@ def _register_commands() -> None:
         remove,  # noqa: F401
         report_cmd,  # noqa: F401
         service_cmd,  # noqa: F401 — service install/remove/status/logs (§4b)
+        session,  # noqa: F401 — session compact/apply/expand/search
         stats,  # noqa: F401
         tools,  # noqa: F401
         update,  # noqa: F401
