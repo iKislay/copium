@@ -308,12 +308,54 @@ Each component targets a specific kind of waste:
 | **SmartCrusher** | Compresses JSON arrays, repeated tool outputs | 40–95% |
 | **Session Dedup** | Re-sent file content across conversation turns | 30–70% |
 | **Error Compressor** | Verbose stack traces → structured error cards | 50–80% |
+| **ANSI Remover** | Terminal colors, spinners, progress bars | 10–30% |
 | **TOON Encoder** | JSON arrays → pipe-delimited tables | 15–40% |
 | **Cache Aligner** | Stabilizes prefixes for provider KV cache hits | 10–20% |
 | **Diff Response** | Sends diffs for repeated tool calls | Up to 95% |
 | **Output Compressor** | Trims verbose assistant responses | 15–40% |
 
 The pipeline runs in ~52ms median overhead. Your agent doesn't notice it's there.
+
+---
+
+## Session management
+
+Copium is also a **universal session manager** for AI coding agents. Compress, search, and share session archives across Claude Code, Cursor, Aider, and OpenCode.
+
+```bash
+# Compact a Claude Code session (40-97% smaller)
+copium session compact ~/.claude/projects/.../session.jsonl
+
+# Search across all your sessions
+copium session search "authentication bug" --agent claude_code
+
+# Export from Claude Code, import into Cursor
+copium session export claude-session.jsonl --format shared
+copium session import shared.jsonl --agent cursor
+
+# Batch compact all sessions
+copium session compact-all ~/.claude/ -o compacted/
+
+# View session summary with auto-detected format
+copium session summary session.jsonl
+```
+
+### Supported agents
+
+| Agent | Format | Commands |
+|---|---|---|
+| **Claude Code** | JSONL | compact, apply, expand, export, import |
+| **Cursor** | JSON | compact, export, import |
+| **Aider** | JSONL / Markdown | compact, export, import |
+| **OpenCode** | JSON | compact, export, import |
+
+### Error compression enhancements
+
+| Feature | What it does | Savings |
+|---|---|---|
+| **Build error grouping** | Groups identical TS/Rust/GCC errors across files | 60–85% |
+| **Docker build compression** | Removes download progress, deduplicates layers | 40–60% |
+| **Compiler normalization** | Normalizes paths, removes timestamps | 10–20% |
 
 ---
 
