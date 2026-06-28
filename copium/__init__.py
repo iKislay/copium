@@ -179,6 +179,10 @@ __all__ = [
     "CANONICAL_PIPELINE_STAGES",
     # Shared context for multi-agent workflows
     "SharedContext",
+    # Session management
+    "SessionArchive",
+    "SessionCompactor",
+    "SessionSearch",
 ]
 
 # Keep package-level imports lightweight so `import copium` does not eagerly
@@ -274,6 +278,10 @@ _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
     "CANONICAL_PIPELINE_STAGES": ("copium.pipeline", "CANONICAL_PIPELINE_STAGES"),
     # Shared context
     "SharedContext": ("copium.shared_context", "SharedContext"),
+    # Session management
+    "SessionArchive": ("copium.session", "SessionArchive"),
+    "SessionCompactor": ("copium.session", "SessionCompactor"),
+    "SessionSearch": ("copium.session", "SessionSearch"),
 }
 
 # Memory remains optional and preserves the long-standing behavior of exposing
