@@ -10,13 +10,17 @@ from .archive import CompactConfig, CompactResult, SessionArchive, SessionMessag
 from .compactor import SessionCompactor
 from .applicator import SessionApplicator
 from .expander import SessionExpander
+from .search import SearchConfig, SearchResult, SessionSearch
 
 __all__ = [
     "CompactConfig",
     "CompactResult",
+    "SearchConfig",
+    "SearchResult",
     "SessionApplicator",
     "SessionArchive",
     "SessionCompactor",
     "SessionExpander",
     "SessionMessage",
+    "SessionSearch",
 ]
