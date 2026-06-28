@@ -78,6 +78,12 @@ if TYPE_CHECKING:
         ProviderCacheConfig,
     )
     from copium.transforms.pipeline import TransformPipeline  # noqa: F401
+    from copium.transforms.ansi_remover import (  # noqa: F401
+        ANSIRemover,
+        ANSIRemoverConfig,
+        strip_ansi,
+        strip_spinners,
+    )
     from copium.transforms.schema_compressor import (  # noqa: F401
         SchemaCompressionConfig,
         compress_tool_schemas,
