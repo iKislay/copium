@@ -55,6 +55,17 @@ The canonical, always-current documentation index lives at the docs site below. 
 - [SharedContext](https://copium-docs.vercel.app/docs/shared-context): Compressed inter-agent context handoffs.
 - [Failure learning](https://copium-docs.vercel.app/docs/failure-learning): Offline analysis writes corrections to `CLAUDE.md` / `AGENTS.md`.
 
+## Session management
+
+- Session archive compression: `copium session compact` — compact/apply/expand workflow for Claude Code, Cursor, Aider, OpenCode sessions.
+- Multi-agent adapters: auto-detect and parse Claude Code JSONL, Cursor JSON, Aider JSONL/markdown, OpenCode JSON.
+- Cross-agent context sharing: `copium session export/import` — export from one agent, import into another.
+- FTS5-powered search: `copium session search` — full-text search across all indexed archives.
+- ANSI removal: strips terminal colors, spinners, progress bars from tool outputs.
+- Build error grouping: groups identical TypeScript/Rust/GCC/Clang errors with file counts.
+- Docker build compression: removes download progress, deduplicates layers.
+- Compiler error normalization: normalizes paths, removes timestamps, collapses repeated warnings.
+
 ## Operations
 
 - [Configuration](https://copium-docs.vercel.app/docs/configuration): Env vars, config file, per-call overrides.
