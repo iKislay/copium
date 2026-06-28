@@ -10,6 +10,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 
+* **session:** universal session manager — compress, search, and share session archives across Claude Code, Cursor, Aider, and OpenCode
+* **session:** `copium session compact` — compact session archives with exact + near-duplicate dedup, ANSI removal, preamble collapse (40-97% savings)
+* **session:** `copium session apply` — apply compacted sessions as context for new API calls (Anthropic/OpenAI format)
+* **session:** `copium session expand` — reconstruct original sessions from compacted archives
+* **session:** `copium session search` — FTS5-powered full-text search across all indexed session archives
+* **session:** `copium session export/import` — cross-agent context sharing (export from Claude, import to Cursor)
+* **session:** `copium session diff` — compare two session archives showing message/token/type differences
+* **session:** `copium session stats` — show session index statistics
+* **session:** multi-agent adapters — auto-detect and parse Claude Code JSONL, Cursor JSON, Aider JSONL/markdown, OpenCode JSON
+* **transforms:** `ANSIRemover` — strips ANSI color codes, spinner sequences, cursor movement, progress bars from tool outputs (10-30% savings)
+* **transforms:** build error grouping — groups identical TypeScript/Rust/GCC/Clang errors across files with file counts (60-85% savings)
+* **transforms:** Docker build compression — removes download progress, deduplicates identical layers (40-60% savings)
+* **transforms:** compiler error normalization — normalizes absolute paths, removes timestamps, collapses repeated warnings
+* **rust:** zero-allocation ANSI remover with CSI/OSC/spinner handling and statistics tracking
+* **rust:** build error grouper with TypeScript, Rust, and GCC/Clang pattern support
+* **utils:** `copium.utils.strip_ansi()` public convenience function
+
 * **cli:** add `copium agents` command to list detected AI agents and their wrap status
 * **cli:** add `copium logs` command to tail proxy logs with `--follow`, `--tail`, and `--level` options
 * **cli:** add `copium completions` command to generate shell completion scripts for bash, zsh, fish, and powershell
