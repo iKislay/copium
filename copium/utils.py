@@ -249,3 +249,13 @@ def deep_copy_messages(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
     serialisation overhead on large conversation histories).
     """
     return copy.deepcopy(messages)
+
+
+def strip_ansi(text: str) -> str:
+    """Strip ANSI escape codes from text.
+
+    Convenience function wrapping the full ANSIRemover for quick one-off use.
+    """
+    from copium.transforms.ansi_remover import strip_ansi as _strip_ansi
+
+    return _strip_ansi(text)
