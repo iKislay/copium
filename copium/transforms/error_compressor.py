@@ -168,6 +168,14 @@ class ErrorCard:
             frames_str = " → ".join(self.stack_frames[:3])
             parts.append(f"  {frames_str}")
 
+        if self.grouped_count > 1:
+            file_info = ""
+            if self.grouped_files:
+                file_info = f": {', '.join(self.grouped_files[:5])}"
+                if len(self.grouped_files) > 5:
+                    file_info += f" +{len(self.grouped_files) - 5} more"
+            parts.append(f"  ({self.grouped_count} occurrences{file_info})")
+
         if self.next_actions:
             parts.append("  NEXT: " + "; ".join(self.next_actions[:2]))
 
