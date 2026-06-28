@@ -1,0 +1,164 @@
+---
+title: Session Management
+description: Compress, search, and share AI agent session archives across Claude Code, Cursor, Aider, and OpenCode.
+---
+
+# Session Management
+
+Copium is a **universal session manager** for AI coding agents. Beyond live compression, it can compress, search, and share session archives from multiple agents.
+
+## Quick Start
+
+```bash
+# Compact a Claude Code session (40-97% smaller)
+copium session compact ~/.claude/projects/.../session.jsonl
+
+# Search across all sessions
+copium session search "authentication bug"
+
+# Export from one agent, import into another
+copium session export claude-session.jsonl --format shared
+copium session import shared.jsonl --agent cursor
+```
+
+## Supported Agents
+
+| Agent | Format | Location |
+|-------|--------|----------|
+| **Claude Code** | JSONL | `~/.claude/projects/` |
+| **Cursor** | JSON | `~/.cursor/conversations/` |
+| **Aider** | JSONL / Markdown | `~/.aider/conversations/` |
+| **OpenCode** | JSON | `~/.opencode/sessions/` |
+
+## Commands
+
+### `copium session compact`
+
+Compresses a session archive using exact SHA-256 dedup, MinHash near-dedup, ANSI removal, and assistant preamble collapse.
+
+```bash
+copium session compact session.jsonl
+copium session compact session.jsonl -o small.jsonl --threshold 0.9
+copium session compact session.jsonl --no-dedup --no-ansi
+copium session compact session.jsonl --agent claude_code --json-output
+```
+
+### `copium session apply`
+
+Converts a compacted archive into API-ready messages.
+
+```bash
+copium session apply compacted.jsonl "What was I working on?"
+copium session apply compacted.jsonl --format openai -o context.json
+```
+
+### `copium session expand`
+
+Reconstructs the original session from a compacted archive.
+
+```bash
+copium session expand compacted.jsonl --original session.jsonl
+copium session expand compacted.jsonl -o restored.jsonl
+```
+
+### `copium session search`
+
+FTS5-powered full-text search across all indexed archives.
+
+```bash
+copium session search "authentication bug" --agent claude_code
+copium session search --file src/auth.ts "fix"
+copium session search "deploy" --role user
+```
+
+### `copium session export / import`
+
+Cross-agent context sharing.
+
+```bash
+# Export to shared format
+copium session export claude-session.jsonl --format shared
+
+# Import into Cursor
+copium session import shared.jsonl --agent cursor -o cursor-session.json
+
+# Export as OpenAI messages
+copium session export session.jsonl --format openai
+```
+
+### `copium session compact-all`
+
+Batch compact all sessions in a directory.
+
+```bash
+copium session compact-all ~/.claude/ -o compacted/
+copium session compact-all ~/.claude/projects/ --threshold 0.9
+```
+
+### `copium session diff`
+
+Compare two session archives.
+
+```bash
+copium session diff original.jsonl compacted.jsonl
+copium session diff session1.jsonl session2.jsonl --json-output
+```
+
+### `copium session replay`
+
+Replay user turns with a different model (experimental).
+
+```bash
+copium session replay session.jsonl --model gpt-4o --dry-run
+copium session replay session.jsonl --model claude-haiku --compact
+```
+
+### `copium session index`
+
+Build the FTS5 search index.
+
+```bash
+copium session index ~/.claude/
+copium session index ~/.cursor/conversations/ --agent cursor
+```
+
+## How Compaction Works
+
+The compactor uses the same engine as Copium's live `SessionDedup` transform:
+
+1. **Exact dedup** — SHA-256 hash of tool outputs. Second+ occurrence → reference marker.
+2. **Near-dedup** — MinHash LSH with 0.85 Jaccard threshold for similar content.
+3. **ANSI removal** — Strip terminal colors, spinners, progress bars.
+4. **Preamble collapse** — Remove filler phrases from assistant messages.
+5. **Identical turn grouping** — Merge consecutive duplicate user messages.
+
+Compressed archives include `_copium_compacted: true` metadata and self-descriptive reference markers that models can follow.
+
+## Python API
+
+```python
+from copium.session import SessionArchive, SessionCompactor, SessionSearch
+
+# Compact an archive
+archive = SessionArchive(Path("session.jsonl"))
+compactor = SessionCompactor()
+compacted, result = compactor.compact(archive)
+print(f"Savings: {result.savings_pct:.1f}%")
+
+# Search across archives
+searcher = SessionSearch()
+results = searcher.search("authentication bug", agent="claude_code")
+for r in results:
+    print(f"{r.session_path}: {r.content_snippet}")
+```
+
+## vs ContextZip
+
+| | Copium | ContextZip |
+|---|---|---|
+| **Live compression** | ✅ | ❌ |
+| **Multi-agent** | ✅ (4 agents) | Claude only |
+| **Reversible** | ✅ (CCR) | ❌ (lossy) |
+| **Session search** | ✅ (FTS5) | ❌ |
+| **Cross-agent sharing** | ✅ | ❌ |
+| **Multi-provider** | ✅ | Anthropic only |
