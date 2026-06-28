@@ -530,3 +530,51 @@ def import_cmd(input_path: Path, agent: str, output: Path | None) -> None:
 
     adapter.write(archive.messages, output)
     click.echo(f"Imported {len(archive)} messages to {output} ({agent} format)")
+
+
+@session.command("replay")
+@click.argument("archive_path", type=click.Path(exists=True, path_type=Path))
+@click.option("--model", type=str, default=None, help="Model to replay with (e.g., gpt-4o, claude-haiku).")
+@click.option("--compact/--no-compact", default=True, help="Compact before replay.")
+@click.option("--dry-run", is_flag=True, help="Show what would be sent without calling the API.")
+def replay_cmd(archive_path: Path, model: str | None, compact: bool, dry_run: bool) -> None:
+    """Replay a session with a different model (experimental).
+
+    Reads a session archive, optionally compacts it, and replays the
+    user turns against a different model to see how it responds.
+
+    \b
+    Examples:
+        copium session replay session.jsonl --model gpt-4o --dry-run
+        copium session replay session.jsonl --model claude-haiku --compact
+    """
+    from copium.session.archive import SessionArchive
+    from copium.session.compactor import SessionCompactor
+    from copium.session.applicator import SessionApplicator
+
+    archive = SessionArchive(archive_path)
+
+    if compact:
+        compactor = SessionCompactor()
+        archive, result = compactor.compact(archive)
+        click.echo(f"Compacted: {result.savings_pct:.1f}% savings ({result.original_tokens_est:,} → {result.compacted_tokens_est:,} tokens)")
+
+    # Extract user turns only for replay
+    user_turns = [m for m in archive.messages if m.role == "user"]
+
+    if dry_run:
+        click.echo(f"\n[Dry run] Would replay {len(user_turns)} user turns")
+        if model:
+            click.echo(f"  Model: {model}")
+        click.echo(f"  Total messages: {len(archive)}")
+        click.echo(f"  Estimated tokens: {archive.token_estimate():,}")
+        click.echo("\nUser turns:")
+        for i, turn in enumerate(user_turns[:5], 1):
+            preview = turn.content[:100].replace("\n", " ")
+            click.echo(f"  {i}. {preview}...")
+        if len(user_turns) > 5:
+            click.echo(f"  ... and {len(user_turns) - 5} more")
+    else:
+        click.echo("Session replay requires an API key configured.")
+        click.echo("Use --dry-run to preview what would be sent.")
+        click.echo(f"\nSession has {len(user_turns)} user turns, {archive.token_estimate():,} tokens")
