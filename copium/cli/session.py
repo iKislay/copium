@@ -31,6 +31,8 @@ def session():
 @click.option("--no-ansi", is_flag=True, help="Skip ANSI removal.")
 @click.option("--no-preamble", is_flag=True, help="Skip assistant preamble collapse.")
 @click.option("--threshold", type=float, default=0.85, help="Near-duplicate threshold (0-1).")
+@click.option("--agent", type=click.Choice(["auto", "claude_code", "cursor", "aider", "opencode"]),
+              default="auto", help="Session format (auto-detect by default).")
 @click.option("--json-output", "as_json", is_flag=True, help="Output stats as JSON.")
 def compact(
     input_path: Path,
@@ -39,6 +41,7 @@ def compact(
     no_ansi: bool,
     no_preamble: bool,
     threshold: float,
+    agent: str,
     as_json: bool,
 ) -> None:
     """Compact a session archive by deduplicating and removing noise.
