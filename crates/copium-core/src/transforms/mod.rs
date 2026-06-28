@@ -18,6 +18,7 @@
 pub mod adaptive_sizer;
 pub mod anchor_selector;
 pub mod ansi_remover;
+pub mod build_error_grouper;
 pub mod code_analyzer;
 pub mod content_detector;
 pub mod detection;
