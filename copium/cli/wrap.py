@@ -3124,20 +3124,21 @@ def _print_wrap_savings_summary(port: int, rtk_only: bool = False) -> None:
     except Exception:
         pass
 
-    # Try to read proxy savings from the proxy health endpoint
+    # Try to read proxy savings from the proxy stats endpoint
     if not rtk_only:
         try:
             import json as _json
 
             import httpx
 
-            resp = httpx.get(f"http://127.0.0.1:{port}/health", timeout=2)
+            resp = httpx.get(f"http://127.0.0.1:{port}/stats", timeout=3)
             if resp.status_code == 200:
                 data = resp.json()
-                stats = data.get("stats", {})
-                proxy_tokens = int(stats.get("tokens_saved", 0))
-                hits = int(stats.get("cache_hits", 0))
-                total = int(stats.get("total_requests", 0))
+                tokens = data.get("tokens", {})
+                proxy_tokens = int(tokens.get("proxy_compression_saved", 0))
+                requests = data.get("requests", {})
+                hits = int(requests.get("cached", 0))
+                total = int(requests.get("total", 0))
                 cache_hit_rate = hits / total if total > 0 else 0.0
         except Exception:
             pass
@@ -3146,8 +3147,29 @@ def _print_wrap_savings_summary(port: int, rtk_only: bool = False) -> None:
     if total_tokens <= 0 and not rtk_only:
         return  # Nothing to show
 
-    # Estimate cost saved (Claude Sonnet ~$3 per million input tokens)
-    cost_saved = total_tokens * 3.0 / 1_000_000
+    # Use actual cost from CostTracker if available, else estimate at $3/M tokens
+    cost_saved = 0.0
+    if not rtk_only:
+        try:
+            import httpx as _httpx2
+
+            resp2 = _httpx2.get(f"http://127.0.0.1:{port}/stats", timeout=3)
+            if resp2.status_code == 200:
+                stats_data = resp2.json()
+                # Prefer CostTracker savings_usd (uses LiteLLM per-model pricing)
+                cost_obj = stats_data.get("cost")
+                if cost_obj and cost_obj.get("savings_usd", 0) > 0:
+                    cost_saved = float(cost_obj["savings_usd"])
+                else:
+                    # Fall back to persistent savings tracker
+                    ps = stats_data.get("persistent_savings", {})
+                    lifetime_usd = ps.get("lifetime", {}).get("compression_savings_usd", 0)
+                    if lifetime_usd > 0:
+                        cost_saved = float(lifetime_usd)
+        except Exception:
+            pass
+    if cost_saved <= 0:
+        cost_saved = total_tokens * 3.0 / 1_000_000
 
     width = 45
     click.echo()
