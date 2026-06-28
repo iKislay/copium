@@ -106,6 +106,32 @@ _IDENTICAL_ERROR_PATTERN = re.compile(
     re.M,
 )
 
+# Build error patterns (TypeScript, Rust, GCC, Clang)
+_BUILD_ERROR_PATTERNS = [
+    # TypeScript: error TS2322: Type 'x' is not assignable to type 'y'
+    re.compile(r"^(.+?):\s*(error TS\d+:\s*.+)$", re.M),
+    # Rust: error[E0308]: mismatched types
+    re.compile(r"^(.+?):\s*(error\[E\d+\]:\s*.+)$", re.M),
+    # GCC/Clang: file.c:10:5: error: ...
+    re.compile(r"^(.+?:\d+:\d+):\s*(error:\s*.+)$", re.M),
+    # Generic: file:line: error: message
+    re.compile(r"^(.+?:\d+):\s*(error:\s*.+)$", re.M),
+]
+
+# Docker build patterns
+_DOCKER_LAYER_PATTERN = re.compile(
+    r"^#\d+\s+\[\w+\s+\d+/\d+\]\s+(.+)$", re.M
+)
+_DOCKER_DOWNLOAD_PATTERN = re.compile(
+    r"^(?:Downloading|Extracting|Pulling fs layer|Waiting|Download complete|"
+    r"Pull complete|Verifying Checksum|Already exists)\s*.*$",
+    re.M,
+)
+_DOCKER_PROGRESS_PATTERN = re.compile(
+    r"^.*?(?:\d+\.\d+\s*[kMG]B/\d+\.\d+\s*[kMG]B|[\d.]+%|\[={>}\s*\]).*$",
+    re.M,
+)
+
 
 @dataclass
 class ErrorCard:
@@ -119,6 +145,8 @@ class ErrorCard:
     exit_code: int | None = None  # Exit code if command failed
     next_actions: list[str] = field(default_factory=list)  # Suggested next steps
     raw_length: int = 0  # Original error output length
+    grouped_count: int = 1  # Number of identical errors grouped
+    grouped_files: list[str] = field(default_factory=list)  # Files with same error
 
     def to_marker(self, max_tokens: int = 200) -> str:
         """Convert to a compact retrieval marker for the LLM."""
@@ -389,6 +417,143 @@ def _collapse_identical_errors(text: str) -> str:
     return "\n".join(result_lines)
 
 
+def _group_build_errors(text: str) -> str:
+    """Group identical build errors across multiple files with counts.
+
+    Before:
+        src/a.ts: error TS2322: Type 'string' is not assignable to type 'number'
+        src/b.ts: error TS2322: Type 'string' is not assignable to type 'number'
+        src/c.ts: error TS2322: Type 'string' is not assignable to type 'number'
+
+    After:
+        error TS2322: Type 'string' is not assignable to type 'number' (3 files: src/a.ts, src/b.ts, src/c.ts)
+    """
+    # Try each build error pattern
+    for pattern in _BUILD_ERROR_PATTERNS:
+        matches = pattern.findall(text)
+        if len(matches) < 2:
+            continue
+
+        # Group by error message
+        error_groups: dict[str, list[str]] = {}
+        for file_loc, error_msg in matches:
+            error_msg_clean = error_msg.strip()
+            if error_msg_clean not in error_groups:
+                error_groups[error_msg_clean] = []
+            error_groups[error_msg_clean].append(file_loc.strip())
+
+        # Replace grouped errors
+        for error_msg, files in error_groups.items():
+            if len(files) < 2:
+                continue
+
+            # Remove original individual error lines
+            for file_loc in files:
+                # Escape special regex chars in the file location
+                escaped_file = re.escape(file_loc)
+                escaped_msg = re.escape(error_msg)
+                line_pattern = re.compile(
+                    rf"^{escaped_file}:\s*{escaped_msg}\s*$\n?", re.M
+                )
+                text = line_pattern.sub("", text)
+
+            # Add grouped summary
+            file_list = ", ".join(files[:5])
+            if len(files) > 5:
+                file_list += f", ... +{len(files) - 5} more"
+            grouped_line = f"{error_msg} ({len(files)} files: {file_list})\n"
+            text = text.rstrip() + "\n" + grouped_line
+
+    return text
+
+
+def _compress_docker_build(text: str) -> str:
+    """Compress Docker build output.
+
+    - Remove download progress lines
+    - Deduplicate identical RUN steps
+    - Keep layer summary and errors
+    """
+    lines = text.split("\n")
+    result_lines: list[str] = []
+    seen_layers: set[str] = set()
+    download_count = 0
+    progress_count = 0
+
+    for line in lines:
+        # Skip download progress
+        if _DOCKER_DOWNLOAD_PATTERN.match(line):
+            download_count += 1
+            continue
+
+        # Skip progress bars
+        if _DOCKER_PROGRESS_PATTERN.match(line):
+            progress_count += 1
+            continue
+
+        # Deduplicate identical Docker layers
+        layer_match = _DOCKER_LAYER_PATTERN.match(line)
+        if layer_match:
+            layer_content = layer_match.group(1).strip()
+            if layer_content in seen_layers:
+                continue
+            seen_layers.add(layer_content)
+
+        result_lines.append(line)
+
+    # Add summary of removed lines
+    removed = download_count + progress_count
+    if removed > 0:
+        result_lines.append(
+            f"  ({removed} download/progress lines removed)"
+        )
+
+    return "\n".join(result_lines)
+
+
+def _normalize_compiler_errors(text: str) -> str:
+    """Normalize compiler errors for better grouping.
+
+    - Normalize absolute paths to relative
+    - Remove timestamps
+    - Collapse repeated warning patterns
+    """
+    lines = text.split("\n")
+    result_lines: list[str] = []
+    warning_counts: dict[str, int] = {}
+
+    for line in lines:
+        # Normalize absolute paths to relative
+        # /home/user/project/src/file.ts -> src/file.ts
+        line = re.sub(
+            r"(?:/home/\w+/[\w.-]+/|/Users/\w+/[\w.-]+/|/workspace/[\w.-]+/)",
+            "",
+            line,
+        )
+
+        # Remove timestamps like [2026-06-28T10:30:00Z] or [10:30:00]
+        line = re.sub(r"\[\d{4}-\d{2}-\d{2}T[\d:.]+Z?\]\s*", "", line)
+        line = re.sub(r"\[\d{2}:\d{2}:\d{2}\]\s*", "", line)
+
+        # Group repeated warnings
+        warning_match = re.match(r"^(.+?:\d+:\d+:\s*warning:\s*.+)$", line)
+        if warning_match:
+            warning_msg = warning_match.group(1).strip()
+            # Normalize path for grouping
+            normalized = re.sub(r"^.+?:\d+:\d+:\s*", "", warning_msg)
+            warning_counts[normalized] = warning_counts.get(normalized, 0) + 1
+            if warning_counts[normalized] <= 2:
+                result_lines.append(line)
+            elif warning_counts[normalized] == 3:
+                result_lines.append(f"  ... (repeated warning: {normalized})")
+            # Skip further repeats
+            continue
+
+        result_lines.append(line)
+
+    return "\n".join(result_lines)
+
+
 @dataclass
 class ErrorCompressorConfig:
     """Configuration for error-driven compression.
@@ -419,6 +584,15 @@ class ErrorCompressorConfig:
     # Collapse repeated errors
     collapse_identical: bool = True  # Collapse N identical lines to "line (xN)"
     min_identical_to_collapse: int = 3  # Minimum repeats before collapsing
+
+    # Build error grouping (TypeScript, Rust, GCC, Clang)
+    group_build_errors: bool = True
+
+    # Docker build output compression
+    compress_docker_builds: bool = True
+
+    # Compiler error normalization (path normalization, timestamp removal)
+    normalize_compiler_errors: bool = True
 
     # Minimum error output length to compress (short outputs aren't worth it)
     min_length_to_compress: int = 150
@@ -471,11 +645,23 @@ class ErrorCompressor(Transform):
         original_length = len(text)
         result = text
 
+        # Step 0: Normalize compiler errors (paths, timestamps)
+        if self.config.normalize_compiler_errors:
+            result = _normalize_compiler_errors(result)
+
         # Step 1: Collapse identical errors
         if self.config.collapse_identical:
             result = _collapse_identical_errors(result)
 
-        # Step 2: Compress stack traces
+        # Step 2: Group build errors by type across files
+        if self.config.group_build_errors:
+            result = _group_build_errors(result)
+
+        # Step 3: Compress Docker build output
+        if self.config.compress_docker_builds:
+            result = _compress_docker_build(result)
+
+        # Step 4: Compress stack traces
         result = _compress_stack_trace(
             result, max_frames=self.config.max_stack_frames
         )
