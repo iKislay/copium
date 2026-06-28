@@ -29,6 +29,8 @@ md-5 = "0.10"
 # `sha2` for `_hash_field_name` in smart_crusher (SHA256 truncated to 16
 # hex chars). Python uses `hashlib.sha256` so we need byte-exact parity.
 sha2 = "0.10"
+# `lazy_static` for compile-time regex patterns in build_error_grouper.
+lazy_static = "1"
 # `dashmap` for the CCR storage backend. Concurrent HashMap with sharded
 # locking — distinct keys hashed to different shards never contend, so
 # multi-worker proxy load doesn't queue on a single Mutex. Lock-free

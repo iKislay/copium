@@ -5,6 +5,7 @@
 //! `_group_build_errors`, `_compress_docker_build`, and
 //! `_normalize_compiler_errors` functions in `error_compressor.py`.
 
+use lazy_static::lazy_static;
 use std::borrow::Cow;
 use std::collections::HashMap;
 
@@ -172,9 +173,6 @@ pub fn compress_docker_build(input: &str) -> Cow<'_, str> {
         Cow::Borrowed(input)
     }
 }
-
-#[macro_use]
-extern crate lazy_static;
 
 #[cfg(test)]
 mod tests {
