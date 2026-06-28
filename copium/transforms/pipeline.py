@@ -151,6 +151,18 @@ class TransformPipeline:
         if self.config.session_dedup.enabled:
             transforms.append(SessionDedup(self.config.session_dedup))
 
+        # 1d. ANSI/Terminal Decoration Removal
+        # Strips ANSI color codes, spinner sequences, cursor movement, and
+        # progress bars. Runs before ContentRouter since ANSI noise confuses
+        # content type detection (e.g., colored JSON looks like plain text).
+        from copium.config import ANSIRemoverConfig
+
+        ansi_config = getattr(self.config, "ansi_remover", ANSIRemoverConfig())
+        if ansi_config.enabled:
+            from .ansi_remover import ANSIRemover as _ANSIRemover
+
+            transforms.append(_ANSIRemover(ansi_config))
+
         # 2. Content-aware Compression
         # ContentRouter handles ALL content types intelligently:
         # - JSON arrays -> SmartCrusher
