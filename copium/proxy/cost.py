@@ -820,8 +820,8 @@ class CostTracker:
 
         # Compute actual input cost using API-reported cache breakdown and
         # LiteLLM's per-category pricing (cache reads discounted, writes at
-        # premium, uncached at list). Falls back to list price when cache
-        # data is unavailable.
+        # premium, uncached at list). Falls back to $3/M when pricing unavailable.
+        FALLBACK_COST_PER_TOKEN = 3.0 / 1_000_000
         cost_with_copium = 0.0
         total_billed_input_tokens = 0
         total_input_tokens = 0
@@ -846,10 +846,15 @@ class CostTracker:
                     billed_tokens = sent
                 cost_with_copium += model_cost
                 total_billed_input_tokens += billed_tokens
+            else:
+                # LiteLLM pricing unavailable — use fallback
+                cost_with_copium += sent * FALLBACK_COST_PER_TOKEN
+                total_billed_input_tokens += sent
 
         # Compression savings: price saved tokens at the model's list input price.
         # This is simple, monotonic, and transparent — each saved token is valued
         # at the published $/token rate for its model. Not affected by cache mix.
+        # Falls back to $3/M tokens when LiteLLM pricing is unavailable.
         savings_usd = 0.0
         for model in self._tokens_saved_by_model:
             saved = self._tokens_saved_by_model[model]
@@ -859,6 +864,8 @@ class CostTracker:
             if prices:
                 _cr_price, _cw_price, uncached_price = prices
                 savings_usd += saved * uncached_price
+            else:
+                savings_usd += saved * FALLBACK_COST_PER_TOKEN
 
         return {
             "total_tokens_saved": total_saved,
