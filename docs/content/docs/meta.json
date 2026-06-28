@@ -23,6 +23,8 @@
     "memory",
     "shared-context",
     "failure-learning",
+    "---Session Management---",
+    "session-management",
     "---Proxy Server---",
     "proxy",
     "---Integrations---",
