@@ -202,6 +202,12 @@ class SessionArchive:
     def __len__(self) -> int:
         return len(self.messages)
 
+    def __iter__(self):
+        return iter(self.messages)
+
+    def __getitem__(self, index):
+        return self.messages[index]
+
     def __repr__(self) -> str:
         return f"SessionArchive(path={self.path}, messages={len(self.messages)})"
 
