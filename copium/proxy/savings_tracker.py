@@ -227,12 +227,19 @@ def _estimate_input_cost_usd(
     """Estimate input spend in USD for a request.
 
     Uses provider cache pricing when a complete cache breakdown is available and
-    otherwise falls back to list-price input tokens.
+    otherwise falls back to list-price input tokens. When LiteLLM can't resolve
+    the model, uses a conservative fallback of $3.00/M tokens.
     """
     total_input_tokens = _coerce_int(input_tokens)
-    litellm = _get_litellm_module()
-    if total_input_tokens <= 0 or litellm is None:
+    if total_input_tokens <= 0:
         return 0.0
+
+    # Conservative fallback: $3.00 / 1M input tokens
+    FALLBACK_COST_PER_TOKEN = 3.0 / 1_000_000
+
+    litellm = _get_litellm_module()
+    if litellm is None:
+        return float(total_input_tokens) * FALLBACK_COST_PER_TOKEN
 
     cache_read = _coerce_int(cache_read_tokens)
     cache_write = _coerce_int(cache_write_tokens)
@@ -243,7 +250,7 @@ def _estimate_input_cost_usd(
         info = litellm.model_cost.get(resolved, {})
         input_cost_per_token = info.get("input_cost_per_token")
         if not input_cost_per_token:
-            return 0.0
+            return float(total_input_tokens) * FALLBACK_COST_PER_TOKEN
 
         if cache_read + cache_write + uncached > 0:
             cache_read_cost = info.get(
@@ -262,7 +269,7 @@ def _estimate_input_cost_usd(
 
         return float(total_input_tokens) * float(input_cost_per_token)
     except Exception:
-        return 0.0
+        return float(total_input_tokens) * FALLBACK_COST_PER_TOKEN
 
 
 def _normalize_history_entry(entry: Any) -> dict[str, Any] | None:
