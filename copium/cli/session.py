@@ -1,6 +1,8 @@
 """Session management CLI commands.
 
-Provides compact/apply/expand/search commands for AI agent session archives.
+Provides compact/apply/expand/search/export/import commands for
+AI agent session archives. Supports Claude Code, Cursor, Aider,
+and OpenCode session formats with cross-agent context sharing.
 """
 
 from __future__ import annotations
