@@ -204,3 +204,21 @@ class SessionArchive:
 
     def __repr__(self) -> str:
         return f"SessionArchive(path={self.path}, messages={len(self.messages)})"
+
+    def detect_format(self) -> str:
+        """Detect the agent format of this archive.
+
+        Returns:
+            Agent name (claude_code, cursor, aider, opencode) or 'unknown'.
+        """
+        if self.path is None:
+            return "unknown"
+        try:
+            from .adapters import detect_adapter
+
+            adapter = detect_adapter(self.path)
+            if adapter:
+                return adapter.name
+        except ImportError:
+            pass
+        return "unknown"
