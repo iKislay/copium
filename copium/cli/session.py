@@ -448,3 +448,80 @@ def stats_cmd() -> None:
         click.echo(f"    {agent}: {count}")
     searcher.close()
 
+
+@session.command("export")
+@click.argument("input_path", type=click.Path(exists=True, path_type=Path))
+@click.option("--format", "fmt", type=click.Choice(["anthropic", "openai", "shared"]),
+              default="shared", help="Output format.")
+@click.option("--output", "-o", type=click.Path(path_type=Path), default=None)
+@click.option("--compact/--no-compact", default=True, help="Compact before export.")
+def export_cmd(input_path: Path, fmt: str, output: Path | None, compact: bool) -> None:
+    """Export a session to a cross-agent format.
+
+    Converts any agent session to a portable format that can be imported
+    into a different agent.
+
+    \b
+    Examples:
+        copium session export claude-session.jsonl --format shared
+        copium session export cursor-session.json --format openai -o context.json
+    """
+    from copium.session.archive import SessionArchive
+    from copium.session.compactor import SessionCompactor
+    from copium.session.applicator import SessionApplicator
+
+    archive = SessionArchive(input_path)
+
+    if compact:
+        compactor = SessionCompactor()
+        archive, result = compactor.compact(archive)
+        click.echo(f"Compacted: {result.savings_pct:.1f}% savings")
+
+    if fmt == "shared":
+        # Export as portable JSONL (agent-agnostic)
+        if output is None:
+            output = input_path.with_stem(input_path.stem + "_shared")
+            if output.suffix != ".jsonl":
+                output = output.with_suffix(".jsonl")
+        archive.to_jsonl(output)
+        click.echo(f"Exported {len(archive)} messages to {output} (shared JSONL)")
+    else:
+        applicator = SessionApplicator(format=fmt)
+        messages = applicator.apply(archive)
+        output_json = json.dumps(messages, indent=2)
+        if output is None:
+            output = input_path.with_stem(input_path.stem + f"_{fmt}").with_suffix(".json")
+        output.write_text(output_json, encoding="utf-8")
+        click.echo(f"Exported {len(messages)} messages to {output} ({fmt} format)")
+
+
+@session.command("import")
+@click.argument("input_path", type=click.Path(exists=True, path_type=Path))
+@click.option("--agent", type=click.Choice(["claude_code", "cursor", "aider", "opencode"]),
+              required=True, help="Target agent format.")
+@click.option("--output", "-o", type=click.Path(path_type=Path), default=None)
+def import_cmd(input_path: Path, agent: str, output: Path | None) -> None:
+    """Import a session from shared or another agent format.
+
+    Converts a session archive to the target agent's native format.
+
+    \b
+    Examples:
+        copium session import shared.jsonl --agent cursor -o cursor-session.json
+    """
+    from copium.session.archive import SessionArchive
+    from copium.session.adapters import get_adapter
+
+    archive = SessionArchive(input_path)
+    adapter = get_adapter(agent)
+
+    if adapter is None:
+        click.echo(f"Unknown agent: {agent}", err=True)
+        raise SystemExit(1)
+
+    if output is None:
+        suffix = ".jsonl" if agent in ("claude_code", "aider") else ".json"
+        output = input_path.with_stem(input_path.stem + f"_{agent}").with_suffix(suffix)
+
+    adapter.write(archive.messages, output)
+    click.echo(f"Imported {len(archive)} messages to {output} ({agent} format)")
