@@ -366,3 +366,82 @@ def list_adapters_cmd() -> None:
     for name in sorted(adapters):
         click.echo(f"  - {name}")
 
+
+@session.command("diff")
+@click.argument("path_a", type=click.Path(exists=True, path_type=Path))
+@click.argument("path_b", type=click.Path(exists=True, path_type=Path))
+@click.option("--json-output", "as_json", is_flag=True)
+def diff_cmd(path_a: Path, path_b: Path, as_json: bool) -> None:
+    """Compare two session archives.
+
+    Shows differences in message count, content, and compression stats.
+
+    \b
+    Examples:
+        copium session diff original.jsonl compacted.jsonl
+    """
+    from copium.session.archive import SessionArchive
+
+    archive_a = SessionArchive(path_a)
+    archive_b = SessionArchive(path_b)
+
+    tokens_a = archive_a.token_estimate()
+    tokens_b = archive_b.token_estimate()
+    delta_tokens = tokens_a - tokens_b
+    delta_pct = (delta_tokens / tokens_a * 100) if tokens_a > 0 else 0
+
+    if as_json:
+        click.echo(json.dumps({
+            "path_a": str(path_a),
+            "path_b": str(path_b),
+            "messages_a": len(archive_a),
+            "messages_b": len(archive_b),
+            "tokens_a": tokens_a,
+            "tokens_b": tokens_b,
+            "delta_tokens": delta_tokens,
+            "delta_pct": round(delta_pct, 1),
+            "a_compacted": archive_a.is_compacted,
+            "b_compacted": archive_b.is_compacted,
+        }, indent=2))
+    else:
+        click.echo(f"Session A: {path_a.name}")
+        click.echo(f"  Messages: {len(archive_a)}, Tokens: {tokens_a:,}, Compacted: {archive_a.is_compacted}")
+        click.echo(f"Session B: {path_b.name}")
+        click.echo(f"  Messages: {len(archive_b)}, Tokens: {tokens_b:,}, Compacted: {archive_b.is_compacted}")
+        click.echo(f"Delta: {delta_tokens:,} tokens ({delta_pct:.1f}%)")
+
+        # Show message type differences
+        types_a: dict[str, int] = {}
+        types_b: dict[str, int] = {}
+        for m in archive_a.messages:
+            types_a[m.type] = types_a.get(m.type, 0) + 1
+        for m in archive_b.messages:
+            types_b[m.type] = types_b.get(m.type, 0) + 1
+
+        all_types = sorted(set(list(types_a.keys()) + list(types_b.keys())))
+        click.echo("Message types:")
+        for t in all_types:
+            a = types_a.get(t, 0)
+            b = types_b.get(t, 0)
+            diff = b - a
+            sign = "+" if diff > 0 else ""
+            click.echo(f"  {t}: {a} -> {b} ({sign}{diff})")
+
+
+@session.command("stats")
+def stats_cmd() -> None:
+    """Show session index statistics."""
+    from copium.session.search import SessionSearch
+
+    searcher = SessionSearch()
+    stats = searcher.stats()
+
+    click.echo(f"Session Index: {stats['index_path']}")
+    click.echo(f"  Sessions: {stats['sessions']}")
+    click.echo(f"  Messages: {stats['messages']}")
+    click.echo(f"  Total tokens (est): {stats['total_tokens_est']:,}")
+    click.echo(f"  Agents:")
+    for agent, count in sorted(stats.get("agents", {}).items()):
+        click.echo(f"    {agent}: {count}")
+    searcher.close()
+
