@@ -269,3 +269,100 @@ def summary(archive_path: Path, as_json: bool) -> None:
         click.echo(f"  Message types:")
         for mtype, count in sorted(type_counts.items()):
             click.echo(f"    {mtype}: {count}")
+
+
+@session.command()
+@click.argument("query")
+@click.option("--agent", type=str, default=None, help="Filter by agent (claude_code, cursor, aider, opencode).")
+@click.option("--role", type=str, default=None, help="Filter by role (user, assistant, tool).")
+@click.option("--file", "file_path", type=str, default=None, help="Search for sessions referencing this file.")
+@click.option("--max-results", "-n", type=int, default=20)
+@click.option("--json-output", "as_json", is_flag=True)
+def search(
+    query: str,
+    agent: str | None,
+    role: str | None,
+    file_path: str | None,
+    max_results: int,
+    as_json: bool,
+) -> None:
+    """Search across all indexed session archives.
+
+    Uses FTS5 full-text search with Porter stemming. Supports AND, OR, NOT.
+
+    \b
+    Examples:
+        copium session search "authentication bug"
+        copium session search "auth" --agent claude_code
+        copium session search --file src/auth.ts "fix"
+    """
+    from copium.session.search import SearchConfig, SessionSearch
+
+    config = SearchConfig(max_results=max_results)
+    searcher = SessionSearch(config)
+
+    if file_path:
+        results = searcher.search_file(file_path, agent=agent)
+    else:
+        results = searcher.search(query, agent=agent, role=role, max_results=max_results)
+
+    if as_json:
+        click.echo(json.dumps([
+            {
+                "session_path": r.session_path,
+                "turn_index": r.turn_index,
+                "role": r.role,
+                "snippet": r.content_snippet,
+                "score": r.score,
+                "agent": r.agent,
+            }
+            for r in results
+        ], indent=2))
+    else:
+        if not results:
+            click.echo("No results found.")
+            return
+
+        click.echo(f"Found {len(results)} results:\n")
+        for i, r in enumerate(results, 1):
+            agent_label = f" [{r.agent}]" if r.agent else ""
+            click.echo(f"  {i}. {Path(r.session_path).name}{agent_label} (turn {r.turn_index}, {r.role})")
+            click.echo(f"     {r.content_snippet[:150]}")
+            click.echo()
+
+    searcher.close()
+
+
+@session.command("index")
+@click.argument("directory", type=click.Path(exists=True, path_type=Path))
+@click.option("--agent", type=str, default="", help="Force agent type for all files.")
+@click.option("--recursive/--no-recursive", default=True)
+def index_cmd(directory: Path, agent: str, recursive: bool) -> None:
+    """Index session archives for search.
+
+    \b
+    Examples:
+        copium session index ~/.claude/
+        copium session index ~/.cursor/conversations/ --agent cursor
+    """
+    from copium.session.search import SessionSearch
+
+    searcher = SessionSearch()
+    count = searcher.index_directory(directory, agent=agent, recursive=recursive)
+    click.echo(f"Indexed {count} messages from {directory}")
+
+    stats = searcher.stats()
+    click.echo(f"Total index: {stats['sessions']} sessions, {stats['messages']} messages")
+    searcher.close()
+
+
+@session.command("adapters")
+def list_adapters_cmd() -> None:
+    """List all available session format adapters."""
+    from copium.session.adapters import list_adapters
+
+    adapters = list_adapters()
+    click.echo("Available session adapters:")
+    for name in sorted(adapters):
+        click.echo(f"  - {name}")
+
