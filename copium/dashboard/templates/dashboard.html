@@ -1702,9 +1702,12 @@
                         // Compute core KPI metrics
                         // Use persisted display_session for proxy compression saved
                         // (resets after 60 min inactivity, consistent with lifetime source).
-                        this.proxySavedTokens = data.display_session?.tokens_saved || 0;
+                        // Fall back to in-memory Prometheus counter when display session expired.
+                        this.proxySavedTokens = data.display_session?.tokens_saved
+                            || data.tokens?.proxy_compression_saved || 0;
                         this.cliSavedTokens = data.tokens?.cli_filtering_saved || 0;
-                        this.totalTokensSaved = data.persistent_savings?.lifetime?.tokens_saved || 0;
+                        this.totalTokensSaved = data.persistent_savings?.lifetime?.tokens_saved
+                            || data.tokens?.proxy_compression_saved || 0;
 
                         // Clamp session proxy saved to never exceed lifetime
                         if (this.proxySavedTokens > this.totalTokensSaved && this.totalTokensSaved > 0) {
@@ -1712,15 +1715,19 @@
                         }
 
                         this.isEstimatedCost = false;
-                        this.dollarsSaved = data.persistent_savings?.lifetime?.compression_savings_usd || 0;
+                        // Primary: persisted lifetime USD. Fallback 1: CostTracker savings.
+                        // Fallback 2: estimate from tokens at $3/M (conservative).
+                        this.dollarsSaved = data.persistent_savings?.lifetime?.compression_savings_usd
+                            || data.cost?.savings_usd || 0;
                         if (this.dollarsSaved === 0 && this.totalTokensSaved > 0) {
-                            this.dollarsSaved = this.totalTokensSaved * 0.000002; // Est at $2.00 / M tokens
+                            this.dollarsSaved = this.totalTokensSaved * 0.000003; // Est at $3.00 / M tokens
                             this.isEstimatedCost = true;
                         }
 
+                        // Session dollars: persisted display session, then in-memory estimate
                         this.sessionDollarsSaved = data.persistent_savings?.display_session?.compression_savings_usd || 0;
                         if (this.sessionDollarsSaved === 0 && this.proxySavedTokens > 0) {
-                            this.sessionDollarsSaved = this.proxySavedTokens * 0.000002;
+                            this.sessionDollarsSaved = this.proxySavedTokens * 0.000003;
                         }
                         // Clamp session dollars to never exceed lifetime
                         if (this.sessionDollarsSaved > this.dollarsSaved && this.dollarsSaved > 0) {

@@ -187,20 +187,33 @@ def _resolve_litellm_model(model: str) -> str:
 
 
 def _estimate_compression_savings_usd(model: str, tokens_saved: int) -> float:
-    """Estimate compression savings in USD from saved input tokens."""
-    litellm = _get_litellm_module()
-    if tokens_saved <= 0 or litellm is None:
+    """Estimate compression savings in USD from saved input tokens.
+
+    Uses LiteLLM's model pricing database when available. Falls back to a
+    conservative estimate of $3.00 per million input tokens (roughly Claude
+    Sonnet / GPT-4o tier) so the dashboard never shows $0.00 when real
+    compression is happening.
+    """
+    if tokens_saved <= 0:
         return 0.0
+
+    # Conservative fallback: $3.00 / 1M input tokens
+    FALLBACK_COST_PER_TOKEN = 3.0 / 1_000_000
+
+    litellm = _get_litellm_module()
+    if litellm is None:
+        return float(tokens_saved) * FALLBACK_COST_PER_TOKEN
 
     try:
         resolved = _resolve_litellm_model(model)
         info = litellm.model_cost.get(resolved, {})
         input_cost_per_token = info.get("input_cost_per_token")
-        if not input_cost_per_token:
-            return 0.0
-        return float(tokens_saved) * float(input_cost_per_token)
+        if input_cost_per_token:
+            return float(tokens_saved) * float(input_cost_per_token)
+        # Model not in LiteLLM's database — use fallback
+        return float(tokens_saved) * FALLBACK_COST_PER_TOKEN
     except Exception:
-        return 0.0
+        return float(tokens_saved) * FALLBACK_COST_PER_TOKEN
 
 
 def _estimate_input_cost_usd(
