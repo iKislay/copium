@@ -687,6 +687,15 @@ class ErrorCompressorConfig:
     collapse_identical: bool = True
     min_identical_to_collapse: int = 3
 
+    # Build error grouping (TypeScript, Rust, GCC, Clang)
+    group_build_errors: bool = True
+
+    # Docker build output compression
+    compress_docker_builds: bool = True
+
+    # Compiler error normalization (path normalization, timestamp removal)
+    normalize_compiler_errors: bool = True
+
     # Minimum error output length to compress
     min_length_to_compress: int = 150
 
