@@ -637,6 +637,26 @@ class AutoBatchConfig:
 
 
 @dataclass
+class ANSIRemoverConfig:
+    """Configuration for ANSI/terminal decoration removal.
+
+    Strips ANSI color codes, spinner sequences, cursor movement, and
+    progress bars from tool outputs. Runs early in the pipeline since
+    ANSI noise can confuse content type detection.
+
+    Typical savings: 10-30% on terminal-heavy tool outputs.
+    """
+
+    enabled: bool = True
+    strip_colors: bool = True
+    strip_spinners: bool = True
+    strip_cursor_movement: bool = True
+    strip_osc_sequences: bool = True
+    preserve_structure: bool = True  # Keep newlines, indentation
+    min_content_length: int = 20  # Don't process tiny outputs
+
+
+@dataclass
 class ErrorCompressorConfig:
     """Configuration for error-driven compression.
 
@@ -807,6 +827,7 @@ class CopiumConfig:
     session_dedup: SessionDedupConfig = field(default_factory=SessionDedupConfig)
     context_budget: ContextBudgetConfig = field(default_factory=ContextBudgetConfig)
     error_compressor: ErrorCompressorConfig = field(default_factory=ErrorCompressorConfig)
+    ansi_remover: ANSIRemoverConfig = field(default_factory=ANSIRemoverConfig)
     kv_cache_aware: KVCacheAwareConfig = field(default_factory=KVCacheAwareConfig)
     paging: PagingConfig = field(default_factory=PagingConfig)
     model_fallback: ModelFallbackConfig = field(default_factory=ModelFallbackConfig)
