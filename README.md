@@ -425,11 +425,11 @@ Copium runs **locally**, covers **every** content type, works with every major f
 
 | | Scope | Deploy | Local LLMs | Reversible | Observability |
 |---|---|---|:---:|:---:|:---:|
-| **Copium** | All context — tools, RAG, logs, files, history | Proxy, library, MCP | ✅ | ✅ (CCR) | Full metrics |
+| **Copium** | All context — tools, RAG, logs, files, history, sessions | Proxy, library, MCP, CLI | ✅ | ✅ (CCR) | Full metrics |
 | [Kompact](https://github.com/kompact) | Prompt text & schemas | Python library | ❌ | ❌ | ❌ |
 | [Claw Compactor](https://github.com/claw) | Prompt text & structure | Python library | ❌ | ❌ | ❌ |
 | [Headroom](https://github.com/chopratejas/headroom) | All context | Proxy, library, middleware, MCP | ❌ | ✅ (CCR) | ❌ |
-| [ContextZip](https://github.com/contextzip) | Session history / JSONL | Python CLI | ✅ | ✅ (Static) | ❌ |
+| [ContextZip](https://github.com/contextzip) | Session history / JSONL | Python CLI (Claude only) | ✅ | ❌ (Lossy) | ❌ |
 | [RTK](https://github.com/rtk-ai/rtk) | CLI command outputs only | CLI wrapper | ✅ | ❌ | ❌ |
 | [lean-ctx](https://github.com/yvgude/lean-ctx) | CLI commands, MCP tools | CLI wrapper, MCP | ✅ | ❌ | ❌ |
 | [Compresr](https://compresr.ai), [Token Co.](https://thetokencompany.ai) | Text sent to their API | Hosted API call | ❌ | ❌ | ❌ |
@@ -483,13 +483,21 @@ Both Copium and Headroom compress AI agent context. Key differences:
 <details>
 <summary><b>vs ContextZip</b></summary>
 
-ContextZip operates on static conversation archives (e.g., `.jsonl` files) to compress past sessions. Copium operates on live agent traffic in real time.
+ContextZip compresses static session archives (Claude Code JSONL only). Copium does that **and** live proxy compression, multi-agent support, and reversible compression.
 
 | | Copium | ContextZip |
 |---|---|---|
-| **Target** | Live HTTP traffic (Proxy) | Static session files (.jsonl) |
-| **Mechanism** | Real-time compression / routing | Post-hoc deduplication |
-| **Use Case** | While the agent is actively running | Archiving or resuming past chats |
+| **Live compression** | ✅ (proxy/library/MCP) | ❌ (offline only) |
+| **Session archives** | ✅ (Claude + Cursor + Aider + OpenCode) | Claude Code only |
+| **Reversibility** | ✅ (CCR with SHA-256) | ❌ (lossy) |
+| **Provider support** | All (Anthropic, OpenAI, Google, local) | Anthropic only |
+| **Deployment** | Proxy, library, MCP, CLI | CLI only |
+| **Error compression** | Advanced (build grouping, Docker, normalization) | Basic |
+| **Session search** | ✅ (FTS5 full-text) | ❌ |
+| **Cross-agent sharing** | ✅ (export/import) | ❌ |
+| **KV cache awareness** | ✅ (precision detection) | ❌ |
+
+*ContextZip is a feature. Copium is a platform.*
 
 </details>
 
