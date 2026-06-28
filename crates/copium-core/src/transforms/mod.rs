@@ -17,6 +17,7 @@
 
 pub mod adaptive_sizer;
 pub mod anchor_selector;
+pub mod ansi_remover;
 pub mod code_analyzer;
 pub mod content_detector;
 pub mod detection;
@@ -66,3 +67,4 @@ pub use search_compressor::{
 };
 pub use tag_protector::{is_known_html_tag, protect_tags, restore_tags, ProtectStats};
 pub use unidiff_detector::{detect_diff, is_diff};
+pub use ansi_remover::{strip_all as strip_ansi_all, strip_ansi, strip_ansi_with_stats, strip_spinners, AnsiRemoverStats};
