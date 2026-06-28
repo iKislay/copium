@@ -250,6 +250,7 @@ def summary(archive_path: Path, as_json: bool) -> None:
 
     tokens_est = archive.token_estimate()
     total_chars = sum(len(m.content) for m in archive.messages)
+    agent_format = archive.detect_format()
 
     if as_json:
         click.echo(json.dumps({
@@ -258,10 +259,12 @@ def summary(archive_path: Path, as_json: bool) -> None:
             "tokens_est": tokens_est,
             "chars": total_chars,
             "is_compacted": archive.is_compacted,
+            "format": agent_format,
             "type_counts": type_counts,
         }, indent=2))
     else:
         click.echo(f"Session: {archive_path.name}")
+        click.echo(f"  Format: {agent_format}")
         click.echo(f"  Messages: {len(archive)}")
         click.echo(f"  Tokens (est): {tokens_est:,}")
         click.echo(f"  Characters: {total_chars:,}")
