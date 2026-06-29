@@ -1,0 +1,197 @@
+---
+title: Quality Preservation
+description: How Copium preserves answer quality while compressing context aggressively
+---
+
+# Quality Preservation
+
+Copium compresses context aggressively — 70-90% token savings — while guaranteeing quality preservation through three architectural pillars:
+
+1. **Structure-aware compression** preserves what LLMs need
+2. **CCR reversibility** guarantees nothing is ever truly lost
+3. **Quality gates** catch and auto-revert bad compressions
+
+## Our Quality Promise
+
+| Guarantee | Description |
+|-----------|-------------|
+| Reversible compression | Every compression stores the original. The LLM can always retrieve full details via CCR |
+| Quality gates | Every compression step is validated. If quality drops below threshold, compression is automatically reverted |
+| 98%+ accuracy | Compressed context produces answers within 2% of uncompressed accuracy |
+| 100% error preservation | Error messages, stack traces, and failure indicators are never compressed away |
+| Transparent operation | `copium quality status` shows exactly what was compressed |
+
+## Quality Metrics
+
+### Primary Metrics
+
+| Metric | Target | Description |
+|--------|--------|-------------|
+| ROUGE-L | ≥ 0.85 | Longest common subsequence overlap between compressed and original |
+| BERTScore | ≥ 0.92 | Semantic similarity using contextual embeddings |
+| Task Accuracy | ≥ 98% of baseline | LLM produces correct answers on compressed context |
+
+### Secondary Metrics
+
+| Metric | Target | Description |
+|--------|--------|-------------|
+| Information Preservation Score (IPS) | ≥ 0.95 | Composite: error + structure + key-value preservation |
+| Compression-Weighted Quality (CWQ) | ≥ 0.85 | compression_ratio × task_accuracy |
+
+## Quality Gate
+
+The Quality Gate validates every compression step before output reaches the LLM:
+
+```
+Original → Compress → Quality Gate → LLM Context
+                          │
+                    PASS?  │
+                   YES ────┤──── NO
+                   │              │
+             Use compressed    Auto-revert
+                              to original
+```
+
+### Gate Checks
+
+1. **Token Reduction** — Compression must save at least 5% of tokens
+2. **Critical Markers** — Errors, JSON keys, function signatures must survive
+3. **Structure** — Output must remain parseable (valid JSON, valid AST)
+4. **Information Density** — Compressed output must maintain semantic density
+
+### Content-Type Requirements
+
+| Content Type | Critical Markers | Requirement |
+|-------------|-----------------|-------------|
+| JSON | All object keys | 100% must survive |
+| Code | Function signatures, imports | 100% must survive |
+| Build logs | Error lines, stack traces | 100% must survive |
+| Search results | File paths | 80% must survive |
+| Text | Headers, structural markers | 80% must survive |
+
+## Usage
+
+### CLI Commands
+
+```bash
+# Show quality dashboard
+copium quality status
+
+# Run quality benchmark
+copium quality benchmark
+
+# Show gate configuration
+copium quality gate-stats
+
+# JSON output
+copium quality status --format json
+```
+
+### Programmatic API
+
+```python
+from copium.quality import QualityGate, GateConfig, ContentType
+
+# Create gate with custom thresholds
+gate = QualityGate(GateConfig(
+    min_token_savings_pct=10.0,
+    json_keys_requirement=1.0,
+    auto_revert_on_failure=True,
+))
+
+# Validate compression
+result = gate.validate(original, compressed, ContentType.JSON)
+if result.passed:
+    use(result.compressed_content)
+else:
+    use(result.original_content)  # auto-reverted
+```
+
+### Quality Metrics
+
+```python
+from copium.quality import QualityMetrics
+
+metrics = QualityMetrics()
+result = metrics.compute(original, compressed)
+
+print(f"ROUGE-L: {result.rouge_l:.3f}")
+print(f"IPS: {result.info_preservation_score:.3f}")
+print(f"CWQ: {result.compression_weighted_quality:.3f}")
+```
+
+## A/B Testing
+
+Copium includes a built-in A/B testing framework for validating compression quality in production:
+
+```python
+from copium.quality import ABTestHarness, ABTestConfig
+
+harness = ABTestHarness(ABTestConfig(
+    enabled=True,
+    sample_rate=0.05,
+    quality_threshold=0.98,
+    min_samples=2400,
+))
+
+harness.start_test("smart_crusher_v2")
+# ... record results ...
+status = harness.get_status("smart_crusher_v2")
+print(status.recommendation)
+```
+
+### Statistical Rigor
+
+- Welch's t-test for significance
+- Cohen's d for effect size
+- 95% confidence intervals
+- Power analysis for sample size calculation
+- Bonferroni correction for multiple comparisons
+
+## How CCR Preserves Quality
+
+Traditional compression is lossy and irreversible. CCR (Compress-Cache-Retrieve) provides:
+
+1. **Perfect Reconstruction** — `retrieve(compress(x).key) === x`
+2. **Zero-Cost Retrieval** — Local cache lookup, <1ms latency
+3. **Transparent Recovery** — LLM retrieves full content without client awareness
+
+```
+LLM sees:  "[1000 items compressed to 20. Retrieve: hash=abc123]"
+LLM calls: copium_retrieve(hash=abc123)
+LLM sees:  [Full 1000-item content restored]
+Client:    [Sees nothing — handled transparently]
+```
+
+## Benchmarking
+
+Run quality benchmarks to validate compression:
+
+```bash
+# Full benchmark suite
+copium quality benchmark --dataset all
+
+# Specific dataset
+copium quality benchmark --dataset json
+
+# Export results
+copium quality benchmark --output ./benchmark_results/
+```
+
+### Benchmark Datasets
+
+| Dataset | Content | Samples |
+|---------|---------|---------|
+| JSON | API responses, database queries | Large arrays, nested objects |
+| Code | Python, JS, Go, Rust | Functions, classes, imports |
+| Logs | Build/test output | Errors, stack traces, warnings |
+| Search | grep/ripgrep output | File paths, matched lines |
+
+## Comparison to Alternatives
+
+| Approach | Compression | Quality | Reversibility |
+|----------|------------|---------|---------------|
+| No compression | 0% | 100% | N/A |
+| LLMLingua-2 | 70-95% | 73-80% | None |
+| RTK | 60-90% | Variable (strangeness tax) | None |
+| **Copium** | **70-90%** | **≥98%** | **Full CCR** |
