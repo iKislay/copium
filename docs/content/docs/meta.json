@@ -39,6 +39,7 @@
     "litellm",
     "claude-code-vertex",
     "mcp",
+    "local-models",
     "---Configuration---",
     "configuration",
     "filesystem-contract",
