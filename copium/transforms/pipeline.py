@@ -163,6 +163,16 @@ class TransformPipeline:
 
             transforms.append(_ANSIRemover(ansi_config))
 
+        # 1e. Tool Output Pre-Filter
+        # Applies type-specific limits on tool outputs BEFORE they enter the
+        # compression pipeline. Prevents the 500-match grep from ever reaching
+        # the model at full size. OPT-IN: enable via config or env var.
+        from .tool_prefilter import ToolPrefilterConfig, ToolPrefilter
+
+        prefilter_config = getattr(self.config, "tool_prefilter", ToolPrefilterConfig())
+        if prefilter_config.enabled and _os.environ.get("COPIUM_PREFILTER_ENABLED", "1") == "1":
+            transforms.append(ToolPrefilter(prefilter_config))
+
         # 2. Content-aware Compression
         # ContentRouter handles ALL content types intelligently:
         # - JSON arrays -> SmartCrusher
@@ -181,7 +191,18 @@ class TransformPipeline:
         if self.config.error_compressor.enabled:
             transforms.append(ErrorCompressor(self.config.error_compressor))
 
-        # 2c. Cold/Hot Context Paging
+        # 2c. Self-Compression (LLM self-compression markers)
+        # Detects compression markers output by the model and replaces original
+        # tool outputs with the compressed summaries. Implements the community
+        # _context_updates pattern. Runs after ContentRouter since it targets
+        # assistant messages that reference previous tool outputs.
+        from .self_compressor import SelfCompressor, SelfCompressorConfig
+
+        self_comp_config = getattr(self.config, "self_compressor", SelfCompressorConfig())
+        if self_comp_config.enabled:
+            transforms.append(SelfCompressor(self_comp_config))
+
+        # 2d. Cold/Hot Context Paging
         # Manages context overflow by evicting old tool outputs to SQLite
         # and replacing them with retrieval markers. Runs after content
         # compressors since it manages the output of those transforms.
