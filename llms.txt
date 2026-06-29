@@ -60,6 +60,10 @@ The canonical, always-current documentation index lives at the docs site below. 
 - Session archive compression: `copium session compact` — compact/apply/expand workflow for Claude Code, Cursor, Aider, OpenCode sessions.
 - Pre-compaction hooks: auto-detect when Claude Code is about to compact (~83.5% threshold) and save session state to checkpoints.
 - Post-compaction recovery: `copium session restore` — load checkpoint and inject recovery context after compaction fires.
+- Input-priority compression: entropy-based biases preserve user messages (irreplaceable) and compress tool outputs aggressively (reproducible).
+- Incremental checkpointing: gradual state saves every N tool calls — decisions, active files, task state — preventing catastrophic cliff.
+- Claude Code hook integration: native PreCompact/PostCompact hook bridge via `python -m copium.hooks.claude_code init`.
+- Compaction prevention guide: `guides/compaction-prevention.md` — comprehensive strategies for zero-data-loss compression.
 - CCR reversibility: every compressed entry includes a hash key for sub-millisecond retrieval — no `.bak` files needed.
 - Multi-agent adapters: auto-detect and parse Claude Code JSONL, Cursor JSON, Aider JSONL/markdown, OpenCode JSON.
 - Cross-agent context sharing: `copium session export/import` — export from one agent, import into another.
