@@ -74,6 +74,9 @@ class SharedContext:
         model: Model name for token counting (default: claude-sonnet-4-5).
         ttl: Time-to-live in seconds (default: 3600 = 1 hour).
         max_entries: Maximum stored entries (default: 100).
+        persistent: If True, use SQLite-backed persistent storage that
+            survives process restarts. Enables cross-session sharing.
+        project_id: Project scope for persistent mode isolation.
     """
 
     def __init__(
@@ -81,12 +84,27 @@ class SharedContext:
         model: str = "claude-sonnet-4-5-20250929",
         ttl: int = 3600,
         max_entries: int = 100,
+        persistent: bool = False,
+        project_id: str | None = None,
     ) -> None:
         self._model = model
         self._ttl = ttl
         self._max_entries = max_entries
+        self._persistent = persistent
         self._entries: dict[str, ContextEntry] = {}
         self._lock = threading.Lock()
+
+        # If persistent mode, delegate to PersistentSharedContext
+        self._persistent_ctx = None
+        if persistent:
+            from copium.shared_context import PersistentSharedContext
+
+            self._persistent_ctx = PersistentSharedContext(
+                model=model,
+                ttl=ttl,
+                max_entries=max_entries,
+                project_id=project_id,
+            )
 
     def put(
         self,
@@ -94,6 +112,8 @@ class SharedContext:
         content: str,
         *,
         agent: str | None = None,
+        confidence: float = 0.9,
+        tags: list[str] | None = None,
     ) -> ContextEntry:
         """Store content under a key, compressing automatically.
 
@@ -101,10 +121,28 @@ class SharedContext:
             key: Name for this context (e.g., "research_findings").
             content: The content to store and compress.
             agent: Optional agent identifier for tracking.
+            confidence: Confidence score (0.0-1.0) for conflict resolution.
+            tags: Optional tags for filtering.
 
         Returns:
             ContextEntry with compression stats.
         """
+        # Delegate to persistent store if enabled
+        if self._persistent_ctx is not None:
+            entry = self._persistent_ctx.put(
+                key, content, agent=agent, confidence=confidence, tags=tags
+            )
+            return ContextEntry(
+                key=entry.key,
+                original=entry.content_original,
+                compressed=entry.content_compressed,
+                original_tokens=entry.original_tokens,
+                compressed_tokens=entry.compressed_tokens,
+                agent=entry.agent,
+                timestamp=entry.created_at,
+                transforms=entry.transforms,
+            )
+
         from copium.compress import compress
 
         messages = [{"role": "tool", "content": content}]
@@ -157,6 +195,10 @@ class SharedContext:
         Returns:
             Content string, or None if key not found or expired.
         """
+        # Delegate to persistent store if enabled
+        if self._persistent_ctx is not None:
+            return self._persistent_ctx.get(key, full=full)
+
         with self._lock:
             entry = self._entries.get(key)
             if entry is None:
@@ -180,12 +222,25 @@ class SharedContext:
 
     def keys(self) -> list[str]:
         """List all non-expired keys."""
+        if self._persistent_ctx is not None:
+            return self._persistent_ctx.keys()
+
         now = time.time()
         with self._lock:
             return [k for k, e in self._entries.items() if now - e.timestamp <= self._ttl]
 
     def stats(self) -> SharedContextStats:
         """Get aggregated stats."""
+        if self._persistent_ctx is not None:
+            s = self._persistent_ctx.stats()
+            return SharedContextStats(
+                entries=s["entries"],
+                total_original_tokens=s["total_original_tokens"],
+                total_compressed_tokens=s["total_compressed_tokens"],
+                total_tokens_saved=s["total_tokens_saved"],
+                savings_percent=s["savings_percent"],
+            )
+
         now = time.time()
         with self._lock:
             active = [e for e in self._entries.values() if now - e.timestamp <= self._ttl]
@@ -203,8 +258,38 @@ class SharedContext:
 
     def clear(self) -> None:
         """Remove all entries."""
+        if self._persistent_ctx is not None:
+            self._persistent_ctx.clear()
+            return
+
         with self._lock:
             self._entries.clear()
+
+    def search(
+        self,
+        query: str,
+        *,
+        top_k: int = 5,
+        min_similarity: float = 0.3,
+        agent_filter: str | None = None,
+    ) -> list:
+        """Semantic search over shared context (persistent mode only).
+
+        Args:
+            query: Natural language search query.
+            top_k: Maximum results.
+            min_similarity: Minimum cosine similarity.
+            agent_filter: Filter results to specific agent.
+
+        Returns:
+            List of VectorSearchResult (empty if not in persistent mode).
+        """
+        if self._persistent_ctx is not None:
+            return self._persistent_ctx.search(
+                query, top_k=top_k, min_similarity=min_similarity,
+                agent_filter=agent_filter,
+            )
+        return []
 
     def _evict_if_needed(self) -> None:
         """Evict expired and oldest entries if at capacity. Lock must be held."""
