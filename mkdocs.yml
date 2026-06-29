@@ -98,6 +98,8 @@ nav:
     - Image Compression: image-compression.md
     - Memory System: memory.md
     - Shared Context: shared-context.md
+    - Cross-Agent Context: cross-agent-context.md
+    - Agent Context Management: agent-context-management.md
     - Failure Learning: learn.md
   - Integrations:
     - Overview: integration-guide.md
