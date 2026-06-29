@@ -113,6 +113,25 @@ copium session replay session.jsonl --model gpt-4o --dry-run
 copium session replay session.jsonl --model claude-haiku --compact
 ```
 
+### `copium session restore`
+
+Restore session state from a pre-compaction checkpoint. Use this after auto-compaction fires and you've lost context.
+
+```bash
+copium session restore <session-id>
+copium session restore <session-id> -o recovery.json --format openai
+copium session restore <session-id> --max-tokens 20000 --json-output
+```
+
+### `copium session checkpoints`
+
+List all saved checkpoints for a session.
+
+```bash
+copium session checkpoints <session-id>
+copium session checkpoints <session-id> --json-output
+```
+
 ### `copium session index`
 
 Build the FTS5 search index.
@@ -159,6 +178,70 @@ for r in results:
 | **Live compression** | ✅ | ❌ |
 | **Multi-agent** | ✅ (4 agents) | Claude only |
 | **Reversible** | ✅ (CCR) | ❌ (lossy) |
+| **Pre-compaction hooks** | ✅ | ❌ |
+| **Post-compaction recovery** | ✅ | ❌ |
 | **Session search** | ✅ (FTS5) | ❌ |
 | **Cross-agent sharing** | ✅ | ❌ |
 | **Multi-provider** | ✅ | Anthropic only |
+
+## Pre-Compaction Hooks
+
+Claude Code triggers auto-compaction at ~83.5% of the context window. When this happens, the conversation history is replaced with a lossy summary — losing file paths, decisions, error details, and configuration values.
+
+Copium's proxy detects when compaction is imminent and automatically saves a checkpoint:
+
+### How It Works
+
+1. **Detection** — The `CompactionDetector` monitors `input_tokens` on each request through the proxy
+2. **Threshold** — When usage crosses 83.5% of the model's context window (configurable), a `CompactionEvent` fires
+3. **Checkpoint** — The `PreCompactHook` saves critical state to `~/.copium/checkpoints/<session-id>/`
+4. **Recovery** — After compaction fires, `copium session restore` injects the saved context back
+
+### What Gets Saved
+
+| Checkpoint Content | Why It Matters |
+|---|---|
+| File paths mentioned | Agent re-reads files it already processed |
+| Key decisions | Agent re-debates settled architectural choices |
+| Tool output CCR hashes | On-demand retrieval of original content |
+| Message snapshot | Recent context within token budget |
+
+### Configuration
+
+```python
+from copium.proxy.compaction_detector import CompactionDetector, DetectorConfig
+from copium.proxy.pre_compact_hook import PreCompactHook, CheckpointConfig
+
+# Customize detection
+detector = CompactionDetector(DetectorConfig(
+    threshold_override=0.80,  # Trigger earlier (default: 0.835)
+    cooldown_seconds=120,     # Don't retrigger within 2 minutes
+    min_tokens_for_trigger=50_000,  # Ignore small sessions
+))
+
+# Customize checkpoints
+hook = PreCompactHook(CheckpointConfig(
+    max_checkpoints_per_session=5,
+    max_checkpoint_tokens=50_000,
+))
+```
+
+### CCR Reversibility
+
+Every compressed session entry includes a CCR hash key. The `SessionExpander` uses the CCR store as its primary recovery source:
+
+```python
+from copium.session import SessionArchive, SessionExpander
+
+# Expand using CCR store (preferred — sub-millisecond retrieval)
+expander = SessionExpander(ccr_store=my_store)
+original = expander.expand(compacted_archive)
+
+# Falls back to original archive if CCR miss
+expander = SessionExpander(ccr_store=my_store, original_path=Path("session.jsonl"))
+```
+
+Recovery priority:
+1. **CCR store** — hash-keyed retrieval (fastest, preferred)
+2. **Original archive** — exact file-based reconstruction
+3. **Best-effort** — self-descriptive markers that models understand
