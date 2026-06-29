@@ -1,3 +1,15 @@
+## Unreleased
+
+### Added
+- Pre-compaction data loss prevention system with multiple strategies.
+- Position-aware compression foundation to address long-context
+  "lost in the middle" behavior.
+- New Rust module: `crates/copium-core/src/transforms/position_aware/`
+  with zone classification, score weighting, and intra-block reordering helpers.
+- New Python module: `copium/transforms/position_aware.py`.
+- SmartCrusher planning helper for position-aware keep-index reordering.
+- Position-aware unit tests in `tests/test_position_aware.py`.
+
 # Changelog
 
 All notable changes to Copium will be documented in this file.
@@ -9,6 +21,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ### Features
+
+* **hooks:** `InputPriorityHooks` — entropy-based compression biases that preserve user messages (high entropy, irreplaceable) and compress tool outputs more aggressively (reproducible, cacheable)
+* **hooks:** `MessageEntropyScorer` — multi-signal message scoring using Shannon entropy, Jaccard uniqueness, and role-based priors for intelligent compression scheduling
+* **hooks:** `IncrementalCheckpointHooks` — gradual state preservation every N tool calls with configurable context pressure thresholds (60%, 70%)
+* **hooks:** `IncrementalCheckpointStore` — persistent JSON-based checkpoint store with automatic pruning
+* **hooks:** Claude Code hook integration (`copium.hooks.claude_code`) — bridge between Copium and Claude Code's native PreCompact/PostCompact hook events
+* **hooks:** `PreCompactHookData` and `PostCompactHookData` dataclasses matching community-requested format (anthropics/claude-code #33088)
+* **docs:** compaction prevention guide (`guides/compaction-prevention.md`)
 
 * **session:** pre-compaction hooks — auto-detect when Claude Code is about to compact and save session state (file paths, decisions, tool hashes, message snapshot) to `~/.copium/checkpoints/`
 * **session:** post-compaction recovery — `copium session restore <session-id>` loads checkpoint and generates recovery messages to inject after compaction fires
