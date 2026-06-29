@@ -290,10 +290,10 @@ You don't need to understand this to use Copium. But if you're curious:
     +----------------------------------------------------+
     |  Copium   (runs locally — your data stays here)   |
     |  -------------------------------------------------  |
-    |  ContentRouter → SmartCrusher  | Kompress          |
-    |                  Session Dedup | Error Compressor  |
-    |                  Cache Aligner | TOON Encoder      |
-    |                  Diff Response | Output Compressor |
+    |  ToolPrefilter  → ContentRouter → SmartCrusher    |
+    |  Session Dedup  | SelfCompressor | Kompress       |
+    |  Cache Aligner  | Error Compressor | TOON Encoder |
+    |  Diff Response  | Output Compressor               |
     +----------------------------------------------------+
         |   compressed prompt (same meaning, fewer tokens)
         v
@@ -304,9 +304,11 @@ Each component targets a specific kind of waste:
 
 | Component | What it removes | Typical savings |
 |---|---|---|
+| **ToolPrefilter** | Oversized tool outputs (500-match grep → 50 lines) | 60–95% |
 | **ContentRouter** | Routes each chunk to the best compressor | 20–60% |
 | **SmartCrusher** | Compresses JSON arrays, repeated tool outputs | 40–95% |
 | **Session Dedup** | Re-sent file content across conversation turns | 30–70% |
+| **SelfCompressor** | LLM self-compression markers (_context_updates) | 40–80% |
 | **Error Compressor** | Verbose stack traces → structured error cards | 50–80% |
 | **ANSI Remover** | Terminal colors, spinners, progress bars | 10–30% |
 | **TOON Encoder** | JSON arrays → pipe-delimited tables | 15–40% |
