@@ -39,6 +39,8 @@ from copium.mcp_proxy.session_dedup import SessionDedup
 __all__ = [
     "CopiumMCPProxy",
     "DescriptionCompressor",
+    "ProgressiveDisclosureEngine",
+    "ProgressiveDisclosureInterceptor",
     "ProxyConfig",
     "ResponseCompressor",
     "SessionDedup",
@@ -52,4 +54,16 @@ def __getattr__(name: str):
         from copium.mcp_proxy.proxy import CopiumMCPProxy
 
         return CopiumMCPProxy
+    if name == "ProgressiveDisclosureEngine":
+        from copium.mcp_proxy.progressive_disclosure.engine import (
+            ProgressiveDisclosureEngine,
+        )
+
+        return ProgressiveDisclosureEngine
+    if name == "ProgressiveDisclosureInterceptor":
+        from copium.mcp_proxy.progressive_disclosure.interceptor import (
+            ProgressiveDisclosureInterceptor,
+        )
+
+        return ProgressiveDisclosureInterceptor
     raise AttributeError(f"module 'copium.mcp_proxy' has no attribute {name!r}")
