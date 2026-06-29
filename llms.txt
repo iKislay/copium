@@ -89,6 +89,16 @@ The canonical, always-current documentation index lives at the docs site below. 
 - Docker build compression: removes download progress, deduplicates layers.
 - Compiler error normalization: normalizes paths, removes timestamps, collapses repeated warnings.
 
+## MCP Proxy & Progressive Tool Disclosure
+
+- [Progressive Disclosure](https://copium-docs.vercel.app/docs/progressive-disclosure): Transparent progressive tool loading — 70-98% reduction in MCP tool token costs.
+- Zero client changes: works with Claude Code, Cursor, Aider, custom agents.
+- `copium_find_tool`: BM25 semantic search for tool discovery on-demand.
+- `copium_call_tool`: dispatch tool calls to discovered tools.
+- Eager loading: configurable patterns/prefixes, session-learned hot tools.
+- Token math: 61 tools (21,800 tokens) → 10 eager + 2 meta-tools (~2,200 tokens).
+- Supports both Anthropic and OpenAI tool formats.
+
 ## Operations
 
 - [Configuration](https://copium-docs.vercel.app/docs/configuration): Env vars, config file, per-call overrides.
