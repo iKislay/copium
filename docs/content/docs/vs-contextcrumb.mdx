@@ -1,0 +1,175 @@
+---
+title: Copium vs ContextCrumb
+description: Detailed comparison of Copium and ContextCrumb for agent context compression. Reversible compression, progressive tool disclosure, and full workflow management vs single-model lossy compression.
+---
+
+## Overview
+
+ContextCrumb is an ONNX-based token compressor designed for agent workflows. It operates at the token level to reduce context window usage in LLM-powered agents, with an MCP proxy (`contextcrumb-shrink`) for tool schema compression.
+
+Copium is a full context optimization platform that subsumes ContextCrumb's functionality while adding reversibility, multi-mode compression, progressive tool disclosure, session management, and comprehensive observability.
+
+## Architecture Comparison
+
+| Dimension | ContextCrumb | Copium |
+|-----------|-------------|--------|
+| **Core approach** | Single ONNX model, token-level | 37 transform modules, composable pipeline |
+| **Reversibility** | Lossy (no recovery) | CCR reversible — perfect reconstruction |
+| **Proxy mode** | MCP only | HTTP proxy + SDK + MCP (all three) |
+| **Code awareness** | Basic preserve/compress | AST-aware, language-specific transforms |
+| **Compression modes** | 1 (lossy) | 4 (lossless, lossy, hybrid, archive) |
+| **Streaming** | Not supported | Full streaming support |
+| **Caching** | None | Semantic caching with content dedup |
+| **Session management** | None | Save/restore/branch sessions |
+| **Observability** | Basic inspection | Full dashboard, diff tools, metrics |
+
+## Key Advantages
+
+### 1. Reversible Compression (CCR)
+
+ContextCrumb's compression is permanent — once compressed, the original context cannot be recovered. This means if the LLM needs to revisit compressed content, it's working with degraded information.
+
+Copium's Compress-Cache-Retrieve (CCR) system stores the original alongside the compressed version. When the LLM needs the original, it can request restoration:
+
+```
+Compressed: "Auth module: validate creds, issue JWT, verify tokens (CCR:abc123)"
+→ LLM requests CCR:abc123
+→ Full original code restored on demand
+```
+
+### 2. Progressive Tool Disclosure
+
+ContextCrumb's `contextcrumb-shrink` compresses tool schemas by ~40% using its ONNX model. Copium takes a fundamentally different approach:
+
+**ContextCrumb approach:**
+```
+5 tools × 500 tokens each = 2,500 tokens
+After compression (~40%): 1,500 tokens
+Savings: 1,000 tokens (40%)
+```
+
+**Copium approach (progressive disclosure):**
+```
+5 tool stubs × 30 tokens each = 150 tokens (initial)
++ Full schema only for the 1 tool actually called: 500 tokens
+Total: 650 tokens
+Savings: 1,850 tokens (74%)
+```
+
+The more tools registered, the greater Copium's advantage:
+
+| Tools | ContextCrumb savings | Copium savings |
+|-------|---------------------|----------------|
+| 5 | ~40% | ~74% |
+| 20 | ~40% | ~89% |
+| 50 | ~40% | ~95% |
+| 100+ | ~40% | ~98% |
+
+### 3. Multi-Mode Compression
+
+ContextCrumb applies one compression model to everything. Copium routes content to the optimal strategy:
+
+- **Lossless (CCR)**: For executable code — ~20-35% reduction, perfect reconstruction
+- **Lossy (Code-Aware)**: For comments and docs — 50-70% reduction, semantics preserved
+- **Hybrid**: Lossless for code, lossy for comments — 60-75% reduction, best of both
+- **Archive**: Store externally, retrieve on demand — 90%+ reduction
+
+```python
+from copium.compression.modes import CompressionModeDispatcher, Mode, ModeConfig
+
+# Hybrid: lossless for code, lossy for docs
+dispatcher = CompressionModeDispatcher(ModeConfig(mode=Mode.HYBRID))
+result = dispatcher.compress(code, classification=classification)
+```
+
+### 4. Agent Workflow Integration
+
+ContextCrumb only compresses. Copium manages the entire context lifecycle:
+
+- **Context window management**: Automatic budgeting across system prompt, history, tools, and current turn
+- **Session persistence**: Save and restore compressed sessions across process restarts
+- **Memory store**: Priority-based memory with automatic eviction and semantic retrieval
+- **Tool result caching**: Skip compression for repeated/similar tool outputs
+
+```python
+from copium.agent import AgentContextManager, CompressedMemoryStore
+
+manager = AgentContextManager(max_tokens=128000)
+managed = manager.manage_turn(turn_input)
+# Automatically compresses history, deduplicates tool results, fits budget
+```
+
+### 5. Observability
+
+ContextCrumb provides basic inspection tools. Copium offers:
+
+- **Token budget dashboard**: Real-time visualization of context window usage
+- **Compression diff**: Line-by-line view of what was compressed, kept, or removed
+- **Semantic preservation scoring**: Measure how well meaning is preserved
+- **Cost/latency tracking**: Estimate dollar savings from compression
+- **Restoration audit trail**: Track what can be restored via CCR
+
+```python
+from copium.observability.diff import CompressionDiffEngine
+
+engine = CompressionDiffEngine()
+segments = engine.generate_diff(original, compressed)
+print(engine.render_terminal(segments))
+```
+
+## Benchmark Results
+
+Run the comparison benchmark:
+
+```bash
+python -m benchmarks.contextcrumb_comparison_benchmark
+```
+
+Typical results across content types:
+
+| Content Type | Copium Savings | ContextCrumb Savings | Advantage |
+|-------------|---------------|---------------------|-----------|
+| Python code | 55-65% | ~38% | +17-27% |
+| Tool schemas | 74-98% | ~40% | +34-58% |
+| Log output | 60-75% | ~40% | +20-35% |
+| JSON responses | 50-70% | ~30% | +20-40% |
+| Mixed content | 60-75% | ~40% | +20-35% |
+
+## Migration from ContextCrumb
+
+If you're currently using ContextCrumb, switching to Copium is straightforward:
+
+```bash
+# Install Copium
+pipx install "copium-ai[proxy]"
+
+# Start the proxy (replaces contextcrumb-shrink)
+copium start
+
+# Configure your agent to use Copium's proxy
+# (same as pointing to any HTTP proxy)
+```
+
+Copium's MCP mode is a drop-in replacement for `contextcrumb-shrink`:
+
+```bash
+# Instead of: contextcrumb-shrink --port 3000
+copium mcp --mode shrink
+```
+
+## Summary
+
+| Capability | ContextCrumb | Copium |
+|-----------|-------------|--------|
+| Token compression | ✅ ~40% lossy | ✅ 55-98% multi-mode |
+| Reversible | ❌ | ✅ CCR |
+| Progressive disclosure | ❌ | ✅ 70-98% savings |
+| Session management | ❌ | ✅ |
+| Memory store | ❌ | ✅ |
+| Tool result caching | ❌ | ✅ |
+| Observability | Basic | Full dashboard |
+| Integration modes | 1 (MCP) | 3 (proxy, SDK, MCP) |
+| Streaming | ❌ | ✅ |
+| Local LLM support | ❌ | ✅ |
+
+*ContextCrumb is a compression tool. Copium is a context optimization platform.*

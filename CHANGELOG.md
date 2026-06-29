@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 
+* **compression:** add compression diff visualization engine — line-level diffs showing what was compressed, kept, or removed with ANSI terminal and JSON rendering
+* **agent:** add compressed memory store with priority-based retention, semantic retrieval, automatic eviction, and persistent storage
+* **proxy:** add tool response compressor — content-type-aware compression for MCP tool outputs (JSON, code, logs, errors) with CCR reversibility
+* **benchmarks:** add ContextCrumb comparison benchmark suite — head-to-head comparison across code, tool schemas, logs, JSON, and hybrid modes
+
 * **session:** universal session manager — compress, search, and share session archives across Claude Code, Cursor, Aider, and OpenCode
 * **session:** `copium session compact` — compact session archives with exact + near-duplicate dedup, ANSI removal, preamble collapse (40-97% savings)
 * **session:** `copium session apply` — apply compacted sessions as context for new API calls (Anthropic/OpenAI format)
