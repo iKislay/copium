@@ -218,6 +218,24 @@ class SessionDedupConfig:
     # "all" = any tool output, "file" = file reads only, "deterministic" = predictable output
     eligible_content: str = "all"
 
+    # Per-tool dedup aggressiveness — lower threshold = more aggressive dedup
+    # These override minhash_threshold for specific tools to account for
+    # typical output variance (e.g., grep output is often near-identical
+    # across invocations, so a lower threshold catches more duplicates).
+    tool_dedup_profiles: dict[str, float] = field(default_factory=lambda: {
+        "Grep": 0.70,    # Lower threshold for grep (near-duplicates common)
+        "grep": 0.70,
+        "Read": 0.90,    # High threshold for reads (exact match preferred)
+        "read": 0.90,
+        "cat": 0.90,
+        "Bash": 0.80,    # Medium threshold for bash (timing varies)
+        "bash": 0.80,
+        "Glob": 0.95,    # Very high threshold for glob (mostly identical)
+        "glob": 0.95,
+        "find": 0.80,
+        "ls": 0.85,
+    })
+
 
 class SessionDedup(Transform):
     """Session-level deduplication across conversation turns.
@@ -253,9 +271,19 @@ class SessionDedup(Transform):
             del self._seen[hash_key]
 
     def _find_near_duplicate(
-        self, minhash_sig: list[int]
+        self, minhash_sig: list[int], tool_name: str | None = None
     ) -> tuple[str, _DedupEntry] | None:
-        """Find a near-duplicate entry using MinHash similarity."""
+        """Find a near-duplicate entry using MinHash similarity.
+
+        Uses tool-specific thresholds when available — e.g., grep output
+        gets a lower threshold (0.70) since near-identical results are
+        common across invocations.
+        """
+        # Use tool-specific threshold if available, otherwise global default
+        threshold = self.config.minhash_threshold
+        if tool_name and tool_name in self.config.tool_dedup_profiles:
+            threshold = self.config.tool_dedup_profiles[tool_name]
+
         best_hash: str | None = None
         best_entry: _DedupEntry | None = None
         best_sim = 0.0
@@ -264,7 +292,7 @@ class SessionDedup(Transform):
             if entry.minhash_sig is None:
                 continue
             sim = _jaccard_similarity(minhash_sig, entry.minhash_sig)
-            if sim > best_sim and sim >= self.config.minhash_threshold:
+            if sim > best_sim and sim >= threshold:
                 best_sim = sim
                 best_hash = hash_key
                 best_entry = entry
@@ -325,7 +353,7 @@ class SessionDedup(Transform):
         # Tier 2: Near-duplicate match (MinHash)
         if self.config.minhash_enabled:
             minhash_sig = _minhash_signature(content_text, self.config.minhash_num_perm)
-            near_dup = self._find_near_duplicate(minhash_sig)
+            near_dup = self._find_near_duplicate(minhash_sig, tool_name)
             if near_dup is not None:
                 near_hash, near_entry = near_dup
                 near_entry.access_count += 1
