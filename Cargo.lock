@@ -1091,6 +1091,7 @@ dependencies = [
  "flate2",
  "hf-hub 0.4.3",
  "http 1.4.0",
+ "lazy_static",
  "magika",
  "md-5",
  "proptest",

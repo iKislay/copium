@@ -28,7 +28,6 @@ class AgentPhase(Enum):
 # Tool call categories for phase detection heuristics
 _ORIENTATION_TOOLS = frozenset({
     "list_dir", "list_directory", "ls", "tree", "find",
-    "read_file", "cat", "head",
     "grep", "grep_search", "rg", "ripgrep",
     "glob", "file_search",
     "get_workspace_structure",

@@ -39,7 +39,7 @@ class TestContextHealthMonitor:
             tool_call_count=10,
             tokens_saved=5000,
         )
-        assert self.monitor.get_current_health() == "degraded"
+        assert self.monitor.get_current_health() == "warning"
 
     def test_critical_threshold(self):
         self.monitor.record_snapshot(

@@ -281,13 +281,16 @@ class ToolCallClassifier:
     ) -> tuple[ToolCallType, float, float]:
         """Refine classification based on contextual signals."""
         # Config files that are package manifests are higher value
-        if tool_type == ToolCallType.CONFIG_READ:
-            path = str(arguments.get("path", "")).lower()
-            if any(
-                name in path
-                for name in ("package.json", "cargo.toml", "pyproject.toml")
-            ):
-                value_score = 0.85
+        path = str(arguments.get("path", "")).lower()
+        if any(
+            name in path for name in ("package.json", "cargo.toml", "pyproject.toml")
+        ):
+            # Manifest reads are usually high-signal context even if accessed
+            # through generic file read tools.
+            value_score = max(value_score, 0.85)
+            if tool_type == ToolCallType.FILE_READ:
+                tool_type = ToolCallType.CONFIG_READ
+                compressibility = COMPRESSIBILITY[tool_type]
 
         # Large file reads are more compressible (likely to have boilerplate)
         if tool_type == ToolCallType.FILE_READ:

@@ -1,3 +1,17 @@
+## Position-Aware Compression (In Progress)
+
+Copium now includes an initial position-aware compression foundation to mitigate
+LLM "lost in the middle" degradation.
+
+Current scope:
+- Position zone classification across the context window.
+- Position-weighted scoring primitives.
+- Intra-block bookend reordering helpers for important kept items.
+- Backward-compatible defaults (`position_weight = 0.0`).
+
+Planned next steps include end-to-end wiring through live-zone compression and
+benchmark validation on position-sensitive tasks.
+
 ---
 version: alpha
 name: Geist

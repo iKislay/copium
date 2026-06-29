@@ -189,6 +189,10 @@ class CompressionScheduler:
         # Adjust aggressiveness based on compression level
         transforms = self._adjust_aggressiveness(transforms, compression_level)
 
+        if compression_level == CompressionLevel.AGGRESSIVE_LOSSY:
+            if not any(t.name == "output_compressor" for t in transforms):
+                transforms.append(TransformSpec("output_compressor", aggressiveness=1.0))
+
         # Calculate target reduction
         target_reduction = self._calculate_target(
             compression_level, classified, context_pressure
