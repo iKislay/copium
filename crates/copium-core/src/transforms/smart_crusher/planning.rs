@@ -633,6 +633,77 @@ fn for_each_anomaly(
     }
 }
 
+// ============================================================================
+// Position-aware reordering (Phase 2: SmartCrusher integration)
+// ============================================================================
+
+use crate::transforms::position_aware::{
+    PositionWeightConfig, optimize_kept_order as position_reorder,
+};
+
+/// Apply position-aware reordering to a compression plan's keep_indices.
+///
+/// Uses the bookend strategy: places high-importance items at the
+/// beginning and end of the output (where LLM attention is strongest),
+/// while lower-importance items go in the middle.
+///
+/// When `config.is_disabled()`, returns the plan unchanged (no-op).
+///
+/// # Arguments
+///
+/// * `plan` — The compression plan to optimize (mutated in place)
+/// * `items` — The original array items (for scoring)
+/// * `scorer` — Relevance scorer for computing importance
+/// * `query_context` — Current query for relevance scoring
+/// * `position_config` — Position weight configuration
+pub fn apply_position_aware_reordering(
+    plan: &mut CompressionPlan,
+    items: &[Value],
+    scorer: &(dyn RelevanceScorer + Send + Sync),
+    query_context: &str,
+    position_config: &PositionWeightConfig,
+) {
+    if position_config.is_disabled() || plan.keep_indices.len() <= 2 {
+        return;
+    }
+
+    // Score each kept item for importance
+    let strs: Vec<String> = plan
+        .keep_indices
+        .iter()
+        .map(|&idx| serde_json::to_string(&items[idx]).unwrap_or_default())
+        .collect();
+    let str_refs: Vec<&str> = strs.iter().map(|s| s.as_str()).collect();
+
+    let scores = if !query_context.is_empty() {
+        scorer.score_batch(&str_refs, query_context)
+    } else {
+        // Without a query, use information density as a proxy
+        plan.keep_indices
+            .iter()
+            .map(|&idx| {
+                let density = crate::transforms::anchor_selector::calculate_information_score(
+                    &items[idx],
+                    items,
+                );
+                crate::relevance::RelevanceScore {
+                    score: density,
+                    matched_terms: vec![],
+                }
+            })
+            .collect()
+    };
+
+    let items_with_scores: Vec<(usize, f64)> = plan
+        .keep_indices
+        .iter()
+        .zip(scores.iter())
+        .map(|(&idx, sc)| (idx, sc.score))
+        .collect();
+
+    plan.keep_indices = position_reorder(&items_with_scores, position_config);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
