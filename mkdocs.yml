@@ -94,6 +94,7 @@ nav:
     - Proxy Server: proxy.md
     - Compression Pipeline: compression.md
     - CCR (Lossless Retrieval): ccr.md
+    - Compaction Prevention: compaction-prevention.md
     - Image Compression: image-compression.md
     - Memory System: memory.md
     - Shared Context: shared-context.md
