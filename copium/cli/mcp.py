@@ -361,3 +361,228 @@ def mcp_serve(proxy_url: str | None, direct: bool, debug: bool) -> None:
         asyncio.run(run())
     except KeyboardInterrupt:
         pass  # Clean exit on Ctrl+C
+
+
+# ---------------------------------------------------------------------------
+# MCP Proxy subcommands
+# ---------------------------------------------------------------------------
+
+
+@mcp.group("proxy")
+def mcp_proxy() -> None:
+    """MCP compression proxy — transparent compression layer.
+
+    \b
+    The proxy sits between your AI coding tool and upstream MCP servers,
+    compressing tool descriptions, schemas, and responses transparently.
+
+    \b
+    Quick Start:
+        copium mcp proxy install                  # Configure all detected agents
+        copium mcp proxy install --agent cursor   # Configure specific agent
+        copium mcp proxy serve                    # Start the proxy server
+        copium mcp proxy status                   # Show compression stats
+        copium mcp proxy detect                   # Detect available agents
+    """
+    pass
+
+
+@mcp_proxy.command("serve")
+@click.option(
+    "--config",
+    "config_path",
+    default=None,
+    envvar="COPIUM_PROXY_CONFIG",
+    help="Path to proxy config file (default: ~/.copium/mcp-proxy.json)",
+)
+@click.option("--debug", is_flag=True, help="Enable debug logging")
+def proxy_serve(config_path: str | None, debug: bool) -> None:
+    """Start the MCP compression proxy server.
+
+    \b
+    Launches upstream servers, discovers tools, and serves compressed
+    MCP protocol to the agent via stdio transport.
+
+    \b
+    Example:
+        copium mcp proxy serve --config ~/.copium/mcp-proxy.json
+    """
+    import asyncio
+    import logging
+
+    if debug:
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        )
+    else:
+        logging.basicConfig(
+            level=logging.WARNING,
+            format="%(levelname)s: %(message)s",
+        )
+
+    from copium.mcp_proxy.config import ProxyConfig
+    from copium.mcp_proxy.proxy import CopiumMCPProxy
+
+    if config_path:
+        config = ProxyConfig.from_file(config_path)
+    else:
+        config = ProxyConfig.from_env()
+
+    config.debug = debug
+    proxy = CopiumMCPProxy(config)
+
+    async def run() -> None:
+        try:
+            await proxy.serve()
+        finally:
+            await proxy.shutdown()
+
+    try:
+        asyncio.run(run())
+    except KeyboardInterrupt:
+        pass
+
+
+@mcp_proxy.command("install")
+@click.option(
+    "--agent",
+    "agent_name",
+    default=None,
+    help="Specific agent to install for (default: all detected).",
+)
+@click.option(
+    "--config",
+    "config_path",
+    default=None,
+    help="Path to proxy config file.",
+)
+def proxy_install(agent_name: str | None, config_path: str | None) -> None:
+    """Install the MCP proxy into detected AI coding tools.
+
+    \b
+    Detects installed agents (Claude Code, Cursor, Codex, etc.) and
+    configures them to use the Copium proxy. Existing MCP servers are
+    migrated to upstream configuration.
+
+    \b
+    Examples:
+        copium mcp proxy install                    # all agents
+        copium mcp proxy install --agent claude-code
+        copium mcp proxy install --agent cursor
+    """
+    from copium.mcp_proxy.installers import install_proxy
+
+    results = install_proxy(agent_name=agent_name, config_path=config_path)
+
+    if not results:
+        click.echo("No agents detected. Install Claude Code, Cursor, or Codex first.")
+        raise SystemExit(1)
+
+    for result in results:
+        icon = "✓" if result.success else "✗"
+        click.echo(f"  {icon} {result.agent}: {result.message}")
+        if result.backup_path:
+            click.echo(f"    Backup: {result.backup_path}")
+
+    if any(r.success for r in results):
+        click.echo(
+            "\nNext: Start the proxy with 'copium mcp proxy serve' "
+            "then restart your agent."
+        )
+
+
+@mcp_proxy.command("uninstall")
+@click.option(
+    "--agent",
+    "agent_name",
+    default=None,
+    help="Specific agent to uninstall from (default: all).",
+)
+def proxy_uninstall(agent_name: str | None) -> None:
+    """Remove the MCP proxy from agent configs."""
+    from copium.mcp_proxy.installers import uninstall_proxy
+
+    results = uninstall_proxy(agent_name=agent_name)
+
+    for result in results:
+        icon = "✓" if result.success else "✗"
+        click.echo(f"  {icon} {result.agent}: {result.message}")
+
+
+@mcp_proxy.command("detect")
+def proxy_detect() -> None:
+    """Detect installed MCP-capable AI coding tools.
+
+    \b
+    Scans for known agent config files and reports which are available
+    for proxy installation.
+    """
+    from copium.mcp_proxy.installers import detect_agents
+
+    agents = detect_agents()
+
+    if not agents:
+        click.echo("No MCP-capable agents detected.")
+        click.echo("Supported: Claude Code, Claude Desktop, Cursor, Codex, Continue, Zed")
+        return
+
+    click.echo("Detected MCP-capable agents:")
+    for agent in agents:
+        proxy_status = " (proxy installed)" if agent.installed else ""
+        server_count = len(agent.servers)
+        click.echo(
+            f"  • {agent.name}: {server_count} servers "
+            f"({agent.config_path}){proxy_status}"
+        )
+
+    click.echo(f"\nRun 'copium mcp proxy install' to set up the proxy.")
+
+
+@mcp_proxy.command("status")
+@click.option(
+    "--config",
+    "config_path",
+    default=None,
+    envvar="COPIUM_PROXY_CONFIG",
+    help="Path to proxy config file.",
+)
+def proxy_status(config_path: str | None) -> None:
+    """Show MCP proxy configuration and compression stats."""
+    from pathlib import Path
+
+    from copium.mcp_proxy.config import ProxyConfig
+    from copium.mcp_proxy.installers import detect_agents
+
+    # Load config
+    default_config = Path.home() / ".copium" / "mcp-proxy.json"
+    if config_path:
+        config = ProxyConfig.from_file(config_path)
+    elif default_config.exists():
+        config = ProxyConfig.from_file(default_config)
+    else:
+        config = ProxyConfig()
+
+    click.echo("Copium MCP Proxy Status")
+    click.echo("=" * 40)
+
+    # Config info
+    click.echo(f"\nCompression Settings:")
+    click.echo(f"  Descriptions:         {'✓' if config.compression.descriptions else '✗'}")
+    click.echo(f"  Schemas:              {'✓' if config.compression.schemas else '✗'}")
+    click.echo(f"  Responses:            {'✓' if config.compression.responses else '✗'}")
+    click.echo(f"  Progressive Disclosure: {'✓' if config.compression.progressive_disclosure else '✗'}")
+    click.echo(f"  Session Dedup:        {'✓' if config.compression.session_dedup else '✗'}")
+
+    # Upstream servers
+    click.echo(f"\nUpstream Servers: {len(config.upstream_servers)}")
+    for server in config.upstream_servers:
+        status = "enabled" if server.enabled else "disabled"
+        click.echo(f"  • {server.name} ({status})")
+
+    # Agent detection
+    agents = detect_agents()
+    click.echo(f"\nDetected Agents: {len(agents)}")
+    for agent in agents:
+        proxy_status_str = "proxy installed" if agent.installed else "no proxy"
+        click.echo(f"  • {agent.name} ({proxy_status_str})")
