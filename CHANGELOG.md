@@ -1,6 +1,21 @@
 ## Unreleased
 
 ### Added
+- **Progressive Tool Disclosure**: Transparent progressive loading for MCP tools
+  achieving 70-98% token reduction with zero client changes.
+  - `copium/mcp_proxy/progressive_disclosure/` package
+  - `ToolSchemaRegistry`: indexes all tool schemas with name/ID lookup
+  - `EagerLoadingPolicy`: classifies tools as eager vs deferred based on
+    configurable patterns, prefixes, and session call history
+  - `BM25Index`: dependency-free BM25 search for tool discovery
+  - `copium_find_tool` meta-tool: semantic search for available tools
+  - `copium_call_tool` meta-tool: dispatch calls to discovered tools
+  - `ProgressiveDisclosureEngine`: orchestrates registry, search, and dispatch
+  - `ProgressiveDisclosureInterceptor`: proxy-level request/response interception
+  - System prompt injection teaching LLM the two-step discovery pattern
+  - Supports both Anthropic and OpenAI tool formats
+  - Configurable via `ProgressiveDisclosureConfig` (eager_load_max, search_backend, etc.)
+  - Bypasses disclosure when tool count < min_tools_for_disclosure threshold
 - **Local Model Integration**: First-class support for local LLM backends.
   - `copium/integrations/local/` package with auto-detection and configuration
   - Ollama integration: auto-detect on :11434, model info, proxy config
