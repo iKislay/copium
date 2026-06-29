@@ -1,6 +1,18 @@
 ## Unreleased
 
 ### Added
+- **Local Model Integration**: First-class support for local LLM backends.
+  - `copium/integrations/local/` package with auto-detection and configuration
+  - Ollama integration: auto-detect on :11434, model info, proxy config
+  - llama.cpp integration: auto-detect on :8080, context monitoring, slot tracking
+  - LM Studio integration: auto-detect on :1234, model name inference
+  - Local backend registry: `detect_local_backends()` scans all ports at once
+  - VRAM monitor: NVIDIA (nvidia-smi), AMD (rocm-smi), Apple Silicon support
+  - Adaptive compression: scales light→maximum based on VRAM and context pressure
+  - Hardware presets: pre-configured for 8GB/12GB/16GB/24GB GPUs
+  - Streaming compression: chunk-by-chunk processing, zero GPU memory overhead
+  - Local triage engine: route simple tasks locally, compress complex for cloud
+  - KV cache precision-aware aggressiveness scaling
 - **Cross-Agent Context Sharing**: Persistent, searchable, provenance-tracked
   context sharing for multi-agent workflows.
   - `copium/shared_context/` package with SQLite-backed persistent store
