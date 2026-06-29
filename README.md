@@ -441,6 +441,46 @@ The pipeline runs in ~52ms median overhead. Your agent doesn't notice it's there
 
 ---
 
+## Progressive Tool Disclosure
+
+Register 30+ MCP tools without burning 60K tokens per request. Copium loads only the tools the LLM needs, when it needs them.
+
+```python
+from copium.mcp_proxy.progressive_disclosure import (
+    ProgressiveDisclosureConfig,
+    ProgressiveDisclosureInterceptor,
+)
+
+# Configure progressive disclosure
+config = ProgressiveDisclosureConfig(
+    enabled=True,
+    eager_load_max=10,       # Max tools loaded eagerly
+    search_backend="bm25",   # Fast, dependency-free search
+    min_tools_for_disclosure=8,  # Threshold to activate
+)
+
+# Use in your proxy pipeline
+interceptor = ProgressiveDisclosureInterceptor(config)
+modified_request = interceptor.intercept_request(request_body)
+# 61 tools → 10 eager + copium_find_tool + copium_call_tool
+# Token savings: 70-98%
+```
+
+**How it works:**
+1. Client sends request with all tools (unchanged workflow)
+2. Copium classifies tools as eager (high-usage) or deferred
+3. LLM receives eager tools + `copium_find_tool` + `copium_call_tool`
+4. LLM discovers deferred tools on-demand via BM25 semantic search
+5. Schemas are cached for instant repeated lookups
+
+| Tool Count | Token Savings | Eager Tools |
+|-----------|--------------|-------------|
+| 10 tools | ~40% | 6-8 loaded |
+| 30 tools | ~75% | 8-10 loaded |
+| 60 tools | ~95% | 10 loaded |
+
+---
+
 ## Session management
 
 Copium is also a **universal session manager** for AI coding agents. Compress, search, and share session archives across Claude Code, Cursor, Aider, and OpenCode.
