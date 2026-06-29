@@ -27,6 +27,7 @@ pub mod live_zone;
 pub mod log_compressor;
 pub mod magika_detector;
 pub mod pipeline;
+pub mod position_aware;
 pub mod quality_gate;
 pub mod recommendations;
 pub mod safety;
