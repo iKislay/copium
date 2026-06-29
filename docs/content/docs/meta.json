@@ -29,6 +29,7 @@
     "session-management",
     "---Proxy Server---",
     "proxy",
+    "progressive-disclosure",
     "---Integrations---",
     "vercel-ai-sdk",
     "openai-sdk",
