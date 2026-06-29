@@ -578,3 +578,103 @@ def replay_cmd(archive_path: Path, model: str | None, compact: bool, dry_run: bo
         click.echo("Session replay requires an API key configured.")
         click.echo("Use --dry-run to preview what would be sent.")
         click.echo(f"\nSession has {len(user_turns)} user turns, {archive.token_estimate():,} tokens")
+
+
+@session.command("restore")
+@click.argument("session_id")
+@click.option("--output", "-o", type=click.Path(path_type=Path), default=None,
+              help="Output path for recovery messages.")
+@click.option("--format", "fmt", type=click.Choice(["anthropic", "openai"]),
+              default="anthropic", help="Output format.")
+@click.option("--max-tokens", type=int, default=30_000,
+              help="Max tokens for recovery context.")
+@click.option("--json-output", "as_json", is_flag=True)
+def restore_cmd(
+    session_id: str,
+    output: Path | None,
+    fmt: str,
+    max_tokens: int,
+    as_json: bool,
+) -> None:
+    """Restore session state from a pre-compaction checkpoint.
+
+    After auto-compaction fires, this command loads the most recent
+    checkpoint and generates recovery messages that can be injected
+    into the conversation to restore lost context.
+
+    \b
+    Examples:
+        copium session restore <session-id>
+        copium session restore <session-id> -o recovery.json --format openai
+        copium session restore <session-id> --json-output
+    """
+    from copium.proxy.post_compact_recovery import PostCompactRecovery, RecoveryConfig
+
+    config = RecoveryConfig(max_recovery_tokens=max_tokens, format=fmt)
+    recovery = PostCompactRecovery(config)
+    messages, result = recovery.recover(session_id)
+
+    if not result.success:
+        click.echo(f"Recovery failed: {result.error}", err=True)
+        raise SystemExit(1)
+
+    if as_json:
+        click.echo(json.dumps({
+            "session_id": result.session_id,
+            "checkpoint_id": result.checkpoint_id,
+            "messages_injected": result.messages_injected,
+            "file_paths_restored": result.file_paths_restored,
+            "decisions_restored": result.decisions_restored,
+            "tool_refs_restored": result.tool_refs_restored,
+            "recovery_tokens_est": result.recovery_tokens_est,
+            "messages": messages,
+        }, indent=2))
+    else:
+        click.echo(f"Recovery from checkpoint {result.checkpoint_id}:")
+        click.echo(f"  Messages to inject: {result.messages_injected}")
+        click.echo(f"  File paths restored: {result.file_paths_restored}")
+        click.echo(f"  Decisions restored: {result.decisions_restored}")
+        click.echo(f"  Tool references restored: {result.tool_refs_restored}")
+        click.echo(f"  Recovery tokens (est): {result.recovery_tokens_est:,}")
+
+        if output:
+            output.write_text(json.dumps(messages, indent=2), encoding="utf-8")
+            click.echo(f"  Output: {output}")
+        else:
+            click.echo("\nRecovery messages:")
+            click.echo(json.dumps(messages, indent=2))
+
+
+@session.command("checkpoints")
+@click.argument("session_id")
+@click.option("--json-output", "as_json", is_flag=True)
+def checkpoints_cmd(session_id: str, as_json: bool) -> None:
+    """List all checkpoints for a session.
+
+    \b
+    Examples:
+        copium session checkpoints <session-id>
+    """
+    from copium.proxy.pre_compact_hook import PreCompactHook
+
+    hook = PreCompactHook()
+    checkpoints = hook.list_checkpoints(session_id)
+
+    if not checkpoints:
+        click.echo(f"No checkpoints found for session: {session_id}")
+        return
+
+    if as_json:
+        click.echo(json.dumps([cp.to_dict() for cp in checkpoints], indent=2))
+    else:
+        click.echo(f"Checkpoints for session {session_id}:")
+        for i, cp in enumerate(checkpoints, 1):
+            import time as _time
+            age = (_time.time() - cp.timestamp) / 60
+            click.echo(
+                f"  {i}. [{cp.checkpoint_id}] "
+                f"{age:.0f}m ago | "
+                f"{cp.token_usage:,}/{cp.context_window:,} tokens | "
+                f"{len(cp.file_paths_mentioned)} files, "
+                f"{len(cp.decisions)} decisions"
+            )
