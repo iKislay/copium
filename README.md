@@ -1,3 +1,40 @@
+# Cross-Agent Context Sharing (New)
+
+Copium is now the **context layer for multi-agent systems**. Agents don't share context
+across sessions, tools, or each other — until now. SharedContext compresses what moves
+between agents, persists it across sessions, and makes it searchable.
+
+Key capabilities:
+
+- **Persistent SharedContext**: SQLite-backed storage that survives proxy restarts.
+- **Agent Provenance**: Track which agent created/modified each context entry.
+- **Conflict Resolution**: Configurable strategies (last-write-wins, confidence, priority, merge).
+- **Semantic Search**: Vector-based search over all shared context entries.
+- **Audit Trail**: Full operation log for enterprise compliance.
+- **Framework Integrations**: CrewAI, LangGraph, OpenAI Agents SDK, AutoGen, Agno, Strands.
+- **Zero-Code Proxy Mode**: Any agent routing through the proxy shares context automatically.
+
+```python
+from copium import SharedContext
+
+ctx = SharedContext(persistent=True)
+
+# Agent A stores output (compressed + persisted)
+ctx.put("research", big_output, agent="researcher")
+
+# Agent B gets compressed version (~80% smaller)
+summary = ctx.get("research")
+
+# Semantic search across all shared context
+results = ctx.search("database migration findings", top_k=5)
+```
+
+See:
+
+- `guides/shared-context.md`
+- `copium/shared_context/` (PersistentStore, VectorIndex, ConflictResolver, AuditLog)
+- `copium/integrations/` (crewai, openai_agents, autogen, langchain, agno, strands)
+
 # Pre-Compaction Data Loss Prevention (New)
 
 Copium now prevents the silent data loss caused by auto-compaction in agentic tools.
