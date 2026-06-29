@@ -49,6 +49,21 @@ The canonical, always-current documentation index lives at the docs site below. 
 - [Strands](https://copium-docs.vercel.app/docs/strands): Model wrapping + hook-based tool output compression.
 - [LiteLLM](https://copium-docs.vercel.app/docs/litellm): Single callback; works with all 100+ LiteLLM providers.
 
+## Local model integrations
+
+- [Local Models](https://copium-docs.vercel.app/docs/local-models): Full guide for Ollama, llama.cpp, LM Studio integration.
+- Auto-detection: `detect_local_backends()` scans localhost ports for running backends.
+- Ollama: auto-detect on :11434, query model info, configure proxy with Smart Zone targeting.
+- llama.cpp: auto-detect on :8080, monitor context utilization, KV cache precision detection.
+- LM Studio: auto-detect on :1234, infer context length from model names.
+- VRAM monitoring: NVIDIA (nvidia-smi), AMD (rocm-smi), Apple Silicon (unified memory).
+- Adaptive compression: scales light → aggressive based on free VRAM and context utilization.
+- Hardware presets: pre-configured for 8GB/12GB/16GB/24GB GPUs (CPU-only compression, zero VRAM overhead).
+- KV cache awareness: detects Q4/Q8 quantization and compresses aggressively before precision cliff.
+- Smart routing (triage): local model judges complexity → simple tasks stay local, complex tasks compressed for cloud.
+- Streaming compression: chunk-by-chunk processing for minimal memory footprint.
+- One-command setup: `copium wrap ollama`, `copium wrap llamacpp`, `copium wrap lmstudio`.
+
 ## Memory & cross-agent state
 
 - [Persistent memory](https://copium-docs.vercel.app/docs/memory): Per-project SQLite + HNSW vector store. No cross-project bleed (GH #462).
