@@ -14,7 +14,13 @@ Usage:
     Set base URL in Cursor settings to http://localhost:8787
 """
 
-__all__ = ["create_app", "run_server"]
+__all__ = [
+    "CompactionDetector",
+    "PostCompactRecovery",
+    "PreCompactHook",
+    "create_app",
+    "run_server",
+]
 
 
 def __getattr__(name: str) -> object:
@@ -24,4 +30,19 @@ def __getattr__(name: str) -> object:
         globals()["create_app"] = create_app
         globals()["run_server"] = run_server
         return globals()[name]
+    if name == "CompactionDetector":
+        from .compaction_detector import CompactionDetector  # noqa: F811
+
+        globals()["CompactionDetector"] = CompactionDetector
+        return CompactionDetector
+    if name == "PreCompactHook":
+        from .pre_compact_hook import PreCompactHook  # noqa: F811
+
+        globals()["PreCompactHook"] = PreCompactHook
+        return PreCompactHook
+    if name == "PostCompactRecovery":
+        from .post_compact_recovery import PostCompactRecovery  # noqa: F811
+
+        globals()["PostCompactRecovery"] = PostCompactRecovery
+        return PostCompactRecovery
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
