@@ -2017,6 +2017,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#why-local-models-need-copium" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Local Models Need Copium
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#supported-backends" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2040,10 +2051,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#ollama" class="md-nav__link">
+  <a href="#one-command-setup" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Ollama
+        One-Command Setup
       
     </span>
   </a>
@@ -2051,10 +2062,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#vllm" class="md-nav__link">
+  <a href="#ollama" class="md-nav__link">
     <span class="md-ellipsis">
       
-        VLLM
+        Ollama
       
     </span>
   </a>
@@ -2073,10 +2084,99 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#hermes" class="md-nav__link">
+  <a href="#lm-studio" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Hermes
+        LM Studio
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#programmatic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Programmatic Usage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Programmatic Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#auto-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auto-Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ollama_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ollama
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#llamacpp_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        llama.cpp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lm-studio_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LM Studio
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vram-aware-compression" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VRAM-Aware Compression
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="VRAM-Aware Compression">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hardware-presets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardware Presets
       
     </span>
   </a>
@@ -2100,10 +2200,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#environment-variables" class="md-nav__link">
+  <a href="#smart-routing-triage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Environment Variables
+        Smart Routing (Triage)
       
     </span>
   </a>
@@ -2111,10 +2211,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#performance-tips" class="md-nav__link">
+  <a href="#streaming-compression" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Performance Tips
+        Streaming Compression
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment Variables
       
     </span>
   </a>
@@ -2166,19 +2277,19 @@
   
 </li>
         
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
+          <li class="md-nav__item">
+  <a href="#agent-forgets-instructions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Examples
+        Agent "forgets" instructions
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2204,8 +2315,16 @@
 
 <h1 id="using-copium-with-local-llms">Using Copium with Local LLMs<a class="headerlink" href="#using-copium-with-local-llms" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p>Copium supports local LLMs out of the box. No cloud API keys required.</p>
+<p>Copium is the <strong>compression layer for local AI</strong>. No cloud API keys required. Make your 8GB GPU act like 24GB and your 32K context feel like 128K.</p>
 </blockquote>
+<h2 id="why-local-models-need-copium">Why Local Models Need Copium<a class="headerlink" href="#why-local-models-need-copium" title="Permanent link">&para;</a></h2>
+<p>For cloud models, compression saves money. For local models, compression makes the agent <strong>functional</strong>:</p>
+<ul>
+<li>A 7B model on 8GB GPU can only hold 8K-32K context</li>
+<li>System prompts alone eat 25-100% of that budget</li>
+<li>After 5 tool calls, your agent is full and starts hallucinating</li>
+<li>Copium keeps your agent in the "Smart Zone" (0-40% utilization)</li>
+</ul>
 <h2 id="supported-backends">Supported Backends<a class="headerlink" href="#supported-backends" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2213,7 +2332,7 @@
 <th>Backend</th>
 <th>Status</th>
 <th>Auto-Detection</th>
-<th>Notes</th>
+<th>Default Port</th>
 </tr>
 </thead>
 <tbody>
@@ -2221,68 +2340,117 @@
 <td>Ollama</td>
 <td>✅ Full</td>
 <td>Yes</td>
-<td>Most popular local LLM backend</td>
-</tr>
-<tr>
-<td>VLLM</td>
-<td>✅ Full</td>
-<td>Yes</td>
-<td>High-performance serving</td>
+<td>11434</td>
 </tr>
 <tr>
 <td>llama.cpp</td>
 <td>✅ Full</td>
 <td>Yes</td>
-<td>Lightweight, CPU-focused</td>
+<td>8080</td>
 </tr>
 <tr>
-<td>Hermes</td>
+<td>LM Studio</td>
 <td>✅ Full</td>
 <td>Yes</td>
-<td>Via OpenAI-compatible endpoint</td>
+<td>1234</td>
+</tr>
+<tr>
+<td>VLLM</td>
+<td>✅ Full</td>
+<td>Yes</td>
+<td>8000</td>
 </tr>
 <tr>
 <td>Any OpenAI-compatible</td>
 <td>✅ Full</td>
 <td>Yes</td>
-<td>Generic support</td>
+<td>configurable</td>
 </tr>
 </tbody>
 </table>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
-<h3 id="ollama">Ollama<a class="headerlink" href="#ollama" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 1. Install Ollama (https://ollama.ai)</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://ollama.ai/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
+<h3 id="one-command-setup">One-Command Setup<a class="headerlink" href="#one-command-setup" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Auto-detect all running local backends</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>copium<span class="w"> </span>doctor
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># 2. Pull a model</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>ollama<span class="w"> </span>pull<span class="w"> </span>llama3
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># 3. Start Copium with Ollama</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>copium<span class="w"> </span>run<span class="w"> </span>--backend<span class="w"> </span>ollama<span class="w"> </span>--model<span class="w"> </span>llama3
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Configure for specific backend</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>copium<span class="w"> </span>wrap<span class="w"> </span>ollama
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>copium<span class="w"> </span>wrap<span class="w"> </span>llamacpp
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>copium<span class="w"> </span>wrap<span class="w"> </span>lmstudio
 </span></code></pre></div>
-<h3 id="vllm">VLLM<a class="headerlink" href="#vllm" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># 1. Install VLLM</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>pip<span class="w"> </span>install<span class="w"> </span>vllm
+<h3 id="ollama">Ollama<a class="headerlink" href="#ollama" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># 1. Install Ollama (https://ollama.ai)</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://ollama.ai/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># 2. Start VLLM server</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>vllm<span class="w"> </span>serve<span class="w"> </span>meta-llama/Llama-3-8B-Instruct
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># 2. Pull a model</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>ollama<span class="w"> </span>pull<span class="w"> </span>qwen3:8b
 </span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># 3. Start Copium with VLLM</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>copium<span class="w"> </span>run<span class="w"> </span>--backend<span class="w"> </span>vllm<span class="w"> </span>--model<span class="w"> </span>meta-llama/Llama-3-8B-Instruct
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># 3. Start Copium with Ollama</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>copium<span class="w"> </span>wrap<span class="w"> </span>ollama
 </span></code></pre></div>
 <h3 id="llamacpp">llama.cpp<a class="headerlink" href="#llamacpp" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># 1. Install llama.cpp</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># Follow instructions at https://github.com/ggerganov/llama.cpp</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># 1. Start llama.cpp server</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>./llama-server<span class="w"> </span>-m<span class="w"> </span>models/qwen3-8b-q4_k_m.gguf<span class="w"> </span>--ctx-size<span class="w"> </span><span class="m">32768</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># 2. Start llama.cpp server</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>./llama-server<span class="w"> </span>-m<span class="w"> </span>models/llama-3-8b-instruct.gguf
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># 3. Start Copium with llama.cpp</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>copium<span class="w"> </span>run<span class="w"> </span>--backend<span class="w"> </span>llamacpp<span class="w"> </span>--model<span class="w"> </span>llama-3-8b-instruct
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># 2. Start Copium with llama.cpp</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>copium<span class="w"> </span>wrap<span class="w"> </span>llamacpp
 </span></code></pre></div>
-<h3 id="hermes">Hermes<a class="headerlink" href="#hermes" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Hermes works via any OpenAI-compatible endpoint</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>copium<span class="w"> </span>run<span class="w"> </span>--backend<span class="w"> </span>hermes<span class="w"> </span>--model<span class="w"> </span>hermes-3-llama-3.1-405b<span class="w"> </span>--api-url<span class="w"> </span>http://localhost:8080/v1
+<h3 id="lm-studio">LM Studio<a class="headerlink" href="#lm-studio" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># 1. Load a model in LM Studio (GUI)</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># 2. Start Copium with LM Studio</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>copium<span class="w"> </span>wrap<span class="w"> </span>lmstudio
+</span></code></pre></div>
+<h2 id="programmatic-usage">Programmatic Usage<a class="headerlink" href="#programmatic-usage" title="Permanent link">&para;</a></h2>
+<h3 id="auto-detection">Auto-Detection<a class="headerlink" href="#auto-detection" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">copium.integrations.local</span><span class="w"> </span><span class="kn">import</span> <span class="n">detect_local_backends</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">backends</span> <span class="o">=</span> <span class="n">detect_local_backends</span><span class="p">()</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">for</span> <span class="n">backend</span> <span class="ow">in</span> <span class="n">backends</span><span class="p">:</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">backend</span><span class="o">.</span><span class="n">backend_type</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">backend</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">backend</span><span class="o">.</span><span class="n">model</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="n">config</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">get_proxy_config</span><span class="p">()</span>
+</span></code></pre></div>
+<h3 id="ollama_1">Ollama<a class="headerlink" href="#ollama_1" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">copium.integrations.local</span><span class="w"> </span><span class="kn">import</span> <span class="n">OllamaIntegration</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">ollama</span> <span class="o">=</span> <span class="n">OllamaIntegration</span><span class="p">()</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="k">if</span> <span class="n">ollama</span><span class="o">.</span><span class="n">detect</span><span class="p">():</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    <span class="n">models</span> <span class="o">=</span> <span class="n">ollama</span><span class="o">.</span><span class="n">list_models</span><span class="p">()</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    <span class="n">config</span> <span class="o">=</span> <span class="n">ollama</span><span class="o">.</span><span class="n">get_proxy_config</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;qwen3:8b&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="llamacpp_1">llama.cpp<a class="headerlink" href="#llamacpp_1" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">copium.integrations.local</span><span class="w"> </span><span class="kn">import</span> <span class="n">LlamaCppIntegration</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">llamacpp</span> <span class="o">=</span> <span class="n">LlamaCppIntegration</span><span class="p">()</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="k">if</span> <span class="n">llamacpp</span><span class="o">.</span><span class="n">detect</span><span class="p">():</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="n">info</span> <span class="o">=</span> <span class="n">llamacpp</span><span class="o">.</span><span class="n">get_server_info</span><span class="p">()</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>    <span class="n">utilization</span> <span class="o">=</span> <span class="n">llamacpp</span><span class="o">.</span><span class="n">get_context_utilization</span><span class="p">()</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    <span class="n">config</span> <span class="o">=</span> <span class="n">llamacpp</span><span class="o">.</span><span class="n">get_proxy_config</span><span class="p">()</span>
+</span></code></pre></div>
+<h3 id="lm-studio_1">LM Studio<a class="headerlink" href="#lm-studio_1" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">copium.integrations.local</span><span class="w"> </span><span class="kn">import</span> <span class="n">LMStudioIntegration</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">lmstudio</span> <span class="o">=</span> <span class="n">LMStudioIntegration</span><span class="p">()</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="k">if</span> <span class="n">lmstudio</span><span class="o">.</span><span class="n">detect</span><span class="p">():</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="n">model</span> <span class="o">=</span> <span class="n">lmstudio</span><span class="o">.</span><span class="n">get_active_model</span><span class="p">()</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="n">config</span> <span class="o">=</span> <span class="n">lmstudio</span><span class="o">.</span><span class="n">get_proxy_config</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</span></code></pre></div>
+<h2 id="vram-aware-compression">VRAM-Aware Compression<a class="headerlink" href="#vram-aware-compression" title="Permanent link">&para;</a></h2>
+<p>Copium monitors your GPU and adapts compression automatically:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">copium.integrations.local</span><span class="w"> </span><span class="kn">import</span> <span class="n">AdaptiveCompressor</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">compressor</span> <span class="o">=</span> <span class="n">AdaptiveCompressor</span><span class="p">()</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="n">config</span> <span class="o">=</span> <span class="n">compressor</span><span class="o">.</span><span class="n">get_config</span><span class="p">()</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="c1"># Returns: light (&gt;50% VRAM free), standard (&gt;30%), aggressive (&gt;15%), maximum (&lt;15%)</span>
+</span></code></pre></div>
+<h3 id="hardware-presets">Hardware Presets<a class="headerlink" href="#hardware-presets" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">copium.integrations.local</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_preset_for_vram</span><span class="p">,</span> <span class="n">PRESETS</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1"># Auto-select based on VRAM</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="n">preset</span> <span class="o">=</span> <span class="n">get_preset_for_vram</span><span class="p">(</span><span class="n">vram_mb</span><span class="o">=</span><span class="mi">8192</span><span class="p">)</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="c1"># Named presets: &quot;8gb&quot;, &quot;12gb&quot;, &quot;16gb&quot;, &quot;24gb&quot;</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="n">preset</span> <span class="o">=</span> <span class="n">PRESETS</span><span class="p">[</span><span class="s2">&quot;8gb&quot;</span><span class="p">]</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="n">config</span> <span class="o">=</span> <span class="n">preset</span><span class="o">.</span><span class="n">to_proxy_config</span><span class="p">()</span>
 </span></code></pre></div>
 <h2 id="kv-cache-optimization">KV Cache Optimization<a class="headerlink" href="#kv-cache-optimization" title="Permanent link">&para;</a></h2>
 <p>Copium automatically detects KV cache precision and optimizes accordingly:</p>
@@ -2290,70 +2458,90 @@
 <thead>
 <tr>
 <th>Precision</th>
-<th>Use Case</th>
-<th>Optimization</th>
+<th>Accuracy at 32K</th>
+<th>Copium Strategy</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Q4_0</td>
-<td>Maximum compression</td>
-<td>Aggressive prefix stabilization</td>
+<td>FP16</td>
+<td>95%</td>
+<td>Conservative (compress less)</td>
 </tr>
 <tr>
 <td>Q8_0</td>
-<td>Balanced</td>
-<td>Standard cache alignment</td>
+<td>85%</td>
+<td>Moderate (standard compression)</td>
 </tr>
 <tr>
-<td>FP16</td>
-<td>Maximum quality</td>
-<td>Conservative optimization</td>
+<td>Q4_0</td>
+<td>2%</td>
+<td>Adaptive (aggressive before cliff)</td>
 </tr>
 </tbody>
 </table>
-<p>The detection is automatic - no configuration needed.</p>
-<h2 id="environment-variables">Environment Variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Backend selection</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nv">COPIUM_BACKEND</span><span class="o">=</span>ollama<span class="w">          </span><span class="c1"># or vllm, llamacpp, hermes</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Model selection</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nv">COPIUM_MODEL</span><span class="o">=</span>llama3
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># API URL (for custom endpoints)</span>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="nv">COPIUM_API_URL</span><span class="o">=</span>http://localhost:11434/v1
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1"># Local LLM specific</span>
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="nv">COPIUM_LOCAL_LLM</span><span class="o">=</span><span class="nb">true</span><span class="w">          </span><span class="c1"># Skip API key validation</span>
+<p>Detection is automatic via environment variables, backend APIs, or explicit config.</p>
+<h2 id="smart-routing-triage">Smart Routing (Triage)<a class="headerlink" href="#smart-routing-triage" title="Permanent link">&para;</a></h2>
+<p>Route simple tasks locally (free), compress complex tasks for cloud:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">copium.integrations.local</span><span class="w"> </span><span class="kn">import</span> <span class="n">LocalTriageEngine</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="n">engine</span> <span class="o">=</span> <span class="n">LocalTriageEngine</span><span class="p">(</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="n">local_model</span><span class="o">=</span><span class="s2">&quot;qwen3:8b&quot;</span><span class="p">,</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    <span class="n">cloud_model</span><span class="o">=</span><span class="s2">&quot;claude-sonnet-4-20250514&quot;</span><span class="p">,</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="p">)</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="n">decision</span> <span class="o">=</span> <span class="k">await</span> <span class="n">engine</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="c1"># Saves 40-79% cloud tokens on coding workloads</span>
 </span></code></pre></div>
-<h2 id="performance-tips">Performance Tips<a class="headerlink" href="#performance-tips" title="Permanent link">&para;</a></h2>
-<ol>
-<li><strong>Use local embeddings</strong>: Copium can run embeddings locally via fastembed</li>
-<li><strong>Enable KV cache optimization</strong>: Automatic for local backends</li>
-<li><strong>Adjust compression ratio</strong>: Local models may benefit from less aggressive compression
-   <div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>copium<span class="w"> </span>run<span class="w"> </span>--backend<span class="w"> </span>ollama<span class="w"> </span>--model<span class="w"> </span>llama3<span class="w"> </span>--target-ratio<span class="w"> </span><span class="m">0</span>.3
-</span></code></pre></div></li>
-</ol>
+<h2 id="streaming-compression">Streaming Compression<a class="headerlink" href="#streaming-compression" title="Permanent link">&para;</a></h2>
+<p>For extreme memory constraints, process context chunk-by-chunk:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">copium.integrations.local</span><span class="w"> </span><span class="kn">import</span> <span class="n">StreamingCompressor</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="n">compressor</span> <span class="o">=</span> <span class="n">StreamingCompressor</span><span class="p">(</span><span class="n">chunk_size</span><span class="o">=</span><span class="mi">4096</span><span class="p">)</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">compressor</span><span class="o">.</span><span class="n">compress_iter</span><span class="p">(</span><span class="n">large_context</span><span class="p">):</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>    <span class="n">process</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved: </span><span class="si">{</span><span class="n">compressor</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">savings_pct</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<h2 id="environment-variables">Environment Variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Backend selection</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nv">COPIUM_BACKEND</span><span class="o">=</span>ollama<span class="w">          </span><span class="c1"># or llamacpp, lmstudio, vllm</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># KV cache type (auto-detected if not set)</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="nv">OLLAMA_KV_CACHE_TYPE</span><span class="o">=</span>q4_0
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="nv">LLAMA_CPP_KV_CACHE_TYPE</span><span class="o">=</span>q8_0
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="nv">VLLM_KV_CACHE_DTYPE</span><span class="o">=</span>fp8
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="c1"># Custom backend URLs</span>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="nv">COPIUM_OLLAMA_URL</span><span class="o">=</span>http://localhost:11434
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="nv">COPIUM_LLAMACPP_URL</span><span class="o">=</span>http://localhost:8080
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="nv">COPIUM_LMSTUDIO_URL</span><span class="o">=</span>http://localhost:1234
+</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>
+</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="c1"># Skip API key validation for local-only setups</span>
+</span><span id="__span-12-15"><a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a><span class="nv">COPIUM_LOCAL_LLM</span><span class="o">=</span><span class="nb">true</span>
+</span></code></pre></div>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <h3 id="connection-refused-error">"Connection refused" error<a class="headerlink" href="#connection-refused-error" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Ensure your local LLM server is running</li>
-<li>Check the API URL is correct</li>
+<li>Check the API URL and port are correct</li>
 <li>Verify the port is not blocked by firewall</li>
 </ul>
 <h3 id="model-not-found-error">"Model not found" error<a class="headerlink" href="#model-not-found-error" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Ensure the model is pulled/downloaded</li>
-<li>Check the model name matches exactly</li>
+<li>Check the model name matches exactly (<code>ollama list</code>)</li>
 </ul>
 <h3 id="slow-performance">Slow performance<a class="headerlink" href="#slow-performance" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Reduce compression ratio: <code>--target-ratio 0.2</code></li>
-<li>Use a smaller model for testing</li>
-<li>Check CPU/GPU utilization</li>
+<li>Check VRAM pressure: <code>nvidia-smi</code> or <code>rocm-smi</code></li>
+<li>Use a hardware preset: <code>copium wrap ollama --preset 8gb</code></li>
+<li>Enable streaming compression for large contexts</li>
 </ul>
-<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
-<p>See the <code>examples/local-llms/</code> directory for complete working examples.</p>
+<h3 id="agent-forgets-instructions">Agent "forgets" instructions<a class="headerlink" href="#agent-forgets-instructions" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Check context utilization: above 40% = leaving Smart Zone</li>
+<li>Enable more aggressive compression</li>
+<li>Consider smaller context window with more compression</li>
+</ul>
 
 
 
