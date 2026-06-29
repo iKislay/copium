@@ -127,6 +127,15 @@ if TYPE_CHECKING:
         FileReadCompressorConfig,
         FileReadCompressionResult,
     )
+    from copium.transforms.self_compressor import (  # noqa: F401
+        SelfCompressor,
+        SelfCompressorConfig,
+    )
+    from copium.transforms.tool_prefilter import (  # noqa: F401
+        ToolPrefilter,
+        ToolPrefilterConfig,
+        ToolProfile,
+    )
 
 _HTML_EXTRACTOR_AVAILABLE = importlib.util.find_spec("trafilatura") is not None
 
