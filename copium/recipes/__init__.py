@@ -118,6 +118,40 @@ BUILTIN_RECIPES: dict[str, CompressionRecipe] = {
             RecipeTransform("chain_of_draft", enabled=True),
         ],
     ),
+    "anti-bloat": CompressionRecipe(
+        name="anti-bloat",
+        description="Aggressive compression for monorepo coding sessions with heavy tool usage.",
+        version="1.0",
+        tags=["agent", "tools", "bloat", "monorepo", "aggressive"],
+        use_case="Coding agents running grep/find/read across large codebases",
+        estimated_savings="60-85%",
+        transforms=[
+            RecipeTransform("tool_prefilter", enabled=True, config={
+                "max_grep_matches": 25,
+                "max_file_read_lines": 300,
+                "max_bash_output_lines": 100,
+            }),
+            RecipeTransform("session_dedup", enabled=True, config={
+                "minhash_enabled": True,
+                "minhash_threshold": 0.80,
+                "min_content_length": 100,
+            }),
+            RecipeTransform("content_router", enabled=True, config={
+                "mode": "aggressive",
+                "min_ratio_aggressive": 0.60,
+                "min_ratio_relaxed": 0.80,
+                "enable_search_compressor": True,
+                "enable_smart_crusher": True,
+                "enable_log_compressor": True,
+            }),
+            RecipeTransform("error_compressor", enabled=True, config={
+                "max_stack_frames": 2,
+                "collapse_identical": True,
+            }),
+            RecipeTransform("self_compressor", enabled=True),
+            RecipeTransform("output_compressor", enabled=True),
+        ],
+    ),
 }
 
 

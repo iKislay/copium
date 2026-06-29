@@ -1,0 +1,66 @@
+# Anti-Bloat Compression Recipe
+# Aggressive compression for monorepo coding sessions with heavy tool usage.
+#
+# Target use case: coding agents running grep/find/read across large codebases
+# where tool output is the #1 source of wasted context tokens.
+#
+# Expected savings: 60-85% token reduction on tool outputs
+#
+# Usage:
+#   copium proxy --recipe anti-bloat
+#   copium compress --recipe anti-bloat
+#
+# Or in copium.yaml:
+#   recipe: anti-bloat
+
+name: anti-bloat
+description: Aggressive compression for monorepo coding sessions with heavy tool usage
+version: "1.0"
+author: Copium Community
+tags:
+  - agent
+  - tools
+  - bloat
+  - monorepo
+  - aggressive
+
+transforms:
+  - name: tool_prefilter
+    enabled: true
+    config:
+      max_grep_matches: 25
+      max_file_read_lines: 300
+      max_bash_output_lines: 100
+      max_glob_items: 50
+
+  - name: session_dedup
+    enabled: true
+    config:
+      minhash_enabled: true
+      minhash_threshold: 0.80
+      min_content_length: 100
+
+  - name: content_router
+    enabled: true
+    config:
+      mode: aggressive
+      min_ratio_aggressive: 0.60
+      min_ratio_relaxed: 0.80
+      enable_search_compressor: true
+      enable_smart_crusher: true
+      enable_log_compressor: true
+
+  - name: error_compressor
+    enabled: true
+    config:
+      max_stack_frames: 2
+      collapse_identical: true
+
+  - name: self_compressor
+    enabled: true
+
+  - name: output_compressor
+    enabled: true
+
+estimated_savings: "60-85%"
+use_case: "Coding agents running grep/find/read across large codebases"
