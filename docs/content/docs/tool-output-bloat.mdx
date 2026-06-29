@@ -1,0 +1,182 @@
+---
+title: Tool Output Bloat
+description: How Copium eliminates tool output bloat — the #1 source of wasted context tokens in LLM-powered coding agents.
+---
+
+Tool output is the single largest source of wasted context tokens in LLM coding agents. When your agent runs `grep -r "function" .` and gets 500 matches, all 500 ride along in context so the model can pick 5. You're paying for 500 items when you need 5.
+
+Copium solves this at multiple layers — **before**, **during**, and **after** compression — with specialized transforms for each type of tool output.
+
+## The Problem
+
+A typical 50-turn coding session generates 200K-500K tokens of tool output. Of that, **60-80% is waste**:
+
+| Tool Output Type | Typical Waste | Common Pattern |
+|---|---|---|
+| grep/ripgrep results | 80-95% | 500 matches, model uses 5 |
+| File reads | 60-80% | Same file re-read 8+ times |
+| Bash command output | 40-70% | Build logs with framework noise |
+| JSON API responses | 70-90% | Verbose metadata, timestamps |
+| Error stack traces | 50-80% | Framework frames the model ignores |
+
+At Claude Sonnet pricing ($3/MTok), that's **$0.36-$1.20 per session in pure waste**.
+
+## The Solution: Multi-Layer Compression
+
+Copium applies a pipeline of specialized transforms in the correct order:
+
+```
+Tool Output → ToolPrefilter → SessionDedup → ContentRouter → SelfCompressor
+                    │                │              │               │
+                    ▼                ▼              ▼               ▼
+              Cap oversized    Eliminate      Route to best    LLM self-
+              outputs early    duplicates     compressor       compression
+```
+
+### Layer 1: Tool Pre-Filter
+
+The `ToolPrefilter` applies type-specific limits **before** the output enters the compression pipeline:
+
+```python
+from copium.transforms import ToolPrefilter, ToolPrefilterConfig
+
+prefilter = ToolPrefilter(ToolPrefilterConfig(
+    # Custom limits per tool
+    tool_profiles={
+        "grep": ToolProfile(max_lines=50, strategy="search"),
+        "Read": ToolProfile(max_lines=300, strategy="code"),
+        "Bash": ToolProfile(max_lines=100, strategy="auto"),
+    }
+))
+```
+
+Default profiles handle the most common tools automatically:
+- **grep/ripgrep**: 50 lines, error-priority scoring
+- **Read/cat**: 500 lines, preserve head/tail anchors
+- **Bash**: 200 lines, auto-detect content type
+- **Glob/find**: 50 items, dedup
+
+### Layer 2: Session Deduplication
+
+The `SessionDedup` transform tracks content hashes across the entire conversation. When the same file appears again, it sends a reference marker instead:
+
+```
+Turn 1: agent reads package.json → full content (2847 chars)
+Turn 3: agent reads package.json → "[Session dedup: first seen turn 1 (2847 chars)]"
+Turn 7: agent reads package.json → same marker (zero token cost)
+```
+
+Now with **per-tool dedup profiles**:
+- grep output: 0.70 similarity threshold (catches near-duplicates)
+- File reads: 0.90 threshold (prefer exact match)
+- Bash: 0.80 threshold (handles timing variance)
+
+### Layer 3: Content Router
+
+The `ContentRouter` auto-detects content type and routes to the optimal compressor:
+
+| Content Type | Compressor | Typical Savings |
+|---|---|---|
+| grep/ripgrep | SearchCompressor | 80-95% |
+| JSON arrays | SmartCrusher | 60-80% |
+| Build/test logs | LogCompressor | 70-90% |
+| Stack traces | ErrorCompressor | 50-80% |
+| Source code | CodeAwareCompressor | 40-70% |
+| HTML pages | HTMLExtractor | 80-95% |
+| Git diffs | DiffCompressor | 60-80% |
+
+### Layer 4: Self-Compression
+
+The `SelfCompressor` implements the community-requested `_context_updates` pattern. When the model outputs compression markers alongside its response, Copium detects them and replaces the original tool output:
+
+```
+Model response: "The error is in auth.js line 42. 
+[compress:a1b2c3d4e5f6g7h8:auth.js has a null check missing on line 42]"
+
+→ Original 500-line tool output replaced with the model's own summary
+→ No extra inference pass needed
+```
+
+## Quick Start
+
+### Automatic (Proxy Mode)
+
+All transforms activate automatically in proxy mode:
+
+```bash
+copium proxy --recipe anti-bloat
+```
+
+### SDK Usage
+
+```python
+from copium import CopiumConfig
+from copium.transforms import TransformPipeline
+
+config = CopiumConfig()
+pipeline = TransformPipeline(config)
+
+# All tool outputs are compressed automatically
+result = pipeline.apply(messages, model="claude-sonnet-4-20250514")
+print(f"Saved {result.tokens_before - result.tokens_after} tokens")
+```
+
+### Anti-Bloat Recipe
+
+For maximum compression on monorepo coding sessions:
+
+```yaml
+# copium.yaml or ~/.config/copium/recipes/anti-bloat.yaml
+recipe: anti-bloat
+```
+
+This enables:
+- ToolPrefilter (caps grep at 25, reads at 300 lines)
+- SessionDedup (aggressive 0.80 threshold)
+- ContentRouter (aggressive mode, all compressors)
+- ErrorCompressor (max 2 stack frames)
+- SelfCompressor (LLM self-compression)
+
+Expected savings: **60-85%** on typical agent sessions.
+
+## Monitoring Compression
+
+Use the compression report to see what's being saved:
+
+```python
+from copium.observability.compression_report import CompressionReport
+
+report = CompressionReport()
+# ... after session ...
+print(report.render_terminal())
+```
+
+Output:
+```
+=== Copium Compression Report ===
+Session: 47 turns | 71K → 22K (69% saved)
+├── grep: 12 calls, 450K chars → 89K chars (80% saved)
+├── Read: 34 calls, 230K chars → 156K chars (32% saved)
+├── Bash: 18 calls, 45K chars → 23K chars (49% saved)
+├── SessionDedup: 23 duplicate outputs removed
+├── CCR retrievals: 4 originals retrieved on demand
+├── ToolPrefilter: 8 outputs pre-filtered
+└── Cost savings: ~$0.59/session (at Claude Sonnet pricing)
+```
+
+## Key Differentiators
+
+| Feature | Copium | Truncation | Provider Cache |
+|---|---|---|---|
+| Intelligent filtering | ✅ Keeps most relevant | ❌ Keeps first N chars | N/A |
+| Reversible | ✅ CCR retrieval | ❌ Data lost | N/A |
+| Session-aware | ✅ Cross-turn dedup | ❌ Per-message only | ❌ Prefix only |
+| Content-typed | ✅ Per-type compressors | ❌ One strategy | N/A |
+| Adaptive | ✅ Scales with context pressure | ❌ Fixed limits | ❌ Fixed |
+
+## Further Reading
+
+- [CCR (Contextual Compression with Retrieval)](/docs/ccr) — How compressed content remains retrievable
+- [Smart Crusher](/docs/smart-crusher) — JSON array compression
+- [Context Management](/docs/context-management) — Full context management strategy
+- [Configuration](/docs/configuration) — All configuration options
