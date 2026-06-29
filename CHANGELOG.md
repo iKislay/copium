@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 
+* **transforms:** `SelfCompressor` — detects LLM self-compression markers ([compress:hash:summary] and <_context_updates>) and replaces original tool outputs with model-generated summaries. No extra inference pass needed (40-80% savings on marked outputs).
+* **transforms:** `ToolPrefilter` — type-specific pre-filtering for tool outputs before they enter the compression pipeline. Default profiles for grep (50 lines), Read (500 lines), Bash (200 lines), Glob (50 items). Prevents 500-match grep from ever reaching the model at full size (60-95% savings).
+* **transforms:** per-tool dedup profiles in `SessionDedup` — tool-specific MinHash similarity thresholds (grep: 0.70, Read: 0.90, Bash: 0.80, Glob: 0.95) for smarter near-duplicate detection.
+* **search_compressor:** tune defaults for more aggressive filtering — `max_total_matches` 30→25, `max_files` 15→10, `min_matches_for_ccr` 10→5.
+* **recipes:** add `anti-bloat` recipe for monorepo coding sessions — combines ToolPrefilter, SessionDedup, ContentRouter (aggressive), ErrorCompressor, SelfCompressor for 60-85% savings.
+* **observability:** add `CompressionReport` for tool output bloat metrics — per-tool compression stats, dedup hits, CCR retrievals, cost estimation in terminal and JSON formats.
+* **docs:** add tool output bloat guide explaining the multi-layer compression solution.
+
 * **compression:** add compression diff visualization engine — line-level diffs showing what was compressed, kept, or removed with ANSI terminal and JSON rendering
 * **agent:** add compressed memory store with priority-based retention, semantic retrieval, automatic eviction, and persistent storage
 * **proxy:** add tool response compressor — content-type-aware compression for MCP tool outputs (JSON, code, logs, errors) with CCR reversibility
