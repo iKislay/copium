@@ -1,3 +1,12 @@
+# Copium Docs
+
+## New: Quality Preservation
+
+Quality preservation docs are now available at `content/docs/quality-preservation.mdx`.
+This covers quality gates, ROUGE-L/IPS/CWQ metrics, A/B testing, and dashboard usage.
+
+This is a Next.js application generated with
+[Create Fumadocs](https://github.com/fuma-nama/fumadocs).
 # docs
 
 This is a Next.js application generated with

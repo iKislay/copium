@@ -14,8 +14,8 @@ Key components:
 """
 
 from copium.quality.ab_testing import ABTestConfig, ABTestHarness, ABTestResult
-from copium.quality.benchmark import QualityBenchmark
-from copium.quality.dashboard import QualityDashboard
+from copium.quality.benchmark import QualityBenchmark, generate_synthetic_samples
+from copium.quality.dashboard import CompressionEvent, QualityDashboard, RetrievalEvent
 from copium.quality.gate import ContentType, GateConfig, GateResult, QualityGate
 from copium.quality.metrics import QualityMetrics
 
@@ -26,8 +26,11 @@ __all__ = [
     "ContentType",
     "GateConfig",
     "GateResult",
+    "CompressionEvent",
     "QualityBenchmark",
     "QualityDashboard",
     "QualityGate",
     "QualityMetrics",
+    "RetrievalEvent",
+    "generate_synthetic_samples",
 ]

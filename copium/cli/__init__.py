@@ -25,6 +25,7 @@ from . import (  # noqa: F401
     mcp,
     perf,
     proxy,
+    quality,
     quickstart,
     remove,
     stats,

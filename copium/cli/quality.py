@@ -32,7 +32,7 @@ def quality_status(output_format: str) -> None:
     Displays compression quality metrics, gate statistics,
     CCR retrieval rates, and token savings.
     """
-    from copium.quality.dashboard import QualityDashboard
+    from copium.quality import QualityDashboard
 
     dashboard = QualityDashboard()
 
@@ -71,8 +71,7 @@ def quality_benchmark(dataset: str, output: str, verbose: bool) -> None:
         copium quality benchmark --dataset json  JSON benchmarks only
         copium quality benchmark --output ./out  Save results to directory
     """
-    from copium.quality.benchmark import QualityBenchmark, generate_synthetic_samples
-    from copium.quality.gate import ContentType
+    from copium.quality import QualityBenchmark, generate_synthetic_samples
 
     benchmark = QualityBenchmark()
 
@@ -129,7 +128,7 @@ def gate_stats(output_format: str) -> None:
     Displays pass/fail rates and revert reasons for the
     quality gate validation layer.
     """
-    from copium.quality.gate import GateConfig, QualityGate
+    from copium.quality import GateConfig, QualityGate
 
     gate = QualityGate()
     stats = gate.stats
@@ -167,7 +166,7 @@ def ab_test(action: str) -> None:
         copium quality ab status    Show active test status
         copium quality ab list      List all active tests
     """
-    from copium.quality.ab_testing import ABTestHarness
+    from copium.quality import ABTestHarness
 
     harness = ABTestHarness()
 

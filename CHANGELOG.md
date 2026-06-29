@@ -268,6 +268,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added quality preservation framework in `copium/quality/`:
+  - `QualityGate` with post-compression validation and auto-revert.
+  - `QualityMetrics` with ROUGE-L, IPS, and CWQ calculations.
+  - `ABTestHarness` for compression quality A/B experiments.
+  - `QualityBenchmark` runner with report export.
+  - `QualityDashboard` for session-level quality tracking.
+- Added `copium quality` CLI command group:
+  - `copium quality status`
+  - `copium quality benchmark`
+  - `copium quality gate-stats`
+  - `copium quality ab status|list`
+- Added quality preservation docs page: `docs/content/docs/quality-preservation.mdx`.
+- Added quality tests in `tests/test_quality.py`.
+
+### Added
+
 * **kompress:** warn when `COPIUM_KOMPRESS_BACKEND` is set to an unrecognized
   value instead of silently falling back to `auto`, and document the backend
   selection env var (`auto` / `onnx` / `onnx_cpu` / `onnx_coreml` / `pytorch` /

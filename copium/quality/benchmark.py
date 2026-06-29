@@ -21,6 +21,14 @@ from copium.quality.gate import ContentType, GateConfig, QualityGate
 from copium.quality.metrics import QualityMetrics
 
 
+def _default_compress(content: str) -> str:
+    """Conservative default compressor used by benchmark examples."""
+    words = content.split()
+    if len(words) > 120:
+        return " ".join(words[:90] + ["...", f"[{len(words) - 90} words compressed]"])
+    return content
+
+
 @dataclass
 class BenchmarkSample:
     """A single benchmark sample."""
