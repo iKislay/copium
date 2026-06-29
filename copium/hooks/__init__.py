@@ -7,6 +7,7 @@ from .compaction import (
     PostCompactHookData,
     PreCompactHookData,
 )
+from .scoring import MessageEntropyScorer, MessageScore
 
 __all__ = [
     "CompressContext",
@@ -14,6 +15,8 @@ __all__ = [
     "CompressionHooks",
     "EntropyScorer",
     "InputPriorityHooks",
+    "MessageEntropyScorer",
+    "MessageScore",
     "PostCompactHookData",
     "PreCompactHookData",
 ]
