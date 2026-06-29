@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 
+* **session:** pre-compaction hooks — auto-detect when Claude Code is about to compact and save session state (file paths, decisions, tool hashes, message snapshot) to `~/.copium/checkpoints/`
+* **session:** post-compaction recovery — `copium session restore <session-id>` loads checkpoint and generates recovery messages to inject after compaction fires
+* **session:** `copium session checkpoints <session-id>` — list all saved pre-compaction checkpoints with metadata
+* **session:** CCR store bridge in `SessionExpander` — hash-keyed retrieval from CCR store as the primary expansion source (sub-millisecond, no `.bak` files needed)
+* **proxy:** `CompactionDetector` — monitors token usage and emits `CompactionEvent` when sessions approach the auto-compaction threshold (~83.5% for Claude Code)
+* **proxy:** `PreCompactHook` — extracts file paths, decisions, and tool output hashes from conversations before compaction
+
 * **transforms:** `SelfCompressor` — detects LLM self-compression markers ([compress:hash:summary] and <_context_updates>) and replaces original tool outputs with model-generated summaries. No extra inference pass needed (40-80% savings on marked outputs).
 * **transforms:** `ToolPrefilter` — type-specific pre-filtering for tool outputs before they enter the compression pipeline. Default profiles for grep (50 lines), Read (500 lines), Bash (200 lines), Glob (50 items). Prevents 500-match grep from ever reaching the model at full size (60-95% savings).
 * **transforms:** per-tool dedup profiles in `SessionDedup` — tool-specific MinHash similarity thresholds (grep: 0.70, Read: 0.90, Bash: 0.80, Glob: 0.95) for smarter near-duplicate detection.
