@@ -80,7 +80,7 @@ jobs:
         with:
           python-version: ${{ env.PY_VERSION }}
       - name: Cache pip
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-lint-${{ hashFiles('pyproject.toml') }}
@@ -128,7 +128,7 @@ jobs:
           python-version: ${{ env.PY_VERSION }}
       - name: Cache HuggingFace model
         id: hfcache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/huggingface
           key: ${{ runner.os }}-models-allMiniLM-v2
@@ -164,14 +164,14 @@ jobs:
           python-version: ${{ env.PY_VERSION }}
 
       - name: Cache pip
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ env.PY_VERSION }}-${{ hashFiles('pyproject.toml') }}
           restore-keys: ${{ runner.os }}-pip-${{ env.PY_VERSION }}-
 
       - name: Restore HuggingFace model cache (warmed by prefetch-model)
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/huggingface
           key: ${{ runner.os }}-models-allMiniLM-v2
@@ -234,13 +234,13 @@ jobs:
         with:
           python-version: ${{ env.PY_VERSION }}
       - name: Cache pip
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-extras-${{ hashFiles('pyproject.toml') }}
           restore-keys: ${{ runner.os }}-pip-extras-
       - name: Cache fastembed model
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ github.workspace }}/.fastembed-cache
           key: ${{ runner.os }}-fastembed-bge-small-v1
@@ -367,7 +367,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Cache pip
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-build-${{ hashFiles('pyproject.toml') }}
@@ -398,7 +398,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Cache actionlint + act
         id: tools-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             /usr/local/bin/actionlint
