@@ -18,10 +18,11 @@ from __future__ import annotations
 from .archive import CompactConfig, CompactResult, SessionArchive, SessionMessage
 from .compactor import SessionCompactor
 from .applicator import SessionApplicator
-from .expander import SessionExpander
+from .expander import CCRStoreBridge, SessionExpander
 from .search import SearchConfig, SearchResult, SessionSearch
 
 __all__ = [
+    "CCRStoreBridge",
     "CompactConfig",
     "CompactResult",
     "SearchConfig",
