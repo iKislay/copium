@@ -1,6 +1,21 @@
 ## Unreleased
 
 ### Added
+- **Cross-Agent Context Sharing**: Persistent, searchable, provenance-tracked
+  context sharing for multi-agent workflows.
+  - `copium/shared_context/` package with SQLite-backed persistent store
+  - Agent provenance tracking (who wrote what, when)
+  - Configurable conflict resolution (5 strategies)
+  - Vector-based semantic search over shared context
+  - Full audit trail for enterprise compliance
+  - `SharedContext(persistent=True)` mode for cross-session sharing
+- **Framework Integrations for Shared Context**:
+  - CrewAI: `CopiumCrewContext` and `CopiumCrewCallbacks`
+  - LangGraph: `CopiumSharedContext` with node factories
+  - OpenAI Agents SDK: `CopiumHandoff` for compressed handoffs
+  - AutoGen: `SharedContextMiddleware` for message enrichment
+  - Agno: `CopiumAgnoTeam` for multi-agent teams
+  - Strands: `CopiumStrandsContext` for agent workflows
 - Pre-compaction data loss prevention system with multiple strategies.
 - Position-aware compression foundation to address long-context
   "lost in the middle" behavior.
