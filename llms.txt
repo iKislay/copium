@@ -53,6 +53,7 @@ The canonical, always-current documentation index lives at the docs site below. 
 
 - [Persistent memory](https://copium-docs.vercel.app/docs/memory): Per-project SQLite + HNSW vector store. No cross-project bleed (GH #462).
 - [SharedContext](https://copium-docs.vercel.app/docs/shared-context): Compressed inter-agent context handoffs.
+- [Cross-Agent Context](https://copium-docs.vercel.app/docs/cross-agent-context): Persistent, searchable, provenance-tracked shared context for multi-agent systems. SQLite-backed with conflict resolution, semantic search, audit trail. Integrations for CrewAI, LangGraph, OpenAI Agents SDK, AutoGen, Agno, Strands.
 - [Failure learning](https://copium-docs.vercel.app/docs/failure-learning): Offline analysis writes corrections to `CLAUDE.md` / `AGENTS.md`.
 
 ## Session management
