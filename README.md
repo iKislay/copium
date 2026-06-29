@@ -1,3 +1,55 @@
+# Pre-Compaction Data Loss Prevention (New)
+
+Copium now prevents the silent data loss caused by auto-compaction in agentic tools.
+
+When Claude Code, Cursor, or Codex fires auto-compaction, critical context is destroyed:
+reasoning chains, architectural decisions, file relationships, and user intent. Copium's
+new compaction hooks preserve this state and make recovery automatic.
+
+Key capabilities:
+
+- **Input-Priority Compression**: User messages (high entropy) preserved; tool outputs compressed.
+- **Entropy-Based Scoring**: Information density scoring for intelligent compression scheduling.
+- **Incremental Checkpointing**: Gradual state saves every N tool calls (no cliff).
+- **Claude Code Hook Integration**: Native PreCompact/PostCompact hook bridge.
+- **CCR Safety Net**: All compression remains reversible via `copium_retrieve`.
+
+See:
+
+- `guides/compaction-prevention.md`
+- `copium/hooks/` (InputPriorityHooks, IncrementalCheckpointHooks, claude_code)
+
+# Agent Context Management (New)
+
+Copium now includes a Smart Zone based agent-aware context lifecycle in `copium/agent_context/`.
+
+Key capabilities:
+
+- Smart Zone budget enforcement to keep context in high-quality ranges.
+- Phase detection: orientation, exploration, implementation, verification.
+- Value-aware and content-type-aware compression scheduling.
+- Orientation cache to reduce first-turn tool-call overhead.
+- Context health monitoring and recommendations for long sessions.
+
+See:
+
+- `guides/agent-context-management.md`
+- `docs/agent-context-management.md`
+
+# Position-Aware Compression (Lost in the Middle)
+
+Initial implementation work has started for position-aware compression to reduce
+"lost in the middle" degradation in long contexts.
+
+Implemented in this iteration:
+- Rust `position_aware` transform module with zones, scoring, and configuration.
+- Python `position_aware` module parity helpers.
+- SmartCrusher planner helper for position-aware keep-order optimization.
+- Unit tests covering zone classification, weighting, and bookend reordering.
+
+This is an opt-in foundation. Default behavior remains unchanged when
+position weighting is disabled.
+
 # Copium
 
 **The context compression layer for LLM applications**
