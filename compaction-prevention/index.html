@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://chopratejas.github.io/copium/network-diff-capture/">
+        <link rel="canonical" href="https://chopratejas.github.io/copium/compaction-prevention/">
       
       
-        <link rel="prev" href="../sdk/">
+        <link rel="prev" href="../ccr/">
       
       
-        <link rel="next" href="../metrics/">
+        <link rel="next" href="../image-compression/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Differential Network Capture - Copium</title>
+        <title>Compaction Prevention - Copium</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#differential-network-capture" class="md-skip">
+        <a href="#preventing-pre-compaction-data-loss" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Differential Network Capture
+              Compaction Prevention
             
           </span>
         </div>
@@ -267,10 +267,12 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../proxy/" class="md-tabs__link">
           
   
@@ -355,12 +357,10 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../cli/" class="md-tabs__link">
           
   
@@ -692,8 +692,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -717,21 +719,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
-        
-          
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
             
   
   
@@ -749,7 +752,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -848,10 +851,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../compaction-prevention/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compaction Prevention
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -867,6 +897,192 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#copiums-solution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Copium's Solution
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Copium&#39;s Solution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#strategy-1-ccr-first-zero-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strategy 1: CCR-First (Zero Configuration)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strategy-2-input-priority-compression" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strategy 2: Input-Priority Compression
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strategy-3-incremental-checkpointing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strategy 3: Incremental Checkpointing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strategy-4-claude-code-hook-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strategy 4: Claude Code Hook Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How It Works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-compaction-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-Compaction Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#precompact-hook-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PreCompact Hook Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-compaction-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Post-Compaction Recovery
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#entropy-based-message-scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Entropy-Based Message Scoring
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comparison-with-workarounds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparison with Workarounds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-agent-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-Agent Support
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Further Reading
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1574,10 +1790,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -1599,22 +1813,21 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
         
           
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
             
   
   
@@ -1632,7 +1845,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1731,37 +1944,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Differential Network Capture
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../network-diff-capture/" class="md-nav__link">
         
   
   
@@ -1777,59 +1963,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#run-the-harness" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Run The Harness
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#generate-a-report" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Generate A Report
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#custom-claude-invocation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Custom Claude Invocation
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2046,10 +2179,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#run-the-harness" class="md-nav__link">
+  <a href="#the-problem" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Run The Harness
+        The Problem
       
     </span>
   </a>
@@ -2057,10 +2190,121 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#generate-a-report" class="md-nav__link">
+  <a href="#copiums-solution" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Generate A Report
+        Copium's Solution
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Copium&#39;s Solution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#strategy-1-ccr-first-zero-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strategy 1: CCR-First (Zero Configuration)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strategy-2-input-priority-compression" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strategy 2: Input-Priority Compression
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strategy-3-incremental-checkpointing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strategy 3: Incremental Checkpointing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strategy-4-claude-code-hook-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strategy 4: Claude Code Hook Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How It Works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-compaction-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-Compaction Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#precompact-hook-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PreCompact Hook Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-compaction-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Post-Compaction Recovery
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#entropy-based-message-scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Entropy-Based Message Scoring
       
     </span>
   </a>
@@ -2068,10 +2312,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#custom-claude-invocation" class="md-nav__link">
+  <a href="#comparison-with-workarounds" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Custom Claude Invocation
+        Comparison with Workarounds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-agent-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-Agent Support
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Further Reading
       
     </span>
   </a>
@@ -2098,55 +2364,217 @@
   
 
 
-<h1 id="differential-network-capture">Differential Network Capture<a class="headerlink" href="#differential-network-capture" title="Permanent link">&para;</a></h1>
-<p>Copium includes a containerized harness for comparing Claude Code traffic sent
-directly to Anthropic with traffic sent through a Copium proxy. The harness
-uses mitmproxy in two isolated lanes, writes sanitized JSONL captures, and then
-generates Markdown/JSON reports with request route, header, body size, body hash,
-and JSON payload differences.</p>
-<h2 id="run-the-harness">Run The Harness<a class="headerlink" href="#run-the-harness" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">cd</span><span class="w"> </span>docker/differential-network-capture
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>captures
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">ANTHROPIC_API_KEY</span><span class="o">=</span>...
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CLAUDE_PROMPT</span><span class="o">=</span><span class="s2">&quot;Summarize this repository in one sentence.&quot;</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>--build<span class="w"> </span>mitm-direct<span class="w"> </span>mitm-copium-upstream<span class="w"> </span>copium-proxy<span class="w"> </span>mitm-copium-client
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>docker<span class="w"> </span>compose<span class="w"> </span>--profile<span class="w"> </span>run<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>claude-direct
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>docker<span class="w"> </span>compose<span class="w"> </span>--profile<span class="w"> </span>run<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>claude-copium
+<h1 id="preventing-pre-compaction-data-loss">Preventing Pre-Compaction Data Loss<a class="headerlink" href="#preventing-pre-compaction-data-loss" title="Permanent link">&para;</a></h1>
+<p>Auto-compaction in agentic coding tools (Claude Code, Cursor, Codex) silently destroys critical context — debugging chains, architectural decisions, file relationships, and user intent. Copium solves this with native state preservation via the CCR architecture and purpose-built compaction hooks.</p>
+<h2 id="the-problem">The Problem<a class="headerlink" href="#the-problem" title="Permanent link">&para;</a></h2>
+<p>When a conversation approaches the context window limit (~83.5% for Claude Code), auto-compaction fires silently:</p>
+<ol>
+<li>Tool outputs are cleared (60-80% of context)</li>
+<li>Conversation is summarized into a 5-10K token summary</li>
+<li>Detailed reasoning chains, file relationships, and decisions are lost</li>
+</ol>
+<p>This is a 10-20x compression ratio — far too aggressive for meaningful preservation.</p>
+<h2 id="copiums-solution">Copium's Solution<a class="headerlink" href="#copiums-solution" title="Permanent link">&para;</a></h2>
+<h3 id="strategy-1-ccr-first-zero-configuration">Strategy 1: CCR-First (Zero Configuration)<a class="headerlink" href="#strategy-1-ccr-first-zero-configuration" title="Permanent link">&para;</a></h3>
+<p>Start Copium proxy and everything is handled automatically:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>copium<span class="w"> </span>proxy<span class="w"> </span>--port<span class="w"> </span><span class="m">8787</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nv">ANTHROPIC_BASE_URL</span><span class="o">=</span>http://localhost:8787<span class="w"> </span>claude
 </span></code></pre></div>
-<p>The primary captures are written to:</p>
+<p>What happens:
+- Tool outputs are compressed with originals cached in CCR
+- User messages are preserved verbatim (never compressed)
+- CCR markers tell the LLM what data is available for retrieval
+- Context Tracker proactively expands relevant compressed content</p>
+<h3 id="strategy-2-input-priority-compression">Strategy 2: Input-Priority Compression<a class="headerlink" href="#strategy-2-input-priority-compression" title="Permanent link">&para;</a></h3>
+<p>Preserve user messages (high entropy, irreplaceable) while compressing tool outputs more aggressively:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">copium.hooks</span><span class="w"> </span><span class="kn">import</span> <span class="n">InputPriorityHooks</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">hooks</span> <span class="o">=</span> <span class="n">InputPriorityHooks</span><span class="p">(</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">user_bias</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>      <span class="c1"># Keep user messages at 30% compression</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">assistant_bias</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># Normal compression for assistant</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">tool_bias</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>       <span class="c1"># Aggressive compression for tool outputs</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">use_entropy_scoring</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Further adjust by information density</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="p">)</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c1"># Use with proxy config</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="n">copium</span> <span class="n">proxy</span> <span class="o">--</span><span class="n">port</span> <span class="mi">8787</span> <span class="o">--</span><span class="n">hooks</span> <span class="nb">input</span><span class="o">-</span><span class="n">priority</span>
+</span></code></pre></div>
+<p>The entropy scorer further adjusts biases based on actual information density — messages with unique, irreplaceable content get preserved more.</p>
+<h3 id="strategy-3-incremental-checkpointing">Strategy 3: Incremental Checkpointing<a class="headerlink" href="#strategy-3-incremental-checkpointing" title="Permanent link">&para;</a></h3>
+<p>Instead of one catastrophic compaction, save state gradually every N tool calls:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">copium.hooks</span><span class="w"> </span><span class="kn">import</span> <span class="n">IncrementalCheckpointHooks</span><span class="p">,</span> <span class="n">CheckpointStoreConfig</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">config</span> <span class="o">=</span> <span class="n">CheckpointStoreConfig</span><span class="p">(</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">checkpoint_interval</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>        <span class="c1"># Save every 10 tool calls</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">context_threshold_60</span><span class="o">=</span><span class="mf">0.60</span><span class="p">,</span>     <span class="c1"># Alert at 60% usage</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">context_threshold_70</span><span class="o">=</span><span class="mf">0.70</span><span class="p">,</span>     <span class="c1"># Emergency checkpoint at 70%</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">max_checkpoints</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="p">)</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="n">hooks</span> <span class="o">=</span> <span class="n">IncrementalCheckpointHooks</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">session_id</span><span class="o">=</span><span class="s2">&quot;my-session&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Checkpoints capture:
+- Architectural decisions and trade-offs
+- Active file paths and relationships
+- Current task state
+- Tool call context</p>
+<h3 id="strategy-4-claude-code-hook-integration">Strategy 4: Claude Code Hook Integration<a class="headerlink" href="#strategy-4-claude-code-hook-integration" title="Permanent link">&para;</a></h3>
+<p>If you use Claude Code's native hook system, Copium integrates directly:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Auto-configure Claude Code hooks</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>python<span class="w"> </span>-m<span class="w"> </span>copium.hooks.claude_code<span class="w"> </span>init
+</span></code></pre></div>
+<p>This adds to your <code>.claude/settings.json</code>:</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">&quot;PreCompact&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;python -m copium.hooks.claude_code capture&quot;</span><span class="p">,</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Copium: Save session state before compaction&quot;</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="p">}],</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="nt">&quot;PostCompact&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;python -m copium.hooks.claude_code recover&quot;</span><span class="p">,</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Copium: Restore critical context after compaction&quot;</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">    </span><span class="p">}]</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Or use the Python API:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">copium.hooks.claude_code</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_hook_settings</span><span class="p">,</span> <span class="n">ClaudeCodeHookConfig</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">config</span> <span class="o">=</span> <span class="n">ClaudeCodeHookConfig</span><span class="p">(</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    <span class="n">capture_file_paths</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    <span class="n">capture_decisions</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    <span class="n">capture_tool_outputs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    <span class="n">inject_file_paths</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="n">inject_decisions</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>    <span class="n">inject_ccr_refs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="p">)</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="n">write_hook_settings</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+</span></code></pre></div>
+<h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
+<h3 id="pre-compaction-detection">Pre-Compaction Detection<a class="headerlink" href="#pre-compaction-detection" title="Permanent link">&para;</a></h3>
+<p>Copium's <code>CompactionDetector</code> monitors context usage and fires events when compaction is imminent:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Context Window: [████████████████████░░░░] 83.5% — COMPACTION IMMINENT
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>                                         ↑
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>                               Copium fires PreCompact hooks
+</span></code></pre></div>
+<h3 id="precompact-hook-data">PreCompact Hook Data<a class="headerlink" href="#precompact-hook-data" title="Permanent link">&para;</a></h3>
+<p>When compaction is detected, hooks receive full context:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">copium.hooks</span><span class="w"> </span><span class="kn">import</span> <span class="n">PreCompactHookData</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1"># Available to your hooks:</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">data</span> <span class="o">=</span> <span class="n">PreCompactHookData</span><span class="p">(</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="n">context_tokens_before</span><span class="o">=</span><span class="mi">180_000</span><span class="p">,</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="n">context_tokens_after_estimate</span><span class="o">=</span><span class="mi">60_000</span><span class="p">,</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="n">messages_count</span><span class="o">=</span><span class="mi">142</span><span class="p">,</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    <span class="n">tool_calls_count</span><span class="o">=</span><span class="mi">87</span><span class="p">,</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>    <span class="n">compaction_reason</span><span class="o">=</span><span class="s2">&quot;context_limit&quot;</span><span class="p">,</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>    <span class="n">messages</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">],</span>  <span class="c1"># Full message history</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>    <span class="n">compressed_content</span><span class="o">=</span><span class="p">{</span><span class="o">...</span><span class="p">},</span>  <span class="c1"># Hash → content preview</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="post-compaction-recovery">Post-Compaction Recovery<a class="headerlink" href="#post-compaction-recovery" title="Permanent link">&para;</a></h3>
+<p>After compaction, Copium restores critical context:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">copium.hooks</span><span class="w"> </span><span class="kn">import</span> <span class="n">PostCompactHookData</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">data</span> <span class="o">=</span> <span class="n">PostCompactHookData</span><span class="p">(</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    <span class="n">context_tokens_after</span><span class="o">=</span><span class="mi">50_000</span><span class="p">,</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="n">messages_kept</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">],</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>    <span class="n">messages_compressed</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;hash1&quot;</span><span class="p">,</span> <span class="s2">&quot;hash2&quot;</span><span class="p">],</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    <span class="n">ccr_references</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ccr_ref_1&quot;</span><span class="p">,</span> <span class="s2">&quot;ccr_ref_2&quot;</span><span class="p">],</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="p">)</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="c1"># CCR references remain available for on-demand retrieval</span>
+</span></code></pre></div>
+<h2 id="entropy-based-message-scoring">Entropy-Based Message Scoring<a class="headerlink" href="#entropy-based-message-scoring" title="Permanent link">&para;</a></h2>
+<p>The <code>MessageEntropyScorer</code> analyzes each message's information density:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">copium.hooks</span><span class="w"> </span><span class="kn">import</span> <span class="n">MessageEntropyScorer</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="n">scorer</span> <span class="o">=</span> <span class="n">MessageEntropyScorer</span><span class="p">()</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="n">scores</span> <span class="o">=</span> <span class="n">scorer</span><span class="o">.</span><span class="n">score_messages</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="k">for</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">:</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Message </span><span class="si">{</span><span class="n">score</span><span class="o">.</span><span class="n">index</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">score</span><span class="o">.</span><span class="n">role</span><span class="si">}</span><span class="s2">):&quot;</span><span class="p">)</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Entropy: </span><span class="si">{</span><span class="n">score</span><span class="o">.</span><span class="n">entropy</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Uniqueness: </span><span class="si">{</span><span class="n">score</span><span class="o">.</span><span class="n">uniqueness</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Compressibility: </span><span class="si">{</span><span class="n">score</span><span class="o">.</span><span class="n">compressibility</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Preservation priority: </span><span class="si">{</span><span class="n">score</span><span class="o">.</span><span class="n">preservation_priority</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Compression bias: </span><span class="si">{</span><span class="n">score</span><span class="o">.</span><span class="n">compression_bias</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Scoring signals:
+- <strong>Entropy</strong>: Shannon entropy of character n-grams (information density)
+- <strong>Uniqueness</strong>: Jaccard distance to other messages (how unique is this content?)
+- <strong>Compressibility</strong>: Role-based priors + structural analysis
+- <strong>Preservation priority</strong>: Combined score determining compression order</p>
+<h2 id="comparison-with-workarounds">Comparison with Workarounds<a class="headerlink" href="#comparison-with-workarounds" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Effort</th>
+<th>Reliability</th>
+<th>Coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Manual <code>/compact</code></td>
+<td>High (guessing)</td>
+<td>Low</td>
+<td>Single tool</td>
+</tr>
+<tr>
+<td>PreCompact SQLite dump</td>
+<td>Medium (build + maintain)</td>
+<td>Medium</td>
+<td>Claude Code only</td>
+</tr>
+<tr>
+<td>Relay baton system</td>
+<td>High (production infra)</td>
+<td>High</td>
+<td>Custom</td>
+</tr>
+<tr>
+<td>CLAUDE.md manual updates</td>
+<td>High (discipline)</td>
+<td>Low</td>
+<td>All tools</td>
+</tr>
+<tr>
+<td><strong>Copium CCR</strong></td>
+<td><strong>Zero</strong></td>
+<td><strong>High</strong></td>
+<td><strong>All tools</strong></td>
+</tr>
+<tr>
+<td><strong>Copium hooks</strong></td>
+<td><strong>Low</strong> (one-time config)</td>
+<td><strong>High</strong></td>
+<td><strong>All tools</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="multi-agent-support">Multi-Agent Support<a class="headerlink" href="#multi-agent-support" title="Permanent link">&para;</a></h2>
+<p>Copium's compaction prevention works across all major agents:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Claude Code</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nv">ANTHROPIC_BASE_URL</span><span class="o">=</span>http://localhost:8787<span class="w"> </span>claude
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Cursor</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="nv">OPENAI_BASE_URL</span><span class="o">=</span>http://localhost:8787/v1<span class="w"> </span>cursor
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1"># Codex CLI</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>copium<span class="w"> </span>wrap<span class="w"> </span>codex<span class="w"> </span>--<span class="w"> </span>--model<span class="w"> </span>claude-sonnet-4-20250514
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="c1"># OpenCode</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>copium<span class="w"> </span>wrap<span class="w"> </span>opencode
+</span></code></pre></div>
+<h2 id="further-reading">Further Reading<a class="headerlink" href="#further-reading" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>docker/differential-network-capture/captures/direct.jsonl</code></li>
-<li><code>docker/differential-network-capture/captures/copium-client.jsonl</code></li>
+<li><a href="../ccr/">CCR Architecture</a> — How reversible compression works</li>
+<li><a href="../compression/">Compression Guide</a> — Universal compression details</li>
+<li><a href="../proxy/">Proxy Guide</a> — Setting up the Copium proxy</li>
+<li><a href="../integration-guide/">Integration Guide</a> — Agent-specific setup</li>
 </ul>
-<p>The Copium lane also writes
-<code>docker/differential-network-capture/captures/copium-upstream.jsonl</code>, which is
-the request Copium forwards to Anthropic after proxy processing.</p>
-<p>By default only <code>api.anthropic.com</code> is logged. Override
-<code>CAPTURE_INCLUDE_HOSTS</code> with a comma-separated list to include other hosts.</p>
-<h2 id="generate-a-report">Generate A Report<a class="headerlink" href="#generate-a-report" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>copium<span class="w"> </span>capture<span class="w"> </span>network-diff<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>--direct<span class="w"> </span>docker/differential-network-capture/captures/direct.jsonl<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>--copium<span class="w"> </span>docker/differential-network-capture/captures/copium-client.jsonl<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span>--output<span class="w"> </span>docker/differential-network-capture/captures/report.md<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span>--json-output<span class="w"> </span>docker/differential-network-capture/captures/report.json
-</span></code></pre></div>
-<p>The report redacts sensitive header values and sensitive query values before
-comparison. Request bodies are captured so structural payload differences can be
-identified; keep the generated <code>captures/</code> directory out of commits because it
-may contain prompts, tool outputs, and repository context.</p>
-<p>For Claude Code deferred-tool investigations, the paired exchange table includes
-top-level Anthropic <code>tools</code> counts and serialized tool bytes. A jump from
-<code>tools=0-&gt;N</code> in the Copium client lane is evidence that Claude Code eagerly
-materialized tool schemas before the request reached Copium.</p>
-<h2 id="custom-claude-invocation">Custom Claude Invocation<a class="headerlink" href="#custom-claude-invocation" title="Permanent link">&para;</a></h2>
-<p>Set <code>CLAUDE_COMMAND</code> to run the exact command under test in both lanes:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nv">CLAUDE_COMMAND</span><span class="o">=</span><span class="s1">&#39;claude -p &quot;read README.md and summarize the proxy setup&quot;&#39;</span><span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>docker<span class="w"> </span>compose<span class="w"> </span>--profile<span class="w"> </span>run<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>claude-direct
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nv">CLAUDE_COMMAND</span><span class="o">=</span><span class="s1">&#39;claude -p &quot;read README.md and summarize the proxy setup&quot;&#39;</span><span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span>docker<span class="w"> </span>compose<span class="w"> </span>--profile<span class="w"> </span>run<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>claude-copium
-</span></code></pre></div>
-<p>Use <code>CLAUDE_DIRECT_ARGS</code> and <code>CLAUDE_COPIUM_ARGS</code> when each lane needs
-different flags.</p>
 
 
 
