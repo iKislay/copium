@@ -1,3 +1,30 @@
+## MCP Compression Proxy (New)
+
+Copium now includes an MCP proxy mode that acts as a transparent compression layer between your AI coding tool and upstream MCP servers.
+
+Key capabilities:
+
+- Tool description compression (70-90 percent reduction)
+- Tool schema compression (~57 percent reduction)
+- Tool response compression (60-95 percent reduction)
+- Session deduplication for repeated tool definitions
+- Progressive tool disclosure with on-demand schema expansion
+
+Quick start:
+
+```bash
+copium mcp proxy install
+copium mcp proxy serve
+```
+
+Helpful commands:
+
+- `copium mcp proxy detect`
+- `copium mcp proxy status`
+- `copium mcp proxy uninstall`
+
+See `docs/mcp-proxy.md` for setup and configuration details.
+
 # Cross-Agent Context Sharing (New)
 
 Copium is now the **context layer for multi-agent systems**. Agents don't share context
