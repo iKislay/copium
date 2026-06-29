@@ -342,11 +342,46 @@ copium session compact-all ~/.claude/ -o compacted/
 copium session summary session.jsonl
 ```
 
+### Pre-compaction hooks — never lose context again
+
+Claude Code's auto-compaction fires at ~83.5% of the context window, silently replacing your conversation with a lossy summary. Copium detects this threshold and saves a state checkpoint *before* compaction fires:
+
+```bash
+# Restore session state after compaction
+copium session restore <session-id>
+
+# List all saved checkpoints for a session
+copium session checkpoints <session-id>
+
+# Restore with output file in OpenAI format
+copium session restore <session-id> -o recovery.json --format openai
+```
+
+What gets saved:
+- **File paths** referenced in the conversation
+- **Key decisions** extracted from assistant messages
+- **Tool output hashes** (retrievable via CCR store on demand)
+- **Message snapshot** (most recent messages within token budget)
+
+The checkpoint is automatic — Copium's proxy detects when context usage crosses the threshold and creates the checkpoint without any manual action.
+
+### CCR reversibility
+
+Every compressed session entry includes a CCR hash key. Unlike lossy compaction, Copium's compression is **always reversible**:
+
+```bash
+# Expand a compacted archive back to original (via CCR store)
+copium session expand compacted.jsonl -o original.jsonl
+
+# The CCR store provides hash-keyed retrieval in <1ms
+# No .bak files needed — the store IS the recovery mechanism
+```
+
 ### Supported agents
 
 | Agent | Format | Commands |
 |---|---|---|
-| **Claude Code** | JSONL | compact, apply, expand, export, import |
+| **Claude Code** | JSONL | compact, apply, expand, export, import, restore |
 | **Cursor** | JSON | compact, export, import |
 | **Aider** | JSONL / Markdown | compact, export, import |
 | **OpenCode** | JSON | compact, export, import |
@@ -486,13 +521,15 @@ Both Copium and Headroom compress AI agent context. Key differences:
 <details>
 <summary><b>vs ContextZip</b></summary>
 
-ContextZip compresses static session archives (Claude Code JSONL only). Copium does that **and** live proxy compression, multi-agent support, and reversible compression.
+ContextZip compresses static session archives (Claude Code JSONL only). Copium does that **and** live proxy compression, multi-agent support, reversible compression, and pre-compaction hooks.
 
 | | Copium | ContextZip |
 |---|---|---|
 | **Live compression** | ✅ (proxy/library/MCP) | ❌ (offline only) |
 | **Session archives** | ✅ (Claude + Cursor + Aider + OpenCode) | Claude Code only |
 | **Reversibility** | ✅ (CCR with SHA-256) | ❌ (lossy) |
+| **Pre-compaction hooks** | ✅ (auto-detect threshold, save state) | ❌ |
+| **Post-compaction recovery** | ✅ (restore from checkpoint) | ❌ |
 | **Provider support** | All (Anthropic, OpenAI, Google, local) | Anthropic only |
 | **Deployment** | Proxy, library, MCP, CLI | CLI only |
 | **Error compression** | Advanced (build grouping, Docker, normalization) | Basic |
@@ -500,7 +537,7 @@ ContextZip compresses static session archives (Claude Code JSONL only). Copium d
 | **Cross-agent sharing** | ✅ (export/import) | ❌ |
 | **KV cache awareness** | ✅ (precision detection) | ❌ |
 
-*ContextZip is a feature. Copium is a platform.*
+*ContextZip measured the problem. Copium solves it — live, offline, reversibly, universally.*
 
 </details>
 
