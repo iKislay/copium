@@ -34,6 +34,8 @@ use md5::{Digest, Md5};
 use serde_json::Value;
 use std::collections::{BTreeSet, HashMap, HashSet};
 
+use super::position_aware::{PositionWeightConfig, position_weighted_score as pos_weighted};
+
 // ============================================================================
 // Configuration (Python `copium/config.py:294` AnchorConfig)
 // ============================================================================
@@ -201,6 +203,33 @@ pub fn calculate_information_score(item: &Value, all_items: &[Value]) -> f64 {
     // Python: weighted sum then normalized by total weight (1.0 here).
     let score = uniqueness * 0.4 + length * 0.3 + structural * 0.3;
     score.clamp(0.0, 1.0)
+}
+
+/// Position-weighted information density score.
+///
+/// Extends `calculate_information_score` by applying a position-dependent
+/// multiplier that accounts for the U-shaped attention degradation in
+/// LLM context windows. When `config.position_weight == 0.0`, this
+/// returns the same value as `calculate_information_score`.
+///
+/// # Arguments
+///
+/// * `item` — The JSON item to score.
+/// * `all_items` — All items in the array (for corpus statistics).
+/// * `original_position` — Item's index in the original context.
+/// * `target_position` — Item's projected index after compression.
+/// * `context_length` — Total context length (items or tokens).
+/// * `config` — Position weight configuration.
+pub fn calculate_position_weighted_score(
+    item: &Value,
+    all_items: &[Value],
+    original_position: usize,
+    target_position: usize,
+    context_length: usize,
+    config: &PositionWeightConfig,
+) -> f64 {
+    let base_score = calculate_information_score(item, all_items);
+    pos_weighted(base_score, original_position, target_position, context_length, config)
 }
 
 fn calculate_value_uniqueness(item: &Value, all_items: &[Value]) -> f64 {
