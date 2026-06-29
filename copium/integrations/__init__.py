@@ -156,4 +156,19 @@ __all__ = [
     "get_model_name_from_agno",
     "AgnoOptimizationMetrics",
     "optimize_agno_messages",
+    # Local Model Integrations
+    "detect_local_backends",
+    "OllamaIntegration",
+    "LlamaCppIntegration",
+    "LMStudioIntegration",
+    "LocalTriageEngine",
 ]
+
+# Re-export from local subpackage (local model integrations)
+from .local import (
+    LlamaCppIntegration,
+    LMStudioIntegration,
+    LocalTriageEngine,
+    OllamaIntegration,
+    detect_local_backends,
+)
