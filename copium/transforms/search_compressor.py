@@ -86,12 +86,12 @@ class SearchCompressorConfig:
     max_matches_per_file: int = 5
     always_keep_first: bool = True
     always_keep_last: bool = True
-    max_total_matches: int = 30
-    max_files: int = 15
+    max_total_matches: int = 25
+    max_files: int = 10
     context_keywords: list[str] = field(default_factory=list)
     boost_errors: bool = True
     enable_ccr: bool = True
-    min_matches_for_ccr: int = 10
+    min_matches_for_ccr: int = 5
     # Group output by file (`rg --heading` style): path emitted once per
     # file, then `line:content` rows. Removes per-match path repetition.
     # Default False (classic `file:line:content`); the proxy enables it
