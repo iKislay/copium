@@ -5508,13 +5508,45 @@ def opencode(
 
         Uses the backup file written before injection so the restore is
         crash-resilient (survives SIGKILL, not just SIGINT/SIGTERM).
+
+        Any MCP servers added to the config during the wrapped session are
+        merged into the restored config so they are not lost.
         """
+        # Capture MCP servers added during the session (before restore
+        # overwrites the live config).
+        live_mcp: dict = {}
+        if config_path.exists():
+            try:
+                live_config = json.loads(config_path.read_text(encoding="utf-8"))
+                live_mcp = live_config.get("mcp", {})
+            except (json.JSONDecodeError, OSError):
+                pass
+
         if backup_path.exists():
             # Restore from backup (pre-wrap state)
             import shutil as _shutil
 
             _shutil.copy2(backup_path, config_path)
             backup_path.unlink(missing_ok=True)
+
+            # Merge any MCP servers added during the session into the
+            # restored config so they survive the restore.
+            if live_mcp:
+                try:
+                    restored = json.loads(config_path.read_text(encoding="utf-8"))
+                    restored_mcp = restored.get("mcp", {})
+                    for name, server in live_mcp.items():
+                        if name not in restored_mcp:
+                            restored_mcp[name] = server
+                    if restored_mcp:
+                        restored["mcp"] = restored_mcp
+                    config_path.write_text(
+                        json.dumps(restored, indent=2, ensure_ascii=False) + "\n",
+                        encoding="utf-8",
+                    )
+                except (json.JSONDecodeError, OSError):
+                    pass  # Best-effort; don't fail the restore
+
             if verbose:
                 click.echo(f"  Restored {config_path} from backup")
         elif not had_existing_config and config_path.exists():
@@ -5723,6 +5755,9 @@ _OPENCODE_BACKUP_PATH = _OPENCODE_CONFIG_PATH.with_suffix(".json.copium-backup")
 def _remove_opencode_copium_provider(config_path: Path) -> str:
     """Surgically remove the 'copium' provider and model from opencode.json.
 
+    Any MCP servers present in the live config at the time of unwrap are
+    preserved in the restored file.
+
     Returns:
         "restored" — restored from backup file (pre-wrap state).
         "cleaned"  — surgically removed copium provider/model from existing config.
@@ -5732,6 +5767,15 @@ def _remove_opencode_copium_provider(config_path: Path) -> str:
     """
     backup = config_path.with_suffix(".json.copium-backup")
 
+    # Capture MCP servers from the live config before any restore/overwrite.
+    live_mcp: dict = {}
+    if config_path.exists():
+        try:
+            live_data = json.loads(config_path.read_text(encoding="utf-8"))
+            live_mcp = live_data.get("mcp", {})
+        except (json.JSONDecodeError, OSError):
+            pass
+
     # Prefer backup restore (cleanest, byte-exact)
     if backup.exists():
         try:
@@ -5739,6 +5783,24 @@ def _remove_opencode_copium_provider(config_path: Path) -> str:
 
             _shutil.copy2(backup, config_path)
             backup.unlink(missing_ok=True)
+
+            # Merge MCP servers that were added during the wrapped session
+            if live_mcp:
+                try:
+                    restored = json.loads(config_path.read_text(encoding="utf-8"))
+                    restored_mcp = restored.get("mcp", {})
+                    for name, server in live_mcp.items():
+                        if name not in restored_mcp:
+                            restored_mcp[name] = server
+                    if restored_mcp:
+                        restored["mcp"] = restored_mcp
+                    config_path.write_text(
+                        json.dumps(restored, indent=2, ensure_ascii=False) + "\n",
+                        encoding="utf-8",
+                    )
+                except (json.JSONDecodeError, OSError):
+                    pass  # Best-effort
+
             return "restored"
         except OSError:
             pass  # Fall through to surgical removal
