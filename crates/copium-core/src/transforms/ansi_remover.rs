@@ -113,11 +113,10 @@ pub fn strip_spinners(input: &str) -> Cow<'_, str> {
 /// Strip both ANSI codes and spinner sequences in one pass.
 pub fn strip_all(input: &str) -> Cow<'_, str> {
     let no_ansi = strip_ansi(input);
-    let no_spinners = strip_spinners(&no_ansi);
 
-    match (no_ansi, no_spinners) {
-        (Cow::Borrowed(_), Cow::Borrowed(_)) => Cow::Borrowed(input),
-        (_, owned) => owned,
+    match no_ansi {
+        Cow::Borrowed(_) => strip_spinners(input),
+        Cow::Owned(ref s) => strip_spinners(s),
     }
 }
 

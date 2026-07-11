@@ -164,9 +164,8 @@ pub fn compress_docker_build(input: &str) -> Cow<'_, str> {
     }
 
     if removed > 0 {
-        lines.push(&format!("  ({removed} download/progress lines removed)"));
         // We can't return a reference to a local, so build the string
-        let mut result = lines[..lines.len() - 1].join("\n");
+        let mut result = lines.join("\n");
         result.push_str(&format!("\n  ({removed} download/progress lines removed)"));
         Cow::Owned(result)
     } else {

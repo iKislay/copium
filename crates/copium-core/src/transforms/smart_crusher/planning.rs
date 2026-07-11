@@ -637,9 +637,8 @@ fn for_each_anomaly(
 // Position-aware reordering (Phase 2: SmartCrusher integration)
 // ============================================================================
 
-use crate::transforms::position_aware::{
-    PositionWeightConfig, optimize_kept_order as position_reorder,
-};
+use crate::transforms::position_aware::PositionWeightConfig;
+use crate::transforms::position_aware::scoring::optimize_kept_order as position_reorder;
 
 /// Apply position-aware reordering to a compression plan's keep_indices.
 ///
@@ -688,6 +687,7 @@ pub fn apply_position_aware_reordering(
                 );
                 crate::relevance::RelevanceScore {
                     score: density,
+                    reason: "information_density".into(),
                     matched_terms: vec![],
                 }
             })
