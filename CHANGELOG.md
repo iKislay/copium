@@ -1,3 +1,27 @@
+## [0.26.9](https://github.com/iKislay/copium/compare/v0.26.8...v0.26.9) (2026-07-16)
+
+### Fixed
+- **Non-destructive Claude Code settings**: `copium wrap`/`unwrap`/`init` no
+  longer clobber `~/.claude/settings.json`. User-set `env.ANTHROPIC_BASE_URL`
+  (e.g. custom API providers), `enabledPlugins`, `mcpServers` and other keys
+  are preserved. Copium records the original env values in a ledger
+  (`~/.copium/claude_env_backup.json`), snapshots the file once to
+  `settings.json.copium-backup`, and restores the exact originals on unwrap.
+  Copium-injected hooks (`rtk-rewrite`, `copium compress-read/-search`) are now
+  disclosed on wrap and fully reverted on unwrap.
+- **External `rtk init` guard**: keys dropped by `rtk init --global`'s template
+  rewrite are restored afterward; a corrupted file is rewritten verbatim from
+  the pre-run snapshot.
+- **compress() silently returned originals**: `ANSIRemover` built
+  `TransformResult` with an invalid `tokens_saved` kwarg (and omitted the
+  required `tokens_before`/`tokens_after`), so every `compress()` call raised
+  `TypeError`, was swallowed by the pipeline, and returned uncompressed
+  messages with zero savings.
+- **Module shadowing**: `copium/hooks.py` and `copium/shared_context.py` were
+  shadowed by same-named package directories, breaking
+  `import copium.hooks` / `from copium import SharedContext`. Both moved into
+  their packages as `base.py` and re-exported.
+
 ## Unreleased
 
 ### Added
