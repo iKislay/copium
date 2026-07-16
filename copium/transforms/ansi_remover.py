@@ -103,12 +103,17 @@ class ANSIRemover(Transform):
         **kwargs: Any,
     ) -> TransformResult:
         """Strip ANSI from all tool result content."""
+        tokens_before = sum(tokenizer.count_text(str(m.get("content", ""))) for m in messages)
         if not self.config.enabled:
-            return TransformResult(messages=messages, transforms_applied=[])
+            return TransformResult(
+                messages=messages,
+                tokens_before=tokens_before,
+                tokens_after=tokens_before,
+                transforms_applied=[],
+            )
 
         frozen_count = kwargs.get("frozen_message_count", 0)
         modified = False
-        tokens_saved = 0
 
         for i, msg in enumerate(messages):
             if i < frozen_count:
@@ -134,20 +139,19 @@ class ANSIRemover(Transform):
             if "\x1b" not in content and "\r" not in content:
                 continue
 
-            original_len = len(content)
             cleaned = self._clean(content)
 
             if cleaned != content:
                 msg["content"] = cleaned
                 modified = True
-                # Estimate token savings (chars/4 approximation)
-                tokens_saved += (original_len - len(cleaned)) // 4
 
         transforms = ["ansi_remover"] if modified else []
+        tokens_after = sum(tokenizer.count_text(str(m.get("content", ""))) for m in messages)
         return TransformResult(
             messages=messages,
+            tokens_before=tokens_before,
+            tokens_after=tokens_after,
             transforms_applied=transforms,
-            tokens_saved=tokens_saved,
         )
 
     def _process_parts(
