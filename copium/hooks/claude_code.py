@@ -99,7 +99,8 @@ def write_hook_settings(
 
     Args:
         config: Hook configuration.
-        merge: If True, merge with existing settings. If False, overwrite hooks.
+        merge: If True, merge with existing hooks. If False, replace the
+            ``hooks`` key. All other settings keys are always preserved.
 
     Returns:
         Path to the written settings file.
@@ -107,11 +108,15 @@ def write_hook_settings(
     config = config or ClaudeCodeHookConfig()
     settings_file = config.settings_dir / "settings.json"
 
-    # Load existing settings if merging
+    # Always load the existing settings: only the "hooks" key is Copium's to
+    # manage. Overwriting the whole file would destroy user config (env,
+    # apiKeyHelper, mcpServers, enabledPlugins, ...).
     existing: dict[str, Any] = {}
-    if merge and settings_file.exists():
+    if settings_file.exists():
         try:
-            existing = json.loads(settings_file.read_text(encoding="utf-8"))
+            loaded = json.loads(settings_file.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                existing = loaded
         except (json.JSONDecodeError, OSError):
             existing = {}
 
@@ -129,7 +134,7 @@ def write_hook_settings(
             existing_hooks.extend(hooks)
             existing.setdefault("hooks", {})[event] = existing_hooks
     else:
-        existing.update(new_settings)
+        existing["hooks"] = new_settings["hooks"]
 
     # Write settings
     config.settings_dir.mkdir(parents=True, exist_ok=True)
