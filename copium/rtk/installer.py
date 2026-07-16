@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import json
 import logging
 import os
 import platform
@@ -159,15 +160,68 @@ def download_rtk(version: str | None = None) -> Path:
     return target_path
 
 
+def _claude_settings_file() -> Path:
+    base = os.environ.get("CLAUDE_CONFIG_DIR") or str(Path.home() / ".claude")
+    return Path(base).expanduser() / "settings.json"
+
+
+def _read_settings_dict(path: Path) -> dict | None:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _guard_settings_after_external_write(path: Path, before: dict | None) -> None:
+    """Re-add any settings keys an external tool deleted from settings.json.
+
+    ``rtk init`` rewrites the file; older builds template it, silently
+    dropping user keys (env.ANTHROPIC_BASE_URL, apiKeyHelper, mcpServers,
+    enabledPlugins, ...). Whatever the external tool added or changed is
+    kept — only deletions are undone.
+    """
+    if before is None:
+        return
+    from copium.claude_settings import restore_deleted_keys
+
+    after = _read_settings_dict(path)
+    if after is None:
+        # File destroyed or corrupted — put the original back verbatim.
+        try:
+            path.write_text(json.dumps(before, indent=2) + "\n", encoding="utf-8")
+            logger.warning("restored %s after external tool corrupted it", path)
+        except OSError:
+            pass
+        return
+    restored = restore_deleted_keys(before, after)
+    if restored:
+        try:
+            path.write_text(json.dumps(after, indent=2) + "\n", encoding="utf-8")
+            logger.warning("restored settings deleted by rtk init: %s", ", ".join(restored))
+        except OSError:
+            pass
+
+
 def register_claude_hooks(rtk_path: Path | None = None) -> bool:
     """Register rtk hooks in Claude Code settings.
 
     Runs `rtk init --global` which adds a PreToolUse hook to
     ~/.claude/settings.json that rewrites Bash commands through rtk.
+    The pre-existing settings are snapshotted first and any keys the
+    external binary drops are restored afterwards, so user config
+    (custom ANTHROPIC_BASE_URL, plugins, MCP servers) survives.
 
     Returns True if hooks were registered successfully.
     """
     rtk_path = rtk_path or RTK_BIN_PATH
+
+    settings_file = _claude_settings_file()
+    before = _read_settings_dict(settings_file)
+    if before is not None:
+        from copium.claude_settings import backup_settings_once
+
+        backup_settings_once(settings_file)
 
     try:
         result = subprocess.run(
@@ -187,6 +241,8 @@ def register_claude_hooks(rtk_path: Path | None = None) -> bool:
     except Exception as e:
         logger.warning("Failed to register rtk hooks: %s", e)
         return False
+    finally:
+        _guard_settings_after_external_write(settings_file, before)
 
 
 def ensure_rtk(version: str | None = None) -> Path | None:
