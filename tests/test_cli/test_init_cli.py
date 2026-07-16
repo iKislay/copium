@@ -177,6 +177,12 @@ def test_init_claude_local_writes_settings_and_installs_marketplace(
     monkeypatch.chdir(tmp_path)
     marketplace_calls: list[str] = []
     monkeypatch.setattr(init_cli, "_ensure_runtime_manifest", lambda **kwargs: "init-local-demo")
+    # Keep the run inside tmp_path: without these stubs the command writes the
+    # real ~/.copium/config.toml and registers MCP servers with real agents.
+    monkeypatch.setattr(init_cli, "_install_copium_mcp_for_targets", lambda **kwargs: None)
+    monkeypatch.setattr(
+        init_cli, "_create_global_config", lambda port, backend: tmp_path / "config.toml"
+    )
     monkeypatch.setattr(
         init_cli,
         "_install_claude_marketplace",
@@ -1262,10 +1268,19 @@ def test_init_openclaw_propagates_nonzero_exit(monkeypatch) -> None:
     assert exc.value.code == 9
 
 
-def test_run_init_targets_dispatches_supported_targets(monkeypatch) -> None:
+def test_run_init_targets_dispatches_supported_targets(monkeypatch, tmp_path) -> None:
     init_cli, _ = _load_init_module(monkeypatch)
     calls: list[tuple[str, tuple[object, ...]]] = []
     monkeypatch.setattr(init_cli, "_ensure_runtime_manifest", lambda **kwargs: "init-profile")
+    # Stub every side-effectful step so the test never touches the real HOME
+    # (previously it patched ~/.bashrc / ~/.zshrc and wrote ~/.copium/config.toml,
+    # then crashed on the interactive shell-prompt offer).
+    monkeypatch.setattr(init_cli, "_install_copium_mcp_for_targets", lambda **kwargs: None)
+    monkeypatch.setattr(init_cli, "_patch_shell_rc_files", lambda port: [])
+    monkeypatch.setattr(
+        init_cli, "_create_global_config", lambda port, backend: tmp_path / "config.toml"
+    )
+    monkeypatch.setattr(init_cli, "_offer_shell_prompt_integration", lambda rc_files: None)
     monkeypatch.setattr(
         init_cli,
         "_init_claude",
