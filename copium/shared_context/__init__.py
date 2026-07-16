@@ -24,6 +24,7 @@ Usage:
 """
 
 from copium.shared_context.audit_log import AuditAction, AuditLog, AuditRecord
+from copium.shared_context.base import ContextEntry, SharedContext, SharedContextStats
 from copium.shared_context.conflict_resolver import (
     ConflictResolver,
     ConflictResult,
@@ -43,6 +44,9 @@ from copium.shared_context.provenance import (
 from copium.shared_context.vector_index import VectorIndex, VectorSearchResult
 
 __all__ = [
+    "ContextEntry",
+    "SharedContext",
+    "SharedContextStats",
     "PersistentSharedContext",
     "PersistentStore",
     "PersistentContextEntry",
