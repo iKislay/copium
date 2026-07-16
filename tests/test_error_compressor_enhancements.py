@@ -29,8 +29,7 @@ src/lib.rs: error[E0308]: mismatched types
         assert "2 files" in result
 
     def test_no_grouping_for_single_error(self):
-        text = "src/a.ts: error TS2322: Type mismatch
-"
+        text = "src/a.ts: error TS2322: Type mismatch\n"
         result = _group_build_errors(text)
         # Should not add grouping for single error
         assert "files" not in result
@@ -70,9 +69,7 @@ Downloading
         assert "error: compilation failed" in result
 
     def test_no_changes_without_docker(self):
-        text = "just normal text
-nothing docker here
-"
+        text = "just normal text\nnothing docker here\n"
         result = _compress_docker_build(text)
         assert "removed" not in result
 

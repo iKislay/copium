@@ -14,8 +14,7 @@ class TestClaudeCodeAdapter:
         from copium.session.adapters.claude_code import ClaudeCodeAdapter
         adapter = ClaudeCodeAdapter()
         with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as f:
-            f.write(json.dumps({"type": "human", "message": {"role": "user", "content": "hello"}}) + "
-")
+            f.write(json.dumps({"type": "human", "message": {"role": "user", "content": "hello"}}) + "\n")
             path = Path(f.name)
         assert adapter.detect(path)
         path.unlink()
@@ -24,10 +23,8 @@ class TestClaudeCodeAdapter:
         from copium.session.adapters.claude_code import ClaudeCodeAdapter
         adapter = ClaudeCodeAdapter()
         with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as f:
-            f.write(json.dumps({"type": "human", "message": {"role": "user", "content": "Fix bug"}}) + "
-")
-            f.write(json.dumps({"type": "assistant", "message": {"role": "assistant", "content": "Fixed."}}) + "
-")
+            f.write(json.dumps({"type": "human", "message": {"role": "user", "content": "Fix bug"}}) + "\n")
+            f.write(json.dumps({"type": "assistant", "message": {"role": "assistant", "content": "Fixed."}}) + "\n")
             path = Path(f.name)
         messages = adapter.parse(path)
         assert len(messages) == 2
@@ -39,8 +36,7 @@ class TestClaudeCodeAdapter:
         from copium.session.adapters.claude_code import ClaudeCodeAdapter
         adapter = ClaudeCodeAdapter()
         with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as f:
-            f.write(json.dumps({"type": "human", "message": {"role": "user", "content": "hello"}}) + "
-")
+            f.write(json.dumps({"type": "human", "message": {"role": "user", "content": "hello"}}) + "\n")
             path = Path(f.name)
         messages = adapter.parse(path)
         out_path = Path(f.name + "_out.jsonl")
@@ -81,8 +77,7 @@ class TestAiderAdapter:
         from copium.session.adapters.aider import AiderAdapter
         adapter = AiderAdapter()
         with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", dir="/tmp", prefix="aider_", delete=False) as f:
-            f.write(json.dumps({"role": "user", "content": "fix"}) + "
-")
+            f.write(json.dumps({"role": "user", "content": "fix"}) + "\n")
             path = Path(f.name)
         assert adapter.detect(path)
         path.unlink()
@@ -91,12 +86,7 @@ class TestAiderAdapter:
         from copium.session.adapters.aider import AiderAdapter
         adapter = AiderAdapter()
         with tempfile.NamedTemporaryFile(mode="w", suffix=".aider.chat.history.md", delete=False) as f:
-            f.write("#### user
-Fix the bug
-
-#### assistant
-Fixed it.
-")
+            f.write("#### user\nFix the bug\n\n#### assistant\nFixed it.\n")
             path = Path(f.name)
         messages = adapter.parse(path)
         assert len(messages) == 2
@@ -140,8 +130,7 @@ class TestAdapterRegistry:
     def test_detect_adapter_claude(self):
         from copium.session.adapters import detect_adapter
         with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as f:
-            f.write(json.dumps({"type": "human", "message": {"role": "user", "content": "hi"}}) + "
-")
+            f.write(json.dumps({"type": "human", "message": {"role": "user", "content": "hi"}}) + "\n")
             path = Path(f.name)
         adapter = detect_adapter(path)
         assert adapter is not None

@@ -33,8 +33,7 @@ class TestSessionSearch:
     def test_index_and_search(self, searcher, sample_messages, tmp_path):
         # Create a fake session file
         session_path = tmp_path / "session.jsonl"
-        session_path.write_text("
-".join([
+        session_path.write_text("\n".join([
             json.dumps({"type": m.type, "message": {"role": m.role, "content": m.content}})
             for m in sample_messages
         ]))
