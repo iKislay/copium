@@ -548,11 +548,13 @@ def _register_copium_hooks(verbose: bool = False) -> None:
     }
 
     changed = False
+    # Resolve the PreToolUse list once — fetching it per-iteration returned a
+    # fresh list each time when the key was absent, silently dropping all but
+    # the last matcher's hook.
+    pre_use = hooks.get("PreToolUse", [])
+    if not isinstance(pre_use, list):
+        pre_use = []
     for matcher, command in copium_hooks.items():
-        pre_use = hooks.get("PreToolUse", [])
-        if not isinstance(pre_use, list):
-            pre_use = []
-
         # Check if our hook already exists for this matcher
         has_hook = False
         for entry in pre_use:
@@ -576,10 +578,17 @@ def _register_copium_hooks(verbose: bool = False) -> None:
             }
             pre_use.append(new_entry)
             changed = True
-            if verbose:
-                click.echo(f"  Copium hook registered: {matcher} -> {command}")
+            click.echo(
+                f"  Claude hook added: {matcher} -> {command} "
+                "(reverted by `copium unwrap claude`)"
+            )
 
     if changed:
+        from copium.claude_settings import backup_settings_once
+
+        backup = backup_settings_once(settings_path)
+        if backup and verbose:
+            click.echo(f"  Backed up original settings to {backup}")
         hooks["PreToolUse"] = pre_use
         payload["hooks"] = hooks
         settings_path.parent.mkdir(parents=True, exist_ok=True)
@@ -634,11 +643,19 @@ def _setup_lean_ctx_agent(agent: str, verbose: bool = False) -> Path | None:
 
 
 # Hook-command markers Copium manages in Claude settings.json. unwrap drops
-# any hook entry whose command contains one of these.
-_COPIUM_HOOK_MARKERS = ("rtk-rewrite", "copium-init-claude")
+# any hook entry whose command contains one of these. The compress hooks are
+# injected by _register_copium_hooks during `wrap claude`, so unwrap must know
+# them too — otherwise they survive unwrap forever (GH bug: irreversible hooks).
+_COPIUM_HOOK_MARKERS = (
+    "rtk-rewrite",
+    "copium-init-claude",
+    "copium compress-read",
+    "copium compress-search",
+)
 
-# Env vars Copium's init/wrap inject into Claude settings.json; unwrap removes
-# them. ENABLE_TOOL_SEARCH keeps Claude Code's tool deferral on behind the proxy
+# Env vars Copium's init/wrap inject into Claude settings.json; unwrap restores
+# their pre-Copium originals (or removes them when Copium added them).
+# ENABLE_TOOL_SEARCH keeps Claude Code's tool deferral on behind the proxy
 # (GH #746), paired with init/wrap setting it.
 _COPIUM_ENV_KEYS = ("ANTHROPIC_BASE_URL", "ENABLE_TOOL_SEARCH")
 
@@ -646,13 +663,15 @@ _COPIUM_ENV_KEYS = ("ANTHROPIC_BASE_URL", "ENABLE_TOOL_SEARCH")
 def _remove_claude_rtk_hooks(settings_path: Path | None = None) -> bool:
     """Remove Copium-managed entries from Claude settings.json.
 
-    Reverses what ``copium init claude`` and ``rtk init --auto-patch`` add:
-      * PreToolUse / SessionStart hooks whose command contains a Copium marker
-        (``rtk-rewrite`` or ``copium-init-claude``), and
-      * the ``ANTHROPIC_BASE_URL`` proxy-routing env var.
-    Unrelated settings and user-authored hooks are left untouched. (Previously
-    this only matched ``rtk-rewrite`` and returned early when no hooks existed,
-    so init's env + hooks survived unwrap.)
+    Reverses what ``copium init claude``, ``copium wrap claude`` and
+    ``rtk init --auto-patch`` add:
+      * hooks whose command contains a Copium marker (``rtk-rewrite``,
+        ``copium-init-claude``, ``copium compress-read/-search``), and
+      * the proxy-routing env vars — restored to their recorded pre-Copium
+        originals when a ledger entry exists, deleted only when the current
+        value is recognisably Copium's (loopback proxy URL / tool-search
+        default). User-owned endpoints are never touched.
+    Unrelated settings and user-authored hooks are left untouched.
     """
 
     path = settings_path or (Path.home() / ".claude" / "settings.json")
@@ -712,13 +731,40 @@ def _remove_claude_rtk_hooks(settings_path: Path | None = None) -> bool:
         else:
             payload.pop("hooks", None)
 
-    # Remove the proxy-routing env that init/wrap injected (ANTHROPIC_BASE_URL and
-    # ENABLE_TOOL_SEARCH), even when no hooks remain (the early-return bug skipped
-    # this). List-comp, not any(), so every key is popped (no short-circuit).
+    # Restore the pre-Copium value of every env key init/wrap manage
+    # (ANTHROPIC_BASE_URL and ENABLE_TOOL_SEARCH), even when no hooks remain
+    # (the early-return bug skipped this). A value Copium never wrote — e.g. a
+    # user's custom endpoint like https://cc.freemodel.dev — is NEVER deleted:
+    # only loopback proxy URLs / the tool-search default are treated as ours,
+    # and ledger-recorded originals are put back instead of dropped.
+    from copium.claude_settings import is_copium_proxy_url, pop_env_original
+
     env = payload.get("env")
     if isinstance(env, dict):
-        removed_keys = [k for k in _COPIUM_ENV_KEYS if env.pop(k, None) is not None]
-        if removed_keys:
+        env_changed = False
+        for key in _COPIUM_ENV_KEYS:
+            recorded, original = pop_env_original(path, key)
+            current = env.get(key)
+            copium_managed = (
+                is_copium_proxy_url(current)
+                if key == "ANTHROPIC_BASE_URL"
+                else current == _TOOL_SEARCH_DEFAULT
+            )
+            if recorded:
+                if not copium_managed:
+                    continue  # user changed it after wrap — keep their value
+                if original is None:
+                    if env.pop(key, None) is not None:
+                        env_changed = True
+                elif current != original:
+                    env[key] = original
+                    env_changed = True
+            elif copium_managed and key in env:
+                # Pre-ledger wrap: no original recorded, so removal is the
+                # only safe restore for values Copium recognisably wrote.
+                env.pop(key, None)
+                env_changed = True
+        if env_changed:
             changed = True
             if env:
                 payload["env"] = env

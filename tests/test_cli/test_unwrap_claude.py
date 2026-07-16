@@ -321,3 +321,170 @@ def test_remove_claude_rtk_hooks_strips_enable_tool_search(tmp_path: Path) -> No
 
     payload = json.loads(settings.read_text(encoding="utf-8"))
     assert payload["env"] == {"KEEP": "1"}
+
+
+def test_remove_claude_rtk_hooks_preserves_user_custom_base_url(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The reported bug: a user-owned custom endpoint (freemodel.dev,
+    # OpenRouter, Ollama gateway, ...) must NEVER be deleted by unwrap.
+    monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path / ".copium"))
+    settings = tmp_path / "settings.json"
+    settings.write_text(
+        json.dumps(
+            {
+                "env": {
+                    "ANTHROPIC_API_KEY": "fe_oa_x",
+                    "ANTHROPIC_BASE_URL": "https://cc.freemodel.dev",
+                    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+                }
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    assert wrap_cli._remove_claude_rtk_hooks(settings) is False
+
+    payload = json.loads(settings.read_text(encoding="utf-8"))
+    assert payload["env"]["ANTHROPIC_BASE_URL"] == "https://cc.freemodel.dev"
+    assert payload["env"]["ANTHROPIC_API_KEY"] == "fe_oa_x"
+
+
+def test_remove_claude_rtk_hooks_restores_recorded_original(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # init recorded the pre-Copium value -> unwrap restores it instead of
+    # deleting the key.
+    monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path / ".copium"))
+    from copium.claude_settings import record_env_original
+
+    settings = tmp_path / "settings.json"
+    record_env_original(settings, "ANTHROPIC_BASE_URL", "https://cc.freemodel.dev")
+    record_env_original(settings, "ENABLE_TOOL_SEARCH", None)
+    settings.write_text(
+        json.dumps(
+            {
+                "env": {
+                    "ANTHROPIC_BASE_URL": "http://127.0.0.1:8787",
+                    "ENABLE_TOOL_SEARCH": "true",
+                    "KEEP": "1",
+                }
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    assert wrap_cli._remove_claude_rtk_hooks(settings) is True
+
+    payload = json.loads(settings.read_text(encoding="utf-8"))
+    assert payload["env"] == {
+        "ANTHROPIC_BASE_URL": "https://cc.freemodel.dev",
+        "KEEP": "1",
+    }
+
+
+def test_remove_claude_rtk_hooks_keeps_value_user_changed_after_wrap(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Ledger has an original, but the user has since pointed the key at
+    # their own endpoint -> unwrap must not clobber the newer user value.
+    monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path / ".copium"))
+    from copium.claude_settings import record_env_original
+
+    settings = tmp_path / "settings.json"
+    record_env_original(settings, "ANTHROPIC_BASE_URL", "https://old.example.com")
+    settings.write_text(
+        json.dumps({"env": {"ANTHROPIC_BASE_URL": "https://new.example.com"}}) + "\n",
+        encoding="utf-8",
+    )
+
+    assert wrap_cli._remove_claude_rtk_hooks(settings) is False
+    payload = json.loads(settings.read_text(encoding="utf-8"))
+    assert payload["env"]["ANTHROPIC_BASE_URL"] == "https://new.example.com"
+
+
+def test_remove_claude_rtk_hooks_removes_compress_hooks(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # wrap claude injects compress-read/compress-search hooks; unwrap must
+    # remove them (previously they were irreversible).
+    monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path / ".copium"))
+    settings = tmp_path / "settings.json"
+    settings.write_text(
+        json.dumps(
+            {
+                "hooks": {
+                    "PreToolUse": [
+                        {
+                            "matcher": "Read",
+                            "hooks": [
+                                {
+                                    "type": "command",
+                                    "command": "copium compress-read --max-lines 200",
+                                }
+                            ],
+                        },
+                        {
+                            "matcher": "Grep",
+                            "hooks": [
+                                {
+                                    "type": "command",
+                                    "command": "copium compress-search --max-results 50",
+                                }
+                            ],
+                        },
+                        {
+                            "matcher": "Bash",
+                            "hooks": [{"type": "command", "command": "echo keep"}],
+                        },
+                    ]
+                }
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    assert wrap_cli._remove_claude_rtk_hooks(settings) is True
+
+    payload = json.loads(settings.read_text(encoding="utf-8"))
+    assert payload["hooks"]["PreToolUse"] == [
+        {"matcher": "Bash", "hooks": [{"type": "command", "command": "echo keep"}]}
+    ]
+
+
+def test_init_then_unwrap_round_trips_settings(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Full round-trip: `copium init claude` rewrites env, `unwrap claude`
+    # restores the user's file to what it was.
+    monkeypatch.setenv("COPIUM_WORKSPACE_DIR", str(tmp_path / ".copium"))
+    from copium.cli.init import _ensure_claude_hooks
+
+    settings = tmp_path / "settings.json"
+    original_env = {
+        "ANTHROPIC_API_KEY": "fe_oa_x",
+        "ANTHROPIC_BASE_URL": "https://cc.freemodel.dev",
+        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    }
+    settings.write_text(
+        json.dumps({"env": dict(original_env), "enabledPlugins": {"pw@m": True}}) + "\n",
+        encoding="utf-8",
+    )
+
+    _ensure_claude_hooks(settings, profile="p", port=8787)
+
+    wrapped = json.loads(settings.read_text(encoding="utf-8"))
+    assert wrapped["env"]["ANTHROPIC_BASE_URL"] == "http://127.0.0.1:8787"
+    assert wrapped["enabledPlugins"] == {"pw@m": True}
+    # Pre-modification backup was taken
+    assert (tmp_path / "settings.json.copium-backup").exists()
+
+    assert wrap_cli._remove_claude_rtk_hooks(settings) is True
+
+    restored = json.loads(settings.read_text(encoding="utf-8"))
+    assert restored["env"] == original_env
+    assert restored["enabledPlugins"] == {"pw@m": True}
+    assert "hooks" not in restored

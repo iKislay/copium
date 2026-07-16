@@ -476,8 +476,22 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
 
 def _ensure_claude_hooks(path: Path, profile: str, port: int) -> None:
     logger.debug("ensure claude hooks: %s (profile=%s, port=%s)", path, profile, port)
+    from copium.claude_settings import (
+        backup_settings_once,
+        is_copium_proxy_url,
+        record_env_original,
+    )
+
     payload = _json_file(path)
     env_map = dict(payload.get("env") or {}) if isinstance(payload.get("env"), dict) else {}
+    backup_settings_once(path)
+    # Record the pre-Copium originals so `copium unwrap claude` restores the
+    # user's own values (custom endpoints, proxies) instead of deleting them.
+    # First record wins, so re-running init while already pointed at the
+    # Copium proxy never overwrites the true original with our own URL.
+    if not is_copium_proxy_url(env_map.get("ANTHROPIC_BASE_URL")):
+        record_env_original(path, "ANTHROPIC_BASE_URL", env_map.get("ANTHROPIC_BASE_URL"))
+    record_env_original(path, TOOL_SEARCH_ENV, env_map.get(TOOL_SEARCH_ENV))
     env_map["ANTHROPIC_BASE_URL"] = f"http://127.0.0.1:{port}"
     # GH #746: with a custom ANTHROPIC_BASE_URL and ENABLE_TOOL_SEARCH unset,
     # Claude Code stops deferring MCP/system tool schemas and materializes them
