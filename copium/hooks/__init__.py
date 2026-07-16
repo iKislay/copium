@@ -9,7 +9,7 @@ Provides:
 - Claude Code hook integration (claude_code module)
 """
 
-from ..hooks import CompressContext, CompressEvent, CompressionHooks
+from .base import CompressContext, CompressEvent, CompressionHooks
 from .compaction import (
     EntropyScorer,
     InputPriorityHooks,

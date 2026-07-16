@@ -20,7 +20,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 from typing import Any
 
-from ..hooks import CompressContext, CompressEvent, CompressionHooks
+from .base import CompressContext, CompressEvent, CompressionHooks
 
 
 @dataclass
