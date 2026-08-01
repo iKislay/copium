@@ -129,7 +129,7 @@ jobs:
           toolchain: 1.95.0
       - uses: Swatinem/rust-cache@v2
       - name: Install cargo-audit + cargo-deny
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@v2.85.4
         with:
           tool: cargo-audit,cargo-deny
       - name: cargo audit (soft-fail)
